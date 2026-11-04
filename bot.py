@@ -3,7 +3,7 @@ import json
 import os
 import re
 import unicodedata
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -621,6 +621,11 @@ def settle_picks(state):
         try:
             match = match_detail(pick["slug"], pick)
             if not match:
+                print(
+                    f"ROZLICZENIE OCZEKUJE: brak szczegółów/archiwum SportScore dla "
+                    f"{pick.get('home')} - {pick.get('away')} ({pick.get('key')}).",
+                    flush=True,
+                )
                 continue
 
             baseline_home = as_int(pick.get("score_home"))
@@ -634,6 +639,11 @@ def settle_picks(state):
             current_total = home_now + away_now if home_now is not None and away_now is not None else None
             finished = final_status(match)
             now = now_local()
+            print(
+                f"Sprawdzam rozliczenie {pick.get('key')}: wynik={home_now}-{away_now}, "
+                f"status={status!r}, finished={finished}, minuta={minute}",
+                flush=True,
+            )
 
             target_total = None
             target_score = None
@@ -660,7 +670,12 @@ def settle_picks(state):
                     target_score = f"{home_now}-{away_now}" if current_total is not None else None
                 elif finished:
                     # If provider omits HT score, do not infer it from the FT score.
-                    print(f"Brak wyniku HT dla typu {pick.get('key')} — czekam na dane API.")
+                    print(
+                        f"BRAK WYNIKU HT dla {pick.get('key')}; "
+                        f"rekord API ma pola: {', '.join(sorted(str(k) for k in match.keys()))}. "
+                        "Nie rozliczam z wyniku FT, żeby nie podać błędnego rezultatu.",
+                        flush=True,
+                    )
                     continue
             else:
                 target_total = current_total
