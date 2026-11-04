@@ -548,6 +548,8 @@ def main():
                             detail = match_detail(slug)
                             if detail:
                                 match.update(detail)
+                                print(f"[{index}] SZCZEGÓŁY SportScore — pola: {sorted(str(k) for k in detail.keys())}", flush=True)
+                                print(f"[{index}] SZCZEGÓŁY SportScore — próbka: {json.dumps(detail, ensure_ascii=False)[:5000]}", flush=True)
                         except Exception as exc:
                             stats["detail_error"] += 1
                             print(f"[{index}] Błąd szczegółów meczu {slug}: {type(exc).__name__}: {exc}", flush=True)
