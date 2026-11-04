@@ -449,7 +449,9 @@ def main():
                         stats["missing_minute"] += 1
                         continue
 
-                    market = "HT" if 29 <= minute <= 33 else "FT" if 69 <= minute <= 73 else None
+                    # Skan działa co 5 minut, więc nie ograniczamy alertu do wąskiego okna 29-33/69-73.
+                    # HT: od 30. minuty do przerwy; FT: od 70. minuty do końca meczu.
+                    market = "HT" if 30 <= minute <= 45 else "FT" if 70 <= minute <= 90 else None
                     if market is None:
                         stats["outside_window"] += 1
                         continue
