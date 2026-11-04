@@ -167,7 +167,9 @@ def match_stats_look_promising(match):
             if not isinstance(item, dict):
                 continue
             name = str(first(item, "name", "type", "key", "label", default="")).lower()
-            value = first(item, "value", "total", "home")
+            value = first(item, "value", "total")
+            if value is None and ("home" in item or "away" in item):
+                value = {"home": item.get("home"), "away": item.get("away")}
             if name:
                 flattened[name] = value
         stats = flattened
