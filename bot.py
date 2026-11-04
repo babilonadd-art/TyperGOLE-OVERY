@@ -146,21 +146,32 @@ def score_and_minute(match):
 
 
 def match_identifier(match):
-    # SportScore list records do not always expose the same identifier key.
-    value = first(
-        match, "id", "fixture_id", "fixtureId", "event_id", "eventId",
-        "match_id", "matchId", "slug", "match_slug", "uuid", default=""
+    # SportScore's documented widget match object uses a slug (not necessarily
+    # a numeric id). Accept identifiers from either the record or its wrappers.
+    keys = (
+        "slug", "match_slug", "id", "fixture_id", "fixtureId",
+        "event_id", "eventId", "match_id", "matchId", "uuid",
     )
+    value = first(match, *keys, default="")
     if value:
         return str(value)
     for container_key in ("match", "fixture", "event", "data"):
         nested = match.get(container_key)
         if isinstance(nested, dict):
-            value = first(
-                nested, "id", "fixture_id", "fixtureId", "event_id",
-                "eventId", "match_id", "matchId", "slug", "match_slug",
-                "uuid", default=""
-            )
+            value = first(nested, *keys, default="")
+            if value:
+                return str(value)
+    return ""
+
+
+def match_slug(match):
+    value = first(match, "slug", "match_slug", default="")
+    if value:
+        return str(value)
+    for container_key in ("match", "fixture", "event", "data"):
+        nested = match.get(container_key)
+        if isinstance(nested, dict):
+            value = first(nested, "slug", "match_slug", default="")
             if value:
                 return str(value)
     return ""
@@ -413,7 +424,7 @@ def main():
                     continue
 
                 try:
-                    slug = first(raw, "slug", "match_slug")
+                    slug = match_slug(raw)
                     match = dict(raw)
                     if slug:
                         try:
