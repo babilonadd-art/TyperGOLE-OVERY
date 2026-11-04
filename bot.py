@@ -753,7 +753,7 @@ def settle_picks(state):
             if manual:
                 won = bool(manual.get("won"))
                 score_text = str(manual.get("score", "brak"))
-                result_text = "WYGRANA" if won else "PRZEGRANA"
+                result_text = "🟢 WYGRANA" if won else "🔴 PRZEGRANA"
                 period_label = "do HT" if pick.get("market") == "HT" else "do FT"
                 telegram(
                     f"⚽ ROZLICZENIE: {result_text}\\n"
@@ -872,7 +872,7 @@ def settle_picks(state):
                     continue
                 won = False
 
-            result_text = "WYGRANA" if won else "PRZEGRANA"
+            result_text = "🟢 WYGRANA" if won else "🔴 PRZEGRANA"
             score_text = target_score or "brak"
             telegram(
                 f"⚽ ROZLICZENIE: {result_text}\\n{pick['home']} - {pick['away']}\\n"
