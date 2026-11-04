@@ -1,10 +1,7 @@
 name: TyperGOLE-OVERY Live Bot
 
 on:
-  # Jednorazowy test po poprawce rozliczania; usunę po uruchomieniu testu.
-  push:
-    paths:
-      - "bot.py"
+  # Kod aktualizujemy bez automatycznego skanowania; test po poprawce uruchomiono ręcznie przez commit.
   workflow_dispatch:
   schedule:
     - cron: "*/5 * * * *"
