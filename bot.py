@@ -556,6 +556,8 @@ def settle_picks(state):
     confirmation_seconds = 180
 
     for pick in state["picks"]:
+        if pick.get("delivery_status", "sent") != "sent":
+            continue
         if pick.get("settled") or not pick.get("slug"):
             continue
         try:
@@ -846,16 +848,21 @@ def main():
                         "settled": False,
                     }
                     market_text = f"Over {goal_line:.1f} gola do {'HT' if market == 'HT' else 'FT'}"
-                    telegram(
-                        f"⚽ TYP LIVE — {market_text}\n{home} - {away}\n"
-                        f"Liga: {league}\nMinuta: {minute}' | Wynik: {home_score}:{away_score}\n"
-                        f"Kurs Bet365: {live_price['odds']:.2f}\n"
-                        f"Stawka: {STAKE:.0f} zł\n\n{ATTRIBUTION}"
-                    )
+                    # Reserve the fixture+market key BEFORE calling Telegram. If Telegram
+                    # accepts the message but the HTTP response is lost, the next scan
+                    # must not send the same pick again with a changed price.
+                    pick["delivery_status"] = "pending"
                     state["picks"].append(pick)
                     todays_picks.append(pick)
-                    # Telegram accepted the pick: persist it immediately, not only at
-                    # the end of the whole scan. This prevents lost picks on a later error.
+                    save_state(state)
+
+                    telegram(
+                        f"⚽ TYP LIVE — {market_text}\\n{home} - {away}\\n"
+                        f"Liga: {league}\\nMinuta: {minute}' | Wynik: {home_score}:{away_score}\\n"
+                        f"Kurs Bet365: {live_price['odds']:.2f}\\n"
+                        f"Stawka: {STAKE:.0f} zł\\n\\n{ATTRIBUTION}"
+                    )
+                    pick["delivery_status"] = "sent"
                     save_state(state)
                     stats["sent"] += 1
                     print(f"WYSŁANO I ZAPISANO TYP: {home} - {away}, {minute}', {market}", flush=True)
