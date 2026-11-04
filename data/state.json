@@ -1,0 +1,33 @@
+{
+  "picks": [
+    {
+      "key": "jw2r09h5lp8drz8:HT",
+      "id": "jw2r09h5lp8drz8",
+      "slug": "bragantino-women-vs-internacional-women",
+      "home": "Internacional Women",
+      "away": "Bragantino Women",
+      "league": "Brazilian Women's Cup",
+      "minute": 32,
+      "score_home": 2,
+      "score_away": 0,
+      "market": "HT",
+      "date": "2026-11-05",
+      "stake": 50.0,
+      "odds": 2.6,
+      "odds_source": "Bet365",
+      "odds_market": "1st Half Goal Line (2-0)",
+      "odds_updated_at": "2026-11-04T23:04:23.098034566Z",
+      "goal_line": 2.5,
+      "live_metrics": {
+        "shots": 7,
+        "shots_on_target": 3,
+        "shots_off_target": 4,
+        "attacks": 58,
+        "dangerous_attacks": 28
+      },
+      "signal_score": 3,
+      "settled": false
+    }
+  ],
+  "reports_sent": []
+}
