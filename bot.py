@@ -19,6 +19,7 @@ STAKE = 50.0
 MAX_DAILY_PICKS = 4
 HEADERS = {"User-Agent": "TyperGOLE-OVERY/1.0", "Accept": "application/json"}
 ATTRIBUTION = "Powered by SportScore: https://sportscore.com/"
+MIN_LIVE_ODDS = 1.80
 
 
 def now_local():
@@ -976,7 +977,7 @@ def main():
             stats = {
                 "bad_item": 0, "detail_error": 0, "missing_id": 0,
 "missing_minute": 0, "outside_window": 0,
-                "duplicate": 0, "no_promising_stats": 0, "odds_no_match": 0, "odds_missing": 0, "sent": 0, "errors": 0,
+                "duplicate": 0, "no_promising_stats": 0, "odds_no_match": 0, "odds_missing": 0, "odds_below_min": 0, "sent": 0, "errors": 0,
             }
 
             try:
@@ -1066,6 +1067,14 @@ def main():
                     if not live_price:
                         stats["odds_missing"] += 1
                         print(f"[{index}] Brak aktywnego kursu Bet365 dla Over {goal_line:.1f} {market}; typ pominięty.", flush=True)
+                        continue
+                    if float(live_price["odds"]) < MIN_LIVE_ODDS:
+                        stats["odds_below_min"] += 1
+                        print(
+                            f"[{index}] Kurs {live_price['odds']:.2f} dla {market} poniżej minimum "
+                            f"{MIN_LIVE_ODDS:.2f}; typ pominięty.",
+                            flush=True,
+                        )
                         continue
 
                     pick = {
