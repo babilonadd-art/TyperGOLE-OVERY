@@ -116,14 +116,33 @@ def parse_minute(match):
     minute = as_int(first(match, "minute", "elapsed", "time_elapsed", "current_minute", "elapsed_minute", "currentMinute"))
     if minute is not None:
         return minute
-    status_text = str(first(match, "status_text", "time", "elapsed_time", "status", default=""))
+    status_text = str(first(match, "status_text", "elapsed_time", "status", default=""))
     # SportScore may express the live clock as e.g. 32' or 45+2'.
     match_minute = re.search(r"(\d{1,3})(?:\s*\+\s*\d+)?\s*['′’]", status_text)
     if match_minute:
         return int(match_minute.group(1))
     status = first(match, "status", "state", "match_status", default="")
     if isinstance(status, dict):
-        return as_int(first(status, "minute", "elapsed"))
+        nested_minute = as_int(first(status, "minute", "elapsed"))
+        if nested_minute is not None:
+            return nested_minute
+        status = first(status, "short", "long", "name", default="")
+    phase = str(first(match, "status_text", default=status)).strip().lower()
+    # The live fixtures feed often gives only "1st half"/"2nd half" and
+    # the kickoff timestamp. Estimate the match clock from elapsed wall time.
+    kickoff = first(match, "time", "start_time", "kickoff", "date")
+    if kickoff and any(x in phase for x in ("half", "1h", "2h", "live", "in play")):
+        try:
+            start = datetime.fromisoformat(str(kickoff).replace("Z", "+00:00"))
+            if start.tzinfo is None:
+                start = start.replace(tzinfo=timezone.utc)
+            elapsed = (datetime.now(timezone.utc) - start.astimezone(timezone.utc)).total_seconds() / 60
+            if 0 <= elapsed <= 125:
+                if "2nd" in phase or "second" in phase or "2h" in phase:
+                    return max(46, min(125, int(elapsed - 15)))
+                return max(1, min(60, int(elapsed)))
+        except (TypeError, ValueError, OverflowError):
+            pass
     return None
 
 
