@@ -146,7 +146,24 @@ def score_and_minute(match):
 
 
 def match_identifier(match):
-    return str(first(match, "id", "fixture_id", "event_id", "match_id", "slug", default=""))
+    # SportScore list records do not always expose the same identifier key.
+    value = first(
+        match, "id", "fixture_id", "fixtureId", "event_id", "eventId",
+        "match_id", "matchId", "slug", "match_slug", "uuid", default=""
+    )
+    if value:
+        return str(value)
+    for container_key in ("match", "fixture", "event", "data"):
+        nested = match.get(container_key)
+        if isinstance(nested, dict):
+            value = first(
+                nested, "id", "fixture_id", "fixtureId", "event_id",
+                "eventId", "match_id", "matchId", "slug", "match_slug",
+                "uuid", default=""
+            )
+            if value:
+                return str(value)
+    return ""
 
 
 def stat_number(value):
@@ -236,7 +253,7 @@ def current_live_matches():
         is_live_status = any(token in status_text for token in (
             "live", "in play", "in progress", "1h", "2h", "half time", "halftime", "ht"
         ))
-        has_live_clock = bool(re.search(r"\\d{1,3}(?:\\s*\\+\\s*\\d+)?\\s*['′’]", clock_text))
+        has_live_clock = bool(re.search(r"\d{1,3}(?:\s*\+\s*\d+)?\s*['′’]", clock_text))
         is_finished = any(token in status_text for token in (
             "finished", "full time", "full-time", "ended", "complete", "ft"
         ))
@@ -368,6 +385,19 @@ def main():
             print(f"API SportScore: pobrano {len(matches)} meczów live", flush=True)
             if not matches:
                 print("UWAGA: API zwróciło 0 meczów. Sprawdź odpowiedź endpointu fixtures/live.", flush=True)
+
+            if matches:
+                sample = matches[0]
+                print(
+                    "Przykładowe pola rekordu SportScore: "
+                    + ", ".join(sorted(str(k) for k in sample.keys())),
+                    flush=True,
+                )
+                print(
+                    "Przykładowy rekord (bez danych wrażliwych): "
+                    + json.dumps(sample, ensure_ascii=False)[:1800],
+                    flush=True,
+                )
 
             stats = {
                 "bad_item": 0, "detail_error": 0, "missing_id": 0,
