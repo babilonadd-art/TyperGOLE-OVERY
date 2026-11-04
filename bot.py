@@ -349,14 +349,21 @@ def settle_picks(state):
                 ft_home = as_int(first(match, "home_score", "homeScore"))
                 ft_away = as_int(first(match, "away_score", "awayScore"))
 
+            baseline_home = as_int(pick.get("score_home"))
+            baseline_away = as_int(pick.get("score_away"))
+            # Legacy picks without a saved starting score cannot be graded safely.
+            if baseline_home is None or baseline_away is None:
+                print(f"Pomijam rozliczenie typu bez wyniku początkowego: {pick.get('key')}")
+                continue
+            baseline_total = baseline_home + baseline_away
             if pick["market"] == "HT":
                 if ht_home is None or ht_away is None:
                     continue
-                won = ht_home + ht_away >= 1
+                won = (ht_home + ht_away) > baseline_total
             else:
                 if ft_home is None or ft_away is None:
                     continue
-                won = ft_home + ft_away >= 1
+                won = (ft_home + ft_away) > baseline_total
 
             # Only mark settled after Telegram confirms the notification.
             result_text = "WYGRANA" if won else "PRZEGRANA"
@@ -449,7 +456,7 @@ def main():
 
             stats = {
                 "bad_item": 0, "detail_error": 0, "missing_id": 0,
-                "not_0_0": 0, "missing_minute": 0, "outside_window": 0,
+"missing_minute": 0, "outside_window": 0,
                 "duplicate": 0, "no_shot_stats": 0, "sent": 0, "errors": 0,
             }
 
@@ -464,11 +471,7 @@ def main():
                 try:
                     slug = match_slug(raw)
                     match = dict(raw)
-                    # Skip clearly unsuitable scorelines before making a detail request.
                     raw_home, raw_away, raw_minute, raw_status = score_and_minute(raw)
-                    if raw_home is not None and raw_away is not None and (raw_home != 0 or raw_away != 0):
-                        stats["not_0_0"] += 1
-                        continue
                     if slug:
                         try:
                             detail = match_detail(slug)
@@ -485,8 +488,8 @@ def main():
                         continue
 
                     home_score, away_score, minute, status = score_and_minute(match)
-                    if home_score != 0 or away_score != 0:
-                        stats["not_0_0"] += 1
+                    if home_score is None or away_score is None:
+                        print(f"[{index}] Brak aktualnego wyniku — pomijam typ.", flush=True)
                         continue
                     if minute is None:
                         stats["missing_minute"] += 1
@@ -520,6 +523,8 @@ def main():
                         "away": away,
                         "league": str(league),
                         "minute": minute,
+                        "score_home": home_score,
+                        "score_away": away_score,
                         "market": market,
                         "date": today,
                         "stake": STAKE,
@@ -529,7 +534,7 @@ def main():
                     market_text = "Over 0.5 gola do HT" if market == "HT" else "Over 0.5 gola do FT"
                     telegram(
                         f"⚽ TYP LIVE — {market_text}\n{home} - {away}\n"
-                        f"Liga: {league}\nMinuta: {minute}' | Wynik: 0:0\n"
+                        f"Liga: {league}\nMinuta: {minute}' | Wynik: {home_score}:{away_score}\n"
                         f"Stawka: {STAKE:.0f} zł\nKurs: niedostępny\n\n{ATTRIBUTION}"
                     )
                     state["picks"].append(pick)
