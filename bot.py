@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 TZ = ZoneInfo("Europe/Warsaw")
-API = "https://sportscore.com/api/v1"
+API = "https://sportscore.com"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
@@ -116,7 +116,7 @@ def parse_minute(match):
     minute = as_int(first(match, "minute", "elapsed", "time_elapsed", "current_minute"))
     if minute is not None:
         return minute
-    status_text = str(first(match, "status_text", "time", "elapsed_time", default=""))
+    status_text = str(first(match, "status_text", "time", "elapsed_time", "status", default=""))
     # SportScore may express the live clock as e.g. 32' or 45+2'.
     match_minute = re.search(r"(\d{1,3})(?:\s*\+\s*\d+)?\s*['′’]", status_text)
     if match_minute:
@@ -229,14 +229,13 @@ def telegram(message):
 def match_detail(slug):
     if not slug:
         return {}
-    return unwrap_match(api_get("match/", {"sport": "football", "slug": slug}))
+    return unwrap_match(api_get("/api/widget/match/", {"sport": "football", "slug": slug}))
 
 
 def current_live_matches():
-    # /fixtures/ returns serialized fixture records without the slug required
-    # by /match/. The documented /matches/ alias returns live match objects
-    # with a slug, score and status, so use that endpoint for live scanning.
-    payload = api_get("matches/", {
+    # Official SportScore endpoint: GET /api/widget/matches/
+    # The API base is https://sportscore.com; do not use the obsolete /api/v1 path.
+    payload = api_get("/api/widget/matches/", {
         "sport": "football",
         "limit": 50,
     })
