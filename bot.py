@@ -1,6 +1,8 @@
+import difflib
 import json
 import os
 import re
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -9,6 +11,7 @@ import requests
 
 TZ = ZoneInfo("Europe/Warsaw")
 API = "https://sportscore.com"
+MOVIODDS_API = "https://moviodds.com"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
@@ -51,6 +54,132 @@ def api_get(path, params=None):
     response.raise_for_status()
     payload = response.json()
     return payload if isinstance(payload, dict) else {"data": payload}
+
+
+def moviodds_live_matches():
+    """Fetch Bet365's current in-play soccer board. No API key is required."""
+    response = requests.get(
+        f"{MOVIODDS_API}/odds",
+        params={"sport": "soccer", "in_play": 1},
+        headers={**HEADERS, "Accept-Encoding": "gzip"},
+        timeout=30,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    matches = payload.get("matches", []) if isinstance(payload, dict) else []
+    if not isinstance(matches, list):
+        raise RuntimeError("MoviOdds returned an unexpected matches payload")
+    live = [item for item in matches if isinstance(item, dict) and item.get("in_play") is True]
+    print(f"MoviOdds/Bet365: {len(live)} meczów live z kursami", flush=True)
+    return live
+
+
+def normalized_team_name(value):
+    value = unicodedata.normalize("NFKD", str(value or ""))
+    value = value.encode("ascii", "ignore").decode("ascii").lower()
+    tokens = re.findall(r"[a-z0-9]+", value)
+    ignored = {"fc", "cf", "sc", "afc", "club", "the", "football"}
+    return " ".join(token for token in tokens if token not in ignored)
+
+
+def team_name_similarity(left, right):
+    a = normalized_team_name(left)
+    b = normalized_team_name(right)
+    if not a or not b:
+        return 0.0
+    if a == b:
+        return 1.0
+    if a in b or b in a:
+        return 0.92
+    ratio = difflib.SequenceMatcher(None, a, b).ratio()
+    at, bt = set(a.split()), set(b.split())
+    token_ratio = len(at & bt) / max(1, len(at | bt))
+    return max(ratio, token_ratio)
+
+
+def find_moviodds_match(home, away, odds_matches):
+    """Match both teams in either orientation; reject weak or ambiguous matches."""
+    candidates = []
+    for item in odds_matches:
+        direct_home = team_name_similarity(home, item.get("home"))
+        direct_away = team_name_similarity(away, item.get("away"))
+        direct = min(direct_home, direct_away)
+        reverse_home = team_name_similarity(home, item.get("away"))
+        reverse_away = team_name_similarity(away, item.get("home"))
+        reverse = min(reverse_home, reverse_away)
+        best = max(direct, reverse)
+        if (direct >= 0.78 and direct_home + direct_away >= 1.62) or (
+            reverse >= 0.78 and reverse_home + reverse_away >= 1.62
+        ):
+            candidates.append((best, item))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda pair: pair[0], reverse=True)
+    if len(candidates) > 1 and candidates[0][0] - candidates[1][0] < 0.025:
+        return None
+    return candidates[0][1]
+
+
+def parse_odds_line(quote):
+    value = first(quote, "line", "handicap")
+    if value is not None:
+        match = re.search(r"\d+(?:[.,]\d+)?", str(value))
+        if match:
+            return float(match.group().replace(",", "."))
+    label = str(first(quote, "label", "name", default=""))
+    match = re.search(r"(?:over|under)\s*(\d+(?:[.,]\d+)?)", label, re.I)
+    return float(match.group(1).replace(",", ".")) if match else None
+
+
+def extract_live_over_odds(odds_match, market, target_line):
+    """Return an active Bet365 in-play Over price for the requested period/line."""
+    quotes = odds_match.get("quotes", [])
+    if not isinstance(quotes, list):
+        return None
+    for quote in quotes:
+        if not isinstance(quote, dict):
+            continue
+        if str(quote.get("phase", "")).lower() != "inplay":
+            continue
+        if quote.get("suspended") is True:
+            continue
+        group_name = str(first(quote, "group_name", "market", default="")).strip().lower()
+        if market == "HT":
+            allowed = group_name in {
+                "1st half goal line", "1st half goals", "first half goal line"
+            } or group_name.startswith("1st half goal line")
+        else:
+            allowed = group_name in {
+                "goal line", "alternative total goals", "goals over/under", "match goals"
+            }
+        if not allowed:
+            continue
+        side = str(first(quote, "side", default="")).strip().lower()
+        label = str(first(quote, "label", "name", default="")).strip().lower()
+        if side != "over" and not label.startswith("over"):
+            continue
+        line = parse_odds_line(quote)
+        if line is None or abs(line - target_line) > 0.01:
+            continue
+        group_status = odds_match.get("group_status", {})
+        if isinstance(group_status, dict):
+            status = group_status.get(str(quote.get("group_id")), {})
+            if isinstance(status, dict) and status.get("stale") is True:
+                continue
+        try:
+            odds = float(quote.get("odds_dec"))
+        except (TypeError, ValueError):
+            continue
+        if odds <= 1.0:
+            continue
+        return {
+            "odds": odds,
+            "source": "Bet365",
+            "market": first(quote, "group_name", default="Goal Line"),
+            "line": line,
+            "updated_at": quote.get("ts"),
+        }
+    return None
 
 
 def first(obj, *keys, default=None):
@@ -465,7 +594,7 @@ def settle_picks(state):
             score_text = target_score or "brak"
             telegram(
                 f"⚽ ROZLICZENIE: {result_text}\\n{pick['home']} - {pick['away']}\\n"
-                f"Typ: Over 0.5 gola {'do HT' if pick['market'] == 'HT' else 'do FT'}\\n"
+                f"Typ: Over {float(pick.get('goal_line', 0.5)):.1f} gola {'do HT' if pick['market'] == 'HT' else 'do FT'}\\n"
                 f"Stawka: {STAKE:.0f} zł\\nWynik: {score_text}\\n"
                 f"Potwierdzenie wyniku: 3 min (bufor VAR)\\n\\n{ATTRIBUTION}"
             )
@@ -555,8 +684,14 @@ def main():
             stats = {
                 "bad_item": 0, "detail_error": 0, "missing_id": 0,
 "missing_minute": 0, "outside_window": 0,
-                "duplicate": 0, "no_promising_stats": 0, "sent": 0, "errors": 0,
+                "duplicate": 0, "no_promising_stats": 0, "odds_no_match": 0, "odds_missing": 0, "sent": 0, "errors": 0,
             }
+
+            try:
+                odds_matches = moviodds_live_matches()
+            except Exception as exc:
+                odds_matches = []
+                print(f"BŁĄD POBIERANIA KURSÓW MOVIODDS: {type(exc).__name__}: {exc}", flush=True)
 
             for index, raw in enumerate(matches, start=1):
                 if len(todays_picks) >= MAX_DAILY_PICKS:
@@ -620,6 +755,19 @@ def main():
                     if isinstance(league, dict):
                         league = first(league, "name", "title", default="Liga nieznana")
 
+                    # Pick the next half-goal line above the current score.
+                    goal_line = round(home_score + away_score + 0.5, 1)
+                    odds_fixture = find_moviodds_match(home, away, odds_matches)
+                    if not odds_fixture:
+                        stats["odds_no_match"] += 1
+                        print(f"[{index}] Brak jednoznacznego meczu w MoviOdds dla {home} - {away}; typ pominięty.", flush=True)
+                        continue
+                    live_price = extract_live_over_odds(odds_fixture, market, goal_line)
+                    if not live_price:
+                        stats["odds_missing"] += 1
+                        print(f"[{index}] Brak aktywnego kursu Bet365 dla Over {goal_line:.1f} {market}; typ pominięty.", flush=True)
+                        continue
+
                     pick = {
                         "key": key,
                         "id": identifier,
@@ -633,16 +781,21 @@ def main():
                         "market": market,
                         "date": today,
                         "stake": STAKE,
-                        "odds": None,
+                        "odds": live_price["odds"],
+                        "odds_source": live_price["source"],
+                        "odds_market": live_price["market"],
+                        "odds_updated_at": live_price.get("updated_at"),
+                        "goal_line": goal_line,
                         "live_metrics": metrics,
                         "signal_score": signal_score,
                         "settled": False,
                     }
-                    market_text = "Over 0.5 gola do HT" if market == "HT" else "Over 0.5 gola do FT"
+                    market_text = f"Over {goal_line:.1f} gola do {'HT' if market == 'HT' else 'FT'}"
                     telegram(
                         f"⚽ TYP LIVE — {market_text}\n{home} - {away}\n"
                         f"Liga: {league}\nMinuta: {minute}' | Wynik: {home_score}:{away_score}\n"
-                        f"Stawka: {STAKE:.0f} zł\nKurs: niedostępny\n\n{ATTRIBUTION}"
+                        f"Kurs Bet365: {live_price['odds']:.2f}\n"
+                        f"Stawka: {STAKE:.0f} zł\n\n{ATTRIBUTION}"
                     )
                     state["picks"].append(pick)
                     todays_picks.append(pick)
