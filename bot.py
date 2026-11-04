@@ -668,15 +668,59 @@ def current_live_matches():
 
 def score_pair(value):
     if isinstance(value, dict):
-        return (
-            as_int(first(value, "home", "home_score", "homeScore")),
-            as_int(first(value, "away", "away_score", "awayScore")),
-        )
+        home = as_int(first(value, "home", "home_score", "homeScore", "local"))
+        away = as_int(first(value, "away", "away_score", "awayScore", "visitor"))
+        if home is not None and away is not None:
+            return home, away
+        for key in ("score", "result", "value", "goals"):
+            if key in value:
+                pair = score_pair(value[key])
+                if pair[0] is not None and pair[1] is not None:
+                    return pair
+        return None, None
+    if isinstance(value, (list, tuple)) and len(value) >= 2:
+        return as_int(value[0]), as_int(value[1])
     if isinstance(value, str):
-        nums = re.findall(r"\d+", value)
+        nums = re.findall(r"\\d+", value)
         if len(nums) >= 2:
             return as_int(nums[0]), as_int(nums[1])
     return None, None
+
+
+def extract_half_time_score(match):
+    """Find explicit HT/first-half score in flat or nested provider data."""
+    preferred = ("half_time_score", "halftime_score", "ht_score", "score_ht", "half_time", "halftime")
+    for key in preferred:
+        if isinstance(match, dict) and key in match:
+            pair = score_pair(match[key])
+            if pair[0] is not None and pair[1] is not None:
+                return pair
+
+    def walk(obj, depth=0):
+        if depth > 5:
+            return None
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                normalized = re.sub(r"[^a-z0-9]", "", str(key).lower())
+                if normalized in {
+                    "ht", "htscore", "halftime", "halftimescore", "firsthalf",
+                    "firsthalfscore", "period1", "period1score", "scoreht", "score1h"
+                }:
+                    pair = score_pair(value)
+                    if pair[0] is not None and pair[1] is not None:
+                        return pair
+            for value in obj.values():
+                found = walk(value, depth + 1)
+                if found is not None:
+                    return found
+        elif isinstance(obj, list):
+            for value in obj:
+                found = walk(value, depth + 1)
+                if found is not None:
+                    return found
+        return None
+
+    return walk(match) or (None, None)
 
 
 def final_status(match):
@@ -702,9 +746,37 @@ def settle_picks(state):
     for pick in state["picks"]:
         if pick.get("delivery_status", "sent") != "sent":
             continue
-        if pick.get("settled") or not pick.get("slug"):
+        if pick.get("settled"):
             continue
         try:
+            manual = pick.get("manual_result")
+            if manual:
+                won = bool(manual.get("won"))
+                score_text = str(manual.get("score", "brak"))
+                result_text = "WYGRANA" if won else "PRZEGRANA"
+                period_label = "do HT" if pick.get("market") == "HT" else "do FT"
+                telegram(
+                    f"⚽ ROZLICZENIE: {result_text}\\n"
+                    f"{pick['home']} - {pick['away']}\\n"
+                    f"Typ: Over {float(pick.get('goal_line', 0.5)):.1f} gola {period_label}\\n"
+                    f"Kurs: {float(pick.get('odds', 0)):.2f} ({pick.get('odds_source', 'zapisany')})\\n"
+                    f"Stawka: {STAKE:.0f} zł\\nWynik: {score_text}\\n"
+                    f"Rozliczenie na podstawie potwierdzonego wyniku okresu.\\n\\n{ATTRIBUTION}"
+                )
+                pick["settled"] = True
+                pick["won"] = won
+                pick["settled_score"] = score_text
+                pick["settled_at"] = now_local().isoformat()
+                pick["settlement_method"] = "user_confirmed"
+                pick.pop("manual_result", None)
+                pick.pop("goal_pending_since", None)
+                save_state(state)
+                print(f"ROZLICZONO RĘCZNIE: {pick.get('key')} -> {result_text}", flush=True)
+                continue
+
+            if not pick.get("slug"):
+                print(f"ROZLICZENIE OCZEKUJE: brak slug dla {pick.get('key')}", flush=True)
+                continue
             match = match_detail(pick["slug"], pick)
             if not match:
                 print(
@@ -742,9 +814,7 @@ def settle_picks(state):
             period_complete = False
 
             if pick["market"] == "HT":
-                ht_home, ht_away = score_pair(first(
-                    match, "half_time_score", "halftime_score", "ht_score", "score_ht", "half_time"
-                ))
+                ht_home, ht_away = extract_half_time_score(match)
                 status_text = str(status or "").lower()
                 halftime_reached = (
                     finished
