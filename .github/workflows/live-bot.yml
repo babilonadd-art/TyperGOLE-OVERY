@@ -1,11 +1,8 @@
 name: TyperGOLE-OVERY Live Bot
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'bot.py'
-      - '.github/workflows/live-bot.yml'
+  # Kod aktualizujemy bez automatycznego skanowania — zapobiega to
+  # podwójnym wysyłkom po kilku commitach jeden po drugim.
   workflow_dispatch:
   schedule:
     - cron: "*/5 * * * *"
@@ -22,9 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
-      - name: Checkout repository
+      - name: Checkout latest main (including saved pick state)
         uses: actions/checkout@v4
         with:
+          ref: main
           persist-credentials: true
       - name: Set up Python
         uses: actions/setup-python@v5
