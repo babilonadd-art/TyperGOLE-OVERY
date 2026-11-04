@@ -540,6 +540,43 @@ def match_detail(slug, pick=None):
             team_slugs = [part for part in slug.split("-vs-", 1) if part]
         queries = [None] + team_slugs
 
+        # Team schedule is another documented route to recent finished
+        # fixtures and is not constrained by the daily 200-row archive cap.
+        for team_slug in team_slugs:
+            try:
+                payload = api_get("/api/v1/team/", {
+                    "sport": "football", "slug": team_slug, "limit": 50,
+                })
+                fixtures = extract_matches(payload)
+                print(
+                    f"Harmonogram drużyny {team_slug}: {len(fixtures)} rekordów",
+                    flush=True,
+                )
+                for fixture in fixtures:
+                    if not isinstance(fixture, dict):
+                        continue
+                    fixture_id = match_identifier(fixture) or id_from_url(
+                        first(fixture, "url", "match_url", "link", default="")
+                    )
+                    if pick.get("id") and fixture_id and str(pick["id"]).lower() == fixture_id.lower():
+                        print(f"Harmonogram: dopasowanie po ID {fixture_id}", flush=True)
+                        return fixture
+                    fh, fa = teams(fixture)
+                    if (
+                        normalized_team_name(fh) == normalized_team_name(pick.get("home"))
+                        and normalized_team_name(fa) == normalized_team_name(pick.get("away"))
+                    ) or (
+                        normalized_team_name(fh) == normalized_team_name(pick.get("away"))
+                        and normalized_team_name(fa) == normalized_team_name(pick.get("home"))
+                    ):
+                        print("Harmonogram: dopasowanie po nazwach drużyn", flush=True)
+                        return fixture
+            except Exception as exc:
+                print(
+                    f"Harmonogram drużyny {team_slug}: {type(exc).__name__}: {exc}",
+                    flush=True,
+                )
+
         for day in dict.fromkeys(dates):
             for team_slug in queries:
                 params = {
@@ -685,6 +722,12 @@ def settle_picks(state):
             baseline_total = baseline_home + baseline_away
 
             home_now, away_now, minute, status = score_and_minute(match)
+            print(
+                f"Szczegóły rozliczenia {pick.get('key')}: pola={','.join(sorted(str(k) for k in match.keys()))}; "
+                f"HT={first(match, 'half_time_score', 'halftime_score', 'ht_score', 'score_ht', 'half_time')!r}; "
+                f"events={type(first(match, 'events', 'timeline', 'incidents')).__name__}",
+                flush=True,
+            )
             current_total = home_now + away_now if home_now is not None and away_now is not None else None
             finished = final_status(match)
             now = now_local()
