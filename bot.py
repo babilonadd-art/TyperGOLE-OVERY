@@ -498,9 +498,9 @@ def telegram(message):
 # Settlement lookup supports both live detail and the finished-fixture archive.
 def match_detail(slug, pick=None):
     """
-    Fetch current detail, but never let a stale LIVE response mask a finished
-    fixture in the archive. Prefer the finished archive whenever a pick is
-    being settled; keep the detail response only as a fallback.
+    Fetch match detail and search finished fixtures. The daily archive is
+    capped at 200 rows, so also query the documented team filter to find
+    fixtures that fall outside the first 200 results.
     """
     live_detail = {}
     if slug:
@@ -510,8 +510,6 @@ def match_detail(slug, pick=None):
                 if detail and first(detail, "home", "away", "status", "home_score", "score") is not None:
                     if final_status(detail):
                         return detail
-                    # Remember the most complete live detail, but keep looking
-                    # for the finished version below.
                     if not live_detail or (
                         score_and_minute(detail)[0] is not None
                         and score_and_minute(detail)[1] is not None
@@ -535,37 +533,60 @@ def match_detail(slug, pick=None):
         except (TypeError, ValueError):
             pass
 
+        # Slug contains both team slugs: home-vs-away. Query each team separately
+        # because a full day's archive may contain more than the 200-row cap.
+        team_slugs = []
+        if slug and "-vs-" in slug:
+            team_slugs = [part for part in slug.split("-vs-", 1) if part]
+        queries = [None] + team_slugs
+
         for day in dict.fromkeys(dates):
-            try:
-                payload = api_get("/api/v1/fixtures/", {
+            for team_slug in queries:
+                params = {
                     "sport": "football", "date": day.isoformat(),
                     "status": "finished", "limit": 200,
-                })
-                fixtures = extract_matches(payload)
-                print(f"Archiwum finished {day}: {len(fixtures)} rekordów dla {pick.get('home')} - {pick.get('away')}", flush=True)
-                for fixture in fixtures:
-                    if not isinstance(fixture, dict):
-                        continue
-                    fixture_id = match_identifier(fixture) or id_from_url(
-                        first(fixture, "url", "match_url", "link", default="")
+                }
+                if team_slug:
+                    params["team"] = team_slug
+                try:
+                    payload = api_get("/api/v1/fixtures/", params)
+                    fixtures = extract_matches(payload)
+                    print(
+                        f"Archiwum finished {day} team={team_slug or 'ALL'}: "
+                        f"{len(fixtures)} rekordów dla {pick.get('home')} - {pick.get('away')}",
+                        flush=True,
                     )
-                    if pick.get("id") and fixture_id and str(pick["id"]).lower() == fixture_id.lower():
-                        print(f"Archiwum: dopasowanie po ID {fixture_id}", flush=True)
-                        return fixture
-                    fh, fa = teams(fixture)
-                    direct = (
-                        normalized_team_name(fh) == normalized_team_name(pick.get("home"))
-                        and normalized_team_name(fa) == normalized_team_name(pick.get("away"))
+                    for fixture in fixtures:
+                        if not isinstance(fixture, dict):
+                            continue
+                        fixture_id = match_identifier(fixture) or id_from_url(
+                            first(fixture, "url", "match_url", "link", default="")
+                        )
+                        if pick.get("id") and fixture_id and str(pick["id"]).lower() == fixture_id.lower():
+                            print(f"Archiwum: dopasowanie po ID {fixture_id}", flush=True)
+                            return fixture
+                        fh, fa = teams(fixture)
+                        direct = (
+                            normalized_team_name(fh) == normalized_team_name(pick.get("home"))
+                            and normalized_team_name(fa) == normalized_team_name(pick.get("away"))
+                        )
+                        reverse = (
+                            normalized_team_name(fh) == normalized_team_name(pick.get("away"))
+                            and normalized_team_name(fa) == normalized_team_name(pick.get("home"))
+                        )
+                        if direct or reverse:
+                            print(
+                                f"Archiwum: dopasowanie po nazwach drużyn "
+                                f"({'odwrócona kolejność' if reverse else 'zgodna kolejność'})",
+                                flush=True,
+                            )
+                            return fixture
+                except Exception as exc:
+                    print(
+                        f"Archiwum finished {day} team={team_slug or 'ALL'}: "
+                        f"{type(exc).__name__}: {exc}",
+                        flush=True,
                     )
-                    reverse = (
-                        normalized_team_name(fh) == normalized_team_name(pick.get("away"))
-                        and normalized_team_name(fa) == normalized_team_name(pick.get("home"))
-                    )
-                    if direct or reverse:
-                        print(f"Archiwum: dopasowanie po nazwach drużyn ({'odwrócona kolejność' if reverse else 'zgodna kolejność'})", flush=True)
-                        return fixture
-            except Exception as exc:
-                print(f"Archiwum finished {day}: {type(exc).__name__}: {exc}", flush=True)
 
     if live_detail:
         print("Archiwum nie zwróciło zakończonego meczu — używam szczegółów LIVE jako danych tymczasowych.", flush=True)
