@@ -1,6 +1,11 @@
 name: TyperGOLE-OVERY Live Bot
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'bot.py'
+      - '.github/workflows/live-bot.yml'
   workflow_dispatch:
   schedule:
     - cron: "*/5 * * * *"
