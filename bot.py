@@ -113,7 +113,7 @@ def teams(match):
 
 
 def parse_minute(match):
-    minute = as_int(first(match, "minute", "elapsed", "time_elapsed", "current_minute", "elapsed_minute", "currentMinute"))
+    minute = as_int(first(match, "minute", "live_minute", "elapsed", "time_elapsed", "current_minute", "elapsed_minute", "currentMinute"))
     if minute is not None:
         return minute
     status_text = str(first(match, "status_text", "elapsed_time", "status", default=""))
@@ -236,7 +236,7 @@ def stat_number(value):
 
 
 def live_match_metrics(match):
-    """Extract available live pressure metrics; absent provider fields stay unknown."""
+    """Extract only live shots and dangerous attacks; xG/corners are deliberately ignored."""
     stats = first(match, "statistics", "stats", "live_statistics", "match_statistics", default=None)
     if isinstance(stats, list):
         flattened = {}
@@ -253,54 +253,37 @@ def live_match_metrics(match):
     if not isinstance(stats, dict) or not stats:
         return {}
 
-    metrics = {"shots": None, "shots_on_target": None, "corners": None,
-               "dangerous_attacks": None, "xg_home": None, "xg_away": None}
+    metrics = {"shots": None, "shots_on_target": None, "shots_off_target": None,
+               "attacks": None, "dangerous_attacks": None}
     for key, value in stats.items():
         name = str(key).lower().replace("-", "_").replace(" ", "_")
         if isinstance(value, dict):
-            # xG is decimal and must remain separated by team.
-            if "xg" in name or "expected_goals" in name or "expected_goal" in name:
-                try:
-                    metrics["xg_home"] = float(first(value, "home", "home_value", "local"))
-                    metrics["xg_away"] = float(first(value, "away", "away_value", "visitor"))
-                except (TypeError, ValueError):
-                    pass
-                continue
             home = as_int(first(value, "home", "home_value", "local"))
             away = as_int(first(value, "away", "away_value", "visitor"))
-            total = (home + away) if home is not None and away is not None else stat_number(value)
+            total = home + away if home is not None and away is not None else stat_number(value)
         else:
             total = as_int(value)
-            # Some feeds expose xG as separate home/away numeric fields.
-            if name in ("home_xg", "xg_home", "home_expected_goals", "expected_goals_home"):
-                try:
-                    metrics["xg_home"] = float(value)
-                except (TypeError, ValueError):
-                    pass
-                continue
-            if name in ("away_xg", "xg_away", "away_expected_goals", "expected_goals_away"):
-                try:
-                    metrics["xg_away"] = float(value)
-                except (TypeError, ValueError):
-                    pass
-                continue
-
         if total is None:
             continue
-        if "shot" in name and ("on_target" in name or "ontarget" in name):
-            metrics["shots_on_target"] = max(metrics["shots_on_target"] or 0, total)
-        elif "shot" in name and ("total" in name or name in ("shots", "total_shots", "shots_total")):
-            metrics["shots"] = max(metrics["shots"] or 0, total)
-        elif "corner" in name:
-            metrics["corners"] = max(metrics["corners"] or 0, total)
-        elif "dangerous" in name and "attack" in name:
-            metrics["dangerous_attacks"] = max(metrics["dangerous_attacks"] or 0, total)
 
+        if "shot" in name and ("on_target" in name or "ontarget" in name):
+            metrics["shots_on_target"] = total
+        elif "shot" in name and ("off_target" in name or "offtarget" in name):
+            metrics["shots_off_target"] = total
+        elif "shot" in name and ("total" in name or name in ("shots", "total_shots", "shots_total")):
+            metrics["shots"] = total
+        elif "dangerous" in name and "attack" in name:
+            metrics["dangerous_attacks"] = total
+        elif "attack" in name:
+            metrics["attacks"] = total
+
+    if metrics["shots"] is None and metrics["shots_on_target"] is not None and metrics["shots_off_target"] is not None:
+        metrics["shots"] = metrics["shots_on_target"] + metrics["shots_off_target"]
     return metrics
 
 
 def match_stats_look_promising(match):
-    """Score several real live indicators; missing metrics never count as positive."""
+    """Require a combination of live shooting and dangerous-attack indicators."""
     m = live_match_metrics(match)
     if not m:
         return False, m, 0
@@ -309,17 +292,8 @@ def match_stats_look_promising(match):
         score += 1
     if m["shots_on_target"] is not None and m["shots_on_target"] >= 3:
         score += 2
-    if m["corners"] is not None and m["corners"] >= 5:
-        score += 1
     if m["dangerous_attacks"] is not None and m["dangerous_attacks"] >= 25:
         score += 1
-    xg_home, xg_away = m["xg_home"], m["xg_away"]
-    if xg_home is not None and xg_away is not None:
-        if xg_home + xg_away >= 1.0:
-            score += 2
-        if max(xg_home, xg_away) >= 0.7:
-            score += 1
-    # Require a combination of indicators, not just one isolated statistic.
     return score >= 2, m, score
 
 
@@ -548,8 +522,11 @@ def main():
                             detail = match_detail(slug)
                             if detail:
                                 match.update(detail)
-                                print(f"[{index}] SZCZEGÓŁY SportScore — pola: {sorted(str(k) for k in detail.keys())}", flush=True)
-                                print(f"[{index}] SZCZEGÓŁY SportScore — próbka: {json.dumps(detail, ensure_ascii=False)[:5000]}", flush=True)
+                                print(
+                                    f"[{index}] Statystyki SportScore: minuta={detail.get('live_minute')}, "
+                                    f"{live_match_metrics(detail)}",
+                                    flush=True,
+                                )
                         except Exception as exc:
                             stats["detail_error"] += 1
                             print(f"[{index}] Błąd szczegółów meczu {slug}: {type(exc).__name__}: {exc}", flush=True)
