@@ -216,15 +216,34 @@ def match_detail(slug):
 
 
 def current_live_matches():
-    # The fixtures endpoint uses UTC calendar dates.
-    utc_today = datetime.now(timezone.utc).date().isoformat()
-    payload = api_get("fixtures/", {
+    # /fixtures/ returns serialized fixture records without the slug required
+    # by /match/. The documented /matches/ alias returns live match objects
+    # with a slug, score and status, so use that endpoint for live scanning.
+    payload = api_get("matches/", {
         "sport": "football",
-        "date": utc_today,
-        "status": "live",
-        "limit": 200,
+        "limit": 50,
     })
-    return extract_matches(payload)
+    matches = extract_matches(payload)
+    live = []
+    for match in matches:
+        if not isinstance(match, dict):
+            continue
+        status_value = first(match, "status", "state", "match_status", default="")
+        if isinstance(status_value, dict):
+            status_value = first(status_value, "short", "long", "name", default="")
+        status_text = str(status_value).strip().lower()
+        clock_text = str(first(match, "status_text", "elapsed_time", "time", default=""))
+        is_live_status = any(token in status_text for token in (
+            "live", "in play", "in progress", "1h", "2h", "half time", "halftime", "ht"
+        ))
+        has_live_clock = bool(re.search(r"\\d{1,3}(?:\\s*\\+\\s*\\d+)?\\s*['′’]", clock_text))
+        is_finished = any(token in status_text for token in (
+            "finished", "full time", "full-time", "ended", "complete", "ft"
+        ))
+        if not is_finished and (is_live_status or has_live_clock):
+            live.append(match)
+    print(f"Endpoint /matches/: {len(matches)} rekordów, {len(live)} oznaczonych jako live", flush=True)
+    return live
 
 
 def score_pair(value):
