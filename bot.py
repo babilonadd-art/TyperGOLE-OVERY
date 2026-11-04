@@ -330,79 +330,127 @@ def send_daily_reports(state):
 
 
 def main():
+    print(f"=== TyperGOLE-OVERY START {now_local().isoformat()} ===", flush=True)
+    print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
+
     state = load_state()
+    print(f"Historia typów: {len(state['picks'])}; nierozliczone: {sum(1 for p in state['picks'] if not p.get('settled'))}", flush=True)
+
     # Settle older picks first; keep history across midnight.
     settle_picks(state)
 
     today = now_local().date().isoformat()
     todays_picks = [p for p in state["picks"] if p.get("date") == today]
+    print(f"Typy wysłane dzisiaj: {len(todays_picks)}/{MAX_DAILY_PICKS}", flush=True)
+
     if len(todays_picks) < MAX_DAILY_PICKS:
         try:
-            for raw in current_live_matches():
+            matches = current_live_matches()
+            print(f"API SportScore: pobrano {len(matches)} meczów live", flush=True)
+            if not matches:
+                print("UWAGA: API zwróciło 0 meczów. Sprawdź odpowiedź endpointu fixtures/live.", flush=True)
+
+            stats = {
+                "bad_item": 0, "detail_error": 0, "missing_id": 0,
+                "not_0_0": 0, "missing_minute": 0, "outside_window": 0,
+                "duplicate": 0, "no_shot_stats": 0, "sent": 0, "errors": 0,
+            }
+
+            for index, raw in enumerate(matches, start=1):
                 if len(todays_picks) >= MAX_DAILY_PICKS:
+                    print("Osiągnięto dzienny limit typów.", flush=True)
                     break
-                slug = first(raw, "slug", "match_slug")
-                match = dict(raw)
-                if slug:
-                    detail = match_detail(slug)
-                    if detail:
-                        match.update(detail)
-
-                home, away = teams(match)
-                identifier = match_identifier(match) or str(slug or "")
-                if not identifier:
-                    continue
-                home_score, away_score, minute, status = score_and_minute(match)
-                if home_score != 0 or away_score != 0 or minute is None:
+                if not isinstance(raw, dict):
+                    stats["bad_item"] += 1
                     continue
 
-                market = "HT" if 29 <= minute <= 33 else "FT" if 69 <= minute <= 73 else None
-                if market is None:
+                try:
+                    slug = first(raw, "slug", "match_slug")
+                    match = dict(raw)
+                    if slug:
+                        try:
+                            detail = match_detail(slug)
+                            if detail:
+                                match.update(detail)
+                        except Exception as exc:
+                            stats["detail_error"] += 1
+                            print(f"[{index}] Błąd szczegółów meczu {slug}: {type(exc).__name__}: {exc}", flush=True)
+
+                    home, away = teams(match)
+                    identifier = match_identifier(match) or str(slug or "")
+                    if not identifier:
+                        stats["missing_id"] += 1
+                        continue
+
+                    home_score, away_score, minute, status = score_and_minute(match)
+                    if home_score != 0 or away_score != 0:
+                        stats["not_0_0"] += 1
+                        continue
+                    if minute is None:
+                        stats["missing_minute"] += 1
+                        continue
+
+                    market = "HT" if 29 <= minute <= 33 else "FT" if 69 <= minute <= 73 else None
+                    if market is None:
+                        stats["outside_window"] += 1
+                        continue
+
+                    key = f"{identifier}:{market}"
+                    if any(p.get("key") == key for p in state["picks"]):
+                        stats["duplicate"] += 1
+                        continue
+
+                    if not match_stats_look_promising(match):
+                        stats["no_shot_stats"] += 1
+                        continue
+
+                    league = first(match, "competition_name", "competition", "league_name", default="Liga nieznana")
+                    if isinstance(league, dict):
+                        league = first(league, "name", "title", default="Liga nieznana")
+
+                    pick = {
+                        "key": key,
+                        "id": identifier,
+                        "slug": slug,
+                        "home": home,
+                        "away": away,
+                        "league": str(league),
+                        "minute": minute,
+                        "market": market,
+                        "date": today,
+                        "stake": STAKE,
+                        "odds": None,
+                        "settled": False,
+                    }
+                    market_text = "Over 0.5 gola do HT" if market == "HT" else "Over 0.5 gola do FT"
+                    telegram(
+                        f"⚽ TYP LIVE — {market_text}\n{home} - {away}\n"
+                        f"Liga: {league}\nMinuta: {minute}' | Wynik: 0:0\n"
+                        f"Stawka: {STAKE:.0f} zł\nKurs: niedostępny\n\n{ATTRIBUTION}"
+                    )
+                    state["picks"].append(pick)
+                    todays_picks.append(pick)
+                    stats["sent"] += 1
+                    print(f"WYSŁANO TYP: {home} - {away}, {minute}', {market}", flush=True)
+
+                except Exception as exc:
+                    stats["errors"] += 1
+                    print(f"[{index}] Błąd pojedynczego meczu: {type(exc).__name__}: {exc}", flush=True)
                     continue
 
-                key = f"{identifier}:{market}"
-                if any(p.get("key") == key for p in state["picks"]):
-                    continue
+            print("PODSUMOWANIE SKANU: " + json.dumps(stats, ensure_ascii=False), flush=True)
 
-                # Do not alert on a bare 0:0: require positive live shot statistics.
-                if not match_stats_look_promising(match):
-                    continue
-
-                league = first(match, "competition_name", "competition", "league_name", default="Liga nieznana")
-                if isinstance(league, dict):
-                    league = first(league, "name", "title", default="Liga nieznana")
-
-                pick = {
-                    "key": key,
-                    "id": identifier,
-                    "slug": slug,
-                    "home": home,
-                    "away": away,
-                    "league": str(league),
-                    "minute": minute,
-                    "market": market,
-                    "date": today,
-                    "stake": STAKE,
-                    "odds": None,
-                    "settled": False,
-                }
-                market_text = "Over 0.5 gola do HT" if market == "HT" else "Over 0.5 gola do FT"
-                # Save only after Telegram confirms successful delivery.
-                telegram(
-                    f"⚽ TYP LIVE — {market_text}\n{home} - {away}\n"
-                    f"Liga: {league}\nMinuta: {minute}' | Wynik: 0:0\n"
-                    f"Stawka: {STAKE:.0f} zł\nKurs: niedostępny\n\n{ATTRIBUTION}"
-                )
-                state["picks"].append(pick)
-                todays_picks.append(pick)
         except Exception as exc:
-            print(f"Live scan error: {exc}")
+            print(f"BŁĄD SKANOWANIA API: {type(exc).__name__}: {exc}", flush=True)
 
     try:
         send_daily_reports(state)
     except Exception as exc:
-        print(f"Daily report error: {exc}")
+        print(f"Daily report error: {type(exc).__name__}: {exc}", flush=True)
+
     save_state(state)
+    print(f"Stan zapisany. Typy dzisiaj: {len(todays_picks)}/{MAX_DAILY_PICKS}", flush=True)
+    print("=== TyperGOLE-OVERY END ===", flush=True)
 
 
 if __name__ == "__main__":
