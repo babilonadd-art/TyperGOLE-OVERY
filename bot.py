@@ -755,12 +755,15 @@ def settle_picks(state):
                 score_text = str(manual.get("score", "brak"))
                 result_text = "🟢 WYGRANA" if won else "🔴 PRZEGRANA"
                 period_label = "do HT" if pick.get("market") == "HT" else "do FT"
+                score_match = re.search(r"(\\d+)\\s*[-:]\\s*(\\d+)", score_text)
+                goals_text = str(int(score_match.group(1)) + int(score_match.group(2))) if score_match else "nieustalona"
                 telegram(
                     f"⚽ ROZLICZENIE: {result_text}\\n"
                     f"{pick['home']} - {pick['away']}\\n"
                     f"Typ: Over {float(pick.get('goal_line', 0.5)):.1f} gola {period_label}\\n"
                     f"Kurs: {float(pick.get('odds', 0)):.2f} ({pick.get('odds_source', 'zapisany')})\\n"
-                    f"Stawka: {STAKE:.0f} zł\\nWynik: {score_text}\\n"
+                    f"Stawka: {STAKE:.0f} zł\\nWynik {period_label}: {score_text}\\n"
+                    f"Liczba goli: {goals_text}\\n"
                     f"Rozliczenie na podstawie potwierdzonego wyniku okresu.\\n\\n{ATTRIBUTION}"
                 )
                 pick["settled"] = True
@@ -874,10 +877,15 @@ def settle_picks(state):
 
             result_text = "🟢 WYGRANA" if won else "🔴 PRZEGRANA"
             score_text = target_score or "brak"
+            score_match = re.search(r"(\\d+)\\s*[-:]\\s*(\\d+)", str(score_text))
+            goals_text = str(int(score_match.group(1)) + int(score_match.group(2))) if score_match else "nieustalona"
+            period_label = "do HT" if pick.get("market") == "HT" else "do FT"
             telegram(
                 f"⚽ ROZLICZENIE: {result_text}\\n{pick['home']} - {pick['away']}\\n"
-                f"Typ: Over {float(pick.get('goal_line', 0.5)):.1f} gola {'do HT' if pick['market'] == 'HT' else 'do FT'}\\n"
-                f"Stawka: {STAKE:.0f} zł\\nWynik: {score_text}\\n"
+                f"Typ: Over {float(pick.get('goal_line', 0.5)):.1f} gola {period_label}\\n"
+                f"Kurs: {float(pick.get('odds', 0)):.2f} ({pick.get('odds_source', 'zapisany')})\\n"
+                f"Stawka: {STAKE:.0f} zł\\nWynik {period_label}: {score_text}\\n"
+                f"Liczba goli: {goals_text}\\n"
                 f"Potwierdzenie wyniku: 3 min (bufor VAR)\\n\\n{ATTRIBUTION}"
             )
             pick["settled"] = True
