@@ -60,7 +60,8 @@
       },
       "signal_score": 2,
       "settled": false,
-      "delivery_status": "sent"
+      "delivery_status": "sent",
+      "goal_pending_since": "2026-11-05T00:43:27.232178+01:00"
     },
     {
       "key": "3glrw7hndkl5qdy:FT",
@@ -90,7 +91,8 @@
       },
       "signal_score": 4,
       "settled": false,
-      "delivery_status": "sent"
+      "delivery_status": "sent",
+      "goal_pending_since": "2026-11-05T00:43:27.749832+01:00"
     },
     {
       "key": "vjxm8ghkv11or6o:FT",
@@ -120,7 +122,8 @@
       },
       "signal_score": 4,
       "settled": false,
-      "delivery_status": "sent"
+      "delivery_status": "sent",
+      "goal_pending_since": "2026-11-05T00:43:28.292634+01:00"
     }
   ],
   "reports_sent": []
