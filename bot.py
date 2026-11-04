@@ -435,7 +435,7 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market):
     wanted_id = str(identifier or "").strip().lower()
 
     for old in state.get("picks", []):
-        if old.get("date") != match_date or old.get("market") != market:
+        if old.get("market") != market:
             continue
 
         old_id = str(old.get("id") or "").strip().lower()
@@ -443,6 +443,10 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market):
         if wanted_id and (old_id == wanted_id or old_key.startswith(wanted_id + ":")):
             return True
 
+        # Team-name fallback is date-scoped to avoid treating a later rematch
+        # between the same clubs as the already-sent fixture.
+        if old.get("date") != match_date:
+            continue
         old_home = normalized_team_name(old.get("home"))
         old_away = normalized_team_name(old.get("away"))
         same_teams = (
