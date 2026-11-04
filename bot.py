@@ -495,6 +495,7 @@ def telegram(message):
         raise RuntimeError(f"Telegram API error: {result}")
 
 
+# Settlement lookup supports both live detail and the finished-fixture archive.
 def match_detail(slug, pick=None):
     if slug:
         # Try both documented detail aliases; either may return the completed score.
