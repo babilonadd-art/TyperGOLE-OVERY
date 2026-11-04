@@ -768,8 +768,11 @@ def main():
                     if isinstance(league, dict):
                         league = first(league, "name", "title", default="Liga nieznana")
 
-                    # In-play Goal Line prices goals still to be scored, not the cumulative score.
-                    goal_line = 0.5
+                    # Bet365's in-play Goal Line is anchored to the current score.
+                    # To back one more goal, request the next half-goal line above the
+                    # current total (e.g. 2-1 -> Over 3.5, not Over 0.5).
+                    current_total = home_score + away_score
+                    goal_line = current_total + 0.5
                     odds_fixture = find_moviodds_match(home, away, odds_matches)
                     if not odds_fixture:
                         stats["odds_no_match"] += 1
