@@ -103,8 +103,8 @@ def extract_matches(payload):
 
 
 def teams(match):
-    home = first(match, "home", "home_team", "homeTeam", "team_home", default="Gospodarze")
-    away = first(match, "away", "away_team", "awayTeam", "team_away", default="Goście")
+    home = first(match, "home", "home_team", "homeTeam", "team_home", "localteam", default="Gospodarze")
+    away = first(match, "away", "away_team", "awayTeam", "team_away", "visitorteam", default="Goście")
     if isinstance(home, dict):
         home = first(home, "name", "short_name", "title", default="Gospodarze")
     if isinstance(away, dict):
@@ -113,7 +113,7 @@ def teams(match):
 
 
 def parse_minute(match):
-    minute = as_int(first(match, "minute", "elapsed", "time_elapsed", "current_minute"))
+    minute = as_int(first(match, "minute", "elapsed", "time_elapsed", "current_minute", "elapsed_minute", "currentMinute"))
     if minute is not None:
         return minute
     status_text = str(first(match, "status_text", "time", "elapsed_time", "status", default=""))
@@ -149,8 +149,8 @@ def match_identifier(match):
     # SportScore's documented widget match object uses a slug (not necessarily
     # a numeric id). Accept identifiers from either the record or its wrappers.
     keys = (
-        "slug", "match_slug", "id", "fixture_id", "fixtureId",
-        "event_id", "eventId", "match_id", "matchId", "uuid",
+        "slug", "match_slug", "id", "fixture_id", "fixtureId", "game_id", "gameId",
+        "event_id", "eventId", "match_id", "matchId", "uuid", "provider_id", "source_id",
     )
     value = first(match, *keys, default="")
     if value:
@@ -244,34 +244,40 @@ def match_detail(slug):
 
 
 def current_live_matches():
-    # Official SportScore endpoint: GET /api/widget/matches/
-    # The API base is https://sportscore.com; do not use the obsolete /api/v1 path.
-    payload = api_get("/api/widget/matches/", {
-        "sport": "football",
-        "limit": 50,
+    # REST v1 fixture feed supports explicit live filtering and up to 200 records.
+    payload = api_get("/api/v1/fixtures/", {
+        "sport": "football", "status": "live", "limit": 200,
     })
     matches = extract_matches(payload)
+    if not matches:
+        # Compatibility fallback for the lightweight widget feed.
+        payload = api_get("/api/widget/matches/", {"sport": "football", "limit": 50})
+        matches = extract_matches(payload)
+
     live = []
     for match in matches:
         if not isinstance(match, dict):
             continue
-        status_value = first(match, "status", "state", "match_status", default="")
+        status_value = first(match, "status", "state", "match_status", "fixture_status", default="")
         if isinstance(status_value, dict):
-            status_value = first(status_value, "short", "long", "name", default="")
+            status_value = first(status_value, "short", "long", "name", "elapsed", default="")
         status_text = str(status_value).strip().lower()
-        clock_text = str(first(match, "status_text", "elapsed_time", "time", default=""))
-        is_live_status = any(token in status_text for token in (
-            "live", "in play", "in progress", "1h", "2h", "half time", "halftime", "ht"
-        ))
-        has_live_clock = bool(re.search(r"\d{1,3}(?:\s*\+\s*\d+)?\s*['′’]", clock_text))
-        is_finished = any(token in status_text for token in (
+        clock_text = str(first(match, "status_text", "elapsed_time", "elapsed", "minute", "time", default=""))
+        finished = any(token in status_text for token in (
             "finished", "full time", "full-time", "ended", "complete", "ft"
         ))
-        if not is_finished and (is_live_status or has_live_clock):
+        live_status = any(token in status_text for token in (
+            "live", "in play", "in progress", "1h", "2h", "half time", "halftime", "ht", "inplay"
+        ))
+        has_clock = bool(re.search(r"(?:\\d{1,3}(?:\\s*\\+\\s*\\d+)?\\s*['′’])|(?:^\\d{1,3}$)", clock_text.strip()))
+        if not finished and (live_status or has_clock):
             live.append(match)
-    print(f"Endpoint /matches/: {len(matches)} rekordów, {len(live)} oznaczonych jako live", flush=True)
-    return live
 
+    print(f"Endpoint /api/v1/fixtures/: {len(matches)} rekordów, {len(live)} live", flush=True)
+    if matches:
+        print("Pola rekordu API: " + ", ".join(sorted(str(k) for k in matches[0].keys())), flush=True)
+        print("Przykład rekordu: " + json.dumps(matches[0], ensure_ascii=False)[:1600], flush=True)
+    return live
 
 def score_pair(value):
     if isinstance(value, dict):
