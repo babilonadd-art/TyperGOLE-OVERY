@@ -235,8 +235,8 @@ def stat_number(value):
     return as_int(value)
 
 
-def match_stats_look_promising(match):
-    """Require real live shot data before alerting; missing stats are not treated as a green light."""
+def live_match_metrics(match):
+    """Extract available live pressure metrics; absent provider fields stay unknown."""
     stats = first(match, "statistics", "stats", "live_statistics", "match_statistics", default=None)
     if isinstance(stats, list):
         flattened = {}
@@ -251,24 +251,65 @@ def match_stats_look_promising(match):
                 flattened[name] = value
         stats = flattened
     if not isinstance(stats, dict) or not stats:
-        return False
+        return {}
 
-    total_shots = None
-    shots_on_target = None
+    metrics = {"shots": None, "shots_on_target": None, "corners": None,
+               "dangerous_attacks": None, "xg_home": None, "xg_away": None}
     for key, value in stats.items():
-        name = str(key).lower().replace("-", "_")
-        number = stat_number(value)
-        if number is None:
-            continue
-        if "shot" in name and ("on_target" in name or "on target" in name or "ontarget" in name):
-            shots_on_target = number if shots_on_target is None else max(shots_on_target, number)
-        elif "shot" in name and ("total" in name or name in ("shots", "total_shots", "shots_total")):
-            total_shots = number if total_shots is None else max(total_shots, number)
+        name = str(key).lower().replace("-", "_").replace(" ", "_")
+        if isinstance(value, dict):
+            home = as_int(first(value, "home", "home_value", "local"))
+            away = as_int(first(value, "away", "away_value", "visitor"))
+            total = (home + away) if home is not None and away is not None else stat_number(value)
+            # xG must retain its team split and decimal precision.
+            if "xg" in name or "expected_goals" in name or "expected_goal" in name:
+                try:
+                    xh = float(first(value, "home", "home_value", "local"))
+                    xa = float(first(value, "away", "away_value", "visitor"))
+                    metrics["xg_home"] = xh
+                    metrics["xg_away"] = xa
+                except (TypeError, ValueError):
+                    pass
+                continue
+        else:
+            total = as_int(value)
 
-    # A positive signal requires at least 8 total shots or 3 shots on target combined.
-    return (total_shots is not None and total_shots >= 8) or (
-        shots_on_target is not None and shots_on_target >= 3
-    )
+        if total is None:
+            continue
+        if "shot" in name and ("on_target" in name or "ontarget" in name):
+            metrics["shots_on_target"] = max(metrics["shots_on_target"] or 0, total)
+        elif "shot" in name and ("total" in name or name in ("shots", "total_shots", "shots_total")):
+            metrics["shots"] = max(metrics["shots"] or 0, total)
+        elif "corner" in name:
+            metrics["corners"] = max(metrics["corners"] or 0, total)
+        elif "dangerous" in name and "attack" in name:
+            metrics["dangerous_attacks"] = max(metrics["dangerous_attacks"] or 0, total)
+
+    return metrics
+
+
+def match_stats_look_promising(match):
+    """Score several real live indicators; missing metrics never count as positive."""
+    m = live_match_metrics(match)
+    if not m:
+        return False, m, 0
+    score = 0
+    if m["shots"] is not None and m["shots"] >= 8:
+        score += 1
+    if m["shots_on_target"] is not None and m["shots_on_target"] >= 3:
+        score += 2
+    if m["corners"] is not None and m["corners"] >= 5:
+        score += 1
+    if m["dangerous_attacks"] is not None and m["dangerous_attacks"] >= 25:
+        score += 1
+    xg_home, xg_away = m["xg_home"], m["xg_away"]
+    if xg_home is not None and xg_away is not None:
+        if xg_home + xg_away >= 1.0:
+            score += 2
+        if max(xg_home, xg_away) >= 0.7:
+            score += 1
+    # Require a combination of indicators, not just one isolated statistic.
+    return score >= 2, m, score
 
 
 def telegram(message):
@@ -476,7 +517,7 @@ def main():
             stats = {
                 "bad_item": 0, "detail_error": 0, "missing_id": 0,
 "missing_minute": 0, "outside_window": 0,
-                "duplicate": 0, "no_shot_stats": 0, "sent": 0, "errors": 0,
+                "duplicate": 0, "no_promising_stats": 0, "sent": 0, "errors": 0,
             }
 
             for index, raw in enumerate(matches, start=1):
@@ -526,8 +567,10 @@ def main():
                         stats["duplicate"] += 1
                         continue
 
-                    if not match_stats_look_promising(match):
-                        stats["no_shot_stats"] += 1
+                    promising, metrics, signal_score = match_stats_look_promising(match)
+                    if not promising:
+                        stats["no_promising_stats"] += 1
+                        print(f"[{index}] Za mało sygnałów ofensywnych: {metrics}, score={signal_score}", flush=True)
                         continue
 
                     league = first(match, "competition_name", "competition", "league_name", default="Liga nieznana")
@@ -548,6 +591,8 @@ def main():
                         "date": today,
                         "stake": STAKE,
                         "odds": None,
+                        "live_metrics": metrics,
+                        "signal_score": signal_score,
                         "settled": False,
                     }
                     market_text = "Over 0.5 gola do HT" if market == "HT" else "Over 0.5 gola do FT"
