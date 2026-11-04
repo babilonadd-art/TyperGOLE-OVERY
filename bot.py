@@ -377,51 +377,104 @@ def final_status(match):
 
 
 def settle_picks(state):
+    # Goal must remain in the provider's score for 3 minutes before we notify.
+    # The workflow runs every 5 minutes, so practical confirmation is on the next scan.
+    confirmation_seconds = 180
+
     for pick in state["picks"]:
         if pick.get("settled") or not pick.get("slug"):
             continue
         try:
             match = match_detail(pick["slug"])
-            if not match or not final_status(match):
+            if not match:
                 continue
-            ht_home, ht_away = score_pair(first(
-                match, "half_time_score", "halftime_score", "ht_score", "score_ht", "half_time"
-            ))
-            ft_home, ft_away = score_pair(first(
-                match, "score", "scores", "full_time_score", "ft_score"
-            ))
-            if ft_home is None or ft_away is None:
-                ft_home = as_int(first(match, "home_score", "homeScore"))
-                ft_away = as_int(first(match, "away_score", "awayScore"))
 
             baseline_home = as_int(pick.get("score_home"))
             baseline_away = as_int(pick.get("score_away"))
-            # Legacy picks without a saved starting score cannot be graded safely.
             if baseline_home is None or baseline_away is None:
                 print(f"Pomijam rozliczenie typu bez wyniku początkowego: {pick.get('key')}")
                 continue
             baseline_total = baseline_home + baseline_away
-            if pick["market"] == "HT":
-                if ht_home is None or ht_away is None:
-                    continue
-                won = (ht_home + ht_away) > baseline_total
-            else:
-                if ft_home is None or ft_away is None:
-                    continue
-                won = (ft_home + ft_away) > baseline_total
 
-            # Only mark settled after Telegram confirms the notification.
+            home_now, away_now, minute, status = score_and_minute(match)
+            current_total = home_now + away_now if home_now is not None and away_now is not None else None
+            finished = final_status(match)
+            now = now_local()
+
+            target_total = None
+            target_score = None
+            period_complete = False
+
+            if pick["market"] == "HT":
+                ht_home, ht_away = score_pair(first(
+                    match, "half_time_score", "halftime_score", "ht_score", "score_ht", "half_time"
+                ))
+                status_text = str(status or "").lower()
+                halftime_reached = (
+                    finished
+                    or any(term in status_text for term in (
+                        "half time", "halftime", "2nd half", "second half", "2h"
+                    ))
+                    or (minute is not None and minute > 45)
+                )
+                if ht_home is not None and ht_away is not None and halftime_reached:
+                    target_total = ht_home + ht_away
+                    target_score = f"{ht_home}-{ht_away}"
+                    period_complete = True
+                elif not halftime_reached:
+                    target_total = current_total
+                    target_score = f"{home_now}-{away_now}" if current_total is not None else None
+                elif finished:
+                    # If provider omits HT score, do not infer it from the FT score.
+                    print(f"Brak wyniku HT dla typu {pick.get('key')} — czekam na dane API.")
+                    continue
+            else:
+                target_total = current_total
+                target_score = f"{home_now}-{away_now}" if current_total is not None else None
+                period_complete = finished
+
+            goal_seen = target_total is not None and target_total > baseline_total
+            if goal_seen:
+                pending_since = pick.get("goal_pending_since")
+                if not pending_since:
+                    pick["goal_pending_since"] = now.isoformat()
+                    print(f"Wykryto gola dla {pick.get('key')} — uruchamiam 3-minutowe potwierdzenie VAR.")
+                    continue
+                try:
+                    pending_at = datetime.fromisoformat(pending_since)
+                    if pending_at.tzinfo is None:
+                        pending_at = pending_at.replace(tzinfo=TZ)
+                    elapsed = (now - pending_at.astimezone(TZ)).total_seconds()
+                except (TypeError, ValueError):
+                    pick["goal_pending_since"] = now.isoformat()
+                    continue
+
+                if elapsed < confirmation_seconds:
+                    continue
+                won = True
+            else:
+                # A VAR cancellation resets the pending goal. A loss is only possible
+                # after the relevant period has ended without a qualifying goal.
+                if pick.pop("goal_pending_since", None):
+                    print(f"Gol anulowany lub wynik cofnięty dla {pick.get('key')} — kasuję oczekujące rozliczenie.")
+                if not period_complete:
+                    continue
+                won = False
+
             result_text = "WYGRANA" if won else "PRZEGRANA"
-            score_text = f"{ft_home}-{ft_away}" if ft_home is not None else "brak"
+            score_text = target_score or "brak"
             telegram(
-                f"⚽ ROZLICZENIE: {result_text}\n{pick['home']} - {pick['away']}\n"
-                f"Typ: Over 0.5 gola {'do HT' if pick['market'] == 'HT' else 'do FT'}\n"
-                f"Stawka: {STAKE:.0f} zł\nWynik FT: {score_text}\n\n{ATTRIBUTION}"
+                f"⚽ ROZLICZENIE: {result_text}\\n{pick['home']} - {pick['away']}\\n"
+                f"Typ: Over 0.5 gola {'do HT' if pick['market'] == 'HT' else 'do FT'}\\n"
+                f"Stawka: {STAKE:.0f} zł\\nWynik: {score_text}\\n"
+                f"Potwierdzenie wyniku: 3 min (bufor VAR)\\n\\n{ATTRIBUTION}"
             )
             pick["settled"] = True
             pick["won"] = won
             pick["settled_score"] = score_text
-            pick["settled_at"] = now_local().isoformat()
+            pick["settled_at"] = now.isoformat()
+            pick.pop("goal_pending_since", None)
+            print(f"ROZLICZONO: {pick.get('key')} -> {result_text}", flush=True)
         except Exception as exc:
             print(f"Settlement error for {pick.get('key')}: {exc}")
 
