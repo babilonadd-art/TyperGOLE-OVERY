@@ -148,10 +148,21 @@ def score_and_minute(match):
 def slug_from_url(value):
     if not value:
         return ""
-    # SportScore fixture records expose the match URL, with the provider slug
-    # as its final path component (e.g. /football/match/.../<slug>/).
+    # Fixture URL format: /football/match/<team-vs-team-slug>/<provider-id>/
+    # The match-detail endpoint expects the team-vs-team slug, NOT the final ID.
     parts = [part for part in str(value).split("/") if part]
+    if len(parts) >= 4 and parts[-3] == "match":
+        return parts[-2]
     return parts[-1] if parts else ""
+
+
+def id_from_url(value):
+    if not value:
+        return ""
+    parts = [part for part in str(value).split("/") if part]
+    if len(parts) >= 4 and parts[-3] == "match":
+        return parts[-1]
+    return ""
 
 
 def match_identifier(match):
@@ -162,7 +173,7 @@ def match_identifier(match):
     value = first(match, *keys, default="")
     if value:
         return str(value)
-    value = slug_from_url(first(match, "url", "match_url", "link", default=""))
+    value = id_from_url(first(match, "url", "match_url", "link", default=""))
     if value:
         return value
     for container_key in ("match", "fixture", "event", "data"):
@@ -171,7 +182,7 @@ def match_identifier(match):
             value = first(nested, *keys, default="")
             if value:
                 return str(value)
-            value = slug_from_url(first(nested, "url", "match_url", "link", default=""))
+            value = id_from_url(first(nested, "url", "match_url", "link", default=""))
             if value:
                 return value
     return ""
@@ -259,7 +270,20 @@ def telegram(message):
 def match_detail(slug):
     if not slug:
         return {}
-    return unwrap_match(api_get("/api/widget/match/", {"sport": "football", "slug": slug}))
+    # Both routes are documented aliases; keep the v1 route as the primary
+    # endpoint and fall back to the widget route if the alias is unavailable.
+    last_error = None
+    for endpoint in ("/api/v1/match/", "/api/widget/match/"):
+        try:
+            payload = api_get(endpoint, {"sport": "football", "slug": slug})
+            detail = unwrap_match(payload)
+            if detail:
+                return detail
+        except requests.RequestException as exc:
+            last_error = exc
+    if last_error:
+        raise last_error
+    return {}
 
 
 def current_live_matches():
@@ -451,6 +475,11 @@ def main():
                 try:
                     slug = match_slug(raw)
                     match = dict(raw)
+                    # Skip clearly unsuitable scorelines before making a detail request.
+                    raw_home, raw_away, raw_minute, raw_status = score_and_minute(raw)
+                    if raw_home is not None and raw_away is not None and (raw_home != 0 or raw_away != 0):
+                        stats["not_0_0"] += 1
+                        continue
                     if slug:
                         try:
                             detail = match_detail(slug)
