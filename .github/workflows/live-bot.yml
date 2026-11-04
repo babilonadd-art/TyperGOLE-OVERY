@@ -39,11 +39,17 @@ jobs:
           TZ: Europe/Warsaw
         run: python bot.py
       - name: Save bot state
+        if: always()
         run: |
-          if git status --short | grep -q 'data/state.json'; then
+          mkdir -p data
+          if [ -f data/state.json ]; then
             git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add data/state.json
-            git commit -m "Update bot state"
-            git push
+            git config user.email "41898282+users.noreply.github.com"
+            git add -f data/state.json
+            if ! git diff --cached --quiet; then
+              git commit -m "Persist live pick and settlement state"
+              git push
+            fi
+          else
+            echo "No state file was created; nothing to persist."
           fi
