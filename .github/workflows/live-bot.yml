@@ -1,6 +1,8 @@
 name: TyperGOLE-OVERY Live Bot
 
 on:
+  push:
+    branches: [main]
   # Kod aktualizujemy bez automatycznego skanowania; test po poprawce uruchomiono ręcznie przez commit.
   workflow_dispatch:
   schedule:
