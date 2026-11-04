@@ -1,21 +1,21 @@
 import json
 import os
 import re
-import sys
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import requests
 
-TZ = ZoneInfo(os.getenv("TZ", "Europe/Warsaw"))
+TZ = ZoneInfo("Europe/Warsaw")
 API = "https://sportscore.com/api/v1"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
 STAKE = 50.0
 MAX_DAILY_PICKS = 4
-HEADERS = {"User-Agent": "TyperGOLE-OVERY/1.0 (SportScore attribution: https://sportscore.com/)"}
+HEADERS = {"User-Agent": "TyperGOLE-OVERY/1.0", "Accept": "application/json"}
+ATTRIBUTION = "Powered by SportScore: https://sportscore.com/"
 
 
 def now_local():
@@ -26,10 +26,14 @@ def load_state():
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     if STATE_PATH.exists():
         try:
-            return json.loads(STATE_PATH.read_text(encoding="utf-8"))
+            data = json.loads(STATE_PATH.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                data.setdefault("picks", [])
+                data.setdefault("reports_sent", [])
+                return data
         except (ValueError, OSError):
             pass
-    return {"date": now_local().date().isoformat(), "picks": [], "settled": [], "daily_reported": None}
+    return {"picks": [], "reports_sent": []}
 
 
 def save_state(state):
@@ -38,34 +42,57 @@ def save_state(state):
 
 
 def api_get(path, params=None):
-    response = requests.get(f"{API}/{path.lstrip('/')}", params=params, headers=HEADERS, timeout=20)
+    response = requests.get(
+        f"{API}/{path.lstrip('/')}",
+        params=params,
+        headers=HEADERS,
+        timeout=20,
+    )
     response.raise_for_status()
     payload = response.json()
-    if isinstance(payload, dict):
-        return payload
-    return {"data": payload}
+    return payload if isinstance(payload, dict) else {"data": payload}
 
 
 def first(obj, *keys, default=None):
+    if not isinstance(obj, dict):
+        return default
     for key in keys:
-        value = obj.get(key) if isinstance(obj, dict) else None
+        value = obj.get(key)
         if value is not None and value != "":
             return value
     return default
 
 
 def as_int(value):
+    if isinstance(value, bool):
+        return None
     if isinstance(value, int):
         return value
+    if isinstance(value, float):
+        return int(value)
     if isinstance(value, str):
-        m = re.search(r"\d+", value)
-        return int(m.group()) if m else None
+        match = re.search(r"\d+", value)
+        return int(match.group()) if match else None
     return None
 
 
+def unwrap_match(payload):
+    if not isinstance(payload, dict):
+        return {}
+    for key in ("match", "data", "event"):
+        candidate = payload.get(key)
+        if isinstance(candidate, dict):
+            # Some envelopes contain another nested match object.
+            nested = candidate.get("match")
+            return nested if isinstance(nested, dict) else candidate
+    return payload
+
+
 def extract_matches(payload):
-    for key in ("data", "matches", "fixtures", "events", "results"):
-        value = payload.get(key) if isinstance(payload, dict) else None
+    if not isinstance(payload, dict):
+        return []
+    for key in ("matches", "fixtures", "events", "data", "results"):
+        value = payload.get(key)
         if isinstance(value, list):
             return value
         if isinstance(value, dict):
@@ -76,13 +103,28 @@ def extract_matches(payload):
 
 
 def teams(match):
-    home = first(match, "home_team", "homeTeam", "home", "team_home", default={})
-    away = first(match, "away_team", "awayTeam", "away", "team_away", default={})
+    home = first(match, "home", "home_team", "homeTeam", "team_home", default="Gospodarze")
+    away = first(match, "away", "away_team", "awayTeam", "team_away", default="Goście")
     if isinstance(home, dict):
         home = first(home, "name", "short_name", "title", default="Gospodarze")
     if isinstance(away, dict):
         away = first(away, "name", "short_name", "title", default="Goście")
     return str(home), str(away)
+
+
+def parse_minute(match):
+    minute = as_int(first(match, "minute", "elapsed", "time_elapsed", "current_minute"))
+    if minute is not None:
+        return minute
+    status_text = str(first(match, "status_text", "time", "elapsed_time", default=""))
+    # SportScore may express the live clock as e.g. 32' or 45+2'.
+    match_minute = re.search(r"(\d{1,3})(?:\s*\+\s*\d+)?\s*['′’]", status_text)
+    if match_minute:
+        return int(match_minute.group(1))
+    status = first(match, "status", "state", "match_status", default="")
+    if isinstance(status, dict):
+        return as_int(first(status, "minute", "elapsed"))
+    return None
 
 
 def score_and_minute(match):
@@ -93,212 +135,269 @@ def score_and_minute(match):
         home_score = home_score if home_score is not None else first(score, "home", "home_score", "homeScore")
         away_score = away_score if away_score is not None else first(score, "away", "away_score", "awayScore")
     elif isinstance(score, str):
-        nums = re.findall(r"\d+", score)
-        if len(nums) >= 2:
-            home_score = home_score if home_score is not None else nums[0]
-            away_score = away_score if away_score is not None else nums[1]
-    minute = as_int(first(match, "minute", "elapsed", "time_elapsed", "current_minute"))
-    status = first(match, "status", "state", "match_status", default="")
-    if isinstance(status, dict):
-        minute = minute if minute is not None else as_int(first(status, "minute", "elapsed"))
-        status = first(status, "short", "long", "name", default="")
-    return as_int(home_score), as_int(away_score), minute, str(status).lower()
+        numbers = re.findall(r"\d+", score)
+        if len(numbers) >= 2:
+            home_score = home_score if home_score is not None else numbers[0]
+            away_score = away_score if away_score is not None else numbers[1]
+    status = str(first(match, "status", "state", "match_status", "status_text", default="")).lower()
+    if isinstance(match.get("status"), dict):
+        status = str(first(match["status"], "short", "long", "name", default=status)).lower()
+    return as_int(home_score), as_int(away_score), parse_minute(match), status
 
 
-def match_id(match):
+def match_identifier(match):
     return str(first(match, "id", "fixture_id", "event_id", "match_id", "slug", default=""))
 
 
+def stat_number(value):
+    if isinstance(value, dict):
+        # Home/away values are summed when present.
+        vals = [as_int(v) for v in value.values()]
+        vals = [v for v in vals if v is not None]
+        return sum(vals) if vals else None
+    return as_int(value)
+
+
 def match_stats_look_promising(match):
-    """Conservative optional live-stat filter. Missing stats never create fake values."""
-    stats = first(match, "statistics", "stats", "live_statistics", default={})
+    """Require real live shot data before alerting; missing stats are not treated as a green light."""
+    stats = first(match, "statistics", "stats", "live_statistics", "match_statistics", default=None)
     if isinstance(stats, list):
-        flat = {}
+        flattened = {}
         for item in stats:
             if not isinstance(item, dict):
                 continue
-            name = str(first(item, "name", "type", "key", default="")).lower()
-            value = first(item, "value", "total")
+            name = str(first(item, "name", "type", "key", "label", default="")).lower()
+            value = first(item, "value", "total", "home")
             if name:
-                flat[name] = value
-        stats = flat
+                flattened[name] = value
+        stats = flattened
     if not isinstance(stats, dict) or not stats:
-        return None
-    shots = 0
+        return False
+
+    total_shots = None
+    shots_on_target = None
     for key, value in stats.items():
-        k = str(key).lower()
-        if "shot" in k and ("total" in k or "on target" in k or "on_target" in k):
-            if isinstance(value, dict):
-                value = first(value, "home", "total", default=0)
-            shots += as_int(value) or 0
-    # Return unknown rather than reject if provider's schema does not expose a known shots field.
-    return shots >= 8 if shots else None
+        name = str(key).lower().replace("-", "_")
+        number = stat_number(value)
+        if number is None:
+            continue
+        if "shot" in name and ("on_target" in name or "on target" in name or "ontarget" in name):
+            shots_on_target = number if shots_on_target is None else max(shots_on_target, number)
+        elif "shot" in name and ("total" in name or name in ("shots", "total_shots", "shots_total")):
+            total_shots = number if total_shots is None else max(total_shots, number)
+
+    # A positive signal requires at least 8 total shots or 3 shots on target combined.
+    return (total_shots is not None and total_shots >= 8) or (
+        shots_on_target is not None and shots_on_target >= 3
+    )
 
 
 def telegram(message):
     if not TELEGRAM_TOKEN or not CHAT_ID:
-        raise RuntimeError("Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID GitHub secret")
+        raise RuntimeError("Missing GitHub Secrets: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID")
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    response = requests.post(url, json={"chat_id": CHAT_ID, "text": message, "disable_web_page_preview": True}, timeout=20)
+    response = requests.post(
+        url,
+        json={"chat_id": CHAT_ID, "text": message, "disable_web_page_preview": True},
+        timeout=20,
+    )
     response.raise_for_status()
     result = response.json()
     if not result.get("ok"):
-        raise RuntimeError(f"Telegram error: {result}")
+        raise RuntimeError(f"Telegram API error: {result}")
 
 
-def fixture_detail(match):
-    slug = first(match, "slug", "match_slug")
+def match_detail(slug):
     if not slug:
-        return match
-    try:
-        payload = api_get("match/", {"sport": "football", "slug": slug})
-        for key in ("match", "data", "event"):
-            candidate = payload.get(key) if isinstance(payload, dict) else None
-            if isinstance(candidate, dict):
-                merged = dict(match)
-                merged.update(candidate)
-                return merged
-    except Exception as exc:
-        print(f"Detail fetch skipped for {slug}: {exc}")
-    return match
+        return {}
+    return unwrap_match(api_get("match/", {"sport": "football", "slug": slug}))
 
 
 def current_live_matches():
-    today = now_local().date().isoformat()
-    payload = api_get("fixtures/", {"sport": "football", "date": today, "status": "live", "limit": 200})
+    # The fixtures endpoint uses UTC calendar dates.
+    utc_today = datetime.now(timezone.utc).date().isoformat()
+    payload = api_get("fixtures/", {
+        "sport": "football",
+        "date": utc_today,
+        "status": "live",
+        "limit": 200,
+    })
     return extract_matches(payload)
 
 
+def score_pair(value):
+    if isinstance(value, dict):
+        return (
+            as_int(first(value, "home", "home_score", "homeScore")),
+            as_int(first(value, "away", "away_score", "awayScore")),
+        )
+    if isinstance(value, str):
+        nums = re.findall(r"\d+", value)
+        if len(nums) >= 2:
+            return as_int(nums[0]), as_int(nums[1])
+    return None, None
+
+
+def final_status(match):
+    status = str(first(match, "status", "state", "match_status", "status_text", default="")).lower()
+    if isinstance(match.get("status"), dict):
+        status = str(first(match["status"], "short", "long", "name", default=status)).lower()
+    return any(term in status for term in ("finished", "full time", "full-time", "ft", "ended", "complete"))
+
+
 def settle_picks(state):
-    changed = False
     for pick in state["picks"]:
-        if pick.get("settled"):
+        if pick.get("settled") or not pick.get("slug"):
             continue
         try:
-            detail = api_get("match/", {"sport": "football", "slug": pick["slug"]}) if pick.get("slug") else None
-            match = {}
-            if isinstance(detail, dict):
-                match = first(detail, "match", "data", "event", default=detail)
-            if not isinstance(match, dict):
+            match = match_detail(pick["slug"])
+            if not match or not final_status(match):
                 continue
-            status = str(first(match, "status", "state", "match_status", default="")).lower()
-            if not any(word in status for word in ("finished", "full time", "ft", "ended", "complete")):
-                continue
-            ht = first(match, "half_time_score", "halftime_score", "ht_score", "score_ht", default={})
-            final = first(match, "score", "scores", "full_time_score", "ft_score", default={})
-            ht_home = ht_away = None
-            if isinstance(ht, dict):
-                ht_home = as_int(first(ht, "home", "home_score"))
-                ht_away = as_int(first(ht, "away", "away_score"))
-            if isinstance(final, dict):
-                f_home = as_int(first(final, "home", "home_score"))
-                f_away = as_int(first(final, "away", "away_score"))
-            else:
-                f_home = as_int(first(match, "home_score", "homeScore"))
-                f_away = as_int(first(match, "away_score", "awayScore"))
+            ht_home, ht_away = score_pair(first(
+                match, "half_time_score", "halftime_score", "ht_score", "score_ht", "half_time"
+            ))
+            ft_home, ft_away = score_pair(first(
+                match, "score", "scores", "full_time_score", "ft_score"
+            ))
+            if ft_home is None or ft_away is None:
+                ft_home = as_int(first(match, "home_score", "homeScore"))
+                ft_away = as_int(first(match, "away_score", "awayScore"))
+
             if pick["market"] == "HT":
                 if ht_home is None or ht_away is None:
                     continue
                 won = ht_home + ht_away >= 1
             else:
-                if f_home is None or f_away is None:
+                if ft_home is None or ft_away is None:
                     continue
-                won = f_home + f_away >= 1
+                won = ft_home + ft_away >= 1
+
+            # Only mark settled after Telegram confirms the notification.
+            result_text = "WYGRANA" if won else "PRZEGRANA"
+            score_text = f"{ft_home}-{ft_away}" if ft_home is not None else "brak"
+            telegram(
+                f"⚽ ROZLICZENIE: {result_text}\n{pick['home']} - {pick['away']}\n"
+                f"Typ: Over 0.5 gola {'do HT' if pick['market'] == 'HT' else 'do FT'}\n"
+                f"Stawka: {STAKE:.0f} zł\nWynik FT: {score_text}\n\n{ATTRIBUTION}"
+            )
             pick["settled"] = True
             pick["won"] = won
-            pick["settled_score"] = f"{f_home}-{f_away}" if f_home is not None else "?"
+            pick["settled_score"] = score_text
             pick["settled_at"] = now_local().isoformat()
-            changed = True
-            outcome = "WYGRANA" if won else "PRZEGRANA"
-            telegram(f"\u2705 ROZLICZENIE: {outcome}\n{pick['home']} - {pick['away']}\nTyp: Over 0.5 gola {'do przerwy' if pick['market']=='HT' else 'do końca'}\nStawka: {STAKE:.0f} zł\nWynik FT: {pick['settled_score']}\n\nPowered by SportScore: https://sportscore.com/")
         except Exception as exc:
-            print(f"Settlement error: {exc}")
-    return changed
+            print(f"Settlement error for {pick.get('key')}: {exc}")
 
 
-def send_daily_report(state):
-    today = now_local().date().isoformat()
-    if now_local().hour < 23 or state.get("daily_reported") == today:
-        return
-    picks = [p for p in state["picks"] if p.get("date") == today]
-    settled = [p for p in picks if p.get("settled")]
-    wins = sum(1 for p in settled if p.get("won"))
-    losses = len(settled) - wins
-    turnover = len(picks) * STAKE
-    odds_count = sum(1 for p in settled if p.get("odds"))
-    msg = (f"\U0001f4ca PODSUMOWANIE DNIA {today}\n"
-           f"Typy: {len(picks)}/{MAX_DAILY_PICKS}\nWygrane: {wins}\nPrzegrane: {losses}\n"
-           f"Obrót: {turnover:.0f} zł\n")
-    if odds_count == len(settled) and settled:
-        profit = sum((STAKE * (float(p["odds"]) - 1) if p["won"] else -STAKE) for p in settled)
-        yield_pct = (profit / turnover * 100) if turnover else 0
-        msg += f"Zysk/strata: {profit:+.2f} zł\nYield: {yield_pct:+.2f}%"
-    else:
-        msg += "Zysk/yield: brak pełnych kursów — nie da się uczciwie wyliczyć."
-    msg += "\n\nPowered by SportScore: https://sportscore.com/"
-    telegram(msg)
-    state["daily_reported"] = today
+def send_daily_reports(state):
+    today = now_local().date()
+    sent = set(state.get("reports_sent", []))
+    dates = sorted({p.get("date") for p in state["picks"] if p.get("date")})
+    for day in dates:
+        if day in sent:
+            continue
+        if today.isoformat() < day:
+            continue
+        if today.isoformat() == day and now_local().hour < 23:
+            continue
+        day_picks = [p for p in state["picks"] if p.get("date") == day]
+        if not day_picks or not all(p.get("settled") for p in day_picks):
+            continue
+
+        wins = sum(1 for p in day_picks if p.get("won"))
+        losses = len(day_picks) - wins
+        turnover = len(day_picks) * STAKE
+        profit = sum(
+            (STAKE * (float(p["odds"]) - 1) if p.get("won") else -STAKE)
+            for p in day_picks if p.get("odds") is not None
+        ) if all(p.get("odds") is not None for p in day_picks) else None
+
+        report = (
+            f"📊 PODSUMOWANIE DNIA {day}\n"
+            f"Typy: {len(day_picks)}/{MAX_DAILY_PICKS}\n"
+            f"Wygrane: {wins}\nPrzegrane: {losses}\n"
+            f"Obrót: {turnover:.0f} zł\n"
+        )
+        if profit is None:
+            report += "Zysk/strata i yield: brak kursów — nie da się ich uczciwie obliczyć."
+        else:
+            yield_pct = profit / turnover * 100 if turnover else 0
+            report += f"Zysk/strata: {profit:+.2f} zł\nYield: {yield_pct:+.2f}%"
+        telegram(report + f"\n\n{ATTRIBUTION}")
+        sent.add(day)
+        state["reports_sent"] = sorted(sent)
 
 
 def main():
     state = load_state()
-    today = now_local().date().isoformat()
-    if state.get("date") != today:
-        state = {"date": today, "picks": [], "settled": [], "daily_reported": None}
-    try:
-        settle_picks(state)
-    except Exception as exc:
-        print(f"Settlement cycle error: {exc}")
+    # Settle older picks first; keep history across midnight.
+    settle_picks(state)
 
+    today = now_local().date().isoformat()
     todays_picks = [p for p in state["picks"] if p.get("date") == today]
     if len(todays_picks) < MAX_DAILY_PICKS:
         try:
-            matches = current_live_matches()
-            for raw in matches:
+            for raw in current_live_matches():
                 if len(todays_picks) >= MAX_DAILY_PICKS:
                     break
-                match = fixture_detail(raw)
+                slug = first(raw, "slug", "match_slug")
+                match = dict(raw)
+                if slug:
+                    detail = match_detail(slug)
+                    if detail:
+                        match.update(detail)
+
                 home, away = teams(match)
-                mid = match_id(match)
-                slug = first(match, "slug", "match_slug")
-                hs, aws, minute, status = score_and_minute(match)
-                if not mid and not slug:
+                identifier = match_identifier(match) or str(slug or "")
+                if not identifier:
                     continue
-                if hs != 0 or aws != 0 or minute is None:
+                home_score, away_score, minute, status = score_and_minute(match)
+                if home_score != 0 or away_score != 0 or minute is None:
                     continue
+
                 market = "HT" if 29 <= minute <= 33 else "FT" if 69 <= minute <= 73 else None
-                if not market:
+                if market is None:
                     continue
-                key = f"{mid or slug}:{market}"
+
+                key = f"{identifier}:{market}"
                 if any(p.get("key") == key for p in state["picks"]):
                     continue
-                if any(p.get("key") == key for p in todays_picks):
+
+                # Do not alert on a bare 0:0: require positive live shot statistics.
+                if not match_stats_look_promising(match):
                     continue
-                # Never fabricate odds. SportScore score feed is used for live match state only.
-                stats_signal = match_stats_look_promising(match)
-                if stats_signal is False:
-                    continue
+
                 league = first(match, "competition_name", "competition", "league_name", default="Liga nieznana")
-                kickoff = first(match, "kickoff", "kickoff_utc", "start_time", default="")
+                if isinstance(league, dict):
+                    league = first(league, "name", "title", default="Liga nieznana")
+
                 pick = {
-                    "key": key, "id": mid, "slug": slug, "home": home, "away": away,
-                    "league": str(league), "minute": minute, "market": market,
-                    "date": today, "stake": STAKE, "odds": None, "settled": False,
-                    "kickoff": str(kickoff)
+                    "key": key,
+                    "id": identifier,
+                    "slug": slug,
+                    "home": home,
+                    "away": away,
+                    "league": str(league),
+                    "minute": minute,
+                    "market": market,
+                    "date": today,
+                    "stake": STAKE,
+                    "odds": None,
+                    "settled": False,
                 }
+                market_text = "Over 0.5 gola do HT" if market == "HT" else "Over 0.5 gola do FT"
+                # Save only after Telegram confirms successful delivery.
+                telegram(
+                    f"⚽ TYP LIVE — {market_text}\n{home} - {away}\n"
+                    f"Liga: {league}\nMinuta: {minute}' | Wynik: 0:0\n"
+                    f"Stawka: {STAKE:.0f} zł\nKurs: niedostępny\n\n{ATTRIBUTION}"
+                )
                 state["picks"].append(pick)
                 todays_picks.append(pick)
-                market_text = "Over 0.5 gola do HT" if market == "HT" else "Over 0.5 gola do FT"
-                telegram(
-                    f"\u26bd TYP LIVE — {market_text}\n{home} - {away}\n"
-                    f"Liga: {league}\nMinuta: {minute}' | Wynik: 0:0\n"
-                    f"Stawka: {STAKE:.0f} zł\nKurs: brak wiarygodnego kursu w SportScore\n"
-                    f"\nPowered by SportScore: https://sportscore.com/"
-                )
         except Exception as exc:
             print(f"Live scan error: {exc}")
+
     try:
-        send_daily_report(state)
+        send_daily_reports(state)
     except Exception as exc:
         print(f"Daily report error: {exc}")
     save_state(state)
