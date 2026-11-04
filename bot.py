@@ -156,7 +156,8 @@ def extract_live_over_odds(odds_match, market, target_line):
             continue
         side = str(first(quote, "side", default="")).strip().lower()
         label = str(first(quote, "label", "name", default="")).strip().lower()
-        if side != "over" and not label.startswith("over"):
+        # MoviOdds documents totals sides as O/U (some feeds use Over/Under).
+        if side not in {"o", "over"} and not label.startswith("over"):
             continue
         line = parse_odds_line(quote)
         if line is None or abs(line - target_line) > 0.01:
