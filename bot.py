@@ -145,9 +145,16 @@ def score_and_minute(match):
     return as_int(home_score), as_int(away_score), parse_minute(match), status
 
 
+def slug_from_url(value):
+    if not value:
+        return ""
+    # SportScore fixture records expose the match URL, with the provider slug
+    # as its final path component (e.g. /football/match/.../<slug>/).
+    parts = [part for part in str(value).split("/") if part]
+    return parts[-1] if parts else ""
+
+
 def match_identifier(match):
-    # SportScore's documented widget match object uses a slug (not necessarily
-    # a numeric id). Accept identifiers from either the record or its wrappers.
     keys = (
         "slug", "match_slug", "id", "fixture_id", "fixtureId", "game_id", "gameId",
         "event_id", "eventId", "match_id", "matchId", "uuid", "provider_id", "source_id",
@@ -155,12 +162,18 @@ def match_identifier(match):
     value = first(match, *keys, default="")
     if value:
         return str(value)
+    value = slug_from_url(first(match, "url", "match_url", "link", default=""))
+    if value:
+        return value
     for container_key in ("match", "fixture", "event", "data"):
         nested = match.get(container_key)
         if isinstance(nested, dict):
             value = first(nested, *keys, default="")
             if value:
                 return str(value)
+            value = slug_from_url(first(nested, "url", "match_url", "link", default=""))
+            if value:
+                return value
     return ""
 
 
@@ -168,12 +181,18 @@ def match_slug(match):
     value = first(match, "slug", "match_slug", default="")
     if value:
         return str(value)
+    value = slug_from_url(first(match, "url", "match_url", "link", default=""))
+    if value:
+        return value
     for container_key in ("match", "fixture", "event", "data"):
         nested = match.get(container_key)
         if isinstance(nested, dict):
             value = first(nested, "slug", "match_slug", default="")
             if value:
                 return str(value)
+            value = slug_from_url(first(nested, "url", "match_url", "link", default=""))
+            if value:
+                return value
     return ""
 
 
