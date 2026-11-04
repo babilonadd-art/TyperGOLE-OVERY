@@ -785,10 +785,10 @@ def settle_picks(state):
                     odds = None
                 if won and odds is not None:
                     winnings_text = f"\nZwrot: {STAKE * odds:.2f} zł | Zysk: {STAKE * (odds - 1):.2f} zł"
-                    yield_text = f"\nYield: +{(odds - 1) * 100:.1f}%"
+                    yield_text = ""
                 else:
                     winnings_text = f"\nStrata: {STAKE:.2f} zł" if not won else ""
-                    yield_text = "\nYield: -100.0%" if not won else ""
+                    yield_text = ""
                 telegram(
                     f"{result_text}\n{pick['home']} - {pick['away']}\n"
                     f"Wynik: {score_text} | Gole: {goals_text}"
@@ -919,10 +919,10 @@ def settle_picks(state):
                 odds = None
             if won and odds is not None:
                 winnings_text = f"\nZwrot: {STAKE * odds:.2f} zł | Zysk: {STAKE * (odds - 1):.2f} zł"
-                yield_text = f"\nYield: +{(odds - 1) * 100:.1f}%"
+                yield_text = ""
             else:
                 winnings_text = f"\nStrata: {STAKE:.2f} zł" if not won else ""
-                yield_text = "\nYield: -100.0%" if not won else ""
+                yield_text = ""
             telegram(
                 f"{result_text}\n{pick['home']} - {pick['away']}\n"
                 f"Wynik: {score_text} | Gole: {goals_text}"
