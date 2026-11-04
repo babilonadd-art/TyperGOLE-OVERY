@@ -269,7 +269,7 @@ def current_live_matches():
         live_status = any(token in status_text for token in (
             "live", "in play", "in progress", "1h", "2h", "half time", "halftime", "ht", "inplay"
         ))
-        has_clock = bool(re.search(r"(?:\d{1,3}(?:\s*\\+\s*\d+)?\s*['′’])|(?:^\d{1,3}$)", clock_text.strip()))
+        has_clock = bool(re.search(r"(?:\d{1,3}(?:\s*\+\s*\d+)?\s*['′’])|(?:^\d{1,3}$)", clock_text.strip()))
         if not finished and (live_status or has_clock):
             live.append(match)
 
