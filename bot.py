@@ -777,17 +777,22 @@ def settle_picks(state):
                 won = bool(manual.get("won"))
                 score_text = str(manual.get("score", "brak"))
                 result_text = "🟢 WYGRANA" if won else "🔴 PRZEGRANA"
-                period_label = "do HT" if pick.get("market") == "HT" else "do FT"
-                score_match = re.search(r"(\\d+)\\s*[-:]\\s*(\\d+)", score_text)
-                goals_text = str(int(score_match.group(1)) + int(score_match.group(2))) if score_match else "nieustalona"
+                score_match = re.search(r"(\d+)\s*[-:]\s*(\d+)", score_text)
+                goals_text = str(int(score_match.group(1)) + int(score_match.group(2))) if score_match else "nieznana"
+                try:
+                    odds = float(pick.get("odds"))
+                except (TypeError, ValueError):
+                    odds = None
+                if won and odds is not None:
+                    winnings_text = f"\nZwrot: {STAKE * odds:.2f} zł | Zysk: {STAKE * (odds - 1):.2f} zł"
+                    yield_text = f"\nYield: +{(odds - 1) * 100:.1f}%"
+                else:
+                    winnings_text = f"\nStrata: {STAKE:.2f} zł" if not won else ""
+                    yield_text = "\nYield: -100.0%" if not won else ""
                 telegram(
-                    f"⚽ ROZLICZENIE: {result_text}\\n"
-                    f"{pick['home']} - {pick['away']}\\n"
-                    f"Typ: Over {float(pick.get('goal_line', 0.5)):.1f} gola {period_label}\\n"
-                    f"Kurs: {float(pick.get('odds', 0)):.2f} ({pick.get('odds_source', 'zapisany')})\\n"
-                    f"Stawka: {STAKE:.0f} zł\\nWynik {period_label}: {score_text}\\n"
-                    f"Liczba goli: {goals_text}\\n"
-                    f"Rozliczenie na podstawie potwierdzonego wyniku okresu.\\n\\n{ATTRIBUTION}"
+                    f"{result_text}\n{pick['home']} - {pick['away']}\n"
+                    f"Wynik: {score_text} | Gole: {goals_text}"
+                    f"{winnings_text}{yield_text}"
                 )
                 pick["settled"] = True
                 pick["won"] = won
@@ -907,16 +912,21 @@ def settle_picks(state):
 
             result_text = "🟢 WYGRANA" if won else "🔴 PRZEGRANA"
             score_text = target_score or "brak"
-            score_match = re.search(r"(\\d+)\\s*[-:]\\s*(\\d+)", str(score_text))
-            goals_text = str(int(score_match.group(1)) + int(score_match.group(2))) if score_match else "nieustalona"
-            period_label = "do HT" if pick.get("market") == "HT" else "do FT"
+            goals_text = str(target_total) if target_total is not None else "nieznana"
+            try:
+                odds = float(pick.get("odds"))
+            except (TypeError, ValueError):
+                odds = None
+            if won and odds is not None:
+                winnings_text = f"\nZwrot: {STAKE * odds:.2f} zł | Zysk: {STAKE * (odds - 1):.2f} zł"
+                yield_text = f"\nYield: +{(odds - 1) * 100:.1f}%"
+            else:
+                winnings_text = f"\nStrata: {STAKE:.2f} zł" if not won else ""
+                yield_text = "\nYield: -100.0%" if not won else ""
             telegram(
-                f"⚽ ROZLICZENIE: {result_text}\\n{pick['home']} - {pick['away']}\\n"
-                f"Typ: Over {float(pick.get('goal_line', 0.5)):.1f} gola {period_label}\\n"
-                f"Kurs: {float(pick.get('odds', 0)):.2f} ({pick.get('odds_source', 'zapisany')})\\n"
-                f"Stawka: {STAKE:.0f} zł\\nWynik {period_label}: {score_text}\\n"
-                f"Liczba goli: {goals_text}\\n"
-                f"Potwierdzenie wyniku: 3 min (bufor VAR)\\n\\n{ATTRIBUTION}"
+                f"{result_text}\n{pick['home']} - {pick['away']}\n"
+                f"Wynik: {score_text} | Gole: {goals_text}"
+                f"{winnings_text}{yield_text}"
             )
             pick["settled"] = True
             pick["won"] = won
@@ -930,43 +940,48 @@ def settle_picks(state):
             print(f"Settlement error for {pick.get('key')}: {type(exc).__name__}: {exc}", flush=True)
 
 
-def send_daily_reports(state):
+def send_monthly_reports(state):
     today = now_local().date()
-    sent = set(state.get("reports_sent", []))
-    dates = sorted({p.get("date") for p in state["picks"] if p.get("date")})
-    for day in dates:
-        if day in sent:
+    sent = set(state.get("monthly_reports_sent", []))
+    months = sorted({str(p.get("date", ""))[:7] for p in state["picks"] if p.get("date")})
+    for month in months:
+        if not month or month in sent:
             continue
-        if today.isoformat() < day:
+        year, month_num = (int(part) for part in month.split("-"))
+        # Do not publish a monthly balance until the month has ended.
+        if (today.year, today.month) <= (year, month_num):
             continue
-        if today.isoformat() == day and now_local().hour < 23:
-            continue
-        day_picks = [p for p in state["picks"] if p.get("date") == day]
-        if not day_picks or not all(p.get("settled") for p in day_picks):
+        month_picks = [p for p in state["picks"] if str(p.get("date", "")).startswith(month)]
+        if not month_picks or not all(p.get("settled") for p in month_picks):
             continue
 
-        wins = sum(1 for p in day_picks if p.get("won"))
-        losses = len(day_picks) - wins
-        turnover = len(day_picks) * STAKE
-        profit = sum(
-            (STAKE * (float(p["odds"]) - 1) if p.get("won") else -STAKE)
-            for p in day_picks if p.get("odds") is not None
-        ) if all(p.get("odds") is not None for p in day_picks) else None
+        wins = sum(1 for p in month_picks if p.get("won"))
+        losses = len(month_picks) - wins
+        turnover = len(month_picks) * STAKE
+        profit = 0.0
+        missing_odds = False
+        for pick in month_picks:
+            try:
+                odds = float(pick.get("odds"))
+            except (TypeError, ValueError):
+                missing_odds = True
+                continue
+            profit += STAKE * (odds - 1) if pick.get("won") else -STAKE
 
         report = (
-            f"📊 PODSUMOWANIE DNIA {day}\n"
-            f"Typy: {len(day_picks)}/{MAX_DAILY_PICKS}\n"
-            f"Wygrane: {wins}\nPrzegrane: {losses}\n"
-            f"Obrót: {turnover:.0f} zł\n"
+            f"📊 BILANS MIESIĄCA {month}\n"
+            f"Typy: {len(month_picks)} | 🟢 {wins} | 🔴 {losses}\n"
+            f"Stawka: {STAKE:.0f} zł / typ | Obrót: {turnover:.2f} zł\n"
         )
-        if profit is None:
-            report += "Zysk/strata i yield: brak kursów — nie da się ich uczciwie obliczyć."
+        if missing_odds:
+            report += f"Zysk/strata: {profit:+.2f} zł (część kursów brak)\nYield: niepełne dane"
         else:
-            yield_pct = profit / turnover * 100 if turnover else 0
-            report += f"Zysk/strata: {profit:+.2f} zł\nYield: {yield_pct:+.2f}%"
-        telegram(report + f"\n\n{ATTRIBUTION}")
-        sent.add(day)
-        state["reports_sent"] = sorted(sent)
+            yield_pct = profit / turnover * 100 if turnover else 0.0
+            report += f"ZYSK/STRATA: {profit:+.2f} zł\nYield: {yield_pct:+.2f}%"
+        telegram(report)
+        sent.add(month)
+        state["monthly_reports_sent"] = sorted(sent)
+        save_state(state)
 
 
 def main():
@@ -1129,20 +1144,16 @@ def main():
                         "signal_score": signal_score,
                         "settled": False,
                     }
-                    market_text = f"Over {goal_line:.1f} gola do {'HT' if market == 'HT' else 'FT'}"
-                    # Reserve the fixture+market key BEFORE calling Telegram. If Telegram
-                    # accepts the message but the HTTP response is lost, the next scan
-                    # must not send the same pick again with a changed price.
+                    market_text = f"OVER {goal_line:.1f} {'HT' if market == 'HT' else 'FT'}"
+                    # Save the pick before sending to prevent duplicates after an HTTP timeout.
                     pick["delivery_status"] = "pending"
                     state["picks"].append(pick)
                     todays_picks.append(pick)
                     save_state(state)
 
                     telegram(
-                        f"⚽ TYP LIVE — {market_text}\\n{home} - {away}\\n"
-                        f"Liga: {league}\\nMinuta: {minute}' | Wynik: {home_score}:{away_score}\\n"
-                        f"Kurs Bet365: {live_price['odds']:.2f}\\n"
-                        f"Stawka: {STAKE:.0f} zł\\n\\n{ATTRIBUTION}"
+                        f"⚽ {market_text}\n{home} - {away}\n"
+                        f"Liga: {league}\nStawka: {STAKE:.0f} zł"
                     )
                     pick["delivery_status"] = "sent"
                     save_state(state)
@@ -1160,9 +1171,9 @@ def main():
             print(f"BŁĄD SKANOWANIA API: {type(exc).__name__}: {exc}", flush=True)
 
     try:
-        send_daily_reports(state)
+        send_monthly_reports(state)
     except Exception as exc:
-        print(f"Daily report error: {type(exc).__name__}: {exc}", flush=True)
+        print(f"Monthly report error: {type(exc).__name__}: {exc}", flush=True)
 
     save_state(state)
     print(f"Stan zapisany. Typy dzisiaj: {len(todays_picks)}/{MAX_DAILY_PICKS}", flush=True)
