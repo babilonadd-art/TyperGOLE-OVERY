@@ -300,9 +300,14 @@ def score_and_minute(match):
         if len(numbers) >= 2:
             home_score = home_score if home_score is not None else numbers[0]
             away_score = away_score if away_score is not None else numbers[1]
-    status = str(first(match, "status", "state", "match_status", "status_text", default="")).lower()
-    if isinstance(match.get("status"), dict):
-        status = str(first(match["status"], "short", "long", "name", default=status)).lower()
+    status_parts = []
+    for key in ("status", "state", "match_status", "status_text", "fixture_status"):
+        value = match.get(key)
+        if isinstance(value, dict):
+            value = first(value, "short", "long", "name", "description", default="")
+        if value is not None:
+            status_parts.append(str(value))
+    status = " ".join(status_parts).lower()
     return as_int(home_score), as_int(away_score), parse_minute(match), status
 
 
@@ -490,12 +495,53 @@ def telegram(message):
         raise RuntimeError(f"Telegram API error: {result}")
 
 
-def match_detail(slug):
-    if not slug:
-        return {}
-    # SportScore's documented match-detail endpoint accepts the team-pair slug
-    # from the penultimate URL segment (not the trailing provider ID).
-    return unwrap_match(api_get("/api/widget/match/", {"sport": "football", "slug": slug}))
+def match_detail(slug, pick=None):
+    if slug:
+        # Try both documented detail aliases; either may return the completed score.
+        for endpoint in ("/api/v1/match/", "/api/widget/match/"):
+            try:
+                detail = unwrap_match(api_get(endpoint, {"sport": "football", "slug": slug}))
+                if detail and first(detail, "home", "away", "status", "home_score", "score") is not None:
+                    return detail
+            except Exception as exc:
+                print(f"Match detail {endpoint} niedostępny dla {slug}: {type(exc).__name__}: {exc}", flush=True)
+
+    # If a completed fixture disappears from match detail, query the documented
+    # finished-fixtures archive for the match's UTC kickoff date and adjacent dates.
+    if pick:
+        dates = []
+        kickoff = pick.get("kickoff_time")
+        if kickoff:
+            try:
+                kickoff_dt = datetime.fromisoformat(str(kickoff).replace("Z", "+00:00"))
+                dates.append(kickoff_dt.astimezone(timezone.utc).date())
+            except (TypeError, ValueError):
+                pass
+        try:
+            local_day = datetime.fromisoformat(str(pick.get("date"))).date()
+            dates.extend([local_day - timedelta(days=1), local_day, local_day + timedelta(days=1)])
+        except (TypeError, ValueError):
+            pass
+
+        for day in dict.fromkeys(dates):
+            try:
+                payload = api_get("/api/v1/fixtures/", {
+                    "sport": "football", "date": day.isoformat(),
+                    "status": "finished", "limit": 200,
+                })
+                for fixture in extract_matches(payload):
+                    if not isinstance(fixture, dict):
+                        continue
+                    fixture_id = id_from_url(first(fixture, "url", "match_url", "link", default=""))
+                    if pick.get("id") and fixture_id and str(pick["id"]).lower() == fixture_id.lower():
+                        return fixture
+                    fh, fa = teams(fixture)
+                    if (normalized_team_name(fh) == normalized_team_name(pick.get("home"))
+                            and normalized_team_name(fa) == normalized_team_name(pick.get("away"))):
+                        return fixture
+            except Exception as exc:
+                print(f"Archiwum finished {day}: {type(exc).__name__}: {exc}", flush=True)
+    return {}
 
 
 def current_live_matches():
@@ -548,10 +594,18 @@ def score_pair(value):
 
 
 def final_status(match):
-    status = str(first(match, "status", "state", "match_status", "status_text", default="")).lower()
-    if isinstance(match.get("status"), dict):
-        status = str(first(match["status"], "short", "long", "name", default=status)).lower()
-    return any(term in status for term in ("finished", "full time", "full-time", "ft", "ended", "complete"))
+    values = []
+    for key in ("status", "state", "match_status", "fixture_status", "status_text", "elapsed"):
+        value = match.get(key) if isinstance(match, dict) else None
+        if isinstance(value, dict):
+            value = first(value, "short", "long", "name", "description", default="")
+        if value is not None:
+            values.append(str(value).lower())
+    status = " ".join(values)
+    return any(term in status for term in (
+        "finished", "full time", "full-time", "ended", "complete",
+        "after extra time", "after penalties", "ft"
+    ))
 
 
 def settle_picks(state):
@@ -565,7 +619,7 @@ def settle_picks(state):
         if pick.get("settled") or not pick.get("slug"):
             continue
         try:
-            match = match_detail(pick["slug"])
+            match = match_detail(pick["slug"], pick)
             if not match:
                 continue
 
@@ -658,7 +712,7 @@ def settle_picks(state):
             save_state(state)
             print(f"ROZLICZONO: {pick.get('key')} -> {result_text}", flush=True)
         except Exception as exc:
-            print(f"Settlement error for {pick.get('key')}: {exc}")
+            print(f"Settlement error for {pick.get('key')}: {type(exc).__name__}: {exc}", flush=True)
 
 
 def send_daily_reports(state):
@@ -841,6 +895,7 @@ def main():
                         "score_away": away_score,
                         "market": market,
                         "date": today,
+                        "kickoff_time": first(match, "time", "start_time", "kickoff", "date"),
                         "stake": STAKE,
                         "odds": live_price["odds"],
                         "odds_source": live_price["source"],
