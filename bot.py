@@ -424,6 +424,38 @@ def live_match_metrics(match):
     return metrics
 
 
+def same_fixture_pick_exists(state, identifier, home, away, match_date, market):
+    """
+    Idempotency guard: a fixture + market is one pick, regardless of odds changes
+    or small differences in provider IDs. Removing a Telegram message does not
+    remove this record from the bot's persistent state.
+    """
+    wanted_home = normalized_team_name(home)
+    wanted_away = normalized_team_name(away)
+    wanted_id = str(identifier or "").strip().lower()
+
+    for old in state.get("picks", []):
+        if old.get("date") != match_date or old.get("market") != market:
+            continue
+
+        old_id = str(old.get("id") or "").strip().lower()
+        old_key = str(old.get("key") or "").strip().lower()
+        if wanted_id and (old_id == wanted_id or old_key.startswith(wanted_id + ":")):
+            return True
+
+        old_home = normalized_team_name(old.get("home"))
+        old_away = normalized_team_name(old.get("away"))
+        same_teams = (
+            old_home == wanted_home and old_away == wanted_away
+        ) or (
+            old_home == wanted_away and old_away == wanted_home
+        )
+        if wanted_home and wanted_away and same_teams:
+            return True
+
+    return False
+
+
 def match_stats_look_promising(match):
     """Require a combination of live shooting and dangerous-attack indicators."""
     m = live_match_metrics(match)
@@ -756,8 +788,13 @@ def main():
                         continue
 
                     key = f"{identifier}:{market}"
-                    if any(p.get("key") == key for p in state["picks"]):
+                    if same_fixture_pick_exists(state, identifier, home, away, today, market):
                         stats["duplicate"] += 1
+                        print(
+                            f"[{index}] DUPLIKAT — {home} - {away}, rynek {market}; "
+                            "kurs nie ma wpływu na identyfikację typu.",
+                            flush=True,
+                        )
                         continue
 
                     promising, metrics, signal_score = match_stats_look_promising(match)
