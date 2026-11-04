@@ -59,9 +59,11 @@
         "dangerous_attacks": 55
       },
       "signal_score": 2,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
-      "goal_pending_since": "2026-11-05T00:43:27.232178+01:00"
+      "won": true,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-05T00:45:13.921966+01:00"
     },
     {
       "key": "3glrw7hndkl5qdy:FT",
@@ -90,9 +92,11 @@
         "dangerous_attacks": 57
       },
       "signal_score": 4,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
-      "goal_pending_since": "2026-11-05T00:43:27.749832+01:00"
+      "won": true,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-05T00:45:14.891621+01:00"
     },
     {
       "key": "vjxm8ghkv11or6o:FT",
@@ -121,9 +125,11 @@
         "dangerous_attacks": 64
       },
       "signal_score": 4,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
-      "goal_pending_since": "2026-11-05T00:43:28.292634+01:00"
+      "won": true,
+      "settled_score": "3-2",
+      "settled_at": "2026-11-05T00:45:15.712217+01:00"
     }
   ],
   "reports_sent": []
