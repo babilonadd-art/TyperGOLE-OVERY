@@ -270,20 +270,9 @@ def telegram(message):
 def match_detail(slug):
     if not slug:
         return {}
-    # Both routes are documented aliases; keep the v1 route as the primary
-    # endpoint and fall back to the widget route if the alias is unavailable.
-    last_error = None
-    for endpoint in ("/api/v1/match/", "/api/widget/match/"):
-        try:
-            payload = api_get(endpoint, {"sport": "football", "slug": slug})
-            detail = unwrap_match(payload)
-            if detail:
-                return detail
-        except requests.RequestException as exc:
-            last_error = exc
-    if last_error:
-        raise last_error
-    return {}
+    # SportScore's documented match-detail endpoint accepts the team-pair slug
+    # from the penultimate URL segment (not the trailing provider ID).
+    return unwrap_match(api_get("/api/widget/match/", {"sport": "football", "slug": slug}))
 
 
 def current_live_matches():
