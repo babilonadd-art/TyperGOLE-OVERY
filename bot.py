@@ -71,6 +71,21 @@ def moviodds_live_matches():
         raise RuntimeError("MoviOdds returned an unexpected matches payload")
     live = [item for item in matches if isinstance(item, dict) and item.get("in_play") is True]
     print(f"MoviOdds/Bet365: {len(live)} meczów live z kursami", flush=True)
+    quote_count = sum(len(item.get("quotes", [])) for item in live if isinstance(item.get("quotes"), list))
+    print(f"MoviOdds: {quote_count} ofert na tablicy live", flush=True)
+    if live:
+        sample_quotes = live[0].get("quotes", [])
+        if isinstance(sample_quotes, list):
+            relevant = [
+                {
+                    "group_name": q.get("group_name"), "group_id": q.get("group_id"),
+                    "phase": q.get("phase"), "side": q.get("side"),
+                    "line": q.get("line"), "odds_dec": q.get("odds_dec"),
+                    "suspended": q.get("suspended"),
+                }
+                for q in sample_quotes[:120] if isinstance(q, dict)
+            ]
+            print("Przykładowe pola kursów MoviOdds: " + json.dumps(relevant, ensure_ascii=False)[:3500], flush=True)
     return live
 
 
@@ -141,17 +156,14 @@ def extract_live_over_odds(odds_match, market, target_line):
             continue
         if str(quote.get("phase", "")).lower() != "inplay":
             continue
-        if quote.get("suspended") is True:
+        if quote.get("suspended") is True or quote.get("suspended") == 1:
             continue
         group_name = str(first(quote, "group_name", "market", default="")).strip().lower()
         if market == "HT":
-            allowed = group_name in {
-                "1st half goal line", "1st half goals", "first half goal line"
-            } or group_name.startswith("1st half goal line")
+            allowed = group_name.startswith(("1st half goal line", "first half goal line"))
         else:
-            allowed = group_name in {
-                "goal line", "alternative total goals", "goals over/under", "match goals"
-            }
+            # Bet365's in-play full-time market is "Goal Line (current score)".
+            allowed = group_name.startswith("goal line") and not group_name.startswith("1st half")
         if not allowed:
             continue
         side = str(first(quote, "side", default="")).strip().lower()
@@ -756,8 +768,8 @@ def main():
                     if isinstance(league, dict):
                         league = first(league, "name", "title", default="Liga nieznana")
 
-                    # Pick the next half-goal line above the current score.
-                    goal_line = round(home_score + away_score + 0.5, 1)
+                    # In-play Goal Line prices goals still to be scored, not the cumulative score.
+                    goal_line = 0.5
                     odds_fixture = find_moviodds_match(home, away, odds_matches)
                     if not odds_fixture:
                         stats["odds_no_match"] += 1
