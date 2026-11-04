@@ -509,7 +509,7 @@ def match_detail(slug, pick=None):
             try:
                 detail = unwrap_match(api_get(endpoint, {"sport": "football", "slug": slug}))
                 if detail and first(detail, "home", "away", "status", "home_score", "score") is not None:
-                    if final_status(detail):
+                    if confirmed_final_fixture(detail):
                         return detail
                     if not live_detail or (
                         score_and_minute(detail)[0] is not None
@@ -560,8 +560,11 @@ def match_detail(slug, pick=None):
                         first(fixture, "url", "match_url", "link", default="")
                     )
                     if pick.get("id") and fixture_id and str(pick["id"]).lower() == fixture_id.lower():
-                        print(f"Harmonogram: dopasowanie po ID {fixture_id}", flush=True)
-                        return fixture
+                        if confirmed_final_fixture(fixture):
+                            print(f"Harmonogram: potwierdzony zakończony mecz po ID {fixture_id}", flush=True)
+                            return fixture
+                        print(f"Harmonogram: ID {fixture_id} pasuje, ale mecz nie ma potwierdzonego statusu końcowego — pomijam.", flush=True)
+                        continue
                     fh, fa = teams(fixture)
                     if (
                         normalized_team_name(fh) == normalized_team_name(pick.get("home"))
@@ -570,8 +573,10 @@ def match_detail(slug, pick=None):
                         normalized_team_name(fh) == normalized_team_name(pick.get("away"))
                         and normalized_team_name(fa) == normalized_team_name(pick.get("home"))
                     ):
-                        print("Harmonogram: dopasowanie po nazwach drużyn", flush=True)
-                        return fixture
+                        if confirmed_final_fixture(fixture):
+                            print("Harmonogram: potwierdzony zakończony mecz po nazwach drużyn", flush=True)
+                            return fixture
+                        print("Harmonogram: nazwy pasują, ale rekord nie jest potwierdzonym zakończonym meczem — pomijam.", flush=True)
             except Exception as exc:
                 print(
                     f"Harmonogram drużyny {team_slug}: {type(exc).__name__}: {exc}",
@@ -601,8 +606,11 @@ def match_detail(slug, pick=None):
                             first(fixture, "url", "match_url", "link", default="")
                         )
                         if pick.get("id") and fixture_id and str(pick["id"]).lower() == fixture_id.lower():
-                            print(f"Archiwum: dopasowanie po ID {fixture_id}", flush=True)
-                            return fixture
+                            if confirmed_final_fixture(fixture):
+                                print(f"Archiwum: potwierdzony zakończony mecz po ID {fixture_id}", flush=True)
+                                return fixture
+                            print(f"Archiwum: ID {fixture_id} bez potwierdzonego wyniku końcowego — pomijam.", flush=True)
+                            continue
                         fh, fa = teams(fixture)
                         direct = (
                             normalized_team_name(fh) == normalized_team_name(pick.get("home"))
@@ -613,12 +621,14 @@ def match_detail(slug, pick=None):
                             and normalized_team_name(fa) == normalized_team_name(pick.get("home"))
                         )
                         if direct or reverse:
-                            print(
-                                f"Archiwum: dopasowanie po nazwach drużyn "
-                                f"({'odwrócona kolejność' if reverse else 'zgodna kolejność'})",
-                                flush=True,
-                            )
-                            return fixture
+                            if confirmed_final_fixture(fixture):
+                                print(
+                                    f"Archiwum: potwierdzony zakończony mecz po nazwach drużyn "
+                                    f"({'odwrócona kolejność' if reverse else 'zgodna kolejność'})",
+                                    flush=True,
+                                )
+                                return fixture
+                            print("Archiwum: pasujące nazwy, ale brak potwierdzonego statusu końcowego i wyniku — pomijam.", flush=True)
                 except Exception as exc:
                     print(
                         f"Archiwum finished {day} team={team_slug or 'ALL'}: "
@@ -725,19 +735,31 @@ def extract_half_time_score(match):
 
 
 def final_status(match):
+    """Accept only explicit full-time/final states, never a loose 'ft' substring."""
     values = []
     for key in ("status", "state", "match_status", "fixture_status", "status_text", "elapsed"):
         value = match.get(key) if isinstance(match, dict) else None
         if isinstance(value, dict):
-            value = first(value, "short", "long", "name", "description", default="")
+            value = first(value, "short", "long", "name", "description", "status", default="")
         if value is not None:
-            values.append(str(value).lower())
+            values.append(str(value).strip().lower())
     status = " ".join(values)
-    return any(term in status for term in (
-        "finished", "full time", "full-time", "ended", "complete",
-        "after extra time", "after penalties", "ft"
-    ))
+    normalized = re.sub(r"[^a-z0-9]+", " ", status).strip()
+    tokens = set(normalized.split())
+    final_tokens = {"finished", "ended", "complete", "completed", "ft", "aet", "pen"}
+    final_phrases = (
+        "full time", "after extra time", "after penalties",
+        "match finished", "game finished", "final whistle",
+    )
+    return bool(tokens & final_tokens) or any(phrase in normalized for phrase in final_phrases)
 
+
+def confirmed_final_fixture(match):
+    """A settlement candidate must have an explicit final status and a complete score."""
+    if not isinstance(match, dict) or not final_status(match):
+        return False
+    home_score, away_score, _, _ = score_and_minute(match)
+    return home_score is not None and away_score is not None
 
 def settle_picks(state):
     # Goal must remain in the provider's score for 3 minutes before we notify.
