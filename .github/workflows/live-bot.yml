@@ -1,7 +1,12 @@
 name: TyperGOLE-OVERY Live Bot
 
 on:
-  # Kod aktualizujemy bez automatycznego skanowania; test po poprawce uruchomiono ręcznie przez commit.
+  # Uruchom także po zmianie kodu, ale nie po samym zapisie state.json.
+  push:
+    branches: [main]
+    paths:
+      - "bot.py"
+      - ".github/workflows/live-bot.yml"
   workflow_dispatch:
   schedule:
     - cron: "*/5 * * * *"
