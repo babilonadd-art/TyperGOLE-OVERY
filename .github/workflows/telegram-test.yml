@@ -1,0 +1,43 @@
+name: Telegram Connection Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-telegram:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Send a safe test message
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.parse
+          import urllib.request
+
+          token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+          chat_id = os.environ.get("TELEGRAM_CHAT_ID", "")
+          if not token or not chat_id:
+              raise SystemExit("Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID repository secret.")
+
+          url = f"https://api.telegram.org/bot{token}/sendMessage"
+          body = urllib.parse.urlencode({
+              "chat_id": chat_id,
+              "text": "✅ Test połączenia bota TyperGOLE-OVERY. Telegram działa poprawnie."
+          }).encode()
+          request = urllib.request.Request(url, data=body, method="POST")
+          try:
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  result = json.loads(response.read().decode())
+          except Exception as exc:
+              raise SystemExit(f"Telegram request failed: {type(exc).__name__}: {exc}")
+
+          if not result.get("ok"):
+              raise SystemExit("Telegram API rejected the message. Check bot token, chat ID and channel admin permissions.")
+          print("SUCCESS: Telegram accepted the test message.")
+          print("Verified chat ID:", result["result"]["chat"]["id"])
+          PY
