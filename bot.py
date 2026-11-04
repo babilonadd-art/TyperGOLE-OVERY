@@ -872,23 +872,30 @@ def settle_picks(state):
 
             goal_seen = target_total is not None and target_total > baseline_total
             if goal_seen:
-                pending_since = pick.get("goal_pending_since")
-                if not pending_since:
-                    pick["goal_pending_since"] = now.isoformat()
-                    print(f"Wykryto gola dla {pick.get('key')} — uruchamiam 3-minutowe potwierdzenie VAR.")
-                    continue
-                try:
-                    pending_at = datetime.fromisoformat(pending_since)
-                    if pending_at.tzinfo is None:
-                        pending_at = pending_at.replace(tzinfo=TZ)
-                    elapsed = (now - pending_at.astimezone(TZ)).total_seconds()
-                except (TypeError, ValueError):
-                    pick["goal_pending_since"] = now.isoformat()
-                    continue
+                if period_complete:
+                    # The provider marks the fixture as finished and supplies its final
+                    # score. That official final score already includes VAR decisions,
+                    # so do not leave a completed match waiting for another scan.
+                    pick.pop("goal_pending_since", None)
+                    won = True
+                else:
+                    pending_since = pick.get("goal_pending_since")
+                    if not pending_since:
+                        pick["goal_pending_since"] = now.isoformat()
+                        print(f"Wykryto gola dla {pick.get('key')} — uruchamiam 3-minutowe potwierdzenie VAR.")
+                        continue
+                    try:
+                        pending_at = datetime.fromisoformat(pending_since)
+                        if pending_at.tzinfo is None:
+                            pending_at = pending_at.replace(tzinfo=TZ)
+                        elapsed = (now - pending_at.astimezone(TZ)).total_seconds()
+                    except (TypeError, ValueError):
+                        pick["goal_pending_since"] = now.isoformat()
+                        continue
 
-                if elapsed < confirmation_seconds:
-                    continue
-                won = True
+                    if elapsed < confirmation_seconds:
+                        continue
+                    won = True
             else:
                 # A VAR cancellation resets the pending goal. A loss is only possible
                 # after the relevant period has ended without a qualifying goal.
