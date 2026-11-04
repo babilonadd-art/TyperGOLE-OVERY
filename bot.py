@@ -616,6 +616,8 @@ def settle_picks(state):
             pick["settled_score"] = score_text
             pick["settled_at"] = now.isoformat()
             pick.pop("goal_pending_since", None)
+            # Persist immediately so a later scan/restart cannot lose the settlement.
+            save_state(state)
             print(f"ROZLICZONO: {pick.get('key')} -> {result_text}", flush=True)
         except Exception as exc:
             print(f"Settlement error for {pick.get('key')}: {exc}")
@@ -815,8 +817,11 @@ def main():
                     )
                     state["picks"].append(pick)
                     todays_picks.append(pick)
+                    # Telegram accepted the pick: persist it immediately, not only at
+                    # the end of the whole scan. This prevents lost picks on a later error.
+                    save_state(state)
                     stats["sent"] += 1
-                    print(f"WYSŁANO TYP: {home} - {away}, {minute}', {market}", flush=True)
+                    print(f"WYSŁANO I ZAPISANO TYP: {home} - {away}, {minute}', {market}", flush=True)
 
                 except Exception as exc:
                     stats["errors"] += 1
