@@ -258,21 +258,32 @@ def live_match_metrics(match):
     for key, value in stats.items():
         name = str(key).lower().replace("-", "_").replace(" ", "_")
         if isinstance(value, dict):
-            home = as_int(first(value, "home", "home_value", "local"))
-            away = as_int(first(value, "away", "away_value", "visitor"))
-            total = (home + away) if home is not None and away is not None else stat_number(value)
-            # xG must retain its team split and decimal precision.
+            # xG is decimal and must remain separated by team.
             if "xg" in name or "expected_goals" in name or "expected_goal" in name:
                 try:
-                    xh = float(first(value, "home", "home_value", "local"))
-                    xa = float(first(value, "away", "away_value", "visitor"))
-                    metrics["xg_home"] = xh
-                    metrics["xg_away"] = xa
+                    metrics["xg_home"] = float(first(value, "home", "home_value", "local"))
+                    metrics["xg_away"] = float(first(value, "away", "away_value", "visitor"))
                 except (TypeError, ValueError):
                     pass
                 continue
+            home = as_int(first(value, "home", "home_value", "local"))
+            away = as_int(first(value, "away", "away_value", "visitor"))
+            total = (home + away) if home is not None and away is not None else stat_number(value)
         else:
             total = as_int(value)
+            # Some feeds expose xG as separate home/away numeric fields.
+            if name in ("home_xg", "xg_home", "home_expected_goals", "expected_goals_home"):
+                try:
+                    metrics["xg_home"] = float(value)
+                except (TypeError, ValueError):
+                    pass
+                continue
+            if name in ("away_xg", "xg_away", "away_expected_goals", "expected_goals_away"):
+                try:
+                    metrics["xg_away"] = float(value)
+                except (TypeError, ValueError):
+                    pass
+                continue
 
         if total is None:
             continue
