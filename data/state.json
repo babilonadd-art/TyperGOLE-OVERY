@@ -615,6 +615,43 @@
       "won": true,
       "settled_score": "4-0",
       "settled_at": "2026-11-05T16:56:06.796190+01:00"
+    },
+    {
+      "key": "pxwrxlhy40okryk:FT",
+      "id": "pxwrxlhy40okryk",
+      "slug": "chindia-targoviste-vs-gloria-popesti-leordeni",
+      "home": "Chindia Targoviste",
+      "away": "Gloria Popesti-Leordeni",
+      "league": "Romanian Liga II",
+      "minute": 58,
+      "score_home": 2,
+      "score_away": 0,
+      "market": "FT",
+      "date": "2026-11-05",
+      "kickoff_time": "2026-11-05T15:00:00+00:00",
+      "stake": 50.0,
+      "odds": 17.0,
+      "odds_source": "Superbet",
+      "odds_market": "Popesti Leordeni - liczba goli",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/chindia-targoviste-vs-popesti-leordeni-14438657?marketGroup=103",
+      "goal_line": 2.5,
+      "live_metrics": {
+        "shots": 10.0,
+        "shots_on_target": 4.0,
+        "shots_off_target": 6.0,
+        "attacks": 130.0,
+        "dangerous_attacks": 65.0,
+        "xg": null,
+        "big_chances": null,
+        "shots_inside_box": null,
+        "touches_in_box": null,
+        "saves": null
+      },
+      "signal_score": 2,
+      "settled": false,
+      "delivery_status": "sent",
+      "goal_pending_since": "2026-11-05T17:18:37.864669+01:00"
     }
   ],
   "reports_sent": []
