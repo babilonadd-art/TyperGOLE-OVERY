@@ -1011,10 +1011,10 @@ def update_existing_pick_minutes(state):
             )
             market_text = f"OVER {float(pick.get('goal_line', 0)):.1f} {pick.get('market', '')}"
             telegram(
-                f"⚽ {market_text}\\n"
-                f"{pick.get('home')} - {pick.get('away')}\\n"
-                f"Liga: {pick.get('league', 'Liga nieznana')}\\n"
-                f"Minuta: {minute}' | Wynik: {score_text}\\n"
+                f"⚽ {market_text}\n"
+                f"{pick.get('home')} - {pick.get('away')}\n"
+                f"Liga: {pick.get('league', 'Liga nieznana')}\n"
+                f"Minuta: {minute}' | Wynik: {score_text}\n"
                 f"Stawka: {STAKE:.0f} zł"
             )
             pick["minute_update_sent"] = True
