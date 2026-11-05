@@ -1960,6 +1960,111 @@ def main():
                         continue
                     live_price = final_live_price
 
+                    # Final live-state refresh: the SportScore list/detail read can
+                    # become stale while Superbet event/price requests are running.
+                    # Refresh the score immediately before publishing and never send
+                    # a total-goals line that is already below the current score.
+                    try:
+                        final_match_detail = match_detail(slug)
+                    except Exception as exc:
+                        stats["detail_error"] += 1
+                        print(
+                            f"[{index}] Końcowe odświeżenie wyniku SportScore nieudane "
+                            f"dla {home} - {away}: {type(exc).__name__}: {exc}; typ pominięty.",
+                            flush=True,
+                        )
+                        continue
+                    final_home_score, final_away_score, final_minute, final_status = score_and_minute(final_match_detail)
+                    if final_home_score is None or final_away_score is None:
+                        print(
+                            f"[{index}] Końcowy wynik SportScore niepełny dla {home} - {away}; typ pominięty.",
+                            flush=True,
+                        )
+                        continue
+                    if final_minute is None:
+                        print(
+                            f"[{index}] Końcowy zegar SportScore nieczytelny dla {home} - {away}; typ pominięty.",
+                            flush=True,
+                        )
+                        continue
+
+                    final_total_goals = final_home_score + final_away_score
+                    required_line = final_total_goals + 0.5
+                    if goal_line + 0.001 < required_line:
+                        print(
+                            f"[{index}] WYNIK ZMIENIŁ SIĘ PRZED WYSŁANIEM: "
+                            f"{home} - {away} {final_home_score}-{final_away_score}, "
+                            f"Over {goal_line:.1f} jest już za niską linią; "
+                            f"szukam minimum Over {required_line:.1f}.",
+                            flush=True,
+                        )
+                        try:
+                            refreshed_superbet_detail = superbet_event_detail(superbet_event["event_id"])
+                        except Exception as exc:
+                            stats["odds_missing"] += 1
+                            print(
+                                f"[{index}] Nie udało się odświeżyć Superbet po zmianie wyniku: "
+                                f"{type(exc).__name__}: {exc}; typ pominięty.",
+                                flush=True,
+                            )
+                            continue
+                        refreshed_price = extract_superbet_live_over_odds(
+                            refreshed_superbet_detail, market, required_line
+                        )
+                        if not refreshed_price:
+                            stats["odds_missing"] += 1
+                            print(
+                                f"[{index}] Brak aktualnego kursu Superbet dla Over "
+                                f"{required_line:.1f} FT po zmianie wyniku; typ pominięty.",
+                                flush=True,
+                            )
+                            continue
+                        goal_line = refreshed_price["line"]
+                        try:
+                            last_superbet_detail = superbet_event_detail(superbet_event["event_id"])
+                        except Exception as exc:
+                            stats["odds_missing"] += 1
+                            print(
+                                f"[{index}] Ostatnia kontrola Superbet nieudana po zmianie wyniku: "
+                                f"{type(exc).__name__}: {exc}; typ pominięty.",
+                                flush=True,
+                            )
+                            continue
+                        last_price = extract_superbet_live_over_odds(
+                            last_superbet_detail, market, required_line
+                        )
+                        if (
+                            not last_price
+                            or abs(last_price["line"] - goal_line) > 0.001
+                            or not 1.70 <= float(last_price["odds"]) <= 3.50
+                        ):
+                            stats["odds_missing"] += 1
+                            print(
+                                f"[{index}] Końcowa kontrola nowej linii Over {goal_line:.1f} FT "
+                                "nie powiodła się; typ pominięty.",
+                                flush=True,
+                            )
+                            continue
+                        live_price = last_price
+                    else:
+                        # The selected market still covers the live score.
+                        pass
+
+                    # Use the freshest verified score and clock in the Telegram message.
+                    home_score, away_score, minute = (
+                        final_home_score, final_away_score, final_minute
+                    )
+                    log_superbet_diagnostic({
+                        "type": "FINAL_MATCH_STATE",
+                        "checked_at": datetime.now(timezone.utc).isoformat(),
+                        "sportscore_home": home,
+                        "sportscore_away": away,
+                        "score": f"{home_score}-{away_score}",
+                        "minute": minute,
+                        "selected_line": goal_line,
+                        "line_valid_for_score": goal_line >= home_score + away_score + 0.5,
+                    })
+
                     # Audit trail: retain the exact Superbet fixture and quote in
                     # GitHub Actions logs so a published price can be traced.
                     quote_audit = {
