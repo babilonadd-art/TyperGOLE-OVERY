@@ -38,7 +38,7 @@ def calculate_bet_result(stake, odds):
     }
 HEADERS = {"User-Agent": "TyperGOLE-OVERY/1.0", "Accept": "application/json"}
 ATTRIBUTION = "Powered by SportScore: https://sportscore.com/"
-MIN_LIVE_ODDS = 1.80
+MIN_LIVE_ODDS = 1.70
 
 
 def now_local():
@@ -756,9 +756,8 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market):
 
 def match_stats_look_promising(match, market):
     """
-    Łagodniejszy filtr statystyk LIVE: wystarczą dwa dostępne wskaźniki
-    i przynajmniej jeden sygnał ofensywny. Kurs Superbet nadal musi wynosić
-    co najmniej MIN_LIVE_ODDS, a okna minutowe pozostają bez zmian.
+    Łagodniejszy filtr LIVE: wystarczy jeden dostępny wskaźnik ofensywny
+    osiągający próg. Kurs Superbet musi wynosić co najmniej MIN_LIVE_ODDS.
     """
     m = live_match_metrics(match)
     if not m:
@@ -768,19 +767,18 @@ def match_stats_look_promising(match, market):
     shots_on_target = m.get("shots_on_target")
     dangerous_attacks = m.get("dangerous_attacks")
 
-    # Statystyki sumują obie drużyny. Progi obniżone, aby częściej
-    # kwalifikować mecze, ale bez całkowitego wyłączania filtra.
+    # Statystyki sumują obie drużyny; niższe progi zwiększają liczbę kandydatów.
     if market == "HT":
-        thresholds = (4, 2, 15)
+        thresholds = (3, 1, 12)
     else:
-        thresholds = (7, 3, 22)
+        thresholds = (5, 2, 18)
 
     available = [
         (value, threshold)
         for value, threshold in zip((shots, shots_on_target, dangerous_attacks), thresholds)
         if value is not None
     ]
-    if len(available) < 2:
+    if not available:
         return False, m, 0
 
     score = sum(value >= threshold for value, threshold in available)
@@ -1507,11 +1505,9 @@ def main():
                         stats["missing_minute"] += 1
                         continue
 
-                    # Okna polowania: HT 30-45' oraz FT 65-90'.
-                    # Wysyłka jest celowo ograniczona: HT najpóźniej do 35',
-                    # FT najpóźniej do 70'. Po tych minutach mecz jest obserwowany,
-                    # ale nowy typ nie jest wysyłany.
-                    market = "HT" if 30 <= minute <= 35 else "FT" if 65 <= minute <= 70 else None
+                    # Okna polowania i wysyłki: HT 20-35', FT 55-70'.
+                    # Nie wysyłamy później, aby został realny czas na gola.
+                    market = "HT" if 20 <= minute <= 35 else "FT" if 55 <= minute <= 70 else None
                     if market is None:
                         stats["outside_window"] += 1
                         continue
