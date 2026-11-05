@@ -688,8 +688,11 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
-      "delivery_status": "sent"
+      "settled": true,
+      "delivery_status": "sent",
+      "won": true,
+      "settled_score": "2-2",
+      "settled_at": "2026-11-05T18:40:37.743667+01:00"
     }
   ],
   "reports_sent": []
