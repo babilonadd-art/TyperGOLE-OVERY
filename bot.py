@@ -310,7 +310,7 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
             continue
 
         # Selection itself must explicitly be Over/Powyżej, not a generic outcome.
-        selection_match = re.search(r"\\b(powyżej|over)\\s*(\\d+(?:[.,]\\d+)?)\\b", selection_text)
+        selection_match = re.search(r"\b(powyżej|over)\s*(\d+(?:[.,]\d+)?)\b", selection_text)
         if not selection_match:
             continue
         selection_line = float(selection_match.group(2).replace(",", "."))
@@ -335,7 +335,7 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
                 line_value = first(specifiers, "total", "goals", "line")
         if line_value is None:
             continue
-        line_match = re.fullmatch(r"\\s*(\\d+(?:[.,]\\d+)?)\\s*", str(line_value))
+        line_match = re.fullmatch(r"\s*(\d+(?:[.,]\d+)?)\s*", str(line_value))
         if not line_match:
             continue
         structured_line = float(line_match.group(1).replace(",", "."))
@@ -1656,6 +1656,21 @@ def main():
                             flush=True,
                         )
                         continue
+
+                    # Ostatnia kontrola kursu bezpośrednio przed przygotowaniem i wysłaniem wiadomości.
+                    # Jeśli Superbet zmienił kurs albo feed przestał go jednoznacznie potwierdzać, pomijamy typ.
+                    try:
+                        final_superbet_detail = superbet_event_detail(superbet_event["event_id"])
+                    except Exception as exc:
+                        stats["odds_missing"] += 1
+                        print(f"[{index}] Końcowa kontrola kursu Superbet nieudana dla {home} - {away}: {type(exc).__name__}: {exc}; typ pominięty.", flush=True)
+                        continue
+                    final_live_price = extract_superbet_live_over_odds(final_superbet_detail, market, goal_line)
+                    if not final_live_price:
+                        stats["odds_missing"] += 1
+                        print(f"[{index}] Końcowa kontrola: brak jednoznacznego kursu Superbet dla Over {goal_line:.1f} {market}; typ pominięty.", flush=True)
+                        continue
+                    live_price = final_live_price
 
                     pick = {
                         "key": key,
