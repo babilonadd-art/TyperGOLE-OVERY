@@ -782,23 +782,56 @@ def teams(match):
 
 
 def parse_minute(match):
-    minute = as_int(first(match, "minute", "live_minute", "elapsed", "time_elapsed", "current_minute", "elapsed_minute", "currentMinute"))
-    if minute is not None:
+    # Status okresu ma pierwszeństwo przed liczbowym zegarem:
+    # SportScore potrafi chwilowo zwrócić minute=60, gdy mecz jest w przerwie.
+    phase_parts = []
+    for key in ("status", "state", "match_status", "status_text",
+                "fixture_status", "period", "phase", "elapsed_time"):
+        value = match.get(key) if isinstance(match, dict) else None
+        if isinstance(value, dict):
+            value = first(value, "short", "long", "name", "description",
+                          "label", "status", "minute", "elapsed", default="")
+        if value is not None:
+            phase_parts.append(str(value))
+    phase = " ".join(phase_parts).strip().lower()
+    normalized_phase = re.sub(r"[_-]+", " ", phase)
+
+    # Przerwa: nie wolno użyć starego/liczbowego pola 60' z feedu.
+    halftime_markers = (
+        "half time", "halftime", "half-time", "interval",
+        "break", "przerwa", "ht",
+    )
+    if any(marker in normalized_phase for marker in halftime_markers):
+        stoppage = re.search(r"45\\s*\\+\\s*(\\d+)", normalized_phase)
+        return 45 + int(stoppage.group(1)) if stoppage else 45
+
+    # Najpierw jawne pola zegara meczu.
+    minute = as_int(first(
+        match, "minute", "live_minute", "elapsed", "time_elapsed",
+        "current_minute", "elapsed_minute", "currentMinute"
+    ))
+    if minute is not None and 0 <= minute <= 130:
         return minute
-    status_text = str(first(match, "status_text", "elapsed_time", "status", default=""))
-    # SportScore may express the live clock as e.g. 32' or 45+2'.
-    match_minute = re.search(r"(\d{1,3})(?:\s*\+\s*\d+)?\s*['′’]", status_text)
-    if match_minute:
-        return int(match_minute.group(1))
+
+    # Następnie tekst zegara, np. 32' lub 45+2'.
+    for value in (
+        first(match, "status_text", "elapsed_time", default=""),
+        first(match, "status", "state", "match_status", default=""),
+    ):
+        if isinstance(value, dict):
+            value = first(value, "short", "long", "name", "description", default="")
+        match_minute = re.search(r"(\\d{1,3})(?:\\s*\\+\\s*(\\d+))?\\s*['′’]", str(value))
+        if match_minute:
+            base = int(match_minute.group(1))
+            added = int(match_minute.group(2) or 0)
+            return base + added
+
+    # Gdy feed nie podaje zegara, szacuj wyłącznie na podstawie jawnego
+    # statusu trwającej połowy i czasu rozpoczęcia.
     status = first(match, "status", "state", "match_status", default="")
     if isinstance(status, dict):
-        nested_minute = as_int(first(status, "minute", "elapsed"))
-        if nested_minute is not None:
-            return nested_minute
         status = first(status, "short", "long", "name", default="")
-    phase = str(first(match, "status_text", default=status)).strip().lower()
-    # The live fixtures feed often gives only "1st half"/"2nd half" and
-    # the kickoff timestamp. Estimate the match clock from elapsed wall time.
+    phase = str(status or first(match, "status_text", default="")).strip().lower()
     kickoff = first(match, "time", "start_time", "kickoff", "date")
     if kickoff and any(x in phase for x in ("half", "1h", "2h", "live", "in play")):
         try:
@@ -1808,6 +1841,14 @@ def main():
                         print(
                             f"[{index}] ROZBIEŻNY WYNIK SportScore: lista={raw_home}-{raw_away}, "
                             f"szczegóły={detail_home}-{detail_away}; pomijam mecz.",
+                            flush=True,
+                        )
+                        continue
+                    if raw_minute is not None and detail_minute is not None and abs(raw_minute - detail_minute) > 2:
+                        print(
+                            f"[{index}] ROZBIEŻNY ZEGAR SportScore: lista={raw_minute}', "
+                            f"szczegóły={detail_minute}' (status listy={raw_status!r}, "
+                            f"status szczegółów={detail_status!r}); typ pominięty.",
                             flush=True,
                         )
                         continue
