@@ -19,7 +19,7 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
 STAKE = 50.0
 BET_TAX_RATE = 0.12
-MAX_DAILY_PICKS = 4
+MAX_DAILY_PICKS = 10
 
 def calculate_bet_result(stake, odds):
     """Calculate Polish 12% stake tax, payout and net profit."""
@@ -669,21 +669,24 @@ def match_stats_look_promising(match, market):
     shots_on_target = m.get("shots_on_target")
     dangerous_attacks = m.get("dangerous_attacks")
 
-    # HT: at least 8 shots, 4 on target and 30 dangerous attacks.
-    # FT (70-74'): stronger evidence is required: 14 shots, 8 on target
-    # and 40 dangerous attacks. These are filters, not a guarantee of a goal.
+    # Statystyki sumują obie drużyny, więc oceniają intensywność całego meczu.
+    # Feed nie zawsze zwraca komplet pól: wymagamy minimum dwóch dostępnych
+    # wskaźników i dwóch sygnałów, zamiast odrzucać mecz za brak jednego pola.
     if market == "HT":
-        thresholds = (8, 4, 30)
+        thresholds = (6, 3, 22)
     else:
-        thresholds = (14, 8, 40)
+        thresholds = (10, 5, 30)
 
-    available = (shots, shots_on_target, dangerous_attacks)
-    if any(value is None for value in available):
+    available = [
+        (value, threshold)
+        for value, threshold in zip((shots, shots_on_target, dangerous_attacks), thresholds)
+        if value is not None
+    ]
+    if len(available) < 2:
         return False, m, 0
 
-    passed = all(value >= threshold for value, threshold in zip(available, thresholds))
-    score = sum(value >= threshold for value, threshold in zip(available, thresholds))
-    return passed, m, score
+    score = sum(value >= threshold for value, threshold in available)
+    return score >= 2, m, score
 
 
 def telegram(message):
@@ -1410,9 +1413,11 @@ def main():
                         stats["missing_minute"] += 1
                         continue
 
-                    # Skan odbywa się co minutę, ale źródła potrafią raportować
-                    # minutę z opóźnieniem. Użyj krótkich okien zamiast jednej sekundy/minuty.
-                    market = "HT" if 30 <= minute <= 35 else "FT" if 70 <= minute <= 75 else None
+                    # Okna polowania: HT 30-45' oraz FT 65-90'.
+                    # Wysyłka jest celowo ograniczona: HT najpóźniej do 35',
+                    # FT najpóźniej do 70'. Po tych minutach mecz jest obserwowany,
+                    # ale nowy typ nie jest wysyłany.
+                    market = "HT" if 30 <= minute <= 35 else "FT" if 65 <= minute <= 70 else None
                     if market is None:
                         stats["outside_window"] += 1
                         continue
