@@ -291,15 +291,9 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
         value = re.sub(r"[^a-z0-9]+", " ", value)
         return re.sub(r"\s+", " ", value).strip()
 
-    # Only these exact market names represent the combined goals of both teams.
-    # Do not use substring matching: "Team X - Liczba goli" is a team-total market.
     match_total_market_names = {
-        "liczba goli",
-        "suma goli",
-        "total goals",
-        "goals total",
-        "total goal",
-        "goal line",
+        "liczba goli", "suma goli", "total goals", "goals total",
+        "total goal", "goal line", "gole", "suma bramek",
     }
     first_half_markers = (
         "1 pol", "pierwsza polowa", "1st half", "first half", "half time", "ht",
@@ -307,28 +301,38 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
     second_half_markers = (
         "2 pol", "druga polowa", "2nd half", "second half",
     )
-    extra_time_markers = ("dogryw", "extra time", "overtime")
+    extra_time_markers = ("dogryw", "extra time", "overtime", "penalty shoot")
     phase_patterns = (
         r"\b(?:first half|1st half|pierwsza polowa|1 pol(?:owa)?)\b",
         r"\b(?:second half|2nd half|druga polowa|2 pol(?:owa)?)\b",
-        r"\b(?:half time|ht|full time|ft|caly mecz)\b",
+        r"\b(?:half time|ht|full time|ft|caly mecz|full match|whole match)\b",
     )
-
     target = float(target_line)
     candidates = []
+
     for odd in odds_list:
-        if not isinstance(odd, dict) or str(odd.get("status", "")).lower() != "active":
+        if not isinstance(odd, dict):
+            continue
+        status = str(first(odd, "status", "oddStatus", default="")).strip().lower()
+        if status not in {"active", "opened", "open", "1", "true"}:
             continue
 
-        market_name = str(first(odd, "marketName", "market_name", default="")).strip()
-        selection_name = str(first(odd, "name", "selectionName", "selection_name", default="")).strip()
-        market_text = normalize_market_text(market_name)
+        # Superbet has returned the market title and period in different fields
+        # across feed versions; combine only known descriptive fields.
+        market_parts = [
+            first(odd, key)
+            for key in (
+                "marketName", "market_name", "marketGroupName",
+                "market_group_name", "marketTitle", "market_title",
+            )
+            if first(odd, key) not in (None, "")
+        ]
+        market_text = normalize_market_text(" ".join(str(x) for x in market_parts))
+        selection_name = str(first(
+            odd, "name", "selectionName", "selection_name", "oddName", default=""
+        )).strip()
         selection_text = normalize_market_text(selection_name)
-
-        if not market_text:
-            continue
-
-        if any(token in market_text for token in extra_time_markers):
+        if not market_text or any(token in market_text for token in extra_time_markers):
             continue
 
         is_first_half = any(token in market_text for token in first_half_markers)
@@ -342,57 +346,78 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
         else:
             continue
 
-        # Strip only known period labels, then require an exact whole-match market name.
+        # Strip period labels, then require a whole-match total-goals market.
         base_market_text = market_text
         for pattern in phase_patterns:
             base_market_text = re.sub(pattern, " ", base_market_text)
-        base_market_text = re.sub(r"\s+", " ", base_market_text).strip()
+        base_market_text = re.sub(r"\s+", " ", base_market_text).strip(" -_:")
+        # Some feed versions append a harmless market category after the title.
         if base_market_text not in match_total_market_names:
             continue
 
-        # The selection itself must explicitly say Over/Powyżej and the exact line.
-        selection_match = re.search(r"\b(powyzej|over)\s*(\d+(?:[.,]\d+)?)\b", selection_text)
+        selection_match = re.search(
+            r"\b(?:powyzej|over)\s*(\d+(?:[.,]\d+)?)\b", selection_text
+        )
         if not selection_match:
             continue
-        selection_line = float(selection_match.group(2).replace(",", "."))
+        selection_line = float(selection_match.group(1).replace(",", "."))
         if abs(selection_line - target) > 0.001:
             continue
 
-        # Require the provider's structured line to agree with the selection label.
-        line_value = first(odd, "specialBetValue")
-        if line_value is None:
-            specifiers = odd.get("specifiers")
-            if isinstance(specifiers, dict):
-                line_value = first(specifiers, "total", "goals", "line")
-        if line_value is None:
-            continue
-        line_match = re.fullmatch(r"\s*(\d+(?:[.,]\d+)?)\s*", str(line_value))
-        if not line_match:
-            continue
-        structured_line = float(line_match.group(1).replace(",", "."))
-        if abs(structured_line - selection_line) > 0.001 or abs(structured_line - target) > 0.001:
-            continue
+        # The selection label is authoritative when Superbet omits its optional
+        # structured line. If the feed supplies one, it must agree exactly.
+        line_value = first(odd, "specialBetValue", "special_bet_value")
+        specifiers = first(odd, "specifiers", "specifier")
+        if line_value is None and isinstance(specifiers, dict):
+            line_value = first(specifiers, "total", "goals", "line", "hcp")
+        if line_value is not None:
+            line_match = re.search(r"(\d+(?:[.,]\d+)?)", str(line_value))
+            if not line_match:
+                continue
+            structured_line = float(line_match.group(1).replace(",", "."))
+            if abs(structured_line - selection_line) > 0.001:
+                continue
+        else:
+            structured_line = selection_line
 
+        raw_price = first(odd, "price", "odds", "oddValue", "odd_value")
         try:
-            price = float(odd.get("price"))
+            price = float(str(raw_price).replace(",", "."))
         except (TypeError, ValueError):
             continue
+        if price <= 1.0:
+            continue
+
         candidates.append({
             "odds": price,
             "source": "Superbet",
-            "market": market_name,
+            "market": " ".join(str(x) for x in market_parts),
             "line": structured_line,
             "updated_at": first(odd.get("extra", {}), "feedPlatformTimestamp", "feedOriginTimestamp"),
         })
 
-    # Different prices for the same requested selection mean the feed is ambiguous.
-    # Never choose the first item when the provider returns conflicting candidates.
-    unique = {(item["odds"], item["market"], item["line"]) for item in candidates}
-    if len(unique) != 1:
-        if len(unique) > 1:
+    # Accept duplicate feed rows only when they confirm the same exact price.
+    unique_prices = {(item["odds"], item["line"]) for item in candidates}
+    if len(unique_prices) != 1:
+        if len(unique_prices) > 1:
             print(
                 f"Superbet: sprzeczne kursy dla Over {target:.1f} {market}; "
-                f"odrzucam rynek: {sorted(unique)}",
+                f"odrzucam rynek: {sorted(unique_prices)}",
+                flush=True,
+            )
+        elif odds_list:
+            sample = [
+                {
+                    "status": first(item, "status", "oddStatus"),
+                    "market": first(item, "marketName", "market_name", "marketGroupName", "market_group_name"),
+                    "name": first(item, "name", "selectionName", "selection_name"),
+                    "price": first(item, "price", "odds", "oddValue"),
+                }
+                for item in odds_list[:12] if isinstance(item, dict)
+            ]
+            print(
+                f"Superbet: nie rozpoznano Over {target:.1f} {market}; "
+                f"przykładowe oferty={json.dumps(sample, ensure_ascii=False)}",
                 flush=True,
             )
         return None
