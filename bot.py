@@ -513,7 +513,7 @@ def as_float(value):
     if isinstance(value, (int, float)):
         return float(value)
     if isinstance(value, str):
-        match = re.search(r"-?\\d+(?:[.,]\\d+)?", value)
+        match = re.search(r"-?\d+(?:[.,]\d+)?", value)
         return float(match.group().replace(",", ".")) if match else None
     return None
 
