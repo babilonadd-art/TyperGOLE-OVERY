@@ -1518,33 +1518,41 @@ def main():
                     slug = match_slug(raw)
                     match = dict(raw)
                     raw_home, raw_away, raw_minute, raw_status = score_and_minute(raw)
-                    if slug:
-                        try:
-                            detail = match_detail(slug)
-                            if detail:
-                                detail_home, detail_away, detail_minute, detail_status = score_and_minute(detail)
-                                # Wynik z listy i niezależnych szczegółów musi być zgodny.
-                                # Przy rozbieżności nie wolno wyliczać linii ani wysyłać typu.
-                                if (
-                                    raw_home is not None and raw_away is not None
-                                    and detail_home is not None and detail_away is not None
-                                    and (raw_home, raw_away) != (detail_home, detail_away)
-                                ):
-                                    print(
-                                        f"[{index}] ROZBIEŻNY WYNIK SportScore: lista={raw_home}-{raw_away}, "
-                                        f"szczegóły={detail_home}-{detail_away}; pomijam mecz.",
-                                        flush=True,
-                                    )
-                                    continue
-                                match.update(detail)
-                                print(
-                                    f"[{index}] Statystyki SportScore: minuta={detail.get('live_minute')}, "
-                                    f"{live_match_metrics(detail)}",
-                                    flush=True,
-                                )
-                        except Exception as exc:
-                            stats["detail_error"] += 1
-                            print(f"[{index}] Błąd szczegółów meczu {slug}: {type(exc).__name__}: {exc}", flush=True)
+                    if not slug:
+                        stats["detail_error"] += 1
+                        print(f"[{index}] Brak identyfikatora szczegółów SportScore — pomijam mecz.", flush=True)
+                        continue
+                    try:
+                        detail = match_detail(slug)
+                    except Exception as exc:
+                        stats["detail_error"] += 1
+                        print(f"[{index}] Błąd szczegółów meczu {slug}: {type(exc).__name__}: {exc}; pomijam.", flush=True)
+                        continue
+                    if not detail:
+                        stats["detail_error"] += 1
+                        print(f"[{index}] Brak szczegółów SportScore dla {slug} — pomijam mecz.", flush=True)
+                        continue
+                    detail_home, detail_away, detail_minute, detail_status = score_and_minute(detail)
+                    # Do wysłania typu wymagamy dwóch niezależnych, zgodnych odczytów wyniku.
+                    if (
+                        raw_home is None or raw_away is None
+                        or detail_home is None or detail_away is None
+                    ):
+                        print(f"[{index}] Niepełny wynik w liście/szczegółach SportScore — pomijam mecz.", flush=True)
+                        continue
+                    if (raw_home, raw_away) != (detail_home, detail_away):
+                        print(
+                            f"[{index}] ROZBIEŻNY WYNIK SportScore: lista={raw_home}-{raw_away}, "
+                            f"szczegóły={detail_home}-{detail_away}; pomijam mecz.",
+                            flush=True,
+                        )
+                        continue
+                    match.update(detail)
+                    print(
+                        f"[{index}] Statystyki SportScore: minuta={detail.get('live_minute')}, "
+                        f"{live_match_metrics(detail)}",
+                        flush=True,
+                    )
 
                     home, away = teams(match)
                     identifier = match_identifier(match) or str(slug or "")
