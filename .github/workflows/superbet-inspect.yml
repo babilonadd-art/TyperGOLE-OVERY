@@ -19,15 +19,15 @@ jobs:
         run: |
           python - <<'PY'
           import requests,re
-          base="https://superbet.pl"
-          h={"User-Agent":"Mozilla/5.0","Referer":base+"/"}
+          base="https://superbet.pl"; h={"User-Agent":"Mozilla/5.0","Referer":base+"/"}
           b=requests.get(base+"/static/js/index.fa0434cf.js",headers=h,timeout=30).text
           tail=b[b.find('o.u=function'):]
-          hashes=dict(re.findall(r'([0-9]+):"([0-9a-f]{8})"',tail))
-          names=dict(re.findall(r'([0-9]+):"([a-zA-Z0-9_-]+)"',tail[:tail.find('})[e]+') if '})[e]+' in tail else 12000]))
-          print("HASHES",len(hashes),"NAMED",names)
-          ids=["4772","79535","30354","31328","49111","77016"]
-          for i in ids:
+          a=tail.find('(({')+3; z=tail.find('})[e]||e)')
+          names=dict(re.findall(r'([0-9]+):"([a-zA-Z0-9_-]+)"',tail[a:z]))
+          rest=tail[z:]
+          hashes=dict(re.findall(r'([0-9]+):"([0-9a-f]{8})"',rest))
+          print("NAMED",names)
+          for i in ("4772","79535","30354","31328","49111","77016"):
               if i not in hashes: print("NO_HASH",i); continue
               name=names.get(i,i)
               url=f"{base}/static/js/async/{name}.{hashes[i]}.js"
