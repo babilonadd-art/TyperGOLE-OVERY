@@ -281,56 +281,66 @@ def superbet_event_detail(event_id):
 
 
 def extract_superbet_live_over_odds(event_detail, market, target_line):
-    """Extract an active Superbet Over price for the requested match period and line."""
+    """Return only an explicitly identified Superbet match-total Over price."""
     odds_list = event_detail.get("odds", [])
     if not isinstance(odds_list, list):
         return None
 
-    half_tokens = ("1. poł", "1 poł", "pierwsza poł", "1st half", "first half")
+    half_tokens = ("1. poł", "1 poł", "pierwsza poł", "1st half", "first half", "1st_half", "first_half")
+    team_total_tokens = ("gospodar", "gości", "home team", "away team", "team goals", "drużyny", "team total")
+    total_market_tokens = ("liczba goli", "suma goli", "total goals", "goal line", "goals total", "total goal")
+
     for odd in odds_list:
         if not isinstance(odd, dict) or str(odd.get("status", "")).lower() != "active":
             continue
-        market_name = str(first(odd, "marketName", "market_name", default=""))
-        selection_name = str(first(odd, "name", "info", default=""))
-        info = str(first(odd, "info", default=selection_name))
-        combined = f"{market_name} {selection_name} {info}".lower()
-        if not any(token in combined for token in ("gol", "goal")):
+
+        market_name = str(first(odd, "marketName", "market_name", default="")).strip()
+        selection_name = str(first(odd, "name", default="")).strip()
+        market_text = market_name.lower()
+        selection_text = selection_name.lower()
+
+        # Nie wystarczy samo słowo „gol”. Musi to być rynek sumy goli meczu,
+        # a nie gole konkretnej drużyny ani inny rynek.
+        if not market_text or not any(token in market_text for token in total_market_tokens):
             continue
-        is_half = any(token in combined for token in half_tokens)
+        if any(token in market_text for token in team_total_tokens):
+            continue
+        if not re.search(r"\b(powyżej|over)\b", selection_text):
+            continue
+
+        is_half = any(token in market_text or token in selection_text
+                      for token in half_tokens)
         if market == "HT" and not is_half:
             continue
         if market == "FT" and is_half:
             continue
-        if not re.search(r"\b(powyżej|over)\b", combined):
-            continue
 
+        # Linia musi pochodzić z pola przypisanego do konkretnej selekcji.
         line_value = first(odd, "specialBetValue")
         if line_value is None:
             specifiers = odd.get("specifiers")
             if isinstance(specifiers, dict):
                 line_value = first(specifiers, "total", "goals", "line")
-        # Nie wyciągaj linii z nazwy/opisu rynku: tekst może zawierać
-        # inną linię (np. sąsiedni próg). Akceptuj wyłącznie jawne pole linii
-        # przypisane do konkretnego zakładu w feedzie Superbet.
         if line_value is None:
             continue
-        line_match = re.search(r"\d+(?:[.,]\d+)?", str(line_value or ""))
+        line_match = re.fullmatch(r"\s*(\d+(?:[.,]\d+)?)\s*", str(line_value))
         if not line_match:
             continue
-        line = float(line_match.group().replace(",", "."))
-        if abs(line - target_line) > 0.01:
+        line = float(line_match.group(1).replace(",", "."))
+        if abs(line - float(target_line)) > 0.001:
             continue
 
         try:
             price = float(odd.get("price"))
         except (TypeError, ValueError):
             continue
-        if price <= 1.0:
+        if not (1.0 < price < 1000.0):
             continue
+
         return {
             "odds": price,
             "source": "Superbet",
-            "market": market_name or info or "Liczba goli",
+            "market": market_name,
             "line": line,
             "updated_at": first(odd.get("extra", {}), "feedPlatformTimestamp", "feedOriginTimestamp"),
         }
