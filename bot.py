@@ -237,25 +237,63 @@ def superbet_live_event_links():
 
 
 def find_superbet_event(home, away, events):
-    """Find one unambiguous Superbet fixture by both team names."""
-    candidates = []
+    """Match a Superbet fixture only when BOTH normalized team names match exactly."""
+    wanted_home = normalized_team_name(home)
+    wanted_away = normalized_team_name(away)
+    exact = []
+    near = []
+
     for event in events:
         parts = str(event.get("text") or "").split("·", 1)
         if len(parts) != 2:
             continue
         left, right = (part.strip() for part in parts)
-        direct = min(team_name_similarity(home, left), team_name_similarity(away, right))
-        reverse = min(team_name_similarity(home, right), team_name_similarity(away, left))
-        score = max(direct, reverse)
-        if score >= 0.78 and event.get("event_id"):
-            candidates.append((score, event))
-    candidates.sort(key=lambda item: item[0], reverse=True)
-    if not candidates:
+        found_home = normalized_team_name(left)
+        found_away = normalized_team_name(right)
+
+        # Home/away orientation is significant. Do not reverse teams and do
+        # not accept fuzzy/partial similarity: a wrong fixture means a wrong price.
+        if found_home == wanted_home and found_away == wanted_away:
+            if event.get("event_id"):
+                exact.append(event)
+            continue
+
+        direct_home = team_name_similarity(home, left)
+        direct_away = team_name_similarity(away, right)
+        near_score = min(direct_home, direct_away)
+        if near_score >= 0.55:
+            near.append({
+                "event_id": event.get("event_id"),
+                "event_name": event.get("text"),
+                "home_similarity": round(direct_home, 3),
+                "away_similarity": round(direct_away, 3),
+            })
+
+    diagnostic = {
+        "type": "SUPERBET_EVENT_MATCH",
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "sportscore_home": home,
+        "sportscore_away": away,
+        "normalized_home": wanted_home,
+        "normalized_away": wanted_away,
+        "exact_matches": len(exact),
+        "near_candidates": near[:5],
+    }
+
+    if len(exact) != 1:
+        diagnostic["result"] = "REJECTED_NO_EXACT_MATCH" if not exact else "REJECTED_AMBIGUOUS"
+        print("SUPERBET_DIAGNOSTIC " + json.dumps(diagnostic, ensure_ascii=False), flush=True)
         return None
-    if len(candidates) > 1 and candidates[0][0] - candidates[1][0] < 0.05:
-        print(f"Superbet: niejednoznaczne dopasowanie meczu {home} - {away}", flush=True)
-        return None
-    return candidates[0][1]
+
+    selected = exact[0]
+    diagnostic.update({
+        "result": "EXACT_MATCH",
+        "superbet_event_id": str(selected.get("event_id")),
+        "superbet_event_name": selected.get("text"),
+        "superbet_url": selected.get("url"),
+    })
+    print("SUPERBET_DIAGNOSTIC " + json.dumps(diagnostic, ensure_ascii=False), flush=True)
+    return selected
 
 
 def superbet_event_detail(event_id):
@@ -1821,6 +1859,25 @@ def main():
                         )
                         continue
                     live_price = final_live_price
+
+                    # Audit trail: retain the exact Superbet fixture and quote in
+                    # GitHub Actions logs so a published price can be traced.
+                    quote_audit = {
+                        "type": "SUPERBET_QUOTE_CONFIRMED",
+                        "checked_at": datetime.now(timezone.utc).isoformat(),
+                        "sportscore_home": home,
+                        "sportscore_away": away,
+                        "superbet_event_id": str(superbet_event.get("event_id")),
+                        "superbet_event_name": superbet_event.get("text"),
+                        "market_phase": market,
+                        "market_name": live_price.get("market"),
+                        "selection": f"Over {float(live_price['line']):.1f}",
+                        "line": float(live_price["line"]),
+                        "odds": float(live_price["odds"]),
+                        "quote_updated_at": live_price.get("updated_at"),
+                        "source": "Superbet",
+                    }
+                    print("SUPERBET_DIAGNOSTIC " + json.dumps(quote_audit, ensure_ascii=False), flush=True)
 
                     pick = {
                         "key": key,
