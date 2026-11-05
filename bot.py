@@ -1425,7 +1425,7 @@ def main():
                         "odds_source": live_price["source"],
                         "odds_market": live_price["market"],
                         "odds_updated_at": live_price.get("updated_at"),
-                        "superbet_url": find_superbet_match_url(home, away, superbet_events),
+                        "superbet_url": find_superbet_match_url(home, away, superbet_events) or "https://superbet.pl/zaklady-bukmacherskie/pilka-nozna/live",
                         "goal_line": goal_line,
                         "live_metrics": metrics,
                         "signal_score": signal_score,
@@ -1446,7 +1446,7 @@ def main():
                         f"Podatek 12%: {potential['tax']:.2f} zł\n"
                         f"Potencjalna wypłata: {potential['payout']:.2f} zł\n"
                         f"Potencjalny zysk netto: {potential['profit']:+.2f} zł\n"
-                        + (f"Superbet (Liczba goli): {pick['superbet_url']}" if pick.get("superbet_url") else "Superbet: nie znaleziono jednoznacznego linku do tego meczu.")
+                        + (f"Superbet (Liczba goli): {pick['superbet_url']}" if find_superbet_match_url(home, away, superbet_events) else f"Superbet LIVE (otwórz mecz ręcznie): {pick['superbet_url']}")
                     )
                     pick["delivery_status"] = "sent"
                     save_state(state)
