@@ -19,7 +19,8 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
 STAKE = 50.0
 BET_TAX_RATE = 0.12
-MAX_DAILY_PICKS = 15
+# TRYB TESTOWY: maksymalnie jeden dodatkowy typ dzisiaj.
+MAX_DAILY_PICKS = 13
 
 def calculate_bet_result(stake, odds):
     """Calculate Polish 12% stake tax, payout and net profit."""
@@ -1885,13 +1886,10 @@ def main():
                             flush=True,
                         )
 
-                    # Polowanie: HT od 25. do 36. minuty; FT od 60. do 76. minuty.
-                    # Kurs pobieramy z Superbet bez sztywnego minimum i maksimum.
-                    # Rynek i linia nadal muszą być dokładnie potwierdzone w feedzie.
-                    market = "HT" if 25 <= minute <= 36 else "FT" if 60 <= minute <= 75 else None
-                    if market is None:
-                        stats["outside_window"] += 1
-                        continue
+                    # TYMCZASOWY TEST: wyłączone okna minutowe HT/FT.
+                    # Każdy mecz LIVE oceniamy na rynku FT, niezależnie od minuty.
+                    # Nadal wymagamy dokładnego meczu, linii i aktualnego kursu Superbet.
+                    market = "FT"
 
                     key = f"{identifier}:{market}"
                     if same_fixture_pick_exists(state, identifier, home, away, today, market):
@@ -2007,7 +2005,8 @@ def main():
                         "signal_score": signal_score,
                         "settled": False,
                     }
-                    market_text = f"OVER {goal_line:.1f} {'HT' if market == 'HT' else 'FT'}"
+                    market_text = f"OVER {goal_line:.1f} FT"
+                    minute_text = f"{minute}'" if minute is not None else "brak odczytu"
                     # Save the pick before sending to prevent duplicates after an HTTP timeout.
                     pick["delivery_status"] = "pending"
                     state["picks"].append(pick)
@@ -2017,7 +2016,7 @@ def main():
                     potential = calculate_bet_result(STAKE, live_price["odds"])
                     telegram(
                         f"⚽ {market_text}\n{home} - {away}\n"
-                        f"Liga: {league}\nMinuta: {minute}' | Wynik: {home_score}-{away_score}\n"
+                        f"Liga: {league}\nMinuta: {minute_text} | Wynik: {home_score}-{away_score}\n"
                         f"Stawka: {STAKE:.2f} zł | Kurs Superbet: {live_price['odds']:.2f}\n"
                         f"Podatek 12%: {potential['tax']:.2f} zł\n"
                         f"Potencjalna wypłata: {potential['payout']:.2f} zł\n"
