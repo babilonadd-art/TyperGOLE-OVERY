@@ -105,3 +105,43 @@ jobs:
                       for term, excerpt in hits:
                           print("ROUTE_HIT", term, excerpt, flush=True)
           PY
+
+      - name: Resolve tournament event feed
+        run: |
+          python - <<'PY'
+          import requests, json
+          from concurrent.futures import ThreadPoolExecutor
+          base="https://production-superbet-offer-pl.freetls.fastly.net"
+          h={"User-Agent":"Mozilla/5.0","Origin":"https://superbet.pl","Referer":"https://superbet.pl/","Accept":"application/json,text/event-stream"}
+          paths=[
+            "/subscription/v2/pl-PL/tournament:104431",
+            "/subscription/v2/pl-PL/tournament/104431",
+            "/subscription/v2/pl-PL/events/tournament:104431",
+            "/v3/subscription/pl-PL/tournament:104431",
+            "/v3/subscription/pl-PL/events/tournament:104431",
+            "/v2/pl-PL/tournaments/104431",
+            "/v2/pl-PL/tournaments/104431/events",
+            "/v2/pl-PL/tournament/104431/events",
+            "/v2/pl-PL/events?tournamentId=104431",
+            "/v2/pl-PL/events?resourceId=tournament:104431",
+          ]
+          def probe(path):
+            try:
+              r=requests.get(base+path,headers=h,timeout=(8,5),stream=True)
+              if "event-stream" in r.headers.get("content-type",""):
+                lines=[]
+                try:
+                  for line in r.iter_lines(decode_unicode=True):
+                    if line: lines.append(line)
+                    if len(lines)>=8: break
+                except Exception: pass
+                r.close()
+                return path,r.status_code,r.headers.get("content-type"),lines
+              body=r.text[:1200]
+              r.close()
+              return path,r.status_code,r.headers.get("content-type"),body
+            except Exception as e: return path,"ERR",str(e),None
+          with ThreadPoolExecutor(max_workers=10) as ex:
+            for result in ex.map(probe,paths):
+              print("ROUTE_RESULT",json.dumps(result,ensure_ascii=False),flush=True)
+          PY
