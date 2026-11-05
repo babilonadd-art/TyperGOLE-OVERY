@@ -39,6 +39,7 @@ def calculate_bet_result(stake, odds):
 HEADERS = {"User-Agent": "TyperGOLE-OVERY/1.0", "Accept": "application/json"}
 ATTRIBUTION = "Powered by SportScore: https://sportscore.com/"
 MIN_LIVE_ODDS = 1.70
+MAX_LIVE_ODDS = 3.50
 
 
 def now_local():
@@ -287,6 +288,8 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
         return None
 
     half_tokens = ("1. poł", "1 poł", "pierwsza poł", "1st half", "first half", "1st_half", "first_half")
+    second_half_tokens = ("2. poł", "2 poł", "druga poł", "2nd half", "second half", "2nd_half", "second_half")
+    extra_time_tokens = ("dogryw", "extra time", "overtime")
     team_total_tokens = ("gospodar", "gości", "home team", "away team", "team goals", "drużyny", "team total")
     total_market_tokens = ("liczba goli", "suma goli", "total goals", "goal line", "goals total", "total goal")
 
@@ -310,9 +313,16 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
 
         is_half = any(token in market_text or token in selection_text
                       for token in half_tokens)
-        if market == "HT" and not is_half:
+        is_second_half = any(token in market_text or token in selection_text
+                             for token in second_half_tokens)
+        is_extra_time = any(token in market_text or token in selection_text
+                            for token in extra_time_tokens)
+        if is_extra_time:
             continue
-        if market == "FT" and is_half:
+        if market == "HT" and (not is_half or is_second_half):
+            continue
+        # FT oznacza cały mecz, nigdy samą drugą połowę.
+        if market == "FT" and (is_half or is_second_half):
             continue
 
         # Linia musi pochodzić z pola przypisanego do konkretnej selekcji.
@@ -334,7 +344,8 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
             price = float(odd.get("price"))
         except (TypeError, ValueError):
             continue
-        if not (1.0 < price < 1000.0):
+        # Ochrona przed błędnym przypisaniem kursu z innego rynku/okresu.
+        if not (MIN_LIVE_ODDS <= price <= MAX_LIVE_ODDS):
             continue
 
         return {
