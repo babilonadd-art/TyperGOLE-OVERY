@@ -1432,7 +1432,7 @@ def main():
                         f"Stawka: {STAKE:.2f} zł | Kurs Bet365: {live_price['odds']:.2f}\n"
                         f"Podatek 12%: {potential['tax']:.2f} zł\n"
                         f"Potencjalna wypłata: {potential['payout']:.2f} zł\n"
-                        f"Potencjalny zysk netto: {potential['profit']:+.2f} zł\\n"
+                        f"Potencjalny zysk netto: {potential['profit']:+.2f} zł\n"
                         + (f"Superbet: {pick['superbet_url']}" if pick.get("superbet_url") else "Superbet: nie znaleziono jednoznacznego linku do tego meczu.")
                     )
                     pick["delivery_status"] = "sent"
