@@ -446,7 +446,7 @@ def extract_superbet_live_over_odds(event_detail, market, min_line):
             # the quote covers the whole match. Require an explicit full-match
             # scope in the actual Superbet market/parent label.
             explicit_full_match = re.search(
-                r"\\b(?:caly mecz|pelny mecz|full match|whole match|full time|ft)\\b",
+                r"\b(?:caly mecz|pelny mecz|full match|whole match|full time|ft)\b",
                 market_text,
             )
             if is_first_half or is_second_half or not explicit_full_match:
