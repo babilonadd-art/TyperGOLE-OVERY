@@ -20,12 +20,19 @@ jobs:
           python - <<'PY'
           import requests,re,json
           from urllib.parse import urljoin
+          from html.parser import HTMLParser
+          class Scripts(HTMLParser):
+              def __init__(self): super().__init__(); self.src=[]
+              def handle_starttag(self,tag,attrs):
+                  if tag.lower()=="script":
+                      src=dict(attrs).get("src")
+                      if src: self.src.append(src)
           base="https://superbet.pl"
           h={"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.36","Origin":base,"Referer":base+"/"}
           s=requests.Session()
           page=s.get(base+"/kursy/pilka-nozna/machida-zelvia-vs-shanghai-shenhua-14572637?t=offer-live-1415&mdt=o",headers=h,timeout=30)
           print("PAGE",page.status_code,len(page.content),page.url)
-          scripts=re.findall(r'<script[^>]+src=["\\']([^"\\']+)',page.text,re.I)
+          parser=Scripts(); parser.feed(page.text); scripts=parser.src
           print("SCRIPTS",len(scripts))
           terms=("marketuuid","outcomeid","oddid","selectionid","betbuilder","betslip","coupon","marketgroup","addselection","selection")
           for src in scripts:
@@ -46,6 +53,6 @@ jobs:
           for ev in event.get("data",[]) if isinstance(event.get("data"),list) else [event.get("data",{})]:
               for odd in ev.get("odds",[]):
                   label=" ".join(str(odd.get(k,"")) for k in ("marketName","name","info"))
-                  if "liczba goli" in label.lower() and ("powyżej 2.5" in label.lower() or "over 2.5" in label.lower()):
-                      print("GOALS_OVER",json.dumps({k:odd.get(k) for k in ("uuid","marketUuid","marketId","outcomeId","price","status","specialBetValue","specifiers","marketName","name","info","code")},ensure_ascii=False))
+                  if "liczba rzutów rożnych" in label.lower() and "powyżej 9.5" in label.lower():
+                      print("CORNER_OVER",json.dumps({k:odd.get(k) for k in ("uuid","marketUuid","marketId","outcomeId","price","status","specialBetValue","specifiers","marketName","name","info","code")},ensure_ascii=False))
           PY
