@@ -15,36 +15,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Inspect event-specific public data
+      - name: Extract exact event market identifiers
         run: |
           python - <<'PY'
-          import json, requests, re
-          H={"User-Agent":"Mozilla/5.0","Origin":"https://superbet.pl","Referer":"https://superbet.pl/"}
-          base="https://production-superbet-offer-pl.freetls.fastly.net"
-          struct=requests.get(base+"/v2/pl-PL/struct",headers=H,timeout=30).json()["data"]
-          print("STRUCT_KEYS",list(struct.keys()))
-          for key in ("events","markets","outcomes","eventGroups","marketGroups"):
-              val=struct.get(key)
-              if isinstance(val,dict):
-                  print("DICT",key,"count",len(val),"sample",list(val.items())[:2])
-              elif isinstance(val,list):
-                  print("LIST",key,"count",len(val),"sample",val[:2])
-          for path in (
-              "/v3/subscription/pl-PL/events/14572637",
-              "/v3/subscription/pl-PL/event/14572637",
-              "/v2/pl-PL/events/14572637",
-              "/v3/pl-PL/events/14572637",
-              "/subscription/v2/pl-PL/events/14572637",
-              "/subscription/v2/pl-PL/event/14572637",
-          ):
-              try:
-                  r=requests.get(base+path,headers={**H,"Accept":"text/event-stream, application/json"},timeout=12,stream=True)
-                  lines=[]
-                  for line in r.iter_lines(decode_unicode=True):
-                      if line:
-                          lines.append(line)
-                      if len(lines)>=35: break
-                  print("ENDPOINT",path,"HTTP",r.status_code,"TYPE",r.headers.get("content-type"),"LINES",lines[:35])
-                  r.close()
-              except Exception as e: print("ERR",path,repr(e))
+          import requests, json
+          event_id = "14572637"
+          base = "https://production-superbet-offer-pl.freetls.fastly.net"
+          h = {"User-Agent":"Mozilla/5.0","Origin":"https://superbet.pl","Referer":"https://superbet.pl/"}
+          r = requests.get(f"{base}/v2/pl-PL/events/{event_id}",headers=h,timeout=30)
+          print("HTTP",r.status_code)
+          r.raise_for_status()
+          payload = r.json()
+          data = payload.get("data",[])
+          if isinstance(data,dict): data=[data]
+          for event in data:
+              print("EVENT", {k:event.get(k) for k in ("eventId","matchName","matchDate","marketCount","offerStateStatus")})
+              for odd in event.get("odds",[]):
+                  label = " ".join(str(odd.get(k,"")) for k in ("marketName","name","info"))
+                  if any(x in label.lower() for x in ("rożnych","rzutów rożnych","corner")):
+                      print("CORNER",json.dumps({k:odd.get(k) for k in ("uuid","marketUuid","marketId","outcomeId","price","status","specialBetValue","specifiers","marketName","name","info","marketGroupOrder","marketCode","code","oddComponents")},ensure_ascii=False))
           PY
