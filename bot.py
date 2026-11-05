@@ -342,7 +342,10 @@ def superbet_event_detail(event_id):
 def extract_superbet_live_over_odds(event_detail, market, min_line):
     """Choose the lowest currently open match-total Over line in the accepted odds band."""
     def normalize_market_text(value):
-        value = unicodedata.normalize("NFKD", str(value or ""))
+        # Polish ł/Ł does not decompose under NFKD; transliterate it before
+        # ASCII normalization so "cały mecz" is recognized as "caly mecz".
+        value = str(value or "").replace("ł", "l").replace("Ł", "L")
+        value = unicodedata.normalize("NFKD", value)
         value = value.encode("ascii", "ignore").decode("ascii").lower()
         value = re.sub(r"(?<=\d),(?=\d)", ".", value)
         value = re.sub(r"[^a-z0-9.]+", " ", value)
