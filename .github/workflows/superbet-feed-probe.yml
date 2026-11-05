@@ -1,6 +1,10 @@
 name: Superbet live feed probe
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/superbet-feed-probe.yml"
   workflow_dispatch:
 
 permissions:
@@ -9,40 +13,76 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 7
     steps:
-      - name: Probe public event feeds
+      - name: Inspect Superbet event payload and discover live event subscription
         run: |
           python - <<'PY'
           import json, requests
+          from datetime import datetime, timedelta, timezone
+          from urllib.parse import quote
+
           base = "https://production-superbet-offer-pl.freetls.fastly.net"
-          h = {"User-Agent": "Mozilla/5.0", "Accept": "application/json, text/event-stream", "Origin": "https://superbet.pl", "Referer": "https://superbet.pl/"}
-          paths = [
-              "/v3/subscription/pl-PL/events/live",
-              "/v3/subscription/pl-PL/events/live/",
-              "/v2/pl-PL/events/live",
-              "/v2/pl-PL/events?state=live",
-              "/v2/pl-PL/events?status=live",
-              "/v3/subscription/pl-PL/events/tournament:104431",
-              "/v3/subscription/pl-PL/events/live/tournament:104431",
-              "/v3/subscription/pl-PL/tournament/104431/events",
-              "/v2/pl-PL/tournaments/104431/events",
-          ]
-          for path in paths:
-              try:
-                  with requests.get(base + path, headers=h, timeout=(8, 5), stream=True) as r:
-                      print("PROBE", path, "STATUS", r.status_code, "TYPE", r.headers.get("content-type"), flush=True)
-                      if r.status_code == 200:
-                          chunks = []
-                          total = 0
-                          for chunk in r.iter_content(chunk_size=4096):
-                              if chunk:
-                                  chunks.append(chunk)
-                                  total += len(chunk)
-                              if total >= 12000:
-                                  break
-                          body = b"".join(chunks).decode("utf-8", "replace")
-                          print("BODY", path, body[:5000].replace("\\n", " "), flush=True)
-              except Exception as e:
-                  print("ERROR", path, type(e).__name__, str(e)[:300], flush=True)
+          h = {
+              "User-Agent": "Mozilla/5.0",
+              "Accept": "application/json, text/event-stream",
+              "Origin": "https://superbet.pl",
+              "Referer": "https://superbet.pl/",
+          }
+          now = datetime.now(timezone.utc)
+          params = {
+              "startDate": (now-timedelta(hours=4)).replace(minute=0,second=0,microsecond=0).isoformat().replace("+00:00","Z"),
+              "endDate": (now+timedelta(hours=4)).replace(minute=0,second=0,microsecond=0).isoformat().replace("+00:00","Z"),
+          }
+          r = requests.get(base+"/v3/pl-PL/events", params=params, headers=h, timeout=25)
+          print("EVENTS_STATUS", r.status_code, "URL", r.url, flush=True)
+          r.raise_for_status()
+          payload = r.json()
+          print("PAYLOAD_KEYS", list(payload) if isinstance(payload,dict) else type(payload).__name__, flush=True)
+          events = payload.get("events",[]) if isinstance(payload,dict) else []
+          print("EVENT_COUNT",len(events),flush=True)
+
+          def walk(obj,path="$",depth=0):
+              if depth>5: return
+              if isinstance(obj,dict):
+                  for k,v in obj.items():
+                      if any(t in str(k).lower() for t in ("odd","market","price","selection","outcome","resource","event_id","eventid","status","live")):
+                          sample = v if isinstance(v,(str,int,float,bool)) or v is None else (list(v)[:2] if isinstance(v,dict) else v[:2] if isinstance(v,list) else str(type(v)))
+                          print("FIELD",path+"."+str(k),json.dumps(sample,ensure_ascii=False)[:1200],flush=True)
+                      walk(v,path+"."+str(k),depth+1)
+              elif isinstance(obj,list):
+                  for i,v in enumerate(obj[:4]): walk(v,path+f"[{i}]",depth+1)
+
+          for idx,event in enumerate(events[:4]):
+              print("EVENT_SAMPLE",idx,json.dumps(event,ensure_ascii=False)[:6500],flush=True)
+              walk(event,f"event[{idx}]")
+
+          # Probe event-specific stream endpoints with actual event IDs, not tournament IDs.
+          for event in events[:6]:
+              if not isinstance(event,dict): continue
+              fixture=event.get("fixture") or {}
+              eid=event.get("event_id") or event.get("id") or fixture.get("event_id") or fixture.get("eventId")
+              if not eid: continue
+              encoded=quote(str(eid),safe=":")
+              paths=[
+                  f"/subscription/v2/pl-PL/events/{encoded}",
+                  f"/subscription/v2/pl-PL/events/event:{encoded}",
+                  f"/v3/subscription/pl-PL/events/{encoded}",
+                  f"/v3/pl-PL/events/{encoded}",
+                  f"/v2/pl-PL/events/{encoded}",
+              ]
+              for path in paths:
+                  try:
+                      with requests.get(base+path,headers=h,timeout=(8,4),stream=True) as response:
+                          print("EVENT_STREAM_PROBE",eid,path,response.status_code,response.headers.get("content-type"),flush=True)
+                          if response.status_code==200:
+                              chunks=[]
+                              total=0
+                              for chunk in response.iter_content(chunk_size=2048):
+                                  if chunk:
+                                      chunks.append(chunk); total+=len(chunk)
+                                  if total>=5000: break
+                              print("EVENT_STREAM_BODY",path,b"".join(chunks).decode("utf-8","replace")[:4500].replace("\\n"," "),flush=True)
+                  except Exception as exc:
+                      print("EVENT_STREAM_ERROR",path,type(exc).__name__,str(exc)[:250],flush=True)
           PY
