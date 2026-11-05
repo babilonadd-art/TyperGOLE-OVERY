@@ -145,3 +145,56 @@ jobs:
             for result in ex.map(probe,paths):
               print("ROUTE_RESULT",json.dumps(result,ensure_ascii=False),flush=True)
           PY
+
+      - name: Inspect all frontend asset references and API route strings
+        run: |
+          python - <<'PY'
+          import requests, re, json
+          from urllib.parse import urljoin
+          from concurrent.futures import ThreadPoolExecutor, as_completed
+          base = "https://superbet.pl/"
+          h = {"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.36","Referer":base}
+          r = requests.get(base, headers=h, timeout=30)
+          print("PAGE", r.status_code, r.url, "bytes", len(r.text), flush=True)
+          html = r.text
+          refs = set()
+          for tag in re.findall(r'<(?:script|link)\\b[^>]*>', html, re.I):
+              if re.search(r'<script', tag, re.I):
+                  m = re.search(r'\\bsrc=["\\']([^"\\']+)', tag, re.I)
+                  if m: refs.add(urljoin(base,m.group(1)))
+              elif re.search(r'rel=["\\'][^"\\']*(?:modulepreload|preload)', tag, re.I):
+                  m = re.search(r'\\bhref=["\\']([^"\\']+)', tag, re.I)
+                  if m: refs.add(urljoin(base,m.group(1)))
+          print("ASSET_COUNT",len(refs),flush=True)
+          for u in sorted(refs): print("ASSET",u,flush=True)
+          terms=("events/live","live/count","subscription","resourceId","marketGroup","market_group","eventId","inPlay","in_play","/events/")
+          def scan(u):
+              try:
+                  x=requests.get(u,headers=h,timeout=25)
+                  if x.status_code!=200 or len(x.content)>12_000_000: return
+                  body=x.text
+                  hits=[]
+                  for term in terms:
+                      start=0
+                      while True:
+                          p=body.lower().find(term.lower(),start)
+                          if p<0: break
+                          hits.append((term,body[max(0,p-500):p+1100]))
+                          start=p+len(term)
+                          if len(hits)>=30: break
+                  return (u,x.status_code,len(body),hits) if hits else None
+              except Exception as e:
+                  return ("ERR "+u,0,0,[(str(e),"")])
+          with ThreadPoolExecutor(max_workers=12) as pool:
+              for item in as_completed([pool.submit(scan,u) for u in refs]):
+                  result=item.result()
+                  if result:
+                      u,status,size,hits=result
+                      print("ASSET_HITS",u,status,size,flush=True)
+                      for term,excerpt in hits[:30]:
+                          print("HIT",term,excerpt[:1700],flush=True)
+          print("INLINE_ROUTE_STRINGS",flush=True)
+          for term in terms:
+              p=html.lower().find(term.lower())
+              if p>=0: print("INLINE",term,html[max(0,p-400):p+1000],flush=True)
+          PY
