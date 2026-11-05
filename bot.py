@@ -1873,12 +1873,10 @@ def main():
                     if minute is None:
                         stats["missing_minute"] += 1
                         print(
-                            f"[{index}] Brak zegara również w szczegółach SportScore "
-                            f"({home} - {away}); status lista={raw_status!r}, "
-                            f"status szczegóły={detail_status!r}. Pomijam bez zgadywania minuty.",
+                            f"[{index}] Brak minuty w SportScore ({home} - {away}); "
+                            "TRYB TESTOWY: mecz nie jest odrzucany z powodu zegara.",
                             flush=True,
                         )
-                        continue
                     if raw_minute is None:
                         print(
                             f"[{index}] ZEGAR Z DETAIL: lista bez minuty, "
