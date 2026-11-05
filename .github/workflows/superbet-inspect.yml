@@ -15,41 +15,37 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Probe public Superbet offer endpoints (read-only)
-        env:
-          PYTHONUNBUFFERED: "1"
+      - name: Read public event structure
         run: |
           python - <<'PY'
-          import json
-          import requests
-
-          urls = [
-              "https://production-superbet-offer-pl.freetls.fastly.net/v2/pl-PL/struct",
-              "https://production-superbet-offer-pl.freetls.fastly.net/subscription/v2/pl-PL/structure",
-              "https://production-superbet-offer-pl.freetls.fastly.net/v3/subscription/pl-PL/events/live/count",
-              "https://superbet-content.freetls.fastly.net/cached-superbet/sports-offer/sports/pl-PL",
-          ]
-          headers = {
-              "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.36",
-              "Accept": "application/json, text/plain, */*",
-              "Origin": "https://superbet.pl",
-              "Referer": "https://superbet.pl/",
-          }
-          for url in urls:
-              print("\\n=== " + url + " ===")
-              try:
-                  r = requests.get(url, headers=headers, timeout=20)
-                  print("HTTP:", r.status_code, "content-type:", r.headers.get("content-type"), "bytes:", len(r.content))
-                  print("FINAL URL:", r.url)
-                  body = r.text
-                  print("BODY PREVIEW:", body[:1000].replace("\\n", " "))
-                  try:
-                      data = r.json()
-                      print("JSON ROOT:", type(data).__name__)
-                      if isinstance(data, dict):
-                          print("ROOT KEYS:", list(data.keys())[:60])
-                  except Exception as e:
-                      print("JSON PARSE:", type(e).__name__)
-              except Exception as e:
-                  print("REQUEST ERROR:", repr(e))
+          import json, requests
+          url = "https://production-superbet-offer-pl.freetls.fastly.net/v2/pl-PL/struct"
+          headers = {"User-Agent": "Mozilla/5.0", "Origin": "https://superbet.pl", "Referer": "https://superbet.pl/"}
+          r = requests.get(url, headers=headers, timeout=30)
+          print("HTTP", r.status_code, "bytes", len(r.content))
+          r.raise_for_status()
+          data = r.json()
+          terms = ("14572637", "Machida", "Shanghai", "Over 2.5", "over")
+          found = 0
+          def walk(obj, path="$", depth=0):
+              global found
+              if found >= 120 or depth > 18:
+                  return
+              if isinstance(obj, dict):
+                  for k, v in obj.items():
+                      p = path + "." + str(k)
+                      if any(t.lower() in str(k).lower() for t in terms):
+                          print("KEY", p, str(v)[:500])
+                          found += 1
+                      walk(v, p, depth + 1)
+              elif isinstance(obj, list):
+                  for i, v in enumerate(obj):
+                      walk(v, path + "[" + str(i) + "]", depth + 1)
+              elif isinstance(obj, (str, int, float)):
+                  s = str(obj)
+                  if any(t.lower() in s.lower() for t in terms):
+                      print("VALUE", path, s[:500])
+                      found += 1
+          walk(data)
+          print("MATCHES", found)
           PY
