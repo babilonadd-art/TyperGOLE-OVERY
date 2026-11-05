@@ -990,7 +990,9 @@ def update_existing_pick_minutes(state):
     for pick in state.get("picks", []):
         if pick.get("delivery_status", "sent") != "sent" or pick.get("settled"):
             continue
-        if pick.get("minute_update_sent"):
+        # Re-send legacy updates once in the corrected plain-pick format.
+        # Only skip after this format version has been confirmed sent.
+        if pick.get("minute_update_sent") and int(pick.get("minute_update_format_version", 0) or 0) >= 2:
             continue
         slug = pick.get("slug")
         if not slug:
@@ -1018,6 +1020,7 @@ def update_existing_pick_minutes(state):
                 f"Stawka: {STAKE:.0f} zł"
             )
             pick["minute_update_sent"] = True
+            pick["minute_update_format_version"] = 2
             pick["minute_update_at"] = now_local().isoformat()
             pick["latest_minute"] = minute
             pick["latest_score"] = score_text
