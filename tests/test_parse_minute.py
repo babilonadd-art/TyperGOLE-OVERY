@@ -1,6 +1,6 @@
 import unittest
 
-from bot import parse_minute, over_result_is_win, same_fixture_pick_exists
+from bot import parse_minute, over_result_is_win, same_fixture_pick_exists, final_status
 
 
 class ParseMinuteRegressionTests(unittest.TestCase):
@@ -97,6 +97,29 @@ class SuperbetMarketScopeRegressionTests(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertEqual(result["line"], 2.5)
         self.assertEqual(result["odds"], 2.45)
+
+    def test_stale_ft_status_does_not_finish_match_at_76_minutes(self):
+        self.assertFalse(final_status({
+            "status": "FT",
+            "minute": 76,
+            "home_score": 2,
+            "away_score": 0,
+        }))
+
+    def test_ft_status_is_accepted_at_90_minutes(self):
+        self.assertTrue(final_status({
+            "status": "FT",
+            "minute": 90,
+            "home_score": 2,
+            "away_score": 0,
+        }))
+
+    def test_ft_status_without_clock_is_accepted(self):
+        self.assertTrue(final_status({
+            "status": "Finished",
+            "home_score": 2,
+            "away_score": 1,
+        }))
 
 
 class OverSettlementRegressionTests(unittest.TestCase):
