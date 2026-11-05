@@ -1494,8 +1494,11 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
-      "delivery_status": "sent"
+      "settled": true,
+      "delivery_status": "sent",
+      "won": false,
+      "settled_score": "0-4",
+      "settled_at": "2026-11-06T00:43:55.580149+01:00"
     },
     {
       "key": "1l4rjnh9d5dpm7v:FT",
