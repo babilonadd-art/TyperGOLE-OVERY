@@ -1149,13 +1149,8 @@ def main():
                         )
                         continue
 
-                    # Strategy is explicitly 0-0 at the selection point for both markets.
-                    # This avoids backing another goal after the match already has goals.
-                    if home_score != 0 or away_score != 0:
-                        stats["no_promising_stats"] += 1
-                        print(f"[{index}] Wynik {home_score}-{away_score}; strategia wymaga 0-0 — pomijam.", flush=True)
-                        continue
-
+                    # Existing goals do not disqualify a match: evaluate the chance
+                    # of another goal using the live attacking-stat thresholds below.
                     promising, metrics, signal_score = match_stats_look_promising(match, market)
                     if not promising:
                         stats["no_promising_stats"] += 1
