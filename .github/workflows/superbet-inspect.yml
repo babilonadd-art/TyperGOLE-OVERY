@@ -13,35 +13,88 @@ permissions:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 7
     steps:
-      - name: Inspect public live feed and event details
+      - name: Read market tree and live subscription stream
         run: |
           python - <<'PY'
           import requests, json
           base = "https://production-superbet-offer-pl.freetls.fastly.net"
-          headers = {"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
-          paths = [
-              "/v2/pl-PL/struct",
-              "/subscription/v2/pl-PL/structure",
-              "/v3/subscription/pl-PL/events/live/count",
-              "/v3/subscription/pl-PL/events/live",
-              "/v2/pl-PL/events/14572637",
-          ]
-          for path in paths:
+          h = {"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
+          r = requests.get(base + "/v2/pl-PL/struct", headers=h, timeout=20)
+          print("STRUCT_STATUS", r.status_code, flush=True)
+          r.raise_for_status()
+          data = r.json().get("data", {})
+          tree = data.get("marketTree", {})
+          print("MARKET_TREE_TYPE", type(tree).__name__, flush=True)
+          def walk(x, path="$"):
+              if isinstance(x, dict):
+                  names = x.get("localNames") or x.get("names") or {}
+                  label = " ".join(str(v) for v in names.values()) if isinstance(names, dict) else str(names)
+                  label += " " + " ".join(str(x.get(k, "")) for k in ("name", "label", "title", "description"))
+                  if any(word in label.lower() for word in ("gol", "goal", "total goals", "liczba goli")):
+                      print("GOAL_MARKET_NODE", path, json.dumps(x, ensure_ascii=False)[:2500], flush=True)
+                  for k, v in x.items():
+                      walk(v, path + "." + str(k))
+              elif isinstance(x, list):
+                  for i, v in enumerate(x):
+                      walk(v, path + "[" + str(i) + "]")
+          walk(tree)
+          for path in ("/subscription/v2/pl-PL/structure", "/v3/subscription/pl-PL/events/live/count"):
               try:
-                  response = requests.get(base + path, headers=headers, timeout=20)
-                  print("\\nENDPOINT", path, "STATUS", response.status_code,
-                        "TYPE", response.headers.get("content-type"), flush=True)
-                  if response.status_code != 200:
-                      print("BODY", response.text[:500], flush=True)
-                      continue
-                  try:
-                      data = response.json()
-                      print("JSON", json.dumps(data, ensure_ascii=False)[:16000], flush=True)
-                  except Exception as exc:
-                      print("JSON_ERROR", type(exc).__name__, str(exc),
-                            "BODY", response.text[:1000], flush=True)
+                  with requests.get(base + path, headers={"User-Agent":"Mozilla/5.0","Accept":"text/event-stream"},
+                                    timeout=(10, 4), stream=True) as response:
+                      print("SSE_STATUS", path, response.status_code, response.headers.get("content-type"), flush=True)
+                      for i, line in enumerate(response.iter_lines(decode_unicode=True)):
+                          if line:
+                              print("SSE_LINE", path, line[:2500], flush=True)
+                          if i >= 24:
+                              break
               except Exception as exc:
-                  print("REQUEST_ERROR", path, type(exc).__name__, str(exc), flush=True)
+                  print("SSE_ERROR", path, type(exc).__name__, str(exc), flush=True)
+          PY
+
+      - name: Locate live event and market routes in public frontend
+        run: |
+          python - <<'PY'
+          import requests, re
+          from concurrent.futures import ThreadPoolExecutor, as_completed
+          base = "https://superbet.pl"
+          headers = {"User-Agent": "Mozilla/5.0", "Referer": base + "/"}
+          page = requests.get(base, headers=headers, timeout=25).text
+          scripts = re.findall(r'<script[^>]+src=["\']([^"\']+\.js)["\']', page)
+          print("SCRIPT_COUNT", len(scripts), flush=True)
+          targets = ("events/live", "live/count", "subscription/v2", "marketGroup", "market_group",
+                     "market-group", "marketTree", "resourceId")
+          def scan(src):
+              url = src if src.startswith("http") else base + src
+              try:
+                  response = requests.get(url, headers=headers, timeout=15)
+                  if response.status_code != 200:
+                      return
+                  body = response.text
+                  hits = []
+                  for term in targets:
+                      start = 0
+                      while True:
+                          pos = body.lower().find(term.lower(), start)
+                          if pos < 0:
+                              break
+                          hits.append((term, body[max(0,pos-350):min(len(body),pos+850)]))
+                          start = pos + len(term)
+                          if len(hits) >= 12:
+                              break
+                  if hits:
+                      return (url, hits)
+              except Exception:
+                  return
+          with ThreadPoolExecutor(max_workers=18) as pool:
+              futures = [pool.submit(scan, src) for src in scripts]
+              for future in as_completed(futures):
+                  result = future.result()
+                  if result:
+                      url, hits = result
+                      print("SCRIPT", url, flush=True)
+                      for term, excerpt in hits:
+                          print("ROUTE_HIT", term, excerpt, flush=True)
           PY
