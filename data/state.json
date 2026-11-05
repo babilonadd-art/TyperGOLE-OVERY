@@ -1733,5 +1733,5 @@
     }
   ],
   "reports_sent": [],
-  "telegram_test_pending": true
+  "telegram_test_pending": false
 }
