@@ -309,9 +309,11 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
             specifiers = odd.get("specifiers")
             if isinstance(specifiers, dict):
                 line_value = first(specifiers, "total", "goals", "line")
+        # Nie wyciągaj linii z nazwy/opisu rynku: tekst może zawierać
+        # inną linię (np. sąsiedni próg). Akceptuj wyłącznie jawne pole linii
+        # przypisane do konkretnego zakładu w feedzie Superbet.
         if line_value is None:
-            line_match = re.search(r"(?:powyżej|over)\s*(\d+(?:[.,]\d+)?)", combined)
-            line_value = line_match.group(1) if line_match else None
+            continue
         line_match = re.search(r"\d+(?:[.,]\d+)?", str(line_value or ""))
         if not line_match:
             continue
@@ -1520,6 +1522,20 @@ def main():
                         try:
                             detail = match_detail(slug)
                             if detail:
+                                detail_home, detail_away, detail_minute, detail_status = score_and_minute(detail)
+                                # Wynik z listy i niezależnych szczegółów musi być zgodny.
+                                # Przy rozbieżności nie wolno wyliczać linii ani wysyłać typu.
+                                if (
+                                    raw_home is not None and raw_away is not None
+                                    and detail_home is not None and detail_away is not None
+                                    and (raw_home, raw_away) != (detail_home, detail_away)
+                                ):
+                                    print(
+                                        f"[{index}] ROZBIEŻNY WYNIK SportScore: lista={raw_home}-{raw_away}, "
+                                        f"szczegóły={detail_home}-{detail_away}; pomijam mecz.",
+                                        flush=True,
+                                    )
+                                    continue
                                 match.update(detail)
                                 print(
                                     f"[{index}] Statystyki SportScore: minuta={detail.get('live_minute')}, "
