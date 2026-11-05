@@ -288,7 +288,10 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
     def normalize_market_text(value):
         value = unicodedata.normalize("NFKD", str(value or ""))
         value = value.encode("ascii", "ignore").decode("ascii").lower()
-        value = re.sub(r"[^a-z0-9]+", " ", value)
+        # Keep decimal separators in goal lines: "powyzej 2.5" must not
+        # become "powyzej 2 5", otherwise the exact-line parser rejects it.
+        value = re.sub(r"(?<=\d),(?=\d)", ".", value)
+        value = re.sub(r"[^a-z0-9.]+", " ", value)
         return re.sub(r"\s+", " ", value).strip()
 
     match_total_market_names = {
