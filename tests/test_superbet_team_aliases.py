@@ -1,6 +1,9 @@
 import unittest
 
-from bot import normalized_team_name, team_name_aliases, find_superbet_event
+from bot import (
+    normalized_team_name, team_name_aliases, find_superbet_event,
+    extract_superbet_live_over_odds,
+)
 
 
 class TestSuperbetTeamAliases(unittest.TestCase):
@@ -22,6 +25,39 @@ class TestSuperbetTeamAliases(unittest.TestCase):
             {"event_id": "2", "text": "Atlante FC · UANL Tigres"},
         ]
         self.assertEqual(find_superbet_event("Atlante W", "Tigres Women", events)["event_id"], "1")
+
+    def test_standard_superbet_total_goals_market_is_full_match(self):
+        event_detail = {
+            "markets": [{
+                "marketName": "Liczba goli",
+                "odds": [
+                    {"status": "active", "name": "powyżej 3.5", "price": 1.92},
+                    {"status": "active", "name": "poniżej 3.5", "price": 1.88},
+                ],
+            }]
+        }
+        quote = extract_superbet_live_over_odds(event_detail, "FT", 3.5)
+        self.assertIsNotNone(quote)
+        self.assertEqual(quote["line"], 3.5)
+        self.assertEqual(quote["odds"], 1.92)
+
+    def test_minute_limited_total_market_is_rejected(self):
+        event_detail = {
+            "markets": [{
+                "marketName": "Liczba goli - do 60 minuty",
+                "odds": [{"status": "active", "name": "powyżej 2.5", "price": 1.92}],
+            }]
+        }
+        self.assertIsNone(extract_superbet_live_over_odds(event_detail, "FT", 2.5))
+
+    def test_first_half_total_market_is_rejected_for_ft(self):
+        event_detail = {
+            "markets": [{
+                "marketName": "1. połowa - Liczba goli",
+                "odds": [{"status": "active", "name": "powyżej 1.5", "price": 1.92}],
+            }]
+        }
+        self.assertIsNone(extract_superbet_live_over_odds(event_detail, "FT", 1.5))
 
 
 if __name__ == "__main__":
