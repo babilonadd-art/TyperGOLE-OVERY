@@ -823,36 +823,6 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market):
     return False
 
 
-def match_stats_look_promising(match, market):
-    """
-    Łagodniejszy filtr LIVE: wystarczy jeden dostępny wskaźnik ofensywny
-    osiągający próg. Kurs Superbet musi wynosić co najmniej MIN_LIVE_ODDS.
-    """
-    m = live_match_metrics(match)
-    if not m:
-        return False, m, 0
-
-    shots = m.get("shots")
-    shots_on_target = m.get("shots_on_target")
-    dangerous_attacks = m.get("dangerous_attacks")
-
-    # Statystyki sumują obie drużyny; niższe progi zwiększają liczbę kandydatów.
-    if market == "HT":
-        thresholds = (3, 1, 12)
-    else:
-        thresholds = (5, 2, 18)
-
-    available = [
-        (value, threshold)
-        for value, threshold in zip((shots, shots_on_target, dangerous_attacks), thresholds)
-        if value is not None
-    ]
-    if not available:
-        return False, m, 0
-
-    score = sum(value >= threshold for value, threshold in available)
-    return score >= 1, m, score
-
 
 def telegram(message):
     if not TELEGRAM_TOKEN or not CHAT_ID:
