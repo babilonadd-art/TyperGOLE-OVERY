@@ -923,6 +923,13 @@ def score_pair(value):
 
 def extract_half_time_score(match):
     """Find explicit HT/first-half score in flat or nested provider data."""
+    # SportScore match-detail response exposes the HT result as two flat fields.
+    # Read these before looking for nested score objects.
+    home_ht = as_int(first(match, "home_ht_score", "home_half_time_score", "homeHalftimeScore"))
+    away_ht = as_int(first(match, "away_ht_score", "away_half_time_score", "awayHalftimeScore"))
+    if home_ht is not None and away_ht is not None:
+        return home_ht, away_ht
+
     preferred = ("half_time_score", "halftime_score", "ht_score", "score_ht", "half_time", "halftime")
     for key in preferred:
         if isinstance(match, dict) and key in match:
