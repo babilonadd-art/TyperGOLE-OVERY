@@ -13,25 +13,39 @@ permissions:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
-      - name: Extract exact event market identifiers
+      - name: Inspect selection deep-link behavior
         run: |
           python - <<'PY'
-          import requests, json
-          event_id = "14572637"
-          base = "https://production-superbet-offer-pl.freetls.fastly.net"
-          h = {"User-Agent":"Mozilla/5.0","Origin":"https://superbet.pl","Referer":"https://superbet.pl/"}
-          r = requests.get(f"{base}/v2/pl-PL/events/{event_id}",headers=h,timeout=30)
-          print("HTTP",r.status_code)
-          r.raise_for_status()
-          payload = r.json()
-          data = payload.get("data",[])
-          if isinstance(data,dict): data=[data]
-          for event in data:
-              print("EVENT", {k:event.get(k) for k in ("eventId","matchName","matchDate","marketCount","offerStateStatus")})
-              for odd in event.get("odds",[]):
-                  label = " ".join(str(odd.get(k,"")) for k in ("marketName","name","info"))
-                  if any(x in label.lower() for x in ("rożnych","rzutów rożnych","corner")):
-                      print("CORNER",json.dumps({k:odd.get(k) for k in ("uuid","marketUuid","marketId","outcomeId","price","status","specialBetValue","specifiers","marketName","name","info","marketGroupOrder","marketCode","code","oddComponents")},ensure_ascii=False))
+          import requests,re,json
+          from urllib.parse import urljoin
+          base="https://superbet.pl"
+          h={"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.36","Origin":base,"Referer":base+"/"}
+          s=requests.Session()
+          page=s.get(base+"/kursy/pilka-nozna/machida-zelvia-vs-shanghai-shenhua-14572637?t=offer-live-1415&mdt=o",headers=h,timeout=30)
+          print("PAGE",page.status_code,len(page.content),page.url)
+          scripts=re.findall(r'<script[^>]+src=["\\']([^"\\']+)',page.text,re.I)
+          print("SCRIPTS",len(scripts))
+          terms=("marketuuid","outcomeid","oddid","selectionid","betbuilder","betslip","coupon","marketgroup","addselection","selection")
+          for src in scripts:
+              u=urljoin(base,src)
+              try:
+                  r=s.get(u,headers=h,timeout=20)
+                  body=r.text
+                  hits=[]
+                  low=body.lower()
+                  for term in terms:
+                      pos=low.find(term)
+                      if pos>=0: hits.append((term,re.sub(r"\\s+"," ",body[max(0,pos-180):pos+260])[:440]))
+                  if hits:
+                      print("ASSET",u,"HTTP",r.status_code,"BYTES",len(body))
+                      for term,snip in hits[:12]: print("HIT",term,snip)
+              except Exception as e: print("ASSET_ERROR",u,repr(e))
+          event=s.get("https://production-superbet-offer-pl.freetls.fastly.net/v2/pl-PL/events/14572637",headers=h,timeout=30).json()
+          for ev in event.get("data",[]) if isinstance(event.get("data"),list) else [event.get("data",{})]:
+              for odd in ev.get("odds",[]):
+                  label=" ".join(str(odd.get(k,"")) for k in ("marketName","name","info"))
+                  if "liczba goli" in label.lower() and ("powyżej 2.5" in label.lower() or "over 2.5" in label.lower()):
+                      print("GOALS_OVER",json.dumps({k:odd.get(k) for k in ("uuid","marketUuid","marketId","outcomeId","price","status","specialBetValue","specifiers","marketName","name","info","code")},ensure_ascii=False))
           PY
