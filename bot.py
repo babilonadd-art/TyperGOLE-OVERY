@@ -489,14 +489,17 @@ def extract_superbet_live_over_odds(event_detail, market, min_line):
             if not is_first_half or is_second_half:
                 continue
         elif market == "FT":
-            # Fail closed: a generic "Liczba goli" label does NOT prove that
-            # the quote covers the whole match. Require an explicit full-match
-            # scope in the actual Superbet market/parent label.
+            # Superbet's live event endpoint exposes the standard full-match
+            # total-goals market simply as "Liczba goli" (without an FT suffix).
+            # Accept only an exact standard total-market label OR an explicit
+            # full-match label. Minute-limited markets are rejected above;
+            # half-time/second-half and extra-time markets remain rejected.
             explicit_full_match = re.search(
                 r"\b(?:caly mecz|pelny mecz|full match|whole match|full time|ft)\b",
                 market_text,
             )
-            if is_first_half or is_second_half or not explicit_full_match:
+            standard_match_total = market_text in total_market_names
+            if is_first_half or is_second_half or not (explicit_full_match or standard_match_total):
                 continue
         else:
             continue
