@@ -1669,7 +1669,7 @@ def settle_picks(state):
                 print(f"ROZLICZENIE ZABLOKOWANE — nieprawidłowy wynik/okres dla {pick.get('key')}.", flush=True)
                 continue
             # Cross-check the numeric total against the exact score text before posting.
-            parsed_target_score = re.search(r"(\\d+)\\s*[-:]\\s*(\\d+)", str(target_score or ""))
+            parsed_target_score = re.search(r"(\d+)\s*[-:]\s*(\d+)", str(target_score or ""))
             if not parsed_target_score:
                 print(f"ROZLICZENIE ZABLOKOWANE — brak czytelnego wyniku dla {pick.get('key')}.", flush=True)
                 continue
