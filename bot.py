@@ -110,38 +110,41 @@ def moviodds_live_matches():
 
 
 def normalized_team_name(value):
-    """Normalize harmless provider-specific spelling differences, not team identity."""
+    """Normalize provider variants while preserving women/youth identity."""
     raw = str(value or "").strip()
-    raw = re.sub(r"\(\s*[A-Z]{2,3}\s*\)", " ", raw)
-    raw = re.sub(r"\bu[\s-]?20\b", " youth ", raw, flags=re.IGNORECASE)
-    value = unicodedata.normalize("NFKD", raw)
-    value = value.encode("ascii", "ignore").decode("ascii").lower()
+    is_womens = bool(re.search(r"\\(\\s*k\\s*\\)|\\b(?:women|woman|w|feminino|femenino)\\b", raw, re.I))
+    raw = re.sub(r"\\(\\s*k\\s*\\)", " ", raw, flags=re.I)
+    raw = re.sub(r"\\bu[\\s-]?20\\b", " youth ", raw, flags=re.I)
+    value = unicodedata.normalize("NFKD", raw).encode("ascii", "ignore").decode().lower()
     tokens = re.findall(r"[a-z0-9]+", value)
-    ignored = {"fc", "cf", "sc", "afc", "club", "the", "football"}
-    return " ".join(token for token in tokens if token not in ignored)
+    ignored = {"fc", "cf", "sc", "afc", "club", "the", "football", "women", "woman", "w", "feminino", "femenino"}
+    tokens = [token for token in tokens if token not in ignored]
+    if is_womens:
+        tokens.append("women")
+    return " ".join(tokens)
 
 
 def team_name_aliases(value):
-    """Conservative aliases for harmless provider-specific club-name differences."""
+    """Safe aliases; final event selection still requires one unique oriented fixture."""
     raw = str(value or "").strip()
     base = normalized_team_name(raw)
     aliases = {base} if base else set()
-
-    # Brazilian state tags are often appended as " - SP" or " - PA".
-    # Keep both forms; if multiple events collide, the matcher rejects them.
-    without_region = re.sub(r"\s+-\s+[A-Z]{2,3}\s*$", "", raw)
-    shortened = normalized_team_name(without_region)
+    # Region/state suffixes may be attached with or without a dash.
+    shortened = normalized_team_name(re.sub(r"(?:\\s+-\\s+|\\s+)[A-Z]{2,3}\\s*$", "", raw))
     if shortened:
         aliases.add(shortened)
-
-    # Legal/competition prefixes used inconsistently by the feeds.
+    for name in list(aliases):
+        if re.search(r"\\binternational\\b", name):
+            aliases.add(re.sub(r"\\binternational\\b", "inter", name))
+        if re.search(r"\\binter\\b", name):
+            aliases.add(re.sub(r"\\binter\\b", "international", name))
     prefix_patterns = (
-        r"^(?:club\s+social\s+y\s+deportivo|club\s+social\s+deportivo|club\s+atletico|club\s+deportivo)\s+",
-        r"^(?:csd|ca|cd)\s+",
-        r"^deportes\s+",
+        r"^(?:club\\s+social\\s+y\\s+deportivo|club\\s+social\\s+deportivo|club\\s+atletico|club\\s+deportivo)\\s+",
+        r"^(?:csd|cs|ca|cd|uanl)\\s+",
+        r"^deportes\\s+",
     )
     pending = list(aliases)
-    for _ in range(3):
+    for _ in range(4):
         additions = set()
         for name in pending:
             for pattern in prefix_patterns:
@@ -154,21 +157,6 @@ def team_name_aliases(value):
         aliases.update(additions)
         pending = list(additions)
     return aliases
-
-
-def team_name_similarity(left, right):
-    a = normalized_team_name(left)
-    b = normalized_team_name(right)
-    if not a or not b:
-        return 0.0
-    if a == b:
-        return 1.0
-    if a in b or b in a:
-        return 0.92
-    ratio = difflib.SequenceMatcher(None, a, b).ratio()
-    at, bt = set(a.split()), set(b.split())
-    token_ratio = len(at & bt) / max(1, len(at | bt))
-    return max(ratio, token_ratio)
 
 class SuperbetEventParser(HTMLParser):
     """Collect official Superbet event links and their visible anchor text."""
