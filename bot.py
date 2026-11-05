@@ -1057,7 +1057,7 @@ def main():
     update_existing_pick_minutes(state)
 
     today = now_local().date().isoformat()
-    todays_picks = [p for p in state["picks"] if p.get("date") == today]
+    todays_picks = [p for p in state["picks"] if p.get("date") == today and p.get("counts_toward_daily_limit", True)]
     print(f"Typy wysłane dzisiaj: {len(todays_picks)}/{MAX_DAILY_PICKS}", flush=True)
 
     if len(todays_picks) < MAX_DAILY_PICKS:
