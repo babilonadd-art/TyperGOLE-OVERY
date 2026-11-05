@@ -65,3 +65,35 @@ jobs:
                   for i,v in enumerate(x): walk(v,path+f"[{i}]")
           walk(data)
           PY
+      - name: Inspect public event feed endpoints
+        run: |
+          python - <<'PY'
+          import requests,json
+          base="https://production-superbet-offer-pl.freetls.fastly.net"
+          h={"User-Agent":"Mozilla/5.0","Accept":"application/json"}
+          paths=[
+            "/v2/pl-PL/struct",
+            "/subscription/v2/pl-PL/structure",
+            "/v3/subscription/pl-PL/events/live/count",
+            "/v3/subscription/pl-PL/events/live",
+            "/v2/pl-PL/events/14572637",
+          ]
+          for path in paths:
+            try:
+              r=requests.get(base+path,headers=h,timeout=25)
+              print("\\nENDPOINT",path,"STATUS",r.status_code,"TYPE",r.headers.get("content-type"))
+              if r.status_code==200:
+                data=r.json()
+                if isinstance(data,dict):
+                  print("TOP_KEYS",list(data)[:40])
+                  for k,v in data.items():
+                    if isinstance(v,list):
+                      print("LIST",k,"COUNT",len(v),"SAMPLE",json.dumps(v[:1],ensure_ascii=False)[:2200])
+                    elif isinstance(v,dict):
+                      print("DICT",k,"KEYS",list(v)[:35])
+                else:
+                  print("DATA",json.dumps(data,ensure_ascii=False)[:3500])
+              else:
+                print("BODY",r.text[:500])
+            except Exception as e: print("ERROR",type(e).__name__,str(e))
+          PY
