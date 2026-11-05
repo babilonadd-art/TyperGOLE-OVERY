@@ -112,9 +112,9 @@ def moviodds_live_matches():
 def normalized_team_name(value):
     """Normalize provider variants while preserving women/youth identity."""
     raw = str(value or "").strip()
-    is_womens = bool(re.search(r"\\(\\s*k\\s*\\)|\\b(?:women|woman|w|feminino|femenino)\\b", raw, re.I))
-    raw = re.sub(r"\\(\\s*k\\s*\\)", " ", raw, flags=re.I)
-    raw = re.sub(r"\\bu[\\s-]?20\\b", " youth ", raw, flags=re.I)
+    is_womens = bool(re.search(r"\(\s*k\s*\)|\b(?:women|woman|w|feminino|femenino)\b", raw, re.I))
+    raw = re.sub(r"\(\s*k\s*\)", " ", raw, flags=re.I)
+    raw = re.sub(r"\bu[\s-]?20\b", " youth ", raw, flags=re.I)
     value = unicodedata.normalize("NFKD", raw).encode("ascii", "ignore").decode().lower()
     tokens = re.findall(r"[a-z0-9]+", value)
     ignored = {"fc", "cf", "sc", "afc", "club", "the", "football", "women", "woman", "w", "feminino", "femenino"}
@@ -129,19 +129,25 @@ def team_name_aliases(value):
     raw = str(value or "").strip()
     base = normalized_team_name(raw)
     aliases = {base} if base else set()
-    # Region/state suffixes may be attached with or without a dash.
-    shortened = normalized_team_name(re.sub(r"(?:\\s+-\\s+|\\s+)[A-Z]{2,3}\\s*$", "", raw))
-    if shortened:
+
+    # Regional suffixes (Brazilian state abbreviations) are optional.
+    shortened_raw = re.sub(r"(?:\s+-\s+|\s+)[A-Z]{2,3}\s*$", "", raw)
+    shortened = normalized_team_name(shortened_raw)
+    if shortened and shortened != base:
         aliases.add(shortened)
+
+    # Some feeds abbreviate International as Inter, and vice versa.
     for name in list(aliases):
-        if re.search(r"\\binternational\\b", name):
-            aliases.add(re.sub(r"\\binternational\\b", "inter", name))
-        if re.search(r"\\binter\\b", name):
-            aliases.add(re.sub(r"\\binter\\b", "international", name))
+        if re.search(r"\binternational\b", name):
+            aliases.add(re.sub(r"\binternational\b", "inter", name))
+        if re.search(r"\binter\b", name):
+            aliases.add(re.sub(r"\binter\b", "international", name))
+
+    # Remove common club/legal prefixes without changing the core name.
     prefix_patterns = (
-        r"^(?:club\\s+social\\s+y\\s+deportivo|club\\s+social\\s+deportivo|club\\s+atletico|club\\s+deportivo)\\s+",
-        r"^(?:csd|cs|ca|cd|uanl)\\s+",
-        r"^deportes\\s+",
+        r"^(?:club\s+social\s+y\s+deportivo|club\s+social\s+deportivo|club\s+atletico|club\s+deportivo)\s+",
+        r"^(?:csd|cs|ca|cd|uanl)\s+",
+        r"^deportes\s+",
     )
     pending = list(aliases)
     for _ in range(4):
