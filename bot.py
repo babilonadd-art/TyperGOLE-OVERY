@@ -502,10 +502,20 @@ def as_int(value):
     if isinstance(value, float):
         return int(value)
     if isinstance(value, str):
-        match = re.search(r"\d+", value)
+        match = re.search(r"-?\\d+", value)
         return int(match.group()) if match else None
     return None
 
+
+def as_float(value):
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        match = re.search(r"-?\\d+(?:[.,]\\d+)?", value)
+        return float(match.group().replace(",", ".")) if match else None
+    return None
 
 def unwrap_match(payload):
     if not isinstance(payload, dict):
@@ -672,14 +682,14 @@ def stat_number(value):
 
 
 def live_match_metrics(match):
-    """Extract only live shots and dangerous attacks; xG/corners are deliberately ignored."""
+    """Extract confirmed live metrics and optional advanced attacking indicators."""
     stats = first(match, "statistics", "stats", "live_statistics", "match_statistics", default=None)
     if isinstance(stats, list):
         flattened = {}
         for item in stats:
             if not isinstance(item, dict):
                 continue
-            name = str(first(item, "name", "type", "key", "label", default="")).lower()
+            name = str(first(item, "name", "type", "key", "label", "stat_name", default="")).lower()
             value = first(item, "value", "total")
             if value is None and ("home" in item or "away" in item):
                 value = {"home": item.get("home"), "away": item.get("away")}
@@ -689,20 +699,34 @@ def live_match_metrics(match):
     if not isinstance(stats, dict) or not stats:
         return {}
 
-    metrics = {"shots": None, "shots_on_target": None, "shots_off_target": None,
-               "attacks": None, "dangerous_attacks": None}
+    metrics = {
+        "shots": None, "shots_on_target": None, "shots_off_target": None,
+        "attacks": None, "dangerous_attacks": None, "xg": None,
+        "big_chances": None, "shots_inside_box": None,
+        "touches_in_box": None, "saves": None,
+    }
     for key, value in stats.items():
-        name = str(key).lower().replace("-", "_").replace(" ", "_")
+        name = re.sub(r"[^a-z0-9]+", "_", str(key).lower()).strip("_")
         if isinstance(value, dict):
-            home = as_int(first(value, "home", "home_value", "local"))
-            away = as_int(first(value, "away", "away_value", "visitor"))
-            total = home + away if home is not None and away is not None else stat_number(value)
+            home = as_float(first(value, "home", "home_value", "local"))
+            away = as_float(first(value, "away", "away_value", "visitor"))
+            total = home + away if home is not None and away is not None else as_float(first(value, "total", "value"))
         else:
-            total = as_int(value)
+            total = as_float(value)
         if total is None:
             continue
 
-        if "shot" in name and ("on_target" in name or "ontarget" in name):
+        if ("expected_goals" in name or name in ("xg", "expected_goal")):
+            metrics["xg"] = total
+        elif "big_chance" in name:
+            metrics["big_chances"] = total
+        elif ("shot" in name and ("inside_box" in name or "inside_penalty_area" in name or "in_box" in name)):
+            metrics["shots_inside_box"] = total
+        elif "touch" in name and ("opposition_box" in name or "penalty_area" in name or "in_box" in name):
+            metrics["touches_in_box"] = total
+        elif "save" in name:
+            metrics["saves"] = total
+        elif "shot" in name and ("on_target" in name or "ontarget" in name):
             metrics["shots_on_target"] = total
         elif "shot" in name and ("off_target" in name or "offtarget" in name):
             metrics["shots_off_target"] = total
@@ -717,6 +741,51 @@ def live_match_metrics(match):
         metrics["shots"] = metrics["shots_on_target"] + metrics["shots_off_target"]
     return metrics
 
+
+def match_stats_look_promising(match, market):
+    """
+    Stricter live-goal filter. Requires a minimum number of shots on target
+    and at least two independent attacking signals; unavailable metrics are
+    ignored rather than treated as zero.
+    """
+    m = live_match_metrics(match)
+    if not m:
+        return False, m, 0
+
+    if market == "HT":
+        min_sot = 2
+        thresholds = {
+            "shots": 5,
+            "shots_on_target": 2,
+            "dangerous_attacks": 25,
+            "xg": 0.70,
+            "big_chances": 1,
+            "shots_inside_box": 3,
+            "touches_in_box": 8,
+        }
+    else:
+        min_sot = 3
+        thresholds = {
+            "shots": 9,
+            "shots_on_target": 3,
+            "dangerous_attacks": 45,
+            "xg": 1.10,
+            "big_chances": 1,
+            "shots_inside_box": 5,
+            "touches_in_box": 15,
+        }
+
+    shots_on_target = m.get("shots_on_target")
+    if shots_on_target is None or shots_on_target < min_sot:
+        return False, m, 0
+
+    # Shots on target are mandatory; require at least one more independent
+    # indicator before considering the match suitable for a live goal pick.
+    signals = sum(
+        1 for key, threshold in thresholds.items()
+        if m.get(key) is not None and m[key] >= threshold
+    )
+    return signals >= 2, m, signals
 
 def same_fixture_pick_exists(state, identifier, home, away, match_date, market):
     """
