@@ -800,9 +800,9 @@ def parse_minute(match):
     halftime_markers = (
         "half time", "halftime", "interval", "przerwa",
     )
-    has_halftime_token = bool(re.search(r"\\b(?:break|ht)\\b", normalized_phase))
+    has_halftime_token = bool(re.search(r"\b(?:break|ht)\b", normalized_phase))
     if any(marker in normalized_phase for marker in halftime_markers) or has_halftime_token:
-        stoppage = re.search(r"45\\s*\\+\\s*(\\d+)", normalized_phase)
+        stoppage = re.search(r"45\s*\+\s*(\d+)", normalized_phase)
         return 45 + int(stoppage.group(1)) if stoppage else 45
 
     # Najpierw jawne pola zegara meczu.
@@ -820,7 +820,7 @@ def parse_minute(match):
     ):
         if isinstance(value, dict):
             value = first(value, "short", "long", "name", "description", default="")
-        match_minute = re.search(r"(\\d{1,3})(?:\\s*\\+\\s*(\\d+))?\\s*['′’]", str(value))
+        match_minute = re.search(r"(\d{1,3})(?:\s*\+\s*(\d+))?\s*['′’]", str(value))
         if match_minute:
             base = int(match_minute.group(1))
             added = int(match_minute.group(2) or 0)
