@@ -35,12 +35,20 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Run live bot scan
+      - name: Run repeated live bot scans
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TZ: Europe/Warsaw
-        run: python bot.py
+        run: |
+          # GitHub uruchamia harmonogram co 5 minut; wykonaj kilka skanów w ramach jednego zadania.
+          for scan in 1 2 3 4 5; do
+            echo "===== SKAN LIVE ${scan}/5 ====="
+            python bot.py
+            if [ "${scan}" -lt 5 ]; then
+              sleep 30
+            fi
+          done
       - name: Save bot state
         if: always()
         run: |
