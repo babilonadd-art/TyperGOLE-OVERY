@@ -1009,11 +1009,13 @@ def update_existing_pick_minutes(state):
                 if home_score is not None and away_score is not None
                 else "wynik niedostępny"
             )
+            market_text = f"OVER {float(pick.get('goal_line', 0)):.1f} {pick.get('market', '')}"
             telegram(
-                f"🔄 AKTUALIZACJA WYSŁANEGO TYPU\\n"
+                f"⚽ {market_text}\\n"
                 f"{pick.get('home')} - {pick.get('away')}\\n"
+                f"Liga: {pick.get('league', 'Liga nieznana')}\\n"
                 f"Minuta: {minute}' | Wynik: {score_text}\\n"
-                f"Typ: OVER {float(pick.get('goal_line', 0)):.1f} {pick.get('market', '')}"
+                f"Stawka: {STAKE:.0f} zł"
             )
             pick["minute_update_sent"] = True
             pick["minute_update_at"] = now_local().isoformat()
