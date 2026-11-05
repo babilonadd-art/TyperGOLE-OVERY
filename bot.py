@@ -16,7 +16,24 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
 STAKE = 50.0
+BET_TAX_RATE = 0.12
 MAX_DAILY_PICKS = 10
+
+def calculate_bet_result(stake, odds):
+    """Calculate Polish 12% stake tax, payout and net profit."""
+    stake = float(stake)
+    odds = float(odds)
+    tax = round(stake * BET_TAX_RATE, 2)
+    effective_stake = round(stake - tax, 2)
+    payout = round(effective_stake * odds, 2)
+    profit = round(payout - stake, 2)
+    return {
+        "stake": stake,
+        "tax": tax,
+        "effective_stake": effective_stake,
+        "payout": payout,
+        "profit": profit,
+    }
 HEADERS = {"User-Agent": "TyperGOLE-OVERY/1.0", "Accept": "application/json"}
 ATTRIBUTION = "Powered by SportScore: https://sportscore.com/"
 MIN_LIVE_ODDS = 1.80
@@ -884,12 +901,18 @@ def settle_picks(state):
                     odds = float(pick.get("odds"))
                 except (TypeError, ValueError):
                     odds = None
+                stake = float(pick.get("stake", STAKE) or STAKE)
                 if won and odds is not None:
-                    winnings_text = f"\nZwrot: {STAKE * odds:.2f} zł | Zysk: {STAKE * (odds - 1):.2f} zł"
-                    yield_text = ""
+                    result = calculate_bet_result(stake, odds)
+                    winnings_text = (
+                        f"\nStawka: {result['stake']:.2f} zł | Kurs: {odds:.2f}"
+                        f"\nPodatek 12%: {result['tax']:.2f} zł"
+                        f"\nWypłata po podatku: {result['payout']:.2f} zł"
+                        f"\nZYSK NETTO: {result['profit']:+.2f} zł"
+                    )
                 else:
-                    winnings_text = f"\nStrata: {STAKE:.2f} zł" if not won else ""
-                    yield_text = ""
+                    winnings_text = f"\nSTRATA: {-stake:.2f} zł" if not won else ""
+                yield_text = ""
                 telegram(
                     f"{result_text}\n{pick['home']} - {pick['away']}\n"
                     f"Wynik: {score_text} | Gole: {goals_text}"
@@ -1018,12 +1041,18 @@ def settle_picks(state):
                 odds = float(pick.get("odds"))
             except (TypeError, ValueError):
                 odds = None
+            stake = float(pick.get("stake", STAKE) or STAKE)
             if won and odds is not None:
-                winnings_text = f"\nZwrot: {STAKE * odds:.2f} zł | Zysk: {STAKE * (odds - 1):.2f} zł"
-                yield_text = ""
+                result = calculate_bet_result(stake, odds)
+                winnings_text = (
+                    f"\nStawka: {result['stake']:.2f} zł | Kurs: {odds:.2f}"
+                    f"\nPodatek 12%: {result['tax']:.2f} zł"
+                    f"\nWypłata po podatku: {result['payout']:.2f} zł"
+                    f"\nZYSK NETTO: {result['profit']:+.2f} zł"
+                )
             else:
-                winnings_text = f"\nStrata: {STAKE:.2f} zł" if not won else ""
-                yield_text = ""
+                winnings_text = f"\nSTRATA: {-stake:.2f} zł" if not won else ""
+            yield_text = ""
             telegram(
                 f"{result_text}\n{pick['home']} - {pick['away']}\n"
                 f"Wynik: {score_text} | Gole: {goals_text}"
@@ -1067,7 +1096,8 @@ def send_monthly_reports(state):
             except (TypeError, ValueError):
                 missing_odds = True
                 continue
-            profit += STAKE * (odds - 1) if pick.get("won") else -STAKE
+            stake = float(pick.get("stake", STAKE) or STAKE)
+            profit += calculate_bet_result(stake, odds)["profit"] if pick.get("won") else -stake
 
         report = (
             f"📊 BILANS MIESIĄCA {month}\n"
@@ -1300,9 +1330,14 @@ def main():
                     todays_picks.append(pick)
                     save_state(state)
 
+                    potential = calculate_bet_result(STAKE, live_price["odds"])
                     telegram(
                         f"⚽ {market_text}\n{home} - {away}\n"
-                        f"Liga: {league}\nMinuta: {minute}' | Wynik: {home_score}-{away_score}\nStawka: {STAKE:.0f} zł"
+                        f"Liga: {league}\nMinuta: {minute}' | Wynik: {home_score}-{away_score}\n"
+                        f"Stawka: {STAKE:.2f} zł | Kurs Bet365: {live_price['odds']:.2f}\n"
+                        f"Podatek 12%: {potential['tax']:.2f} zł\n"
+                        f"Potencjalna wypłata: {potential['payout']:.2f} zł\n"
+                        f"Potencjalny zysk netto: {potential['profit']:+.2f} zł"
                     )
                     pick["delivery_status"] = "sent"
                     save_state(state)
