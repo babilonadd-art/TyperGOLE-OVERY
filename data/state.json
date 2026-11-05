@@ -158,13 +158,16 @@
         "dangerous_attacks": 58
       },
       "signal_score": 4,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "minute_update_sent": true,
       "minute_update_at": "2026-11-05T03:10:21.996096+01:00",
       "latest_minute": 81,
       "latest_score": "1-0",
-      "minute_update_format_version": 2
+      "minute_update_format_version": 2,
+      "won": false,
+      "settled_score": "1-0",
+      "settled_at": "2026-11-05T04:10:22.383685+01:00"
     },
     {
       "key": "3glrw7hney4xqdy:HT",
@@ -258,13 +261,16 @@
         "dangerous_attacks": 50
       },
       "signal_score": 4,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "minute_update_sent": true,
       "minute_update_at": "2026-11-05T03:10:26.936771+01:00",
       "latest_minute": 76,
       "latest_score": "0-0",
-      "minute_update_format_version": 2
+      "minute_update_format_version": 2,
+      "won": false,
+      "settled_score": "0-0",
+      "settled_at": "2026-11-05T04:10:27.177830+01:00"
     }
   ],
   "reports_sent": []
