@@ -1894,6 +1894,12 @@ def main():
     print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
 
     state = load_state()
+    # One-time delivery check requested by the user; never a real betting tip.
+    if state.get("telegram_test_pending"):
+        telegram("🧪 TEST TELEGRAM — wiadomość kontrolna bota TyperGOLE-OVERY. To nie jest typ ani rekomendacja zakładu.")
+        state["telegram_test_pending"] = False
+        save_state(state)
+        print("WYSŁANO JEDNORAZOWY TEST TELEGRAM", flush=True)
     print(f"Historia typów: {len(state['picks'])}; nierozliczone: {sum(1 for p in state['picks'] if not p.get('settled'))}", flush=True)
 
     # Settle older picks first; keep history across midnight.
