@@ -64,7 +64,7 @@ class SuperbetMarketScopeRegressionTests(unittest.TestCase):
         from bot import extract_superbet_live_over_odds
         self.assertIsNone(extract_superbet_live_over_odds(payload, "FT", 0.5))
 
-    def test_rejects_ambiguous_generic_goals_market_without_scope(self):
+    def test_accepts_standard_superbet_match_total_goals_market(self):
         payload = {
             "markets": [{
                 "marketName": "Liczba goli",
@@ -76,7 +76,10 @@ class SuperbetMarketScopeRegressionTests(unittest.TestCase):
             }]
         }
         from bot import extract_superbet_live_over_odds
-        self.assertIsNone(extract_superbet_live_over_odds(payload, "FT", 0.5))
+        result = extract_superbet_live_over_odds(payload, "FT", 2.5)
+        self.assertIsNotNone(result)
+        self.assertEqual(result["line"], 2.5)
+        self.assertEqual(result["odds"], 2.45)
 
     def test_accepts_explicit_whole_match_goals_market(self):
         payload = {
