@@ -1585,9 +1585,28 @@ def over_result_is_win(goal_line, final_total, period_complete):
     return total > line
 
 
+def settlement_confirmation_ready(pick, score_text, now, confirmation_seconds=180):
+    """Require the same confirmed FT score on two checks at least 3 minutes apart."""
+    pending_score = str(pick.get("settlement_pending_score") or "")
+    pending_since = pick.get("settlement_pending_since")
+    if pending_score != str(score_text) or not pending_since:
+        pick["settlement_pending_score"] = str(score_text)
+        pick["settlement_pending_since"] = now.isoformat()
+        return False
+    try:
+        started = datetime.fromisoformat(str(pending_since))
+        if started.tzinfo is None:
+            started = started.replace(tzinfo=now.tzinfo)
+        elapsed = (now - started).total_seconds()
+    except (TypeError, ValueError):
+        pick["settlement_pending_since"] = now.isoformat()
+        return False
+    return elapsed >= confirmation_seconds
+
+
 def settle_picks(state):
-    # Goal must remain in the provider's score for 3 minutes before we notify.
-    # The workflow runs every 5 minutes, so practical confirmation is on the next scan.
+    # GitHub workflow scans repeat every 30 seconds. Require the same final
+    # score to remain confirmed for 3 full minutes before publishing settlement.
     confirmation_seconds = 180
 
     for pick in state["picks"]:
@@ -1728,10 +1747,15 @@ def settle_picks(state):
             # X+1 goals. Never settle from a single goal while the match is live.
             # For HT picks, period_complete means the first half is confirmed over.
             if not period_complete:
-                if pick.pop("goal_pending_since", None):
+                had_pending = bool(
+                    pick.pop("settlement_pending_since", None)
+                    or pick.pop("settlement_pending_score", None)
+                )
+                if had_pending:
+                    save_state(state)
                     print(
-                        f"Kasuję przedwczesne oczekujące rozliczenie dla {pick.get('key')}; "
-                        "wynik rozliczamy dopiero po zakończeniu właściwego okresu.",
+                        f"Kasuję oczekujące potwierdzenie wyniku dla {pick.get('key')}; "
+                        "mecz nie ma już potwierdzonego statusu końcowego.",
                         flush=True,
                     )
                 continue
@@ -1763,6 +1787,18 @@ def settle_picks(state):
                     flush=True,
                 )
                 continue
+            # A single stale FT response must never settle a newly sent tip.
+            # Require an unchanged final score across at least 180 seconds.
+            if not settlement_confirmation_ready(pick, target_score, now, confirmation_seconds):
+                save_state(state)
+                print(
+                    f"ROZLICZENIE WSTRZYMANE: {pick.get('key')} — "
+                    f"potwierdzam wynik {target_score} przez {confirmation_seconds}s.",
+                    flush=True,
+                )
+                continue
+            pick.pop("settlement_pending_since", None)
+            pick.pop("settlement_pending_score", None)
             pick.pop("goal_pending_since", None)
             result_text = "🟢 WYGRANA" if won else "🔴 PRZEGRANA"
             score_text = target_score or "brak"
@@ -2271,6 +2307,7 @@ def main():
                         + f"Superbet (Liczba goli): {pick['superbet_url']}"
                     )
                     pick["delivery_status"] = "sent"
+                    pick["sent_at"] = now_local().isoformat()
                     save_state(state)
                     stats["sent"] += 1
                     print(f"WYSŁANO I ZAPISANO TYP: {home} - {away}, {minute}', {market}", flush=True)
