@@ -1657,7 +1657,7 @@ def main():
                     # Polowanie: HT od 25. do 36. minuty; FT od 60. do 76. minuty.
                     # Kurs pobieramy z Superbet bez sztywnego minimum i maksimum.
                     # Rynek i linia nadal muszą być dokładnie potwierdzone w feedzie.
-                    market = "HT" if 20 <= minute <= 40 else "FT" if 55 <= minute <= 82 else None
+                    market = "HT" if 25 <= minute <= 36 else "FT" if 60 <= minute <= 75 else None
                     if market is None:
                         stats["outside_window"] += 1
                         continue
