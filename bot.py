@@ -833,10 +833,10 @@ def live_match_metrics(match):
 
 def match_stats_look_promising(match, market):
     """
-    Relaxed live-goal filter:
-    - require at least one shot on target in either period;
-    - require one independent attacking signal;
-    - never count shots on target twice as an independent signal.
+    Broad live-goal filter:
+    - no mandatory shots-on-target requirement;
+    - one independent attacking signal is enough;
+    - use lower thresholds to avoid rejecting most live fixtures.
     Missing optional metrics are ignored because SportScore does not expose
     every statistic consistently for every competition.
     """
@@ -844,8 +844,16 @@ def match_stats_look_promising(match, market):
     if not m:
         return False, m, 0
 
-    min_sot = 1
     if market == "HT":
+        thresholds = {
+            "shots": 2,
+            "dangerous_attacks": 8,
+            "xg": 0.15,
+            "big_chances": 1,
+            "shots_inside_box": 1,
+            "touches_in_box": 2,
+        }
+    else:
         thresholds = {
             "shots": 3,
             "dangerous_attacks": 12,
@@ -854,26 +862,12 @@ def match_stats_look_promising(match, market):
             "shots_inside_box": 1,
             "touches_in_box": 4,
         }
-    else:
-        thresholds = {
-            "shots": 4,
-            "dangerous_attacks": 20,
-            "xg": 0.40,
-            "big_chances": 1,
-            "shots_inside_box": 2,
-            "touches_in_box": 6,
-        }
 
-    shots_on_target = m.get("shots_on_target")
     signals = sum(
         1 for key, threshold in thresholds.items()
         if m.get(key) is not None and m[key] >= threshold
     )
-    # Looser gate: one shot on target is enough; if unavailable, require
-    # two independent attacking signals instead.
-    if shots_on_target is not None and shots_on_target >= min_sot:
-        return True, m, signals
-    return signals >= 2, m, signals
+    return signals >= 1, m, signals
 
 def same_fixture_pick_exists(state, identifier, home, away, match_date, market):
     """
