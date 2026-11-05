@@ -15,44 +15,36 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Inspect selection deep-link behavior
+      - name: Inspect frontend assets and selection route support
         run: |
           python - <<'PY'
           import requests,re,json
           from urllib.parse import urljoin
           from html.parser import HTMLParser
-          class Scripts(HTMLParser):
-              def __init__(self): super().__init__(); self.src=[]
+          class Assets(HTMLParser):
+              def __init__(self): super().__init__(); self.scripts=[]; self.links=[]
               def handle_starttag(self,tag,attrs):
-                  if tag.lower()=="script":
-                      src=dict(attrs).get("src")
-                      if src: self.src.append(src)
+                  a=dict(attrs)
+                  if tag.lower()=="script" and a.get("src"): self.scripts.append(a["src"])
+                  if tag.lower()=="link" and a.get("href") and (".js" in a["href"] or a.get("rel")=="modulepreload"): self.links.append(a["href"])
           base="https://superbet.pl"
           h={"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.36","Origin":base,"Referer":base+"/"}
           s=requests.Session()
-          page=s.get(base+"/kursy/pilka-nozna/machida-zelvia-vs-shanghai-shenhua-14572637?t=offer-live-1415&mdt=o",headers=h,timeout=30)
-          print("PAGE",page.status_code,len(page.content),page.url)
-          parser=Scripts(); parser.feed(page.text); scripts=parser.src
-          print("SCRIPTS",len(scripts))
-          terms=("marketuuid","outcomeid","oddid","selectionid","betbuilder","betslip","coupon","marketgroup","addselection","selection")
-          for src in scripts:
-              u=urljoin(base,src)
+          p=s.get(base+"/kursy/pilka-nozna/machida-zelvia-vs-shanghai-shenhua-14572637?t=offer-live-1415&mdt=o",headers=h,timeout=30)
+          a=Assets(); a.feed(p.text)
+          urls=list(dict.fromkeys(urljoin(base,x) for x in a.scripts+a.links))
+          print("PAGE",p.status_code,"ASSETS",len(urls))
+          for u in urls: print("ASSET_URL",u)
+          terms=("marketuuid","outcomeid","oddid","selectionid","betslip","addselection","addselectiontobetslip","marketlineuuid","specialbetvalue","offer-live","marketgroupid")
+          for u in urls:
               try:
-                  r=s.get(u,headers=h,timeout=20)
-                  body=r.text
+                  r=s.get(u,headers=h,timeout=25); body=r.text; low=body.lower()
                   hits=[]
-                  low=body.lower()
                   for term in terms:
                       pos=low.find(term)
-                      if pos>=0: hits.append((term,re.sub(r"\\s+"," ",body[max(0,pos-180):pos+260])[:440]))
+                      if pos>=0: hits.append((term,re.sub(r"\\s+"," ",body[max(0,pos-250):pos+350])[:600]))
                   if hits:
-                      print("ASSET",u,"HTTP",r.status_code,"BYTES",len(body))
-                      for term,snip in hits[:12]: print("HIT",term,snip)
-              except Exception as e: print("ASSET_ERROR",u,repr(e))
-          event=s.get("https://production-superbet-offer-pl.freetls.fastly.net/v2/pl-PL/events/14572637",headers=h,timeout=30).json()
-          for ev in event.get("data",[]) if isinstance(event.get("data"),list) else [event.get("data",{})]:
-              for odd in ev.get("odds",[]):
-                  label=" ".join(str(odd.get(k,"")) for k in ("marketName","name","info"))
-                  if "liczba rzutów rożnych" in label.lower() and "powyżej 9.5" in label.lower():
-                      print("CORNER_OVER",json.dumps({k:odd.get(k) for k in ("uuid","marketUuid","marketId","outcomeId","price","status","specialBetValue","specifiers","marketName","name","info","code")},ensure_ascii=False))
+                      print("MATCHING_ASSET",u,"HTTP",r.status_code,"BYTES",len(body))
+                      for term,snip in hits: print("MATCH",term,snip)
+              except Exception as e: print("ASSET_ERR",u,repr(e))
           PY
