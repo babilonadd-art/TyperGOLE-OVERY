@@ -159,30 +159,78 @@ class SuperbetEventParser(HTMLParser):
 
 
 def superbet_live_event_links():
-    """Read official Superbet football pages once and collect event detail URLs."""
-    urls = (
-        "https://superbet.pl/zaklady-bukmacherskie/pilka-nozna/live",
-        "https://superbet.pl/zaklady-bukmacherskie/pilka-nozna",
-    )
+    """Get Superbet event links from its public event API; HTML is only a fallback."""
     found = {}
-    for page_url in urls:
-        try:
-            response = requests.get(
-                page_url,
-                headers={**HEADERS, "Accept": "text/html,application/xhtml+xml"},
-                timeout=20,
-            )
-            response.raise_for_status()
-            parser = SuperbetEventParser()
-            parser.feed(response.text)
-            for event in parser.events:
-                href = str(event.get("url") or "")
-                if "/kursy/pilka-nozna/" not in href:
-                    continue
+    base = "https://production-superbet-offer-pl.freetls.fastly.net"
+    now = datetime.now(timezone.utc)
+    start = (now - timedelta(hours=4)).replace(minute=0, second=0, microsecond=0)
+    end = (now + timedelta(hours=4)).replace(minute=0, second=0, microsecond=0)
+    try:
+        response = requests.get(
+            f"{base}/v3/pl-PL/events",
+            params={
+                "startDate": start.isoformat().replace("+00:00", "Z"),
+                "endDate": end.isoformat().replace("+00:00", "Z"),
+            },
+            headers={
+                **HEADERS, "Origin": "https://superbet.pl",
+                "Referer": "https://superbet.pl/",
+                "Accept": "application/json, text/plain, */*",
+            },
+            timeout=25,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        api_events = payload.get("events", []) if isinstance(payload, dict) else []
+        for event in api_events:
+            if not isinstance(event, dict):
+                continue
+            fixture = event.get("fixture") or {}
+            name = str(first(fixture, "event_name", "eventName", default=""))
+            parts = name.split("·", 1)
+            event_id = first(event, "event_id", "id", default=first(fixture, "event_id", "eventId"))
+            if len(parts) != 2 or not event_id:
+                continue
+            home, away = (part.strip() for part in parts)
+            href = first(fixture, "url", "event_url", "eventUrl", default=first(event, "url", "event_url"))
+            if href:
+                href = str(href)
                 full_url = href if href.startswith("http") else f"https://superbet.pl{href}"
-                found[full_url] = event
-        except Exception as exc:
-            print(f"Superbet: nie udało się pobrać {page_url}: {type(exc).__name__}: {exc}", flush=True)
+            else:
+                def slug_part(value):
+                    value = unicodedata.normalize("NFKD", str(value or "")).encode("ascii", "ignore").decode().lower()
+                    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", value)).strip("-")
+                slug = f"{slug_part(home)}-vs-{slug_part(away)}-{event_id}"
+                full_url = f"https://superbet.pl/kursy/pilka-nozna/{slug}"
+            found[full_url] = {"url": full_url, "text": name}
+        print(f"Superbet API: {len(api_events)} wydarzeń w oknie ±4h, {len(found)} linków", flush=True)
+    except Exception as exc:
+        print(f"Superbet API: błąd pobierania wydarzeń: {type(exc).__name__}: {exc}", flush=True)
+
+    # Frontend HTML fallback; Superbet often renders the event board client-side.
+    if not found:
+        urls = (
+            "https://superbet.pl/zaklady-bukmacherskie/pilka-nozna/live",
+            "https://superbet.pl/zaklady-bukmacherskie/pilka-nozna",
+        )
+        for page_url in urls:
+            try:
+                response = requests.get(
+                    page_url,
+                    headers={**HEADERS, "Accept": "text/html,application/xhtml+xml"},
+                    timeout=20,
+                )
+                response.raise_for_status()
+                parser = SuperbetEventParser()
+                parser.feed(response.text)
+                for event in parser.events:
+                    href = str(event.get("url") or "")
+                    if "/kursy/pilka-nozna/" not in href:
+                        continue
+                    full_url = href if href.startswith("http") else f"https://superbet.pl{href}"
+                    found[full_url] = event
+            except Exception as exc:
+                print(f"Superbet: nie udało się pobrać {page_url}: {type(exc).__name__}: {exc}", flush=True)
     events = list(found.values())
     print(f"Superbet: znaleziono {len(events)} linków do wydarzeń", flush=True)
     return events
@@ -1361,9 +1409,9 @@ def main():
                         stats["missing_minute"] += 1
                         continue
 
-                    # Typy generujemy wyłącznie w dokładnie 30. minucie HT
-                    # oraz dokładnie 70. minucie FT.
-                    market = "HT" if minute == 30 else "FT" if minute == 70 else None
+                    # Skan odbywa się co minutę, ale źródła potrafią raportować
+                    # minutę z opóźnieniem. Użyj krótkich okien zamiast jednej sekundy/minuty.
+                    market = "HT" if 30 <= minute <= 35 else "FT" if 70 <= minute <= 75 else None
                     if market is None:
                         stats["outside_window"] += 1
                         continue
