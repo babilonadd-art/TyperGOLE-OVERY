@@ -109,7 +109,15 @@ def moviodds_live_matches():
 
 
 def normalized_team_name(value):
-    value = unicodedata.normalize("NFKD", str(value or ""))
+    """Normalize harmless provider-specific spelling differences, not team identity."""
+    raw = str(value or "").strip()
+    # Regional federation tags in brackets, e.g. Paysandu(PA), are not part
+    # of the club name. Keep all other bracketed information intact.
+    raw = re.sub(r"\\(\\s*[A-Z]{2,3}\\s*\\)", " ", raw)
+    # SportScore labels some U20 reserve/youth sides as "Youth"; Superbet
+    # commonly labels the same age band as "U20". Do not collapse U19/U21.
+    raw = re.sub(r"\\bu[\\s-]?20\\b", " youth ", raw, flags=re.IGNORECASE)
+    value = unicodedata.normalize("NFKD", raw)
     value = value.encode("ascii", "ignore").decode("ascii").lower()
     tokens = re.findall(r"[a-z0-9]+", value)
     ignored = {"fc", "cf", "sc", "afc", "club", "the", "football"}
