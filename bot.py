@@ -324,6 +324,7 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
             for key in (
                 "marketName", "market_name", "marketGroupName",
                 "market_group_name", "marketTitle", "market_title",
+                "market", "marketGroup", "market_group",
             )
             if first(odd, key) not in (None, "")
         ]
@@ -409,7 +410,7 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
             sample = [
                 {
                     "status": first(item, "status", "oddStatus"),
-                    "market": first(item, "marketName", "market_name", "marketGroupName", "market_group_name"),
+                    "market": first(item, "marketName", "market_name", "marketGroupName", "market_group_name", "market", "marketGroup"),
                     "name": first(item, "name", "selectionName", "selection_name"),
                     "price": first(item, "price", "odds", "oddValue"),
                 }
@@ -864,14 +865,15 @@ def match_stats_look_promising(match, market):
         }
 
     shots_on_target = m.get("shots_on_target")
-    if shots_on_target is None or shots_on_target < min_sot:
-        return False, m, 0
-
     signals = sum(
         1 for key, threshold in thresholds.items()
         if m.get(key) is not None and m[key] >= threshold
     )
-    return signals >= 1, m, signals
+    # Looser gate: one shot on target is enough; if unavailable, require
+    # two independent attacking signals instead.
+    if shots_on_target is not None and shots_on_target >= min_sot:
+        return True, m, signals
+    return signals >= 2, m, signals
 
 def same_fixture_pick_exists(state, identifier, home, away, match_date, market):
     """
@@ -1655,7 +1657,7 @@ def main():
                     # Polowanie: HT od 25. do 36. minuty; FT od 60. do 76. minuty.
                     # Kurs pobieramy z Superbet bez sztywnego minimum i maksimum.
                     # Rynek i linia nadal muszą być dokładnie potwierdzone w feedzie.
-                    market = "HT" if 25 <= minute <= 36 else "FT" if 60 <= minute <= 76 else None
+                    market = "HT" if 20 <= minute <= 40 else "FT" if 55 <= minute <= 82 else None
                     if market is None:
                         stats["outside_window"] += 1
                         continue
