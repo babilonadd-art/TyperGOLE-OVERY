@@ -114,24 +114,43 @@ def team_name_similarity(left, right):
 
 
 def find_moviodds_match(home, away, odds_matches):
-    """Match both teams in either orientation; reject weak or ambiguous matches."""
+    """Match both teams in either orientation, allowing common provider name variants."""
     candidates = []
+    diagnostics = []
     for item in odds_matches:
-        direct_home = team_name_similarity(home, item.get("home"))
-        direct_away = team_name_similarity(away, item.get("away"))
+        odds_home = first(item, "home", "home_team", "home_name", default="")
+        odds_away = first(item, "away", "away_team", "away_name", default="")
+        direct_home = team_name_similarity(home, odds_home)
+        direct_away = team_name_similarity(away, odds_away)
+        reverse_home = team_name_similarity(home, odds_away)
+        reverse_away = team_name_similarity(away, odds_home)
         direct = min(direct_home, direct_away)
-        reverse_home = team_name_similarity(home, item.get("away"))
-        reverse_away = team_name_similarity(away, item.get("home"))
         reverse = min(reverse_home, reverse_away)
         best = max(direct, reverse)
-        if (direct >= 0.78 and direct_home + direct_away >= 1.62) or (
-            reverse >= 0.78 and reverse_home + reverse_away >= 1.62
+        total = max(direct_home + direct_away, reverse_home + reverse_away)
+        diagnostics.append((best, total, str(odds_home), str(odds_away)))
+        # Providers often shorten club names or omit city/club prefixes.
+        # Require both teams to match reasonably well to avoid wrong fixtures.
+        if (direct >= 0.65 and direct_home + direct_away >= 1.55) or (
+            reverse >= 0.65 and reverse_home + reverse_away >= 1.55
         ):
-            candidates.append((best, item))
+            candidates.append((best + total * 0.05, item))
     if not candidates:
+        diagnostics.sort(reverse=True)
+        if diagnostics:
+            print(
+                f"MoviOdds: brak dopasowania dla {home} - {away}; "
+                f"najbliższe: {diagnostics[:3]}",
+                flush=True,
+            )
         return None
     candidates.sort(key=lambda pair: pair[0], reverse=True)
-    if len(candidates) > 1 and candidates[0][0] - candidates[1][0] < 0.025:
+    if len(candidates) > 1 and candidates[0][0] - candidates[1][0] < 0.035:
+        print(
+            f"MoviOdds: niejednoznaczne dopasowanie dla {home} - {away}; "
+            f"wyniki={[(round(score, 3), first(item, 'home'), first(item, 'away')) for score, item in candidates[:3]]}",
+            flush=True,
+        )
         return None
     return candidates[0][1]
 
@@ -1198,9 +1217,10 @@ def main():
                         stats["missing_minute"] += 1
                         continue
 
-                    # Skan działa co 5 minut, więc nie ograniczamy alertu do wąskiego okna 29-33/69-73.
-                    # HT: od 30. minuty do przerwy; FT: od 70. minuty do końca meczu.
-                    market = "HT" if 30 <= minute <= 34 else "FT" if 70 <= minute <= 74 else None
+                    # Workflow skanuje co 5 minut; szersze okno zapobiega pominięciu
+                    # meczu, gdy uruchomienie wypadnie tuż przed/po minucie granicznej.
+                    # Nadal analizujemy tylko okolice 30' (HT) i 70' (FT).
+                    market = "HT" if 29 <= minute <= 36 else "FT" if 69 <= minute <= 76 else None
                     if market is None:
                         stats["outside_window"] += 1
                         continue
