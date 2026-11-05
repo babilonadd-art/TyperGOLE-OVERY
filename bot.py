@@ -38,8 +38,6 @@ def calculate_bet_result(stake, odds):
     }
 HEADERS = {"User-Agent": "TyperGOLE-OVERY/1.0", "Accept": "application/json"}
 ATTRIBUTION = "Powered by SportScore: https://sportscore.com/"
-MIN_LIVE_ODDS = 1.70
-MAX_LIVE_ODDS = 3.50
 
 
 def now_local():
@@ -379,9 +377,6 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
             price = float(odd.get("price"))
         except (TypeError, ValueError):
             continue
-        if not (MIN_LIVE_ODDS <= price <= MAX_LIVE_ODDS):
-            continue
-
         candidates.append({
             "odds": price,
             "source": "Superbet",
@@ -1563,7 +1558,7 @@ def main():
             stats = {
                 "bad_item": 0, "detail_error": 0, "missing_id": 0,
 "missing_minute": 0, "outside_window": 0,
-                "duplicate": 0, "no_promising_stats": 0, "odds_no_match": 0, "odds_missing": 0, "odds_below_min": 0, "sent": 0, "errors": 0,
+                "duplicate": 0, "no_promising_stats": 0, "odds_no_match": 0, "odds_missing": 0, "sent": 0, "errors": 0,
             }
 
             # Kursy pobieramy bezpośrednio z publicznego feedu Superbet.
@@ -1632,9 +1627,10 @@ def main():
                         stats["missing_minute"] += 1
                         continue
 
-                    # Szersze okna polowania: HT 15-42', FT 50-80'.
-                    # Rynek i linia nadal muszą być dokładnie potwierdzone w feedzie Superbet.
-                    market = "HT" if 15 <= minute <= 42 else "FT" if 50 <= minute <= 80 else None
+                    # Docelowe okna polowania: HT 30-35', FT 70-75'.
+                    # Kurs pobieramy z Superbet bez sztywnego minimum i maksimum.
+                    # Rynek i linia nadal muszą być dokładnie potwierdzone w feedzie.
+                    market = "HT" if 30 <= minute <= 35 else "FT" if 70 <= minute <= 75 else None
                     if market is None:
                         stats["outside_window"] += 1
                         continue
@@ -1680,15 +1676,6 @@ def main():
                         stats["odds_missing"] += 1
                         print(f"[{index}] Brak aktywnego kursu Superbet dla Over {goal_line:.1f} {market}; pomijam.", flush=True)
                         continue
-                    if float(live_price["odds"]) < MIN_LIVE_ODDS:
-                        stats["odds_below_min"] += 1
-                        print(
-                            f"[{index}] Kurs {live_price['odds']:.2f} dla {market} poniżej minimum "
-                            f"{MIN_LIVE_ODDS:.2f}; typ pominięty.",
-                            flush=True,
-                        )
-                        continue
-
                     # Ostatnia kontrola kursu bezpośrednio przed przygotowaniem i wysłaniem wiadomości.
                     # Jeśli Superbet zmienił kurs albo feed przestał go jednoznacznie potwierdzać, pomijamy typ.
                     try:
