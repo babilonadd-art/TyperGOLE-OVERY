@@ -1548,7 +1548,19 @@ def final_status(match):
         "full time", "after extra time", "after penalties",
         "match finished", "game finished", "final whistle",
     )
-    return bool(tokens & final_tokens) or any(phrase in normalized for phrase in final_phrases)
+    explicit_final = bool(tokens & final_tokens) or any(
+        phrase in normalized for phrase in final_phrases
+    )
+    if not explicit_final:
+        return False
+
+    # A stale/mislabelled "FT" status must never overrule a live match clock.
+    # Full-time football cannot be confirmed while the provider still reports
+    # a minute below 90. Extra time (90+) remains eligible for final status.
+    reported_minute = parse_minute(match)
+    if reported_minute is not None and reported_minute < 90:
+        return False
+    return True
 
 
 def confirmed_final_fixture(match):
