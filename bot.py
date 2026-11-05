@@ -282,7 +282,7 @@ def superbet_event_detail(event_id):
 
 
 def extract_superbet_live_over_odds(event_detail, market, target_line):
-    """Return only an explicitly identified Superbet match-total Over price."""
+    """Return a price only when Superbet's exact selection and line are unambiguous."""
     odds_list = event_detail.get("odds", [])
     if not isinstance(odds_list, list):
         return None
@@ -293,39 +293,41 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
     team_total_tokens = ("gospodar", "gości", "home team", "away team", "team goals", "drużyny", "team total")
     total_market_tokens = ("liczba goli", "suma goli", "total goals", "goal line", "goals total", "total goal")
 
+    target = float(target_line)
+    candidates = []
     for odd in odds_list:
         if not isinstance(odd, dict) or str(odd.get("status", "")).lower() != "active":
             continue
 
         market_name = str(first(odd, "marketName", "market_name", default="")).strip()
-        selection_name = str(first(odd, "name", default="")).strip()
+        selection_name = str(first(odd, "name", "selectionName", "selection_name", default="")).strip()
         market_text = market_name.lower()
         selection_text = selection_name.lower()
 
-        # Nie wystarczy samo słowo „gol”. Musi to być rynek sumy goli meczu,
-        # a nie gole konkretnej drużyny ani inny rynek.
         if not market_text or not any(token in market_text for token in total_market_tokens):
             continue
         if any(token in market_text for token in team_total_tokens):
             continue
-        if not re.search(r"\b(powyżej|over)\b", selection_text):
+
+        # Selection itself must explicitly be Over/Powyżej, not a generic outcome.
+        selection_match = re.search(r"\\b(powyżej|over)\\s*(\\d+(?:[.,]\\d+)?)\\b", selection_text)
+        if not selection_match:
+            continue
+        selection_line = float(selection_match.group(2).replace(",", "."))
+        if abs(selection_line - target) > 0.001:
             continue
 
-        is_half = any(token in market_text or token in selection_text
-                      for token in half_tokens)
-        is_second_half = any(token in market_text or token in selection_text
-                             for token in second_half_tokens)
-        is_extra_time = any(token in market_text or token in selection_text
-                            for token in extra_time_tokens)
+        is_half = any(token in market_text or token in selection_text for token in half_tokens)
+        is_second_half = any(token in market_text or token in selection_text for token in second_half_tokens)
+        is_extra_time = any(token in market_text or token in selection_text for token in extra_time_tokens)
         if is_extra_time:
             continue
         if market == "HT" and (not is_half or is_second_half):
             continue
-        # FT oznacza cały mecz, nigdy samą drugą połowę.
         if market == "FT" and (is_half or is_second_half):
             continue
 
-        # Linia musi pochodzić z pola przypisanego do konkretnej selekcji.
+        # If provider also supplies a structured line, it must agree with the label.
         line_value = first(odd, "specialBetValue")
         if line_value is None:
             specifiers = odd.get("specifiers")
@@ -333,29 +335,40 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
                 line_value = first(specifiers, "total", "goals", "line")
         if line_value is None:
             continue
-        line_match = re.fullmatch(r"\s*(\d+(?:[.,]\d+)?)\s*", str(line_value))
+        line_match = re.fullmatch(r"\\s*(\\d+(?:[.,]\\d+)?)\\s*", str(line_value))
         if not line_match:
             continue
-        line = float(line_match.group(1).replace(",", "."))
-        if abs(line - float(target_line)) > 0.001:
+        structured_line = float(line_match.group(1).replace(",", "."))
+        if abs(structured_line - selection_line) > 0.001 or abs(structured_line - target) > 0.001:
             continue
 
         try:
             price = float(odd.get("price"))
         except (TypeError, ValueError):
             continue
-        # Ochrona przed błędnym przypisaniem kursu z innego rynku/okresu.
         if not (MIN_LIVE_ODDS <= price <= MAX_LIVE_ODDS):
             continue
 
-        return {
+        candidates.append({
             "odds": price,
             "source": "Superbet",
             "market": market_name,
-            "line": line,
+            "line": structured_line,
             "updated_at": first(odd.get("extra", {}), "feedPlatformTimestamp", "feedOriginTimestamp"),
-        }
-    return None
+        })
+
+    # Different prices for the same requested selection mean the feed is ambiguous.
+    # Never choose the first item: that was the source of false price assignments.
+    unique = {(item["odds"], item["market"], item["line"]) for item in candidates}
+    if len(unique) != 1:
+        if len(unique) > 1:
+            print(
+                f"Superbet: sprzeczne kursy dla Over {target:.1f} {market}; "
+                f"odrzucam rynek: {sorted(unique)}",
+                flush=True,
+            )
+        return None
+    return candidates[0] if candidates else None
 
 
 def superbet_goal_market_url(url):
