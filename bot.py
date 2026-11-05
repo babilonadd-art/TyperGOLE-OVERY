@@ -1,4 +1,5 @@
 import difflib
+from html.parser import HTMLParser
 import json
 import os
 import re
@@ -128,6 +129,97 @@ def team_name_similarity(left, right):
     at, bt = set(a.split()), set(b.split())
     token_ratio = len(at & bt) / max(1, len(at | bt))
     return max(ratio, token_ratio)
+
+class SuperbetEventParser(HTMLParser):
+    """Collect official Superbet event links and their visible anchor text."""
+    def __init__(self):
+        super().__init__()
+        self.events = []
+        self.current_href = None
+        self.current_text = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() == "a":
+            self.current_href = dict(attrs).get("href")
+            self.current_text = []
+
+    def handle_data(self, data):
+        if self.current_href:
+            self.current_text.append(data)
+
+    def handle_endtag(self, tag):
+        if tag.lower() == "a" and self.current_href:
+            self.events.append({
+                "url": self.current_href,
+                "text": " ".join(self.current_text).strip(),
+            })
+            self.current_href = None
+            self.current_text = []
+
+
+def superbet_live_event_links():
+    """Read official Superbet football pages once and collect event detail URLs."""
+    urls = (
+        "https://superbet.pl/zaklady-bukmacherskie/pilka-nozna/live",
+        "https://superbet.pl/zaklady-bukmacherskie/pilka-nozna",
+    )
+    found = {}
+    for page_url in urls:
+        try:
+            response = requests.get(
+                page_url,
+                headers={**HEADERS, "Accept": "text/html,application/xhtml+xml"},
+                timeout=20,
+            )
+            response.raise_for_status()
+            parser = SuperbetEventParser()
+            parser.feed(response.text)
+            for event in parser.events:
+                href = str(event.get("url") or "")
+                if "/kursy/pilka-nozna/" not in href:
+                    continue
+                full_url = href if href.startswith("http") else f"https://superbet.pl{href}"
+                found[full_url] = event
+        except Exception as exc:
+            print(f"Superbet: nie udało się pobrać {page_url}: {type(exc).__name__}: {exc}", flush=True)
+    events = list(found.values())
+    print(f"Superbet: znaleziono {len(events)} linków do wydarzeń", flush=True)
+    return events
+
+
+def find_superbet_match_url(home, away, events):
+    """Return only an unambiguous official event URL matching both teams."""
+    candidates = []
+    wanted_home = normalized_team_name(home)
+    wanted_away = normalized_team_name(away)
+    for event in events:
+        href = str(event.get("url") or "")
+        text_value = str(event.get("text") or "")
+        if "/kursy/pilka-nozna/" not in href:
+            continue
+        slug = href.split("/kursy/pilka-nozna/", 1)[-1].strip("/").rsplit("-", 1)[0]
+        if "-vs-" in slug:
+            left, right = slug.split("-vs-", 1)
+            left = left.replace("-", " ")
+            right = right.replace("-", " ")
+            direct = min(team_name_similarity(home, left), team_name_similarity(away, right))
+            reverse = min(team_name_similarity(home, right), team_name_similarity(away, left))
+            score = max(direct, reverse)
+        else:
+            # Fallback to visible event text only when both team names are clearly present.
+            normalized_text = normalized_team_name(text_value)
+            home_hit = wanted_home and wanted_home in normalized_text
+            away_hit = wanted_away and wanted_away in normalized_text
+            score = 0.90 if home_hit and away_hit else 0.0
+        if score >= 0.78:
+            candidates.append((score, f"https://superbet.pl{href}" if href.startswith("/") else href))
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    if not candidates:
+        return None
+    if len(candidates) > 1 and candidates[0][0] - candidates[1][0] < 0.05:
+        print(f"Superbet: niejednoznaczny link dla {home} - {away}; nie wysyłam linku", flush=True)
+        return None
+    return candidates[0][1]
 
 
 def find_moviodds_match(home, away, odds_matches):
@@ -1207,6 +1299,8 @@ def main():
                 odds_matches = []
                 print(f"BŁĄD POBIERANIA KURSÓW MOVIODDS: {type(exc).__name__}: {exc}", flush=True)
 
+            superbet_events = superbet_live_event_links()
+
             for index, raw in enumerate(matches, start=1):
                 if len(todays_picks) >= MAX_DAILY_PICKS:
                     print("Osiągnięto dzienny limit typów.", flush=True)
@@ -1318,6 +1412,7 @@ def main():
                         "odds_source": live_price["source"],
                         "odds_market": live_price["market"],
                         "odds_updated_at": live_price.get("updated_at"),
+                        "superbet_url": find_superbet_match_url(home, away, superbet_events),
                         "goal_line": goal_line,
                         "live_metrics": metrics,
                         "signal_score": signal_score,
@@ -1337,7 +1432,8 @@ def main():
                         f"Stawka: {STAKE:.2f} zł | Kurs Bet365: {live_price['odds']:.2f}\n"
                         f"Podatek 12%: {potential['tax']:.2f} zł\n"
                         f"Potencjalna wypłata: {potential['payout']:.2f} zł\n"
-                        f"Potencjalny zysk netto: {potential['profit']:+.2f} zł"
+                        f"Potencjalny zysk netto: {potential['profit']:+.2f} zł\\n"
+                        + (f"Superbet: {pick['superbet_url']}" if pick.get("superbet_url") else "Superbet: nie znaleziono jednoznacznego linku do tego meczu.")
                     )
                     pick["delivery_status"] = "sent"
                     save_state(state)
