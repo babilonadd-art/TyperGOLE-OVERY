@@ -15,37 +15,36 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Read public event structure
+      - name: Inspect event-specific public data
         run: |
           python - <<'PY'
-          import json, requests
-          url = "https://production-superbet-offer-pl.freetls.fastly.net/v2/pl-PL/struct"
-          headers = {"User-Agent": "Mozilla/5.0", "Origin": "https://superbet.pl", "Referer": "https://superbet.pl/"}
-          r = requests.get(url, headers=headers, timeout=30)
-          print("HTTP", r.status_code, "bytes", len(r.content))
-          r.raise_for_status()
-          data = r.json()
-          terms = ("14572637", "Machida", "Shanghai", "Over 2.5", "over")
-          found = 0
-          def walk(obj, path="$", depth=0):
-              global found
-              if found >= 120 or depth > 18:
-                  return
-              if isinstance(obj, dict):
-                  for k, v in obj.items():
-                      p = path + "." + str(k)
-                      if any(t.lower() in str(k).lower() for t in terms):
-                          print("KEY", p, str(v)[:500])
-                          found += 1
-                      walk(v, p, depth + 1)
-              elif isinstance(obj, list):
-                  for i, v in enumerate(obj):
-                      walk(v, path + "[" + str(i) + "]", depth + 1)
-              elif isinstance(obj, (str, int, float)):
-                  s = str(obj)
-                  if any(t.lower() in s.lower() for t in terms):
-                      print("VALUE", path, s[:500])
-                      found += 1
-          walk(data)
-          print("MATCHES", found)
+          import json, requests, re
+          H={"User-Agent":"Mozilla/5.0","Origin":"https://superbet.pl","Referer":"https://superbet.pl/"}
+          base="https://production-superbet-offer-pl.freetls.fastly.net"
+          struct=requests.get(base+"/v2/pl-PL/struct",headers=H,timeout=30).json()["data"]
+          print("STRUCT_KEYS",list(struct.keys()))
+          for key in ("events","markets","outcomes","eventGroups","marketGroups"):
+              val=struct.get(key)
+              if isinstance(val,dict):
+                  print("DICT",key,"count",len(val),"sample",list(val.items())[:2])
+              elif isinstance(val,list):
+                  print("LIST",key,"count",len(val),"sample",val[:2])
+          for path in (
+              "/v3/subscription/pl-PL/events/14572637",
+              "/v3/subscription/pl-PL/event/14572637",
+              "/v2/pl-PL/events/14572637",
+              "/v3/pl-PL/events/14572637",
+              "/subscription/v2/pl-PL/events/14572637",
+              "/subscription/v2/pl-PL/event/14572637",
+          ):
+              try:
+                  r=requests.get(base+path,headers={**H,"Accept":"text/event-stream, application/json"},timeout=12,stream=True)
+                  lines=[]
+                  for line in r.iter_lines(decode_unicode=True):
+                      if line:
+                          lines.append(line)
+                      if len(lines)>=35: break
+                  print("ENDPOINT",path,"HTTP",r.status_code,"TYPE",r.headers.get("content-type"),"LINES",lines[:35])
+                  r.close()
+              except Exception as e: print("ERR",path,repr(e))
           PY
