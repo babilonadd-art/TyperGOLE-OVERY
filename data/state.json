@@ -201,9 +201,12 @@
         "dangerous_attacks": 28
       },
       "signal_score": 3,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": false,
+      "settled_score": "0-1",
+      "settled_at": "2026-11-05T13:57:44.704451+01:00"
     },
     {
       "key": "8yomo4h1o3w2q0j:HT",
@@ -232,14 +235,17 @@
         "dangerous_attacks": 28
       },
       "signal_score": 4,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "minute_update_sent": true,
       "minute_update_at": "2026-11-05T03:10:24.696100+01:00",
       "latest_minute": 40,
       "latest_score": "0-0",
       "minute_update_format_version": 2,
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": false,
+      "settled_score": "0-0",
+      "settled_at": "2026-11-05T13:57:45.363307+01:00"
     },
     {
       "key": "k82rekhg0v83rep:FT",
