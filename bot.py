@@ -1747,10 +1747,9 @@ def settle_picks(state):
             # X+1 goals. Never settle from a single goal while the match is live.
             # For HT picks, period_complete means the first half is confirmed over.
             if not period_complete:
-                had_pending = bool(
-                    pick.pop("settlement_pending_since", None)
-                    or pick.pop("settlement_pending_score", None)
-                )
+                pending_since = pick.pop("settlement_pending_since", None)
+                pending_score = pick.pop("settlement_pending_score", None)
+                had_pending = bool(pending_since or pending_score)
                 if had_pending:
                     save_state(state)
                     print(
