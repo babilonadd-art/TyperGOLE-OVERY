@@ -502,7 +502,7 @@ def as_int(value):
     if isinstance(value, float):
         return int(value)
     if isinstance(value, str):
-        match = re.search(r"-?\\d+", value)
+        match = re.search(r"-?\d+", value)
         return int(match.group()) if match else None
     return None
 
