@@ -19,8 +19,8 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
 STAKE = 50.0
 BET_TAX_RATE = 0.12
-# TRYB TESTOWY: maksymalnie jeden dodatkowy typ dzisiaj.
-MAX_DAILY_PICKS = 13
+# Bez dziennego limitu typów.
+MAX_DAILY_PICKS = None
 
 def calculate_bet_result(stake, odds):
     """Calculate Polish 12% stake tax, payout and net profit."""
@@ -53,10 +53,11 @@ def load_state():
             if isinstance(data, dict):
                 data.setdefault("picks", [])
                 data.setdefault("reports_sent", [])
+                data.setdefault("duplicate_guard", [])
                 return data
         except (ValueError, OSError):
             pass
-    return {"picks": [], "reports_sent": []}
+    return {"picks": [], "reports_sent": [], "duplicate_guard": []}
 
 
 def save_state(state):
@@ -1128,7 +1129,7 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market, 
     wanted_away = normalized_team_name(away)
     wanted_id = str(identifier or "").strip().lower()
 
-    for old in state.get("picks", []):
+    for old in state.get("duplicate_guard", []):
         if old.get("market") != market:
             continue
 
@@ -1909,9 +1910,9 @@ def main():
 
     today = now_local().date().isoformat()
     todays_picks = [p for p in state["picks"] if p.get("date") == today and p.get("counts_toward_daily_limit", True)]
-    print(f"Typy wysłane dzisiaj: {len(todays_picks)}/{MAX_DAILY_PICKS}", flush=True)
+    print(f"Typy wysłane dzisiaj: {len(todays_picks)} (bez limitu dziennego)", flush=True)
 
-    if len(todays_picks) < MAX_DAILY_PICKS:
+    if MAX_DAILY_PICKS is None or len(todays_picks) < MAX_DAILY_PICKS:
         try:
             matches = current_live_matches()
             print(f"API SportScore: pobrano {len(matches)} meczów live", flush=True)
@@ -1942,7 +1943,7 @@ def main():
             print(f"Superbet: tablica wydarzeń gotowa ({len(superbet_events)} pozycji)", flush=True)
 
             for index, raw in enumerate(matches, start=1):
-                if len(todays_picks) >= MAX_DAILY_PICKS:
+                if MAX_DAILY_PICKS is not None and len(todays_picks) >= MAX_DAILY_PICKS:
                     print("Osiągnięto dzienny limit typów.", flush=True)
                     break
                 if not isinstance(raw, dict):
@@ -2255,6 +2256,7 @@ def main():
                     # Save the pick before sending to prevent duplicates after an HTTP timeout.
                     pick["delivery_status"] = "pending"
                     state["picks"].append(pick)
+                    state.setdefault("duplicate_guard", []).append(pick)
                     todays_picks.append(pick)
                     save_state(state)
 
@@ -2289,7 +2291,7 @@ def main():
         print(f"Monthly report error: {type(exc).__name__}: {exc}", flush=True)
 
     save_state(state)
-    print(f"Stan zapisany. Typy dzisiaj: {len(todays_picks)}/{MAX_DAILY_PICKS}", flush=True)
+    print(f"Stan zapisany. Typy dzisiaj: {len(todays_picks)} (bez limitu dziennego)", flush=True)
     print("=== TyperGOLE-OVERY END ===", flush=True)
 
 
