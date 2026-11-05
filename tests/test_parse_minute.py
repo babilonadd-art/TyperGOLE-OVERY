@@ -136,7 +136,7 @@ class OverSettlementRegressionTests(unittest.TestCase):
         self.assertIsNone(over_result_is_win(3.5, 5, False))
 
     def test_same_fixture_blocked_when_names_have_minor_variants(self):
-        state = {"picks": [{
+        state = {"duplicate_guard": [{
             "id": "old-id", "key": "old-id:FT", "market": "FT",
             "home": "Sint-Truidense", "away": "Brann",
             "slug": "sint-truidense-vs-brann", "date": "2026-11-05",
@@ -147,7 +147,7 @@ class OverSettlementRegressionTests(unittest.TestCase):
         ))
 
     def test_different_fixture_is_not_blocked(self):
-        state = {"picks": [{
+        state = {"duplicate_guard": [{
             "id": "old-id", "key": "old-id:FT", "market": "FT",
             "home": "Celtic FC", "away": "Besiktas JK",
             "slug": "celtic-vs-besiktas", "date": "2026-11-05",
