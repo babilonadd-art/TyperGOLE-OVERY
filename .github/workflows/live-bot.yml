@@ -21,7 +21,7 @@ concurrency:
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 8
     steps:
       - name: Checkout latest main (including saved pick state)
         uses: actions/checkout@v4
@@ -34,12 +34,24 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Run bot
+      - name: Run bot every minute during this schedule window
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TZ: Europe/Warsaw
-        run: python bot.py
+        shell: bash
+        run: |
+          # GitHub Actions schedule has a 5-minute minimum interval.
+          # Scan five times, aligning each scan to the next minute.
+          for i in 1 2 3 4 5; do
+            echo "=== Skan LIVE $i/5: $(date -u +%H:%M:%S) UTC ==="
+            python bot.py
+            if [ "$i" -lt 5 ]; then
+              now=$(date +%s)
+              wait=$((60 - now % 60))
+              sleep "$wait"
+            fi
+          done
       - name: Save bot state
         if: always()
         run: |
