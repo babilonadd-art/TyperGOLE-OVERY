@@ -220,6 +220,36 @@
       "signal_score": 4,
       "settled": false,
       "delivery_status": "sent"
+    },
+    {
+      "key": "k82rekhg0v83rep:FT",
+      "id": "k82rekhg0v83rep",
+      "slug": "sao-paulo-vs-sport-club-corinthians-paulista",
+      "home": "São Paulo - SP",
+      "away": "Corinthians - SP",
+      "league": "Brazilian Serie A",
+      "minute": 70,
+      "score_home": 0,
+      "score_away": 0,
+      "market": "FT",
+      "date": "2026-11-05",
+      "kickoff_time": "2026-11-05T00:30:00+00:00",
+      "stake": 50.0,
+      "odds": 1.9,
+      "odds_source": "Bet365",
+      "odds_market": "Goal Line (0-0)",
+      "odds_updated_at": "2026-11-05T02:03:52.175303151Z",
+      "goal_line": 0.5,
+      "live_metrics": {
+        "shots": 20,
+        "shots_on_target": 7,
+        "shots_off_target": 13,
+        "attacks": 128,
+        "dangerous_attacks": 50
+      },
+      "signal_score": 4,
+      "settled": false,
+      "delivery_status": "sent"
     }
   ],
   "reports_sent": []
