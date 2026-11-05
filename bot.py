@@ -16,7 +16,7 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
 STAKE = 50.0
-MAX_DAILY_PICKS = 8
+MAX_DAILY_PICKS = 3
 HEADERS = {"User-Agent": "TyperGOLE-OVERY/1.0", "Accept": "application/json"}
 ATTRIBUTION = "Powered by SportScore: https://sportscore.com/"
 MIN_LIVE_ODDS = 1.80
@@ -466,19 +466,35 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market):
     return False
 
 
-def match_stats_look_promising(match):
-    """Require a combination of live shooting and dangerous-attack indicators."""
+def match_stats_look_promising(match, market):
+    """
+    Conservative filter based on cumulative live stats.
+    All three conditions must be met; one strong metric cannot compensate
+    for missing evidence in the other indicators.
+    """
     m = live_match_metrics(match)
     if not m:
         return False, m, 0
-    score = 0
-    if m["shots"] is not None and m["shots"] >= 8:
-        score += 1
-    if m["shots_on_target"] is not None and m["shots_on_target"] >= 3:
-        score += 2
-    if m["dangerous_attacks"] is not None and m["dangerous_attacks"] >= 25:
-        score += 1
-    return score >= 2, m, score
+
+    shots = m.get("shots")
+    shots_on_target = m.get("shots_on_target")
+    dangerous_attacks = m.get("dangerous_attacks")
+
+    # HT: at least 8 shots, 4 on target and 30 dangerous attacks.
+    # FT (70-74'): stronger evidence is required: 14 shots, 8 on target
+    # and 40 dangerous attacks. These are filters, not a guarantee of a goal.
+    if market == "HT":
+        thresholds = (8, 4, 30)
+    else:
+        thresholds = (14, 8, 40)
+
+    available = (shots, shots_on_target, dangerous_attacks)
+    if any(value is None for value in available):
+        return False, m, 0
+
+    passed = all(value >= threshold for value, threshold in zip(available, thresholds))
+    score = sum(value >= threshold for value, threshold in zip(available, thresholds))
+    return passed, m, score
 
 
 def telegram(message):
@@ -1133,7 +1149,14 @@ def main():
                         )
                         continue
 
-                    promising, metrics, signal_score = match_stats_look_promising(match)
+                    # Strategy is explicitly 0-0 at the selection point for both markets.
+                    # This avoids backing another goal after the match already has goals.
+                    if home_score != 0 or away_score != 0:
+                        stats["no_promising_stats"] += 1
+                        print(f"[{index}] Wynik {home_score}-{away_score}; strategia wymaga 0-0 — pomijam.", flush=True)
+                        continue
+
+                    promising, metrics, signal_score = match_stats_look_promising(match, market)
                     if not promising:
                         stats["no_promising_stats"] += 1
                         print(f"[{index}] Za mało sygnałów ofensywnych: {metrics}, score={signal_score}", flush=True)
