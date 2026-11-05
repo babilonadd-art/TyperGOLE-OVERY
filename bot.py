@@ -243,7 +243,7 @@ def log_superbet_diagnostic(record):
     audit_path = Path("data/superbet_diagnostics.jsonl")
     audit_path.parent.mkdir(parents=True, exist_ok=True)
     with audit_path.open("a", encoding="utf-8") as audit_file:
-        audit_file.write(line + "\\n")
+        audit_file.write(line + "\n")
 
 
 def find_superbet_event(home, away, events):
