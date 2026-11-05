@@ -158,6 +158,21 @@ def team_name_aliases(value):
         pending = list(additions)
     return aliases
 
+def team_name_similarity(left, right):
+    a = normalized_team_name(left)
+    b = normalized_team_name(right)
+    if not a or not b:
+        return 0.0
+    if a == b:
+        return 1.0
+    if a in b or b in a:
+        return 0.92
+    ratio = difflib.SequenceMatcher(None, a, b).ratio()
+    at, bt = set(a.split()), set(b.split())
+    token_ratio = len(at & bt) / max(1, len(at | bt))
+    return max(ratio, token_ratio)
+
+
 class SuperbetEventParser(HTMLParser):
     """Collect official Superbet event links and their visible anchor text."""
     def __init__(self):
