@@ -1,6 +1,7 @@
 import unittest
+from datetime import datetime, timedelta, timezone
 
-from bot import parse_minute, over_result_is_win, same_fixture_pick_exists, final_status
+from bot import parse_minute, over_result_is_win, same_fixture_pick_exists, final_status, settlement_confirmation_ready
 
 
 class ParseMinuteRegressionTests(unittest.TestCase):
@@ -120,6 +121,29 @@ class SuperbetMarketScopeRegressionTests(unittest.TestCase):
             "home_score": 2,
             "away_score": 1,
         }))
+
+
+class SettlementConfirmationDelayTests(unittest.TestCase):
+    def test_first_final_score_observation_does_not_settle(self):
+        now = datetime(2026, 11, 6, 12, 0, tzinfo=timezone.utc)
+        pick = {}
+        self.assertFalse(settlement_confirmation_ready(pick, "2-1", now))
+        self.assertEqual(pick["settlement_pending_score"], "2-1")
+
+    def test_same_final_score_requires_full_three_minutes(self):
+        now = datetime(2026, 11, 6, 12, 0, tzinfo=timezone.utc)
+        pick = {}
+        self.assertFalse(settlement_confirmation_ready(pick, "2-1", now))
+        self.assertFalse(settlement_confirmation_ready(pick, "2-1", now + timedelta(seconds=179)))
+        self.assertTrue(settlement_confirmation_ready(pick, "2-1", now + timedelta(seconds=180)))
+
+    def test_changed_score_restarts_confirmation_timer(self):
+        now = datetime(2026, 11, 6, 12, 0, tzinfo=timezone.utc)
+        pick = {}
+        self.assertFalse(settlement_confirmation_ready(pick, "2-1", now))
+        self.assertFalse(settlement_confirmation_ready(pick, "3-1", now + timedelta(seconds=179)))
+        self.assertFalse(settlement_confirmation_ready(pick, "3-1", now + timedelta(seconds=358)))
+        self.assertTrue(settlement_confirmation_ready(pick, "3-1", now + timedelta(seconds=359)))
 
 
 class OverSettlementRegressionTests(unittest.TestCase):
