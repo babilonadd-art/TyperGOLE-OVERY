@@ -782,30 +782,50 @@ def teams(match):
 
 
 def parse_minute(match):
-    # Status okresu ma pierwszeństwo przed liczbowym zegarem:
-    # SportScore potrafi chwilowo zwrócić minute=60, gdy mecz jest w przerwie.
+    """
+    Zwraca minutę tylko wtedy, gdy feed podaje wiarygodny zegar lub
+    jednoznaczny status przerwy. Nie szacuje minuty z kickoffu:
+    taki szacunek potrafi zamienić przerwę w błędne 60'.
+    """
+    if not isinstance(match, dict):
+        return None
+
+    phase_keys = (
+        "status", "state", "match_status", "status_text",
+        "fixture_status", "period", "phase", "elapsed_time",
+        "current_period", "period_name", "match_period",
+        "periodName", "currentPeriod",
+    )
     phase_parts = []
-    for key in ("status", "state", "match_status", "status_text",
-                "fixture_status", "period", "phase", "elapsed_time"):
-        value = match.get(key) if isinstance(match, dict) else None
+    for key in phase_keys:
+        value = match.get(key)
         if isinstance(value, dict):
-            value = first(value, "short", "long", "name", "description",
-                          "label", "status", "minute", "elapsed", default="")
+            value = first(
+                value, "short", "long", "name", "description",
+                "label", "status", "period", "value", default=""
+            )
         if value is not None:
             phase_parts.append(str(value))
-    phase = " ".join(phase_parts).strip().lower()
-    normalized_phase = re.sub(r"[_-]+", " ", phase)
 
-    # Przerwa: nie wolno użyć starego/liczbowego pola 60' z feedu.
-    halftime_markers = (
-        "half time", "halftime", "interval", "przerwa",
+    normalized_phase = re.sub(
+        r"[_-]+", " ", " ".join(phase_parts).strip().lower()
     )
-    has_halftime_token = bool(re.search(r"\b(?:break|ht)\b", normalized_phase))
-    if any(marker in normalized_phase for marker in halftime_markers) or has_halftime_token:
+    normalized_phase = re.sub(r"\s+", " ", normalized_phase)
+
+    # Status przerwy ma bezwarunkowe pierwszeństwo przed polami liczbowymi.
+    halftime_patterns = (
+        r"\bhalf\s*time\b",
+        r"\bhalftime\b",
+        r"\binterval\b",
+        r"\bprzerwa\b",
+        r"\bbreak\b",
+        r"\bht\b",
+    )
+    if any(re.search(pattern, normalized_phase) for pattern in halftime_patterns):
         stoppage = re.search(r"45\s*\+\s*(\d+)", normalized_phase)
         return 45 + int(stoppage.group(1)) if stoppage else 45
 
-    # Najpierw jawne pola zegara meczu.
+    # Jawne pole zegara ma pierwszeństwo przed tekstem statusu.
     minute = as_int(first(
         match, "minute", "live_minute", "elapsed", "time_elapsed",
         "current_minute", "elapsed_minute", "currentMinute"
@@ -813,38 +833,25 @@ def parse_minute(match):
     if minute is not None and 0 <= minute <= 130:
         return minute
 
-    # Następnie tekst zegara, np. 32' lub 45+2'.
-    for value in (
-        first(match, "status_text", "elapsed_time", default=""),
+    # Tekst zegara, np. 32', 45+2' albo 67′.
+    clock_values = [
+        first(match, "status_text", "elapsed_time", "clock", "time", default=""),
         first(match, "status", "state", "match_status", default=""),
-    ):
+    ]
+    for value in clock_values:
         if isinstance(value, dict):
             value = first(value, "short", "long", "name", "description", default="")
-        match_minute = re.search(r"(\d{1,3})(?:\s*\+\s*(\d+))?\s*['′’]", str(value))
+        match_minute = re.search(
+            r"(\d{1,3})(?:\s*\+\s*(\d+))?\s*['′’]",
+            str(value)
+        )
         if match_minute:
             base = int(match_minute.group(1))
             added = int(match_minute.group(2) or 0)
             return base + added
 
-    # Gdy feed nie podaje zegara, szacuj wyłącznie na podstawie jawnego
-    # statusu trwającej połowy i czasu rozpoczęcia.
-    status = first(match, "status", "state", "match_status", default="")
-    if isinstance(status, dict):
-        status = first(status, "short", "long", "name", default="")
-    phase = str(status or first(match, "status_text", default="")).strip().lower()
-    kickoff = first(match, "time", "start_time", "kickoff", "date")
-    if kickoff and any(x in phase for x in ("half", "1h", "2h", "live", "in play")):
-        try:
-            start = datetime.fromisoformat(str(kickoff).replace("Z", "+00:00"))
-            if start.tzinfo is None:
-                start = start.replace(tzinfo=timezone.utc)
-            elapsed = (datetime.now(timezone.utc) - start.astimezone(timezone.utc)).total_seconds() / 60
-            if 0 <= elapsed <= 125:
-                if "2nd" in phase or "second" in phase or "2h" in phase:
-                    return max(46, min(125, int(elapsed - 15)))
-                return max(1, min(60, int(elapsed)))
-        except (TypeError, ValueError, OverflowError):
-            pass
+    # Brak wiarygodnego zegara = brak typu. Nie wyliczamy minuty z kickoffu,
+    # bo opóźnienia, przerwa i doliczony czas powodują fałszywe wartości.
     return None
 
 
