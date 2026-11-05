@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "bot.py"
+      - "tests/**"
       - ".github/workflows/live-bot.yml"
   workflow_dispatch:
   schedule:
@@ -35,6 +36,8 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Run clock regression tests
+        run: python -m unittest discover -s tests -v
       - name: Initialize Superbet diagnostic log
         run: |
           mkdir -p data
