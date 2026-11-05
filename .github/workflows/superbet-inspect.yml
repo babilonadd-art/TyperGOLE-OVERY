@@ -13,9 +13,9 @@ permissions:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 4
     steps:
-      - name: Inspect public event feed endpoints first
+      - name: Inspect public live feed and event details
         run: |
           python - <<'PY'
           import requests,json
@@ -32,72 +32,8 @@ jobs:
             try:
               r=requests.get(base+path,headers=h,timeout=20)
               print("\\nENDPOINT",path,"STATUS",r.status_code,"TYPE",r.headers.get("content-type"),flush=True)
-              if r.status_code==200:
-                data=r.json()
-                if isinstance(data,dict):
-                  print("TOP_KEYS",list(data)[:40],flush=True)
-                  for k,v in data.items():
-                    if isinstance(v,list):
-                      print("LIST",k,"COUNT",len(v),"SAMPLE",json.dumps(v[:1],ensure_ascii=False)[:3500],flush=True)
-                    elif isinstance(v,dict):
-                      print("DICT",k,"KEYS",list(v)[:40],flush=True)
-                else:
-                  print("DATA",json.dumps(data,ensure_ascii=False)[:5000],flush=True)
-              else:
-                print("BODY",r.text[:500],flush=True)
-            except Exception as e: print("ERROR",type(e).__name__,str(e),flush=True)
-          PY
-
-      - name: Verify goal market group on a public event
-        run: |
-          python - <<'PY'
-          import requests,json
-          url="https://production-superbet-offer-pl.freetls.fastly.net/v2/pl-PL/events/14572637"
-          r=requests.get(url,headers={"User-Agent":"Mozilla/5.0","Accept":"application/json"},timeout=25)
-          print("EVENT_STATUS",r.status_code,flush=True)
-          r.raise_for_status()
-          data=r.json()
-          print("EVENT_JSON",json.dumps(data,ensure_ascii=False)[:12000],flush=True)
-          def walk(x,path="$"):
-              if isinstance(x,dict):
-                  if any(k.lower() in ("marketgroup","marketgroupid","groupid","groupname","marketname") for k in x):
-                      print("MARKET_NODE",path,{k:v for k,v in x.items() if k.lower() in ("id","name","title","marketgroup","marketgroupid","groupid","groupname","marketname","label")},flush=True)
-                  for k,v in x.items(): walk(v,path+"."+str(k))
-              elif isinstance(x,list):
-                  for i,v in enumerate(x): walk(v,path+f"[{i}]")
-          walk(data)
-          PY
-
-      - name: Find Superbet share and selection routes concurrently
-        run: |
-          python - <<'PY'
-          import requests,re
-          from concurrent.futures import ThreadPoolExecutor,as_completed
-          base="https://superbet.pl"; h={"User-Agent":"Mozilla/5.0","Referer":base+"/"}
-          b=requests.get(base+"/static/js/index.fa0434cf.js",headers=h,timeout=25).text
-          tail=b[b.find('o.u=function'):]
-          a=tail.find('(({')+3; z=tail.find('})[e]||e)')
-          names=dict(re.findall(r'([0-9]+):"([a-zA-Z0-9_-]+)"',tail[a:z]))
-          hashes=dict(re.findall(r'([0-9]+):"([0-9a-f]{8})"',tail[z:]))
-          terms=("shareTicket","share-ticket","shareBet","shareBetSlip","shareUrl","copyTicket","copySelection","addCopiedSelection","addSingleSelection","ticketCode","externalTicketId","copiedTicket","skopiuj_kupon","ticketId")
-          print("CHUNK_COUNT",len(hashes),flush=True)
-          def get(item):
-              i,hashv=item; name=names.get(i,i); url=f"{base}/static/js/async/{name}.{hashv}.js"
-              try:
-                  r=requests.get(url,headers=h,timeout=12)
-                  if r.status_code!=200 or len(r.text)<100: return None
-                  hits=[]
-                  for term in terms:
-                      p=r.text.lower().find(term.lower())
-                      if p>=0: hits.append((term,r.text[max(0,p-400):min(len(r.text),p+1000)]))
-                  return (i,name,url,hits) if hits else None
-              except Exception: return None
-          with ThreadPoolExecutor(max_workers=20) as pool:
-              futures=[pool.submit(get,item) for item in hashes.items()]
-              for future in as_completed(futures):
-                  result=future.result()
-                  if result:
-                      i,name,url,hits=result
-                      print("\\nCHUNK",i,name,url,flush=True)
-                      for term,excerpt in hits: print("HIT",term,excerpt,flush=True)
+              if r.status_code!=200:
+                print("BODY",r.text[:500],flush=True); continue
+              data=r.json()
+              print("JSON",json.dumps(data,ensure_ascii=False)[:16000],flush=True)
           PY
