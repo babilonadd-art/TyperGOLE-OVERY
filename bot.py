@@ -658,40 +658,106 @@ def match_detail(slug, pick=None):
     return {}
 
 def current_live_matches():
-    # REST v1 fixture feed supports explicit live filtering and up to 200 records.
-    payload = api_get("/api/v1/fixtures/", {
-        "sport": "football", "status": "live", "limit": 200,
-    })
-    matches = extract_matches(payload)
-    if not matches:
-        # Compatibility fallback for the lightweight widget feed.
-        payload = api_get("/api/widget/matches/", {"sport": "football", "limit": 50})
-        matches = extract_matches(payload)
+    """
+    Pobiera mecze piłkarskie LIVE z kilku wariantów feedu SportScore.
+    Nie zakładamy, że parametr status=live jest obsługiwany przez każdy feed:
+    jeśli pierwszy endpoint zwróci rekordy, ale filtr lokalny nie znajdzie LIVE,
+    sprawdzamy także feed widgetowy i pełniejszą listę fixtures.
+    """
+    sources = [
+        ("fixtures/live", "/api/v1/fixtures/", {"sport": "football", "status": "live", "limit": 200}),
+        ("widget/matches", "/api/widget/matches/", {"sport": "football", "limit": 200}),
+        ("fixtures/all", "/api/v1/fixtures/", {"sport": "football", "limit": 200}),
+    ]
 
-    live = []
-    for match in matches:
+    def is_live_fixture(match):
         if not isinstance(match, dict):
-            continue
-        status_value = first(match, "status", "state", "match_status", "fixture_status", default="")
-        if isinstance(status_value, dict):
-            status_value = first(status_value, "short", "long", "name", "elapsed", default="")
-        status_text = str(status_value).strip().lower()
-        clock_text = str(first(match, "status_text", "elapsed_time", "elapsed", "minute", "time", default=""))
-        finished = any(token in status_text for token in (
-            "finished", "full time", "full-time", "ended", "complete", "ft"
-        ))
-        live_status = any(token in status_text for token in (
-            "live", "in play", "in progress", "1h", "2h", "half time", "halftime", "ht", "inplay"
-        ))
-        has_clock = bool(re.search(r"(?:\d{1,3}(?:\s*\+\s*\d+)?\s*['′’])|(?:^\d{1,3}$)", clock_text.strip()))
-        if not finished and (live_status or has_clock):
-            live.append(match)
+            return False
 
-    print(f"Endpoint /api/v1/fixtures/: {len(matches)} rekordów, {len(live)} live", flush=True)
-    if matches:
-        print("Pola rekordu API: " + ", ".join(sorted(str(k) for k in matches[0].keys())), flush=True)
-        print("Przykład rekordu: " + json.dumps(matches[0], ensure_ascii=False)[:1600], flush=True)
-    return live
+        status_parts = []
+        for key in ("status", "state", "match_status", "fixture_status",
+                    "status_text", "elapsed_time", "period", "phase"):
+            value = match.get(key)
+            if isinstance(value, dict):
+                value = first(value, "short", "long", "name", "description",
+                              "label", "elapsed", "minute", default="")
+            if value is not None:
+                status_parts.append(str(value))
+        status_text = " ".join(status_parts).strip().lower()
+        normalized = re.sub(r"[_-]+", " ", status_text)
+
+        finished_tokens = (
+            "finished", "full time", "full-time", "ended", "complete",
+            "completed", "after extra time", "penalties", "ft",
+        )
+        if any(token in normalized for token in finished_tokens):
+            return False
+
+        live_flag = first(match, "in_play", "inplay", "is_live", "live", default=False)
+        if live_flag is True or live_flag == 1 or str(live_flag).strip().lower() in ("true", "1", "yes"):
+            return True
+
+        live_tokens = (
+            "live", "in play", "in progress", "playing", "1h", "2h",
+            "1st half", "2nd half", "first half", "second half",
+            "half time", "halftime", "ht", "inplay", "extra time",
+            "1st period", "2nd period",
+        )
+        if any(token in normalized for token in live_tokens):
+            return True
+
+        # Nie używamy pola 'time' — zwykle jest to godzina rozpoczęcia,
+        # a nie zegar meczu. Akceptujemy tylko jawny zegar/minutę LIVE.
+        clock = first(match, "minute", "live_minute", "elapsed", "time_elapsed",
+                      "current_minute", "elapsed_minute", "currentMinute",
+                      "status_text", "elapsed_time", default="")
+        if isinstance(clock, dict):
+            clock = first(clock, "minute", "elapsed", "text", "short", default="")
+        clock_text = str(clock).strip()
+        numeric_clock = as_int(clock_text)
+        if numeric_clock is not None and 1 <= numeric_clock <= 130:
+            return True
+        if re.search(r"\\b\\d{1,3}(?:\\s*\\+\\s*\\d+)?\\s*['′’]", clock_text):
+            return True
+        return False
+
+    errors = []
+    for label, endpoint, params in sources:
+        try:
+            payload = api_get(endpoint, params)
+            records = extract_matches(payload)
+            live = [item for item in records if is_live_fixture(item)]
+            print(
+                f"SportScore {label}: {len(records)} rekordów, {len(live)} meczów LIVE",
+                flush=True,
+            )
+            if records:
+                sample = records[0]
+                print(
+                    f"SportScore {label} — pola: {', '.join(sorted(str(k) for k in sample.keys()))}; "
+                    f"status przykładu: {first(sample, 'status', 'state', 'match_status', 'status_text', default='brak')}",
+                    flush=True,
+                )
+            if live:
+                # Usuń powtórzenia tego samego spotkania, jeśli feed ma duplikaty.
+                unique = {}
+                for item in live:
+                    identity = match_identifier(item) or match_slug(item)
+                    if not identity:
+                        home, away = teams(item)
+                        identity = f"{normalized_team_name(home)}:{normalized_team_name(away)}"
+                    unique[identity] = item
+                result = list(unique.values())
+                print(f"SportScore: przekazuję do analizy {len(result)} unikalnych meczów LIVE.", flush=True)
+                return result
+        except Exception as exc:
+            errors.append(f"{label}: {type(exc).__name__}: {exc}")
+            print(f"Błąd feedu SportScore {label}: {type(exc).__name__}: {exc}", flush=True)
+
+    if errors:
+        print("Problemy feedów SportScore: " + " | ".join(errors), flush=True)
+    print("SportScore: żaden z feedów nie zwrócił potwierdzonych meczów LIVE.", flush=True)
+    return []
 
 def score_pair(value):
     if isinstance(value, dict):
