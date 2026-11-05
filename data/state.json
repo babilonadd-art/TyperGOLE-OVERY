@@ -161,9 +161,10 @@
       "settled": false,
       "delivery_status": "sent",
       "minute_update_sent": true,
-      "minute_update_at": "2026-11-05T03:05:38.870992+01:00",
-      "latest_minute": 76,
-      "latest_score": "1-0"
+      "minute_update_at": "2026-11-05T03:10:21.996096+01:00",
+      "latest_minute": 81,
+      "latest_score": "1-0",
+      "minute_update_format_version": 2
     },
     {
       "key": "3glrw7hney4xqdy:HT",
@@ -225,9 +226,10 @@
       "settled": false,
       "delivery_status": "sent",
       "minute_update_sent": true,
-      "minute_update_at": "2026-11-05T03:05:42.999799+01:00",
-      "latest_minute": 35,
-      "latest_score": "0-0"
+      "minute_update_at": "2026-11-05T03:10:24.696100+01:00",
+      "latest_minute": 40,
+      "latest_score": "0-0",
+      "minute_update_format_version": 2
     },
     {
       "key": "k82rekhg0v83rep:FT",
@@ -259,9 +261,10 @@
       "settled": false,
       "delivery_status": "sent",
       "minute_update_sent": true,
-      "minute_update_at": "2026-11-05T03:05:46.683817+01:00",
-      "latest_minute": 72,
-      "latest_score": "0-0"
+      "minute_update_at": "2026-11-05T03:10:26.936771+01:00",
+      "latest_minute": 76,
+      "latest_score": "0-0",
+      "minute_update_format_version": 2
     }
   ],
   "reports_sent": []
