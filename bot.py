@@ -279,20 +279,15 @@ def superbet_event_detail(event_id):
     return records[0]
 
 
-def extract_superbet_live_over_odds(event_detail, market, target_line):
-    """Return a price only for an exact, confirmed match-total Over market."""
+def extract_superbet_live_over_odds(event_detail, market, min_line):
+    """Choose the lowest currently open match-total Over line in the accepted odds band."""
     def normalize_market_text(value):
         value = unicodedata.normalize("NFKD", str(value or ""))
         value = value.encode("ascii", "ignore").decode("ascii").lower()
-        # Keep decimal separators in goal lines: "powyzej 2.5" must not
-        # become "powyzej 2 5", otherwise the exact-line parser rejects it.
         value = re.sub(r"(?<=\d),(?=\d)", ".", value)
         value = re.sub(r"[^a-z0-9.]+", " ", value)
         return re.sub(r"\s+", " ", value).strip()
 
-    # Superbet's public event endpoint has returned several payload shapes:
-    # flat "odds" rows as well as nested markets/selections. Flatten both while
-    # carrying the parent market title down to each priced selection.
     odds_list = []
 
     def collect_price_rows(node, inherited_market=""):
@@ -302,11 +297,9 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
             return
         if not isinstance(node, dict):
             return
-
         market_keys = (
-            "marketName", "market_name", "marketGroupName",
-            "market_group_name", "marketTitle", "market_title",
-            "market", "marketGroup", "market_group", "title",
+            "marketName", "market_name", "marketGroupName", "market_group_name",
+            "marketTitle", "market_title", "market", "marketGroup", "market_group", "title",
         )
         local_parts = [
             node.get(key) for key in market_keys
@@ -314,20 +307,18 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
         ]
         local_market = " ".join(str(x) for x in local_parts)
         combined_market = " ".join(x for x in (inherited_market, local_market) if x).strip()
-
         has_price = any(node.get(key) not in (None, "") for key in (
             "price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec"
         ))
         has_selection = any(node.get(key) not in (None, "") for key in (
-            "name", "selectionName", "selection_name", "oddName", "outcomeName",
-            "label", "displayName"
+            "name", "selectionName", "selection_name", "oddName",
+            "outcomeName", "label", "displayName"
         ))
         if has_price and has_selection:
             row = dict(node)
             row["_parentMarketText"] = inherited_market
             odds_list.append(row)
-
-        for key, child in node.items():
+        for child in node.values():
             if isinstance(child, (dict, list)):
                 collect_price_rows(child, combined_market)
 
@@ -335,54 +326,41 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
     if not odds_list:
         return None
 
-    match_total_market_names = {
+    total_market_names = {
         "liczba goli", "suma goli", "total goals", "goals total",
         "total goal", "goal line", "gole", "suma bramek",
     }
     first_half_markers = (
         "1 pol", "pierwsza polowa", "1st half", "first half", "half time", "ht",
     )
-    second_half_markers = (
-        "2 pol", "druga polowa", "2nd half", "second half",
-    )
+    second_half_markers = ("2 pol", "druga polowa", "2nd half", "second half")
     extra_time_markers = ("dogryw", "extra time", "overtime", "penalty shoot")
     phase_patterns = (
         r"\b(?:first half|1st half|pierwsza polowa|1 pol(?:owa)?)\b",
         r"\b(?:second half|2nd half|druga polowa|2 pol(?:owa)?)\b",
         r"\b(?:half time|ht|full time|ft|caly mecz|full match|whole match)\b",
     )
-    target = float(target_line)
     candidates = []
 
     for odd in odds_list:
-        if not isinstance(odd, dict):
-            continue
         status_value = first(odd, "status", "oddStatus", "state", default=None)
         status = str(status_value).strip().lower() if status_value is not None else ""
-        # Some Superbet payload variants omit status entirely; the presence of
-        # a live priced selection is sufficient unless it is explicitly closed.
-        if status and status not in {"active", "opened", "open", "1", "true"}:
+        # Superbet status "block" means the outcome is blocked, even if a
+        # numeric price remains in the payload. Never publish blocked prices.
+        if status not in {"active", "opened", "open", "1", "true"}:
             continue
 
-        # Superbet has returned the market title and period in different fields
-        # across feed versions; combine only known descriptive fields.
         market_parts = [
             first(odd, key)
             for key in (
-                "marketName", "market_name", "marketGroupName",
-                "market_group_name", "marketTitle", "market_title",
-                "market", "marketGroup", "market_group",
+                "marketName", "market_name", "marketGroupName", "market_group_name",
+                "marketTitle", "market_title", "market", "marketGroup", "market_group",
             )
             if first(odd, key) not in (None, "")
         ]
         if odd.get("_parentMarketText"):
             market_parts.append(odd["_parentMarketText"])
         market_text = normalize_market_text(" ".join(str(x) for x in market_parts))
-        selection_name = str(first(
-            odd, "name", "selectionName", "selection_name", "oddName",
-            "outcomeName", "label", "displayName", default=""
-        )).strip()
-        selection_text = normalize_market_text(selection_name)
         if not market_text or any(token in market_text for token in extra_time_markers):
             continue
 
@@ -397,43 +375,41 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
         else:
             continue
 
-        # Superbet may expose the same market through several descriptive
-        # fields (e.g. marketName + marketGroupName). Validate each field
-        # separately so harmless group labels do not hide "Liczba goli".
-        normalized_market_parts = []
+        normalized_parts = []
         for part in market_parts:
             part_text = normalize_market_text(part)
             for pattern in phase_patterns:
                 part_text = re.sub(pattern, " ", part_text)
-            part_text = re.sub(r"\s+", " ", part_text).strip(" -_:")
-            normalized_market_parts.append(part_text)
-
+            normalized_parts.append(re.sub(r"\s+", " ", part_text).strip(" -_:"))
         base_market_text = market_text
         for pattern in phase_patterns:
             base_market_text = re.sub(pattern, " ", base_market_text)
         base_market_text = re.sub(r"\s+", " ", base_market_text).strip(" -_:")
         recognized_total_market = (
-            base_market_text in match_total_market_names
+            base_market_text in total_market_names
             or any(
-                part in match_total_market_names
-                or any(name in part for name in match_total_market_names)
-                for part in normalized_market_parts
+                part in total_market_names
+                or any(name in part for name in total_market_names)
+                for part in normalized_parts
             )
         )
         if not recognized_total_market:
             continue
 
+        selection_name = str(first(
+            odd, "name", "selectionName", "selection_name", "oddName",
+            "outcomeName", "label", "displayName", default=""
+        )).strip()
+        selection_text = normalize_market_text(selection_name)
         selection_match = re.search(
             r"\b(?:powyzej|over)\s*(\d+(?:[.,]\d+)?)\b", selection_text
         )
         if not selection_match:
             continue
-        selection_line = float(selection_match.group(1).replace(",", "."))
-        if abs(selection_line - target) > 0.001:
+        line = float(selection_match.group(1).replace(",", "."))
+        if line < float(min_line) - 0.001:
             continue
 
-        # The selection label is authoritative when Superbet omits its optional
-        # structured line. If the feed supplies one, it must agree exactly.
         line_value = first(odd, "specialBetValue", "special_bet_value")
         specifiers = first(odd, "specifiers", "specifier")
         if line_value is None and isinstance(specifiers, dict):
@@ -443,53 +419,66 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
             if not line_match:
                 continue
             structured_line = float(line_match.group(1).replace(",", "."))
-            if abs(structured_line - selection_line) > 0.001:
+            if abs(structured_line - line) > 0.001:
                 continue
-        else:
-            structured_line = selection_line
 
         raw_price = first(odd, "price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
         try:
             price = float(str(raw_price).replace(",", "."))
         except (TypeError, ValueError):
             continue
-        if price <= 1.0:
+        if not 1.90 <= price <= 3.50:
             continue
 
         candidates.append({
             "odds": price,
             "source": "Superbet",
             "market": " ".join(str(x) for x in market_parts),
-            "line": structured_line,
+            "line": line,
             "updated_at": first(odd.get("extra", {}), "feedPlatformTimestamp", "feedOriginTimestamp"),
         })
 
-    # Accept duplicate feed rows only when they confirm the same exact price.
-    unique_prices = {(item["odds"], item["line"]) for item in candidates}
-    if len(unique_prices) != 1:
-        if len(unique_prices) > 1:
-            print(
-                f"Superbet: sprzeczne kursy dla Over {target:.1f} {market}; "
-                f"odrzucam rynek: {sorted(unique_prices)}",
-                flush=True,
-            )
-        elif odds_list:
-            sample = [
-                {
-                    "status": first(item, "status", "oddStatus"),
-                    "market": first(item, "marketName", "market_name", "marketGroupName", "market_group_name", "market", "marketGroup"),
-                    "name": first(item, "name", "selectionName", "selection_name"),
-                    "price": first(item, "price", "odds", "oddValue"),
-                }
-                for item in odds_list[:12] if isinstance(item, dict)
-            ]
-            print(
-                f"Superbet: nie rozpoznano Over {target:.1f} {market}; "
-                f"przykładowe oferty={json.dumps(sample, ensure_ascii=False)}",
-                flush=True,
-            )
+    # Collapse exact duplicate rows. If the feed reports conflicting prices
+    # for one line, discard that line instead of guessing which quote is live.
+    by_line = {}
+    for item in candidates:
+        by_line.setdefault(item["line"], set()).add(item["odds"])
+    valid_lines = [
+        line for line, prices in by_line.items()
+        if len(prices) == 1
+    ]
+    if not valid_lines:
+        status_counts = {}
+        for item in odds_list:
+            status = str(first(item, "status", "oddStatus", "state", default="missing")).lower()
+            status_counts[status] = status_counts.get(status, 0) + 1
+        sample = [
+            {
+                "status": first(item, "status", "oddStatus", "state"),
+                "market": first(item, "marketName", "market_name", "marketGroupName", "market_group_name", "market", "marketGroup"),
+                "name": first(item, "name", "selectionName", "selection_name", "oddName"),
+                "price": first(item, "price", "odds", "oddValue", "odds_dec"),
+            }
+            for item in odds_list[:16] if isinstance(item, dict)
+        ]
+        print(
+            f"Superbet: brak otwartego Over {market} od linii {float(min_line):.1f}; "
+            f"statusy={status_counts}; próbka={json.dumps(sample, ensure_ascii=False)}",
+            flush=True,
+        )
         return None
-    return candidates[0] if candidates else None
+
+    chosen_line = min(valid_lines)
+    chosen_price = next(
+        item for item in candidates
+        if item["line"] == chosen_line
+    )
+    print(
+        f"Superbet: wybrano rzeczywisty rynek {market} Over {chosen_line:.1f} "
+        f"po kursie {chosen_price['odds']:.2f} (dostępne linie: {sorted(valid_lines)})",
+        flush=True,
+    )
+    return chosen_price
 
 def superbet_goal_market_url(url):
     """Open the event with Superbet's goal-count market group selected."""
@@ -1757,9 +1746,10 @@ def main():
                     if isinstance(league, dict):
                         league = first(league, "name", "title", default="Liga nieznana")
 
-                    # Kurs Superbet: następna linia Over ponad aktualną liczbą goli.
+                    # Nie narzucamy jednej linii. Szukamy w aktualnej ofercie
+                    # Superbet najniższej otwartej linii Over powyżej wyniku.
                     current_total = home_score + away_score
-                    goal_line = current_total + 0.5
+                    min_goal_line = current_total + 0.5
                     superbet_event = find_superbet_event(home, away, superbet_events)
                     if not superbet_event:
                         stats["odds_no_match"] += 1
@@ -1771,11 +1761,12 @@ def main():
                         stats["odds_missing"] += 1
                         print(f"[{index}] Błąd pobrania kursów Superbet dla {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
                         continue
-                    live_price = extract_superbet_live_over_odds(superbet_detail, market, goal_line)
+                    live_price = extract_superbet_live_over_odds(superbet_detail, market, min_goal_line)
                     if not live_price:
                         stats["odds_missing"] += 1
-                        print(f"[{index}] Brak aktywnego kursu Superbet dla Over {goal_line:.1f} {market}; pomijam.", flush=True)
+                        print(f"[{index}] Brak otwartej oferty Superbet Over {market} od linii {min_goal_line:.1f} z kursem 1.90–3.50; pomijam.", flush=True)
                         continue
+                    goal_line = live_price["line"]
                     # Ostatnia kontrola kursu bezpośrednio przed przygotowaniem i wysłaniem wiadomości.
                     # Jeśli Superbet zmienił kurs albo feed przestał go jednoznacznie potwierdzać, pomijamy typ.
                     try:
@@ -1785,9 +1776,9 @@ def main():
                         print(f"[{index}] Końcowa kontrola kursu Superbet nieudana dla {home} - {away}: {type(exc).__name__}: {exc}; typ pominięty.", flush=True)
                         continue
                     final_live_price = extract_superbet_live_over_odds(final_superbet_detail, market, goal_line)
-                    if not final_live_price:
+                    if not final_live_price or abs(final_live_price["line"] - goal_line) > 0.001:
                         stats["odds_missing"] += 1
-                        print(f"[{index}] Końcowa kontrola: brak jednoznacznego kursu Superbet dla Over {goal_line:.1f} {market}; typ pominięty.", flush=True)
+                        print(f"[{index}] Końcowa kontrola: linia Over {goal_line:.1f} {market} nie jest już otwarta w Superbet; typ pominięty.", flush=True)
                         continue
                     live_price = final_live_price
 
