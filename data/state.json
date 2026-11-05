@@ -1733,5 +1733,6 @@
     }
   ],
   "reports_sent": [],
-  "telegram_test_pending": false
+  "telegram_test_pending": false,
+  "duplicate_guard": []
 }
