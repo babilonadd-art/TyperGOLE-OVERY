@@ -347,13 +347,30 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
         else:
             continue
 
-        # Strip period labels, then require a whole-match total-goals market.
+        # Superbet may expose the same market through several descriptive
+        # fields (e.g. marketName + marketGroupName). Validate each field
+        # separately so harmless group labels do not hide "Liczba goli".
+        normalized_market_parts = []
+        for part in market_parts:
+            part_text = normalize_market_text(part)
+            for pattern in phase_patterns:
+                part_text = re.sub(pattern, " ", part_text)
+            part_text = re.sub(r"\s+", " ", part_text).strip(" -_:")
+            normalized_market_parts.append(part_text)
+
         base_market_text = market_text
         for pattern in phase_patterns:
             base_market_text = re.sub(pattern, " ", base_market_text)
         base_market_text = re.sub(r"\s+", " ", base_market_text).strip(" -_:")
-        # Some feed versions append a harmless market category after the title.
-        if base_market_text not in match_total_market_names:
+        recognized_total_market = (
+            base_market_text in match_total_market_names
+            or any(
+                part in match_total_market_names
+                or any(name in part for name in match_total_market_names)
+                for part in normalized_market_parts
+            )
+        )
+        if not recognized_total_market:
             continue
 
         selection_match = re.search(
