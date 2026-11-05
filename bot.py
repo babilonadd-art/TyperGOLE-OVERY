@@ -424,6 +424,18 @@ def extract_superbet_live_over_odds(event_detail, market, min_line):
         if not market_text or any(token in market_text for token in extra_time_markers):
             continue
 
+        # Reject markets whose settlement is limited to a specific minute.
+        # Example seen in Superbet: "Liczba goli - do X minuty".
+        # Such a quote is not a full-time total, even if it appears in the
+        # generic goals market group and the caller requests FT.
+        time_limited_market = re.search(
+            r"\b(?:do\s+(?:x|\d+)\s*(?:minuta|minuty|minut|min)|"
+            r"(?:until|up to|by)\s+(?:the\s+)?(?:\d+|x)\s*(?:st|nd|rd|th)?\s*minute)\b",
+            market_text,
+        )
+        if time_limited_market:
+            continue
+
         is_first_half = any(token in market_text for token in first_half_markers)
         is_second_half = any(token in market_text for token in second_half_markers)
         if market == "HT":
