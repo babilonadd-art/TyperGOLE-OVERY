@@ -281,10 +281,6 @@ def superbet_event_detail(event_id):
 
 def extract_superbet_live_over_odds(event_detail, market, target_line):
     """Return a price only for an exact, confirmed match-total Over market."""
-    odds_list = event_detail.get("odds", [])
-    if not isinstance(odds_list, list):
-        return None
-
     def normalize_market_text(value):
         value = unicodedata.normalize("NFKD", str(value or ""))
         value = value.encode("ascii", "ignore").decode("ascii").lower()
@@ -293,6 +289,51 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
         value = re.sub(r"(?<=\d),(?=\d)", ".", value)
         value = re.sub(r"[^a-z0-9.]+", " ", value)
         return re.sub(r"\s+", " ", value).strip()
+
+    # Superbet's public event endpoint has returned several payload shapes:
+    # flat "odds" rows as well as nested markets/selections. Flatten both while
+    # carrying the parent market title down to each priced selection.
+    odds_list = []
+
+    def collect_price_rows(node, inherited_market=""):
+        if isinstance(node, list):
+            for child in node:
+                collect_price_rows(child, inherited_market)
+            return
+        if not isinstance(node, dict):
+            return
+
+        market_keys = (
+            "marketName", "market_name", "marketGroupName",
+            "market_group_name", "marketTitle", "market_title",
+            "market", "marketGroup", "market_group", "title",
+        )
+        local_parts = [
+            node.get(key) for key in market_keys
+            if node.get(key) not in (None, "") and not isinstance(node.get(key), (dict, list))
+        ]
+        local_market = " ".join(str(x) for x in local_parts)
+        combined_market = " ".join(x for x in (inherited_market, local_market) if x).strip()
+
+        has_price = any(node.get(key) not in (None, "") for key in (
+            "price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec"
+        ))
+        has_selection = any(node.get(key) not in (None, "") for key in (
+            "name", "selectionName", "selection_name", "oddName", "outcomeName",
+            "label", "displayName"
+        ))
+        if has_price and has_selection:
+            row = dict(node)
+            row["_parentMarketText"] = inherited_market
+            odds_list.append(row)
+
+        for key, child in node.items():
+            if isinstance(child, (dict, list)):
+                collect_price_rows(child, combined_market)
+
+    collect_price_rows(event_detail)
+    if not odds_list:
+        return None
 
     match_total_market_names = {
         "liczba goli", "suma goli", "total goals", "goals total",
@@ -316,8 +357,11 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
     for odd in odds_list:
         if not isinstance(odd, dict):
             continue
-        status = str(first(odd, "status", "oddStatus", default="")).strip().lower()
-        if status not in {"active", "opened", "open", "1", "true"}:
+        status_value = first(odd, "status", "oddStatus", "state", default=None)
+        status = str(status_value).strip().lower() if status_value is not None else ""
+        # Some Superbet payload variants omit status entirely; the presence of
+        # a live priced selection is sufficient unless it is explicitly closed.
+        if status and status not in {"active", "opened", "open", "1", "true"}:
             continue
 
         # Superbet has returned the market title and period in different fields
@@ -331,9 +375,11 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
             )
             if first(odd, key) not in (None, "")
         ]
+        + ([odd.get("_parentMarketText")] if odd.get("_parentMarketText") else [])
         market_text = normalize_market_text(" ".join(str(x) for x in market_parts))
         selection_name = str(first(
-            odd, "name", "selectionName", "selection_name", "oddName", default=""
+            odd, "name", "selectionName", "selection_name", "oddName",
+            "outcomeName", "label", "displayName", default=""
         )).strip()
         selection_text = normalize_market_text(selection_name)
         if not market_text or any(token in market_text for token in extra_time_markers):
@@ -401,7 +447,7 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
         else:
             structured_line = selection_line
 
-        raw_price = first(odd, "price", "odds", "oddValue", "odd_value")
+        raw_price = first(odd, "price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
         try:
             price = float(str(raw_price).replace(",", "."))
         except (TypeError, ValueError):
