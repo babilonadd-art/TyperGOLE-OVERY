@@ -18,22 +18,30 @@ jobs:
       - name: Inspect public live feed and event details
         run: |
           python - <<'PY'
-          import requests,json
-          base="https://production-superbet-offer-pl.freetls.fastly.net"
-          h={"User-Agent":"Mozilla/5.0","Accept":"application/json"}
-          paths=[
-            "/v2/pl-PL/struct",
-            "/subscription/v2/pl-PL/structure",
-            "/v3/subscription/pl-PL/events/live/count",
-            "/v3/subscription/pl-PL/events/live",
-            "/v2/pl-PL/events/14572637",
+          import requests, json
+          base = "https://production-superbet-offer-pl.freetls.fastly.net"
+          headers = {"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
+          paths = [
+              "/v2/pl-PL/struct",
+              "/subscription/v2/pl-PL/structure",
+              "/v3/subscription/pl-PL/events/live/count",
+              "/v3/subscription/pl-PL/events/live",
+              "/v2/pl-PL/events/14572637",
           ]
           for path in paths:
-            try:
-              r=requests.get(base+path,headers=h,timeout=20)
-              print("\\nENDPOINT",path,"STATUS",r.status_code,"TYPE",r.headers.get("content-type"),flush=True)
-              if r.status_code!=200:
-                print("BODY",r.text[:500],flush=True); continue
-              data=r.json()
-              print("JSON",json.dumps(data,ensure_ascii=False)[:16000],flush=True)
+              try:
+                  response = requests.get(base + path, headers=headers, timeout=20)
+                  print("\\nENDPOINT", path, "STATUS", response.status_code,
+                        "TYPE", response.headers.get("content-type"), flush=True)
+                  if response.status_code != 200:
+                      print("BODY", response.text[:500], flush=True)
+                      continue
+                  try:
+                      data = response.json()
+                      print("JSON", json.dumps(data, ensure_ascii=False)[:16000], flush=True)
+                  except Exception as exc:
+                      print("JSON_ERROR", type(exc).__name__, str(exc),
+                            "BODY", response.text[:1000], flush=True)
+              except Exception as exc:
+                  print("REQUEST_ERROR", path, type(exc).__name__, str(exc), flush=True)
           PY
