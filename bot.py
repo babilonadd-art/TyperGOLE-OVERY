@@ -984,6 +984,46 @@ def send_monthly_reports(state):
         save_state(state)
 
 
+
+def update_existing_pick_minutes(state):
+    """Send one Telegram follow-up with the current clock/score for older open picks."""
+    for pick in state.get("picks", []):
+        if pick.get("delivery_status", "sent") != "sent" or pick.get("settled"):
+            continue
+        if pick.get("minute_update_sent"):
+            continue
+        slug = pick.get("slug")
+        if not slug:
+            continue
+        try:
+            match = match_detail(slug, pick)
+            if not match:
+                print(f"AKTUALIZACJA MINUTY OCZEKUJE: brak szczegółów dla {pick.get('home')} - {pick.get('away')}", flush=True)
+                continue
+            home_score, away_score, minute, status = score_and_minute(match)
+            if minute is None:
+                print(f"AKTUALIZACJA MINUTY OCZEKUJE: API nie podało minuty dla {pick.get('home')} - {pick.get('away')}", flush=True)
+                continue
+            score_text = (
+                f"{home_score}-{away_score}"
+                if home_score is not None and away_score is not None
+                else "wynik niedostępny"
+            )
+            telegram(
+                f"🔄 AKTUALIZACJA WYSŁANEGO TYPU\\n"
+                f"{pick.get('home')} - {pick.get('away')}\\n"
+                f"Minuta: {minute}' | Wynik: {score_text}\\n"
+                f"Typ: OVER {float(pick.get('goal_line', 0)):.1f} {pick.get('market', '')}"
+            )
+            pick["minute_update_sent"] = True
+            pick["minute_update_at"] = now_local().isoformat()
+            pick["latest_minute"] = minute
+            pick["latest_score"] = score_text
+            save_state(state)
+            print(f"WYSŁANO AKTUALIZACJĘ MINUTY: {pick.get('home')} - {pick.get('away')} ({minute}', {score_text})", flush=True)
+        except Exception as exc:
+            print(f"BŁĄD AKTUALIZACJI MINUTY {pick.get('home')} - {pick.get('away')}: {type(exc).__name__}: {exc}", flush=True)
+
 def main():
     print(f"=== TyperGOLE-OVERY START {now_local().isoformat()} ===", flush=True)
     print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
@@ -993,6 +1033,7 @@ def main():
 
     # Settle older picks first; keep history across midnight.
     settle_picks(state)
+    update_existing_pick_minutes(state)
 
     today = now_local().date().isoformat()
     todays_picks = [p for p in state["picks"] if p.get("date") == today]
