@@ -1153,7 +1153,7 @@ def main():
 
                     telegram(
                         f"⚽ {market_text}\n{home} - {away}\n"
-                        f"Liga: {league}\nStawka: {STAKE:.0f} zł"
+                        f"Liga: {league}\nMinuta: {minute}' | Wynik: {home_score}-{away_score}\nStawka: {STAKE:.0f} zł"
                     )
                     pick["delivery_status"] = "sent"
                     save_state(state)
