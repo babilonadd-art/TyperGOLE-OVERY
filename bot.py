@@ -756,34 +756,35 @@ def live_match_metrics(match):
 
 def match_stats_look_promising(match, market):
     """
-    Moderately relaxed live-goal filter. Shots on target remain mandatory,
-    with one additional attacking indicator; missing metrics are ignored.
+    Relaxed live-goal filter:
+    - require at least one shot on target in either period;
+    - require one independent attacking signal;
+    - never count shots on target twice as an independent signal.
+    Missing optional metrics are ignored because SportScore does not expose
+    every statistic consistently for every competition.
     """
     m = live_match_metrics(match)
     if not m:
         return False, m, 0
 
+    min_sot = 1
     if market == "HT":
-        min_sot = 1
+        thresholds = {
+            "shots": 3,
+            "dangerous_attacks": 12,
+            "xg": 0.25,
+            "big_chances": 1,
+            "shots_inside_box": 1,
+            "touches_in_box": 4,
+        }
+    else:
         thresholds = {
             "shots": 4,
-            "shots_on_target": 1,
             "dangerous_attacks": 20,
-            "xg": 0.45,
+            "xg": 0.40,
             "big_chances": 1,
             "shots_inside_box": 2,
             "touches_in_box": 6,
-        }
-    else:
-        min_sot = 2
-        thresholds = {
-            "shots": 7,
-            "shots_on_target": 2,
-            "dangerous_attacks": 35,
-            "xg": 0.80,
-            "big_chances": 1,
-            "shots_inside_box": 4,
-            "touches_in_box": 10,
         }
 
     shots_on_target = m.get("shots_on_target")
@@ -794,7 +795,7 @@ def match_stats_look_promising(match, market):
         1 for key, threshold in thresholds.items()
         if m.get(key) is not None and m[key] >= threshold
     )
-    return signals >= 2, m, signals
+    return signals >= 1, m, signals
 
 def same_fixture_pick_exists(state, identifier, home, away, match_date, market):
     """
