@@ -18,23 +18,18 @@ jobs:
       - name: Trace Superbet JavaScript entrypoint
         run: |
           python - <<'PY'
-          import requests,re,json
+          import requests,re
           base="https://superbet.pl"
           h={"User-Agent":"Mozilla/5.0","Referer":base+"/"}
-          s=requests.Session()
-          u=base+"/static/js/index.fa0434cf.js"
-          r=s.get(u,headers=h,timeout=30)
+          r=requests.get(base+"/static/js/index.fa0434cf.js",headers=h,timeout=30)
           b=r.text
           print("ENTRY",r.status_code,len(b),r.headers.get("content-type"))
           print("PREFIX",b[:3000])
-          patterns=[r'["\\']([^"\\']+\\.js(?:\\?[^"\\']*)?)["\\']',r'import\\(["\\']([^"\\']+)["\\']\\)',r'from["\\']([^"\\']+\\.js)["\\']']
-          found=set()
-          for pat in patterns:
-              for x in re.findall(pat,b):
-                  if ".js" in x: found.add(x)
-          print("CHUNKS",len(found))
-          for x in sorted(found)[:150]: print("CHUNK",x)
-          for term in ("marketuuid","outcomeid","oddid","betslip","selection","location.search","URLSearchParams"):
-              p=b.lower().find(term)
+          chunks=sorted(set(re.findall(r"[A-Za-z0-9_./-]+\\.js",b)))
+          print("CHUNKS",len(chunks))
+          for x in chunks[:150]: print("CHUNK",x)
+          low=b.lower()
+          for term in ("marketuuid","outcomeid","oddid","betslip","selection","location.search","urlsearchparams"):
+              p=low.find(term)
               if p>=0: print("TERM",term,b[max(0,p-300):p+500])
           PY
