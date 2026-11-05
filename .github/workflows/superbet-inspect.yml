@@ -46,3 +46,22 @@ jobs:
               except Exception as e:
                   pass
           PY
+
+      - name: Verify goal market group on a public event
+        run: |
+          python - <<'PY'
+          import requests
+          url="https://production-superbet-offer-pl.freetls.fastly.net/v2/pl-PL/events/14572637"
+          r=requests.get(url,headers={"User-Agent":"Mozilla/5.0","Accept":"application/json"},timeout=25)
+          print("EVENT_STATUS",r.status_code)
+          r.raise_for_status()
+          data=r.json()
+          def walk(x,path="$"):
+              if isinstance(x,dict):
+                  if any(k in x for k in ("marketGroup","marketGroupId","groupId","groupName","marketName")):
+                      print("MARKET_NODE",path,{k:x.get(k) for k in x if k.lower() in ("id","name","title","marketgroup","marketgroupid","groupid","groupname","marketname","label")})
+                  for k,v in x.items(): walk(v,path+"."+str(k))
+              elif isinstance(x,list):
+                  for i,v in enumerate(x): walk(v,path+f"[{i}]")
+          walk(data)
+          PY
