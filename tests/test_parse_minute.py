@@ -49,6 +49,39 @@ class ParseMinuteRegressionTests(unittest.TestCase):
 
 
 
+class SuperbetMarketScopeRegressionTests(unittest.TestCase):
+    def test_rejects_goals_market_limited_to_x_minute(self):
+        payload = {
+            "markets": [{
+                "marketName": "Liczba goli - do X minuty",
+                "odds": [{
+                    "name": "Powyżej 2.5",
+                    "price": 2.45,
+                    "status": "active",
+                }],
+            }]
+        }
+        from bot import extract_superbet_live_over_odds
+        self.assertIsNone(extract_superbet_live_over_odds(payload, "FT", 0.5))
+
+    def test_accepts_regular_full_match_goals_market(self):
+        payload = {
+            "markets": [{
+                "marketName": "Liczba goli",
+                "odds": [{
+                    "name": "Powyżej 2.5",
+                    "price": 2.45,
+                    "status": "active",
+                }],
+            }]
+        }
+        from bot import extract_superbet_live_over_odds
+        result = extract_superbet_live_over_odds(payload, "FT", 0.5)
+        self.assertIsNotNone(result)
+        self.assertEqual(result["line"], 2.5)
+        self.assertEqual(result["odds"], 2.45)
+
+
 class OverSettlementRegressionTests(unittest.TestCase):
     def test_over_3_5_is_not_win_at_one_one(self):
         self.assertFalse(over_result_is_win(3.5, 2, True))
