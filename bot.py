@@ -19,7 +19,7 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
 STAKE = 50.0
 BET_TAX_RATE = 0.12
-MAX_DAILY_PICKS = 10
+MAX_DAILY_PICKS = 15
 
 def calculate_bet_result(stake, odds):
     """Calculate Polish 12% stake tax, payout and net profit."""
