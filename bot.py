@@ -282,16 +282,39 @@ def superbet_event_detail(event_id):
 
 
 def extract_superbet_live_over_odds(event_detail, market, target_line):
-    """Return a price only when Superbet's exact selection and line are unambiguous."""
+    """Return a price only for an exact, confirmed match-total Over market."""
     odds_list = event_detail.get("odds", [])
     if not isinstance(odds_list, list):
         return None
 
-    half_tokens = ("1. poł", "1 poł", "pierwsza poł", "1st half", "first half", "1st_half", "first_half")
-    second_half_tokens = ("2. poł", "2 poł", "druga poł", "2nd half", "second half", "2nd_half", "second_half")
-    extra_time_tokens = ("dogryw", "extra time", "overtime")
-    team_total_tokens = ("gospodar", "gości", "home team", "away team", "team goals", "drużyny", "team total")
-    total_market_tokens = ("liczba goli", "suma goli", "total goals", "goal line", "goals total", "total goal")
+    def normalize_market_text(value):
+        value = unicodedata.normalize("NFKD", str(value or ""))
+        value = value.encode("ascii", "ignore").decode("ascii").lower()
+        value = re.sub(r"[^a-z0-9]+", " ", value)
+        return re.sub(r"\s+", " ", value).strip()
+
+    # Only these exact market names represent the combined goals of both teams.
+    # Do not use substring matching: "Team X - Liczba goli" is a team-total market.
+    match_total_market_names = {
+        "liczba goli",
+        "suma goli",
+        "total goals",
+        "goals total",
+        "total goal",
+        "goal line",
+    }
+    first_half_markers = (
+        "1 pol", "pierwsza polowa", "1st half", "first half", "half time", "ht",
+    )
+    second_half_markers = (
+        "2 pol", "druga polowa", "2nd half", "second half",
+    )
+    extra_time_markers = ("dogryw", "extra time", "overtime")
+    phase_patterns = (
+        r"\b(?:first half|1st half|pierwsza polowa|1 pol(?:owa)?)\b",
+        r"\b(?:second half|2nd half|druga polowa|2 pol(?:owa)?)\b",
+        r"\b(?:half time|ht|full time|ft|caly mecz)\b",
+    )
 
     target = float(target_line)
     candidates = []
@@ -301,33 +324,43 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
 
         market_name = str(first(odd, "marketName", "market_name", default="")).strip()
         selection_name = str(first(odd, "name", "selectionName", "selection_name", default="")).strip()
-        market_text = market_name.lower()
-        selection_text = selection_name.lower()
+        market_text = normalize_market_text(market_name)
+        selection_text = normalize_market_text(selection_name)
 
-        if not market_text or not any(token in market_text for token in total_market_tokens):
-            continue
-        if any(token in market_text for token in team_total_tokens):
+        if not market_text:
             continue
 
-        # Selection itself must explicitly be Over/Powyżej, not a generic outcome.
-        selection_match = re.search(r"\b(powyżej|over)\s*(\d+(?:[.,]\d+)?)\b", selection_text)
+        if any(token in market_text for token in extra_time_markers):
+            continue
+
+        is_first_half = any(token in market_text for token in first_half_markers)
+        is_second_half = any(token in market_text for token in second_half_markers)
+        if market == "HT":
+            if not is_first_half or is_second_half:
+                continue
+        elif market == "FT":
+            if is_first_half or is_second_half:
+                continue
+        else:
+            continue
+
+        # Strip only known period labels, then require an exact whole-match market name.
+        base_market_text = market_text
+        for pattern in phase_patterns:
+            base_market_text = re.sub(pattern, " ", base_market_text)
+        base_market_text = re.sub(r"\s+", " ", base_market_text).strip()
+        if base_market_text not in match_total_market_names:
+            continue
+
+        # The selection itself must explicitly say Over/Powyżej and the exact line.
+        selection_match = re.search(r"\b(powyzej|over)\s*(\d+(?:[.,]\d+)?)\b", selection_text)
         if not selection_match:
             continue
         selection_line = float(selection_match.group(2).replace(",", "."))
         if abs(selection_line - target) > 0.001:
             continue
 
-        is_half = any(token in market_text or token in selection_text for token in half_tokens)
-        is_second_half = any(token in market_text or token in selection_text for token in second_half_tokens)
-        is_extra_time = any(token in market_text or token in selection_text for token in extra_time_tokens)
-        if is_extra_time:
-            continue
-        if market == "HT" and (not is_half or is_second_half):
-            continue
-        if market == "FT" and (is_half or is_second_half):
-            continue
-
-        # If provider also supplies a structured line, it must agree with the label.
+        # Require the provider's structured line to agree with the selection label.
         line_value = first(odd, "specialBetValue")
         if line_value is None:
             specifiers = odd.get("specifiers")
@@ -358,7 +391,7 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
         })
 
     # Different prices for the same requested selection mean the feed is ambiguous.
-    # Never choose the first item: that was the source of false price assignments.
+    # Never choose the first item when the provider returns conflicting candidates.
     unique = {(item["odds"], item["market"], item["line"]) for item in candidates}
     if len(unique) != 1:
         if len(unique) > 1:
@@ -369,7 +402,6 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
             )
         return None
     return candidates[0] if candidates else None
-
 
 def superbet_goal_market_url(url):
     """Open the event with Superbet's goal-count market group selected."""
