@@ -34,24 +34,12 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Run bot every minute during this schedule window
+      - name: Run live bot scan
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TZ: Europe/Warsaw
-        shell: bash
-        run: |
-          # GitHub Actions schedule has a 5-minute minimum interval.
-          # Scan five times, aligning each scan to the next minute.
-          for i in 1 2 3 4 5; do
-            echo "=== Skan LIVE $i/5: $(date -u +%H:%M:%S) UTC ==="
-            python bot.py
-            if [ "$i" -lt 5 ]; then
-              now=$(date +%s)
-              wait=$((60 - now % 60))
-              sleep "$wait"
-            fi
-          done
+        run: python bot.py
       - name: Save bot state
         if: always()
         run: |
