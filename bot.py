@@ -202,7 +202,7 @@ def superbet_live_event_links():
                     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", value)).strip("-")
                 slug = f"{slug_part(home)}-vs-{slug_part(away)}-{event_id}"
                 full_url = f"https://superbet.pl/kursy/pilka-nozna/{slug}"
-            found[full_url] = {"url": full_url, "text": name}
+            found[full_url] = {"url": full_url, "text": name, "event_id": event_id}
         print(f"Superbet API: {len(api_events)} wydarzeń w oknie ±4h, {len(found)} linków", flush=True)
     except Exception as exc:
         print(f"Superbet API: błąd pobierania wydarzeń: {type(exc).__name__}: {exc}", flush=True)
@@ -234,6 +234,105 @@ def superbet_live_event_links():
     events = list(found.values())
     print(f"Superbet: znaleziono {len(events)} linków do wydarzeń", flush=True)
     return events
+
+
+
+def find_superbet_event(home, away, events):
+    """Find one unambiguous Superbet fixture by both team names."""
+    candidates = []
+    for event in events:
+        parts = str(event.get("text") or "").split("·", 1)
+        if len(parts) != 2:
+            continue
+        left, right = (part.strip() for part in parts)
+        direct = min(team_name_similarity(home, left), team_name_similarity(away, right))
+        reverse = min(team_name_similarity(home, right), team_name_similarity(away, left))
+        score = max(direct, reverse)
+        if score >= 0.78 and event.get("event_id"):
+            candidates.append((score, event))
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    if not candidates:
+        return None
+    if len(candidates) > 1 and candidates[0][0] - candidates[1][0] < 0.05:
+        print(f"Superbet: niejednoznaczne dopasowanie meczu {home} - {away}", flush=True)
+        return None
+    return candidates[0][1]
+
+
+def superbet_event_detail(event_id):
+    """Fetch current Superbet prices for one event from its public event endpoint."""
+    base = "https://production-superbet-offer-pl.freetls.fastly.net"
+    response = requests.get(
+        f"{base}/v2/pl-PL/events/{event_id}",
+        headers={
+            **HEADERS,
+            "Origin": "https://superbet.pl",
+            "Referer": "https://superbet.pl/",
+            "Accept": "application/json, text/plain, */*",
+        },
+        timeout=15,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    records = payload.get("data", []) if isinstance(payload, dict) else []
+    if not records or not isinstance(records[0], dict):
+        return {}
+    return records[0]
+
+
+def extract_superbet_live_over_odds(event_detail, market, target_line):
+    """Extract an active Superbet Over price for the requested match period and line."""
+    odds_list = event_detail.get("odds", [])
+    if not isinstance(odds_list, list):
+        return None
+
+    half_tokens = ("1. poł", "1 poł", "pierwsza poł", "1st half", "first half")
+    for odd in odds_list:
+        if not isinstance(odd, dict) or str(odd.get("status", "")).lower() != "active":
+            continue
+        market_name = str(first(odd, "marketName", "market_name", default=""))
+        selection_name = str(first(odd, "name", "info", default=""))
+        info = str(first(odd, "info", default=selection_name))
+        combined = f"{market_name} {selection_name} {info}".lower()
+        if not any(token in combined for token in ("gol", "goal")):
+            continue
+        is_half = any(token in combined for token in half_tokens)
+        if market == "HT" and not is_half:
+            continue
+        if market == "FT" and is_half:
+            continue
+        if not re.search(r"\b(powyżej|over)\b", combined):
+            continue
+
+        line_value = first(odd, "specialBetValue")
+        if line_value is None:
+            specifiers = odd.get("specifiers")
+            if isinstance(specifiers, dict):
+                line_value = first(specifiers, "total", "goals", "line")
+        if line_value is None:
+            line_match = re.search(r"(?:powyżej|over)\s*(\d+(?:[.,]\d+)?)", combined)
+            line_value = line_match.group(1) if line_match else None
+        line_match = re.search(r"\d+(?:[.,]\d+)?", str(line_value or ""))
+        if not line_match:
+            continue
+        line = float(line_match.group().replace(",", "."))
+        if abs(line - target_line) > 0.01:
+            continue
+
+        try:
+            price = float(odd.get("price"))
+        except (TypeError, ValueError):
+            continue
+        if price <= 1.0:
+            continue
+        return {
+            "odds": price,
+            "source": "Superbet",
+            "market": market_name or info or "Liczba goli",
+            "line": line,
+            "updated_at": first(odd.get("extra", {}), "feedPlatformTimestamp", "feedOriginTimestamp"),
+        }
+    return None
 
 
 def superbet_goal_market_url(url):
@@ -1365,13 +1464,9 @@ def main():
                 "duplicate": 0, "no_promising_stats": 0, "odds_no_match": 0, "odds_missing": 0, "odds_below_min": 0, "sent": 0, "errors": 0,
             }
 
-            try:
-                odds_matches = moviodds_live_matches()
-            except Exception as exc:
-                odds_matches = []
-                print(f"BŁĄD POBIERANIA KURSÓW MOVIODDS: {type(exc).__name__}: {exc}", flush=True)
-
+            # Kursy pobieramy bezpośrednio z publicznego feedu Superbet.
             superbet_events = superbet_live_event_links()
+            print(f"Superbet: tablica wydarzeń gotowa ({len(superbet_events)} pozycji)", flush=True)
 
             for index, raw in enumerate(matches, start=1):
                 if len(todays_picks) >= MAX_DAILY_PICKS:
@@ -1444,20 +1539,24 @@ def main():
                     if isinstance(league, dict):
                         league = first(league, "name", "title", default="Liga nieznana")
 
-                    # Bet365's in-play Goal Line is anchored to the current score.
-                    # To back one more goal, request the next half-goal line above the
-                    # current total (e.g. 2-1 -> Over 3.5, not Over 0.5).
+                    # Kurs Superbet: następna linia Over ponad aktualną liczbą goli.
                     current_total = home_score + away_score
                     goal_line = current_total + 0.5
-                    odds_fixture = find_moviodds_match(home, away, odds_matches)
-                    if not odds_fixture:
+                    superbet_event = find_superbet_event(home, away, superbet_events)
+                    if not superbet_event:
                         stats["odds_no_match"] += 1
-                        print(f"[{index}] Brak jednoznacznego meczu w MoviOdds dla {home} - {away}; typ pominięty.", flush=True)
+                        print(f"[{index}] Brak jednoznacznego meczu w Superbet dla {home} - {away}; typ pominięty.", flush=True)
                         continue
-                    live_price = extract_live_over_odds(odds_fixture, market, goal_line)
+                    try:
+                        superbet_detail = superbet_event_detail(superbet_event["event_id"])
+                    except Exception as exc:
+                        stats["odds_missing"] += 1
+                        print(f"[{index}] Błąd pobrania kursów Superbet dla {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
+                        continue
+                    live_price = extract_superbet_live_over_odds(superbet_detail, market, goal_line)
                     if not live_price:
                         stats["odds_missing"] += 1
-                        print(f"[{index}] Brak aktywnego kursu Bet365 dla Over {goal_line:.1f} {market}; typ pominięty.", flush=True)
+                        print(f"[{index}] Brak aktywnego kursu Superbet dla Over {goal_line:.1f} {market}; pomijam.", flush=True)
                         continue
                     if float(live_price["odds"]) < MIN_LIVE_ODDS:
                         stats["odds_below_min"] += 1
@@ -1486,7 +1585,7 @@ def main():
                         "odds_source": live_price["source"],
                         "odds_market": live_price["market"],
                         "odds_updated_at": live_price.get("updated_at"),
-                        "superbet_url": find_superbet_match_url(home, away, superbet_events) or "https://superbet.pl/zaklady-bukmacherskie/pilka-nozna/live",
+                        "superbet_url": superbet_goal_market_url(superbet_event["url"]) or "https://superbet.pl/zaklady-bukmacherskie/pilka-nozna/live",
                         "goal_line": goal_line,
                         "live_metrics": metrics,
                         "signal_score": signal_score,
@@ -1503,11 +1602,11 @@ def main():
                     telegram(
                         f"⚽ {market_text}\n{home} - {away}\n"
                         f"Liga: {league}\nMinuta: {minute}' | Wynik: {home_score}-{away_score}\n"
-                        f"Stawka: {STAKE:.2f} zł | Kurs Bet365: {live_price['odds']:.2f}\n"
+                        f"Stawka: {STAKE:.2f} zł | Kurs Superbet: {live_price['odds']:.2f}\n"
                         f"Podatek 12%: {potential['tax']:.2f} zł\n"
                         f"Potencjalna wypłata: {potential['payout']:.2f} zł\n"
                         f"Potencjalny zysk netto: {potential['profit']:+.2f} zł\n"
-                        + (f"Superbet (Liczba goli): {pick['superbet_url']}" if find_superbet_match_url(home, away, superbet_events) else f"Superbet LIVE (otwórz mecz ręcznie): {pick['superbet_url']}")
+                        + f"Superbet (Liczba goli): {pick['superbet_url']}"
                     )
                     pick["delivery_status"] = "sent"
                     save_state(state)
