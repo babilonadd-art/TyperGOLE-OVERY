@@ -299,7 +299,7 @@
       "market": "FT",
       "date": "2026-11-05",
       "kickoff_time": "2026-11-05T12:00:00+00:00",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.8,
       "odds_source": "Bet365",
       "odds_market": "Goal Line (1-2)",
@@ -320,7 +320,8 @@
       "minute_update_format_version": 2,
       "minute_update_at": "2026-11-05T14:31:13.617624+01:00",
       "latest_minute": 76,
-      "latest_score": "1-2"
+      "latest_score": "1-2",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "x7lm7phj421vm2w:HT",
@@ -335,7 +336,7 @@
       "market": "HT",
       "date": "2026-11-05",
       "kickoff_time": "2026-11-05T13:00:00+00:00",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 2.35,
       "odds_source": "Bet365",
       "odds_market": "1st Half Goal Line (0-0)",
@@ -356,7 +357,8 @@
       "minute_update_format_version": 2,
       "minute_update_at": "2026-11-05T14:31:17.290170+01:00",
       "latest_minute": 31,
-      "latest_score": "0-0"
+      "latest_score": "0-0",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "l7oqdehjn6e5r51:HT",
@@ -371,7 +373,7 @@
       "market": "HT",
       "date": "2026-11-05",
       "kickoff_time": "2026-11-05T13:00:00+00:00",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 2.425,
       "odds_source": "Bet365",
       "odds_market": "1st Half Goal Line (0-1)",
@@ -387,7 +389,8 @@
       },
       "signal_score": 3,
       "settled": false,
-      "delivery_status": "sent"
+      "delivery_status": "sent",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "vjxm8ghk45dwr6o:HT",
@@ -402,7 +405,7 @@
       "market": "HT",
       "date": "2026-11-05",
       "kickoff_time": "2026-11-05T13:00:00+00:00",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 2.675,
       "odds_source": "Bet365",
       "odds_market": "1st Half Goal Line (1-0)",
@@ -418,7 +421,8 @@
       },
       "signal_score": 3,
       "settled": false,
-      "delivery_status": "sent"
+      "delivery_status": "sent",
+      "counts_toward_daily_limit": false
     }
   ],
   "reports_sent": []
