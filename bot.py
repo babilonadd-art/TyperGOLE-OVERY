@@ -442,7 +442,14 @@ def extract_superbet_live_over_odds(event_detail, market, min_line):
             if not is_first_half or is_second_half:
                 continue
         elif market == "FT":
-            if is_first_half or is_second_half:
+            # Fail closed: a generic "Liczba goli" label does NOT prove that
+            # the quote covers the whole match. Require an explicit full-match
+            # scope in the actual Superbet market/parent label.
+            explicit_full_match = re.search(
+                r"\\b(?:caly mecz|pelny mecz|full match|whole match|full time|ft)\\b",
+                market_text,
+            )
+            if is_first_half or is_second_half or not explicit_full_match:
                 continue
         else:
             continue
@@ -2175,7 +2182,7 @@ def main():
                         "signal_score": signal_score,
                         "settled": False,
                     }
-                    market_text = f"OVER {goal_line:.1f} FT"
+                    market_text = f"OVER {goal_line:.1f} CAŁY MECZ"
                     minute_text = f"{minute}'" if minute is not None else "brak odczytu"
                     # Save the pick before sending to prevent duplicates after an HTTP timeout.
                     pick["delivery_status"] = "pending"
