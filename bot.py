@@ -112,17 +112,48 @@ def moviodds_live_matches():
 def normalized_team_name(value):
     """Normalize harmless provider-specific spelling differences, not team identity."""
     raw = str(value or "").strip()
-    # Regional federation tags in brackets, e.g. Paysandu(PA), are not part
-    # of the club name. Keep all other bracketed information intact.
     raw = re.sub(r"\(\s*[A-Z]{2,3}\s*\)", " ", raw)
-    # SportScore labels some U20 reserve/youth sides as "Youth"; Superbet
-    # commonly labels the same age band as "U20". Do not collapse U19/U21.
     raw = re.sub(r"\bu[\s-]?20\b", " youth ", raw, flags=re.IGNORECASE)
     value = unicodedata.normalize("NFKD", raw)
     value = value.encode("ascii", "ignore").decode("ascii").lower()
     tokens = re.findall(r"[a-z0-9]+", value)
     ignored = {"fc", "cf", "sc", "afc", "club", "the", "football"}
     return " ".join(token for token in tokens if token not in ignored)
+
+
+def team_name_aliases(value):
+    """Conservative aliases for harmless provider-specific club-name differences."""
+    raw = str(value or "").strip()
+    base = normalized_team_name(raw)
+    aliases = {base} if base else set()
+
+    # Brazilian state tags are often appended as " - SP" or " - PA".
+    # Keep both forms; if multiple events collide, the matcher rejects them.
+    without_region = re.sub(r"\s+-\s+[A-Z]{2,3}\s*$", "", raw)
+    shortened = normalized_team_name(without_region)
+    if shortened:
+        aliases.add(shortened)
+
+    # Legal/competition prefixes used inconsistently by the feeds.
+    prefix_patterns = (
+        r"^(?:club\s+social\s+y\s+deportivo|club\s+social\s+deportivo|club\s+atletico|club\s+deportivo)\s+",
+        r"^(?:csd|ca|cd)\s+",
+        r"^deportes\s+",
+    )
+    pending = list(aliases)
+    for _ in range(3):
+        additions = set()
+        for name in pending:
+            for pattern in prefix_patterns:
+                stripped = re.sub(pattern, "", name).strip()
+                if stripped and stripped != name:
+                    additions.add(stripped)
+        additions -= aliases
+        if not additions:
+            break
+        aliases.update(additions)
+        pending = list(additions)
+    return aliases
 
 
 def team_name_similarity(left, right):
@@ -256,9 +287,9 @@ def log_superbet_diagnostic(record):
 
 
 def find_superbet_event(home, away, events):
-    """Match a Superbet fixture only when BOTH normalized team names match exactly."""
-    wanted_home = normalized_team_name(home)
-    wanted_away = normalized_team_name(away)
+    """Match a fixture by conservative aliases and require one unique oriented event."""
+    wanted_home = team_name_aliases(home)
+    wanted_away = team_name_aliases(away)
     exact = []
     near = []
 
@@ -267,20 +298,18 @@ def find_superbet_event(home, away, events):
         if len(parts) != 2:
             continue
         left, right = (part.strip() for part in parts)
-        found_home = normalized_team_name(left)
-        found_away = normalized_team_name(right)
+        found_home = team_name_aliases(left)
+        found_away = team_name_aliases(right)
 
-        # Home/away orientation is significant. Do not reverse teams and do
-        # not accept fuzzy/partial similarity: a wrong fixture means a wrong price.
-        if found_home == wanted_home and found_away == wanted_away:
+        # Same home/away orientation only. No fuzzy selection of odds.
+        if wanted_home & found_home and wanted_away & found_away:
             if event.get("event_id"):
                 exact.append(event)
             continue
 
         direct_home = team_name_similarity(home, left)
         direct_away = team_name_similarity(away, right)
-        near_score = min(direct_home, direct_away)
-        if near_score >= 0.55:
+        if min(direct_home, direct_away) >= 0.55:
             near.append({
                 "event_id": event.get("event_id"),
                 "event_name": event.get("text"),
@@ -288,17 +317,22 @@ def find_superbet_event(home, away, events):
                 "away_similarity": round(direct_away, 3),
             })
 
+    # Repeated API representations of one event are not separate candidates.
+    unique = {str(event["event_id"]): event for event in exact}
+    exact = list(unique.values())
+
     diagnostic = {
         "type": "SUPERBET_EVENT_MATCH",
         "checked_at": datetime.now(timezone.utc).isoformat(),
         "sportscore_home": home,
         "sportscore_away": away,
-        "normalized_home": wanted_home,
-        "normalized_away": wanted_away,
+        "normalized_home": normalized_team_name(home),
+        "normalized_away": normalized_team_name(away),
+        "home_aliases": sorted(wanted_home),
+        "away_aliases": sorted(wanted_away),
         "exact_matches": len(exact),
         "near_candidates": near[:5],
     }
-
     if len(exact) != 1:
         diagnostic["result"] = "REJECTED_NO_EXACT_MATCH" if not exact else "REJECTED_AMBIGUOUS"
         log_superbet_diagnostic(diagnostic)
@@ -306,13 +340,14 @@ def find_superbet_event(home, away, events):
 
     selected = exact[0]
     diagnostic.update({
-        "result": "EXACT_MATCH",
+        "result": "EXACT_MATCH_WITH_SAFE_ALIASES",
         "superbet_event_id": str(selected.get("event_id")),
         "superbet_event_name": selected.get("text"),
         "superbet_url": selected.get("url"),
     })
     log_superbet_diagnostic(diagnostic)
     return selected
+
 
 
 def superbet_event_detail(event_id):
