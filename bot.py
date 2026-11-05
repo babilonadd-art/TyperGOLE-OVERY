@@ -798,10 +798,10 @@ def parse_minute(match):
 
     # Przerwa: nie wolno użyć starego/liczbowego pola 60' z feedu.
     halftime_markers = (
-        "half time", "halftime", "half-time", "interval",
-        "break", "przerwa", "ht",
+        "half time", "halftime", "interval", "przerwa",
     )
-    if any(marker in normalized_phase for marker in halftime_markers):
+    has_halftime_token = bool(re.search(r"\\b(?:break|ht)\\b", normalized_phase))
+    if any(marker in normalized_phase for marker in halftime_markers) or has_halftime_token:
         stoppage = re.search(r"45\\s*\\+\\s*(\\d+)", normalized_phase)
         return 45 + int(stoppage.group(1)) if stoppage else 45
 
