@@ -571,8 +571,50 @@
         "saves": null
       },
       "signal_score": 3,
-      "settled": false,
-      "delivery_status": "sent"
+      "settled": true,
+      "delivery_status": "sent",
+      "won": true,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-05T16:54:44.674466+01:00"
+    },
+    {
+      "key": "4jwq2ghg4z28m0v:FT",
+      "id": "4jwq2ghg4z28m0v",
+      "slug": "blooming-u19-vs-universitario-de-vinto-u19",
+      "home": "Universitario de Vinto U19",
+      "away": "Blooming U19",
+      "league": "BLN U19",
+      "minute": 55,
+      "score_home": 0,
+      "score_away": 3,
+      "market": "FT",
+      "date": "2026-11-05",
+      "kickoff_time": "2026-11-05T15:00:00+00:00",
+      "stake": 50.0,
+      "odds": 3.05,
+      "odds_source": "Superbet",
+      "odds_market": "Liczba goli - do X minuty",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/universitario-de-vinto-u19-vs-club-blooming-u19-15754964?marketGroup=103",
+      "goal_line": 3.5,
+      "live_metrics": {
+        "shots": 17.0,
+        "shots_on_target": 12.0,
+        "shots_off_target": 5.0,
+        "attacks": 57.0,
+        "dangerous_attacks": 49.0,
+        "xg": null,
+        "big_chances": null,
+        "shots_inside_box": null,
+        "touches_in_box": null,
+        "saves": null
+      },
+      "signal_score": 3,
+      "settled": true,
+      "delivery_status": "sent",
+      "won": true,
+      "settled_score": "4-0",
+      "settled_at": "2026-11-05T16:56:06.796190+01:00"
     }
   ],
   "reports_sent": []
