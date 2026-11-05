@@ -131,5 +131,48 @@ class OverSettlementRegressionTests(unittest.TestCase):
             "2026-11-05", "FT", slug="getafe-vs-brighton"
         ))
 
+
+class SuperbetTeamNameMatchingTests(unittest.TestCase):
+    def test_matches_club_prefix_variants(self):
+        from unittest.mock import patch
+        from bot import find_superbet_event
+        events = [
+            {"event_id": 14539435, "text": "Gimnasia La Plata·CA Belgrano"},
+            {"event_id": 15610530, "text": "Universidad de Chile·Deportes Antofagasta"},
+        ]
+        with patch("bot.log_superbet_diagnostic"):
+            result = find_superbet_event("Gimnasia La Plata", "Belgrano", events)
+            result2 = find_superbet_event("Universidad de Chile", "CSD Antofagasta", events)
+        self.assertEqual(result["event_id"], 14539435)
+        self.assertEqual(result2["event_id"], 15610530)
+
+    def test_matches_brazilian_state_suffix_only_when_unique(self):
+        from unittest.mock import patch
+        from bot import find_superbet_event
+        events = [{"event_id": 14395784, "text": "Palmeiras·Remo"}]
+        with patch("bot.log_superbet_diagnostic"):
+            result = find_superbet_event("Palmeiras - SP", "Remo - PA", events)
+        self.assertEqual(result["event_id"], 14395784)
+
+    def test_rejects_ambiguous_state_suffix_collision(self):
+        from unittest.mock import patch
+        from bot import find_superbet_event
+        events = [
+            {"event_id": 1, "text": "Botafogo·Londrina"},
+            {"event_id": 2, "text": "Botafogo - RJ·Londrina"},
+        ]
+        with patch("bot.log_superbet_diagnostic"):
+            result = find_superbet_event("Botafogo - SP", "Londrina PR", events)
+        self.assertIsNone(result)
+
+    def test_never_reverses_home_and_away(self):
+        from unittest.mock import patch
+        from bot import find_superbet_event
+        events = [{"event_id": 9, "text": "Belgrano·Gimnasia La Plata"}]
+        with patch("bot.log_superbet_diagnostic"):
+            result = find_superbet_event("Gimnasia La Plata", "Belgrano", events)
+        self.assertIsNone(result)
+
+
 if __name__ == "__main__":
     unittest.main()
