@@ -1,6 +1,6 @@
 import unittest
 
-from bot import parse_minute
+from bot import parse_minute, over_result_is_win, same_fixture_pick_exists
 
 
 class ParseMinuteRegressionTests(unittest.TestCase):
@@ -47,6 +47,42 @@ class ParseMinuteRegressionTests(unittest.TestCase):
             "description": "shirt sponsor",
         }), 68)
 
+
+
+class OverSettlementRegressionTests(unittest.TestCase):
+    def test_over_3_5_is_not_win_at_one_one(self):
+        self.assertFalse(over_result_is_win(3.5, 2, True))
+
+    def test_over_3_5_is_not_win_at_zero_one(self):
+        self.assertFalse(over_result_is_win(3.5, 1, True))
+
+    def test_over_3_5_is_win_at_two_two(self):
+        self.assertTrue(over_result_is_win(3.5, 4, True))
+
+    def test_live_match_is_never_settled(self):
+        self.assertIsNone(over_result_is_win(3.5, 5, False))
+
+    def test_same_fixture_blocked_when_names_have_minor_variants(self):
+        state = {"picks": [{
+            "id": "old-id", "key": "old-id:FT", "market": "FT",
+            "home": "Sint-Truidense", "away": "Brann",
+            "slug": "sint-truidense-vs-brann", "date": "2026-11-05",
+        }]}
+        self.assertTrue(same_fixture_pick_exists(
+            state, "new-id", "Sint Truiden", "SK Brann",
+            "2026-11-05", "FT", slug="sint-truidense-vs-brann"
+        ))
+
+    def test_different_fixture_is_not_blocked(self):
+        state = {"picks": [{
+            "id": "old-id", "key": "old-id:FT", "market": "FT",
+            "home": "Celtic FC", "away": "Besiktas JK",
+            "slug": "celtic-vs-besiktas", "date": "2026-11-05",
+        }]}
+        self.assertFalse(same_fixture_pick_exists(
+            state, "new-id", "Getafe", "Brighton",
+            "2026-11-05", "FT", slug="getafe-vs-brighton"
+        ))
 
 if __name__ == "__main__":
     unittest.main()
