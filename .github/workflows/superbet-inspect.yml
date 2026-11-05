@@ -15,36 +15,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Inspect frontend assets and selection route support
+      - name: Trace Superbet JavaScript entrypoint
         run: |
           python - <<'PY'
           import requests,re,json
-          from urllib.parse import urljoin
-          from html.parser import HTMLParser
-          class Assets(HTMLParser):
-              def __init__(self): super().__init__(); self.scripts=[]; self.links=[]
-              def handle_starttag(self,tag,attrs):
-                  a=dict(attrs)
-                  if tag.lower()=="script" and a.get("src"): self.scripts.append(a["src"])
-                  if tag.lower()=="link" and a.get("href") and (".js" in a["href"] or a.get("rel")=="modulepreload"): self.links.append(a["href"])
           base="https://superbet.pl"
-          h={"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.36","Origin":base,"Referer":base+"/"}
+          h={"User-Agent":"Mozilla/5.0","Referer":base+"/"}
           s=requests.Session()
-          p=s.get(base+"/kursy/pilka-nozna/machida-zelvia-vs-shanghai-shenhua-14572637?t=offer-live-1415&mdt=o",headers=h,timeout=30)
-          a=Assets(); a.feed(p.text)
-          urls=list(dict.fromkeys(urljoin(base,x) for x in a.scripts+a.links))
-          print("PAGE",p.status_code,"ASSETS",len(urls))
-          for u in urls: print("ASSET_URL",u)
-          terms=("marketuuid","outcomeid","oddid","selectionid","betslip","addselection","addselectiontobetslip","marketlineuuid","specialbetvalue","offer-live","marketgroupid")
-          for u in urls:
-              try:
-                  r=s.get(u,headers=h,timeout=25); body=r.text; low=body.lower()
-                  hits=[]
-                  for term in terms:
-                      pos=low.find(term)
-                      if pos>=0: hits.append((term,re.sub(r"\\s+"," ",body[max(0,pos-250):pos+350])[:600]))
-                  if hits:
-                      print("MATCHING_ASSET",u,"HTTP",r.status_code,"BYTES",len(body))
-                      for term,snip in hits: print("MATCH",term,snip)
-              except Exception as e: print("ASSET_ERR",u,repr(e))
+          u=base+"/static/js/index.fa0434cf.js"
+          r=s.get(u,headers=h,timeout=30)
+          b=r.text
+          print("ENTRY",r.status_code,len(b),r.headers.get("content-type"))
+          print("PREFIX",b[:3000])
+          patterns=[r'["\\']([^"\\']+\\.js(?:\\?[^"\\']*)?)["\\']',r'import\\(["\\']([^"\\']+)["\\']\\)',r'from["\\']([^"\\']+\\.js)["\\']']
+          found=set()
+          for pat in patterns:
+              for x in re.findall(pat,b):
+                  if ".js" in x: found.add(x)
+          print("CHUNKS",len(found))
+          for x in sorted(found)[:150]: print("CHUNK",x)
+          for term in ("marketuuid","outcomeid","oddid","betslip","selection","location.search","URLSearchParams"):
+              p=b.lower().find(term)
+              if p>=0: print("TERM",term,b[max(0,p-300):p+500])
           PY
