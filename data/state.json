@@ -1052,9 +1052,11 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
-      "goal_pending_since": "2026-11-05T22:39:37.695594+01:00"
+      "won": true,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-05T22:50:28.350488+01:00"
     },
     {
       "key": "6ypq3nhv2x5lmd7:FT",
@@ -1242,8 +1244,11 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
-      "delivery_status": "sent"
+      "settled": true,
+      "delivery_status": "sent",
+      "won": false,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-05T22:51:18.587314+01:00"
     },
     {
       "key": "4wyrn4h6jgl0q86:FT",
@@ -1278,8 +1283,11 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
-      "delivery_status": "sent"
+      "settled": true,
+      "delivery_status": "sent",
+      "won": false,
+      "settled_score": "3-0",
+      "settled_at": "2026-11-05T22:52:01.171192+01:00"
     },
     {
       "key": "x7lm7phjl4pxm2w:FT",
@@ -1314,8 +1322,11 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
-      "delivery_status": "sent"
+      "settled": true,
+      "delivery_status": "sent",
+      "won": true,
+      "settled_score": "2-0",
+      "settled_at": "2026-11-05T22:52:02.240682+01:00"
     },
     {
       "key": "4jwq2ghgoje0m0v:FT",
