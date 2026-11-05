@@ -756,9 +756,9 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market):
 
 def match_stats_look_promising(match, market):
     """
-    Conservative filter based on cumulative live stats.
-    All three conditions must be met; one strong metric cannot compensate
-    for missing evidence in the other indicators.
+    Łagodniejszy filtr statystyk LIVE: wystarczą dwa dostępne wskaźniki
+    i przynajmniej jeden sygnał ofensywny. Kurs Superbet nadal musi wynosić
+    co najmniej MIN_LIVE_ODDS, a okna minutowe pozostają bez zmian.
     """
     m = live_match_metrics(match)
     if not m:
@@ -768,13 +768,12 @@ def match_stats_look_promising(match, market):
     shots_on_target = m.get("shots_on_target")
     dangerous_attacks = m.get("dangerous_attacks")
 
-    # Statystyki sumują obie drużyny, więc oceniają intensywność całego meczu.
-    # Feed nie zawsze zwraca komplet pól: wymagamy minimum dwóch dostępnych
-    # wskaźników i dwóch sygnałów, zamiast odrzucać mecz za brak jednego pola.
+    # Statystyki sumują obie drużyny. Progi obniżone, aby częściej
+    # kwalifikować mecze, ale bez całkowitego wyłączania filtra.
     if market == "HT":
-        thresholds = (6, 3, 22)
+        thresholds = (4, 2, 15)
     else:
-        thresholds = (10, 5, 30)
+        thresholds = (7, 3, 22)
 
     available = [
         (value, threshold)
@@ -785,7 +784,7 @@ def match_stats_look_promising(match, market):
         return False, m, 0
 
     score = sum(value >= threshold for value, threshold in available)
-    return score >= 2, m, score
+    return score >= 1, m, score
 
 
 def telegram(message):
