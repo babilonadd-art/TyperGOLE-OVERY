@@ -2230,3 +2230,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# Manual live scan trigger: 2026-11-06
