@@ -1049,7 +1049,7 @@ def match_stats_look_promising(match, market):
     )
     return signals >= 1, m, signals
 
-def same_fixture_pick_exists(state, identifier, home, away, match_date, market):
+def same_fixture_pick_exists(state, identifier, home, away, match_date, market, slug=None):
     """
     Idempotency guard: a fixture + market is one pick, regardless of odds changes
     or small differences in provider IDs. Removing a Telegram message does not
@@ -1077,12 +1077,24 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market):
             day_gap = 99
         if day_gap > 1:
             continue
-        old_home = normalized_team_name(old.get("home"))
-        old_away = normalized_team_name(old.get("away"))
+        old_slug = re.sub(r"[^a-z0-9]", "", str(old.get("slug") or "").lower())
+        new_slug = re.sub(r"[^a-z0-9]", "", str(slug or "").lower())
+        if old_slug and new_slug and old_slug == new_slug:
+            return True
+
+        old_home = old.get("home")
+        old_away = old.get("away")
+        direct_similarity = (
+            team_name_similarity(old_home, home),
+            team_name_similarity(old_away, away),
+        )
+        reverse_similarity = (
+            team_name_similarity(old_home, away),
+            team_name_similarity(old_away, home),
+        )
         same_teams = (
-            old_home == wanted_home and old_away == wanted_away
-        ) or (
-            old_home == wanted_away and old_away == wanted_home
+            min(direct_similarity) >= 0.86
+            or min(reverse_similarity) >= 0.86
         )
         if wanted_home and wanted_away and same_teams:
             return True
@@ -1477,6 +1489,20 @@ def confirmed_final_fixture(match):
     home_score, away_score, _, _ = score_and_minute(match)
     return home_score is not None and away_score is not None
 
+def over_result_is_win(goal_line, final_total, period_complete):
+    """Return a result only for a confirmed completed period and a valid OVER line."""
+    if not period_complete or final_total is None:
+        return None
+    try:
+        line = float(goal_line)
+        total = int(final_total)
+    except (TypeError, ValueError):
+        return None
+    if line < 0 or total < 0:
+        return None
+    return total > line
+
+
 def settle_picks(state):
     # Goal must remain in the provider's score for 3 minutes before we notify.
     # The workflow runs every 5 minutes, so practical confirmation is on the next scan.
@@ -1545,6 +1571,25 @@ def settle_picks(state):
                 print(f"Pomijam rozliczenie typu bez wyniku początkowego: {pick.get('key')}")
                 continue
             baseline_total = baseline_home + baseline_away
+
+            # Never settle against a different fixture returned by an archive/search endpoint.
+            fixture_home, fixture_away = teams(match)
+            direct_match = (
+                team_name_similarity(fixture_home, pick.get("home")) >= 0.86
+                and team_name_similarity(fixture_away, pick.get("away")) >= 0.86
+            )
+            reverse_match = (
+                team_name_similarity(fixture_home, pick.get("away")) >= 0.86
+                and team_name_similarity(fixture_away, pick.get("home")) >= 0.86
+            )
+            if not (direct_match or reverse_match):
+                print(
+                    f"ROZLICZENIE ZABLOKOWANE — niezgodne drużyny: "
+                    f"{fixture_home} - {fixture_away}; oczekiwano "
+                    f"{pick.get('home')} - {pick.get('away')}.",
+                    flush=True,
+                )
+                continue
 
             home_now, away_now, minute, status = score_and_minute(match)
             print(
@@ -1619,7 +1664,23 @@ def settle_picks(state):
                 print(f"BRAK KOŃCOWEGO WYNIKU dla {pick.get('key')} — nie rozliczam.", flush=True)
                 continue
 
-            won = float(target_total) > selected_line
+            won = over_result_is_win(selected_line, target_total, period_complete)
+            if won is None:
+                print(f"ROZLICZENIE ZABLOKOWANE — nieprawidłowy wynik/okres dla {pick.get('key')}.", flush=True)
+                continue
+            # Cross-check the numeric total against the exact score text before posting.
+            parsed_target_score = re.search(r"(\\d+)\\s*[-:]\\s*(\\d+)", str(target_score or ""))
+            if not parsed_target_score:
+                print(f"ROZLICZENIE ZABLOKOWANE — brak czytelnego wyniku dla {pick.get('key')}.", flush=True)
+                continue
+            score_total_check = int(parsed_target_score.group(1)) + int(parsed_target_score.group(2))
+            if score_total_check != int(target_total):
+                print(
+                    f"ROZLICZENIE ZABLOKOWANE — suma bramek {target_total} "
+                    f"nie zgadza się z wynikiem {target_score} dla {pick.get('key')}.",
+                    flush=True,
+                )
+                continue
             pick.pop("goal_pending_since", None)
             result_text = "🟢 WYGRANA" if won else "🔴 PRZEGRANA"
             score_text = target_score or "brak"
@@ -1884,7 +1945,7 @@ def main():
                     market = "FT"
 
                     key = f"{identifier}:{market}"
-                    if same_fixture_pick_exists(state, identifier, home, away, today, market):
+                    if same_fixture_pick_exists(state, identifier, home, away, today, market, slug=slug):
                         stats["duplicate"] += 1
                         print(
                             f"[{index}] DUPLIKAT — {home} - {away}, rynek {market}; "
