@@ -464,8 +464,11 @@
         "dangerous_attacks": 49
       },
       "signal_score": 3,
-      "settled": false,
-      "delivery_status": "sent"
+      "settled": true,
+      "delivery_status": "sent",
+      "won": false,
+      "settled_score": "0-0",
+      "settled_at": "2026-11-05T16:02:32.116542+01:00"
     },
     {
       "key": "ednm9wh5kd1xryo:HT",
@@ -495,8 +498,11 @@
         "dangerous_attacks": 23
       },
       "signal_score": 3,
-      "settled": false,
-      "delivery_status": "sent"
+      "settled": true,
+      "delivery_status": "sent",
+      "won": false,
+      "settled_score": "0-0",
+      "settled_at": "2026-11-05T16:02:35.623875+01:00"
     },
     {
       "key": "l5ergphkoyy2r8k:HT",
@@ -526,8 +532,11 @@
         "dangerous_attacks": 38
       },
       "signal_score": 2,
-      "settled": false,
-      "delivery_status": "sent"
+      "settled": true,
+      "delivery_status": "sent",
+      "won": false,
+      "settled_score": "0-0",
+      "settled_at": "2026-11-05T16:02:39.012055+01:00"
     }
   ],
   "reports_sent": []
