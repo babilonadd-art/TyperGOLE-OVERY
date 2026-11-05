@@ -375,7 +375,8 @@ def extract_superbet_live_over_odds(event_detail, market, target_line):
             )
             if first(odd, key) not in (None, "")
         ]
-        + ([odd.get("_parentMarketText")] if odd.get("_parentMarketText") else [])
+        if odd.get("_parentMarketText"):
+            market_parts.append(odd["_parentMarketText"])
         market_text = normalize_market_text(" ".join(str(x) for x in market_parts))
         selection_name = str(first(
             odd, "name", "selectionName", "selection_name", "oddName",
