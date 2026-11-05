@@ -26,6 +26,13 @@ jobs:
           r.raise_for_status()
           data = r.json().get("data", {})
           tree = data.get("marketTree", {})
+          for key in ("sports", "categories", "tournaments"):
+              value = data.get(key)
+              print("STRUCT_COLLECTION", key, "type", type(value).__name__, "count", len(value) if hasattr(value, "__len__") else None, flush=True)
+              if isinstance(value, list):
+                  print("STRUCT_SAMPLE", key, json.dumps(value[:4], ensure_ascii=False)[:5000], flush=True)
+              elif isinstance(value, dict):
+                  print("STRUCT_SAMPLE", key, json.dumps(list(value.items())[:4], ensure_ascii=False)[:5000], flush=True)
           print("MARKET_TREE_TYPE", type(tree).__name__, flush=True)
           def walk(x, path="$"):
               if isinstance(x, dict):
