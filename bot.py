@@ -1814,17 +1814,10 @@ def main():
                         stats["detail_error"] += 1
                         print(f"[{index}] Brak identyfikatora szczegółów SportScore — pomijam mecz.", flush=True)
                         continue
-                    # Filter by the list endpoint's live minute BEFORE requesting
-                    # per-match details. Most live fixtures are outside our two
-                    # betting windows, and each detail request can take up to 20s.
-                    # If the minute is missing or outside the window, the next
-                    # scheduled scan will re-check it without wasting an API call.
-                    if raw_minute is None:
-                        stats["missing_minute"] += 1
-                        continue
-                    if not (25 <= raw_minute <= 36 or 60 <= raw_minute <= 75):
-                        stats["outside_window"] += 1
-                        continue
+                    # Feed fixtures/live często zwraca status „2nd half” i wynik,
+                    # ale nie zwraca minuty. W takim przypadku pobieramy szczegóły
+                    # meczu, bo tam może znajdować się właściwy zegar. Nie odrzucamy
+                    # meczu przed sprawdzeniem endpointu detail.
 
                     try:
                         detail = match_detail(slug)
@@ -1878,7 +1871,19 @@ def main():
                         continue
                     if minute is None:
                         stats["missing_minute"] += 1
+                        print(
+                            f"[{index}] Brak zegara również w szczegółach SportScore "
+                            f"({home} - {away}); status lista={raw_status!r}, "
+                            f"status szczegóły={detail_status!r}. Pomijam bez zgadywania minuty.",
+                            flush=True,
+                        )
                         continue
+                    if raw_minute is None:
+                        print(
+                            f"[{index}] ZEGAR Z DETAIL: lista bez minuty, "
+                            f"szczegóły={minute}' ({home} - {away}).",
+                            flush=True,
+                        )
 
                     # Polowanie: HT od 25. do 36. minuty; FT od 60. do 76. minuty.
                     # Kurs pobieramy z Superbet bez sztywnego minimum i maksimum.
