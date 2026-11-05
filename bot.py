@@ -1270,6 +1270,11 @@ def current_live_matches():
         return False
 
     errors = []
+    unique = {}
+
+    # Nie kończ na pierwszym feedzie, który zwróci jakiekolwiek LIVE.
+    # Różne endpointy SportScore potrafią mieć różne zestawy spotkań;
+    # zbieramy więc wszystkie i łączymy rekordy po identyfikatorze.
     for label, endpoint, params in sources:
         try:
             payload = api_get(endpoint, params)
@@ -1286,26 +1291,54 @@ def current_live_matches():
                     f"status przykładu: {first(sample, 'status', 'state', 'match_status', 'status_text', default='brak')}",
                     flush=True,
                 )
-            if live:
-                # Usuń powtórzenia tego samego spotkania, jeśli feed ma duplikaty.
-                unique = {}
-                for item in live:
-                    identity = match_identifier(item) or match_slug(item)
-                    if not identity:
-                        home, away = teams(item)
-                        identity = f"{normalized_team_name(home)}:{normalized_team_name(away)}"
-                    unique[identity] = item
-                result = list(unique.values())
-                print(f"SportScore: przekazuję do analizy {len(result)} unikalnych meczów LIVE.", flush=True)
-                return result
+
+            for item in live:
+                identity = match_identifier(item) or match_slug(item)
+                if not identity:
+                    home, away = teams(item)
+                    identity = f"{normalized_team_name(home)}:{normalized_team_name(away)}"
+                identity = str(identity).strip().lower()
+                if identity not in unique:
+                    unique[identity] = dict(item)
+                    unique[identity]["_sportscore_sources"] = [label]
+                    continue
+
+                # Zachowaj wartości z pierwszego feedu; uzupełnij wyłącznie
+                # brakujące pola z pozostałych endpointów, bez nadpisywania
+                # wyniku/minuty inną, potencjalnie opóźnioną kopią.
+                merged = unique[identity]
+                merged["_sportscore_sources"].append(label)
+                for key, value in item.items():
+                    if key not in merged or merged[key] in (None, "", [], {}):
+                        if value not in (None, "", [], {}):
+                            merged[key] = value
+
         except Exception as exc:
             errors.append(f"{label}: {type(exc).__name__}: {exc}")
             print(f"Błąd feedu SportScore {label}: {type(exc).__name__}: {exc}", flush=True)
 
+    result = list(unique.values())
+    in_windows = 0
+    missing_minutes = 0
+    outside_windows = 0
+    for item in result:
+        minute = score_and_minute(item)[2]
+        if minute is None:
+            missing_minutes += 1
+        elif 25 <= minute <= 36 or 60 <= minute <= 75:
+            in_windows += 1
+        else:
+            outside_windows += 1
+
+    print(
+        f"SportScore: łącznie {len(result)} unikalnych meczów LIVE z połączonych feedów; "
+        f"w oknach typowania={in_windows}, poza oknami={outside_windows}, "
+        f"bez minuty={missing_minutes}.",
+        flush=True,
+    )
     if errors:
         print("Problemy feedów SportScore: " + " | ".join(errors), flush=True)
-    print("SportScore: żaden z feedów nie zwrócił potwierdzonych meczów LIVE.", flush=True)
-    return []
+    return result
 
 def score_pair(value):
     if isinstance(value, dict):
