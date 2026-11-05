@@ -1217,10 +1217,9 @@ def main():
                         stats["missing_minute"] += 1
                         continue
 
-                    # Workflow skanuje co 5 minut; szersze okno zapobiega pominięciu
-                    # meczu, gdy uruchomienie wypadnie tuż przed/po minucie granicznej.
-                    # Nadal analizujemy tylko okolice 30' (HT) i 70' (FT).
-                    market = "HT" if 29 <= minute <= 36 else "FT" if 69 <= minute <= 76 else None
+                    # Typy generujemy wyłącznie w dokładnie 30. minucie HT
+                    # oraz dokładnie 70. minucie FT.
+                    market = "HT" if minute == 30 else "FT" if minute == 70 else None
                     if market is None:
                         stats["outside_window"] += 1
                         continue
