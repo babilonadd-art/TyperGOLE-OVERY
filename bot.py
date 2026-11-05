@@ -263,11 +263,14 @@ def superbet_event_detail(event_id):
     base = "https://production-superbet-offer-pl.freetls.fastly.net"
     response = requests.get(
         f"{base}/v2/pl-PL/events/{event_id}",
+        params={"_": str(datetime.now(timezone.utc).timestamp())},
         headers={
             **HEADERS,
             "Origin": "https://superbet.pl",
             "Referer": "https://superbet.pl/",
             "Accept": "application/json, text/plain, */*",
+            "Cache-Control": "no-cache, no-store, max-age=0",
+            "Pragma": "no-cache",
         },
         timeout=15,
     )
@@ -422,12 +425,36 @@ def extract_superbet_live_over_odds(event_detail, market, min_line):
             if abs(structured_line - line) > 0.001:
                 continue
 
-        raw_price = first(odd, "price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
-        try:
-            price = float(str(raw_price).replace(",", "."))
-        except (TypeError, ValueError):
+        # Do not silently choose one price field if the Superbet payload
+        # exposes conflicting aliases. A disagreement makes this quote unsafe.
+        price_values = []
+        invalid_price_field = False
+        for price_key in ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec"):
+            raw_value = odd.get(price_key)
+            if raw_value in (None, ""):
+                continue
+            try:
+                parsed_value = float(str(raw_value).replace(",", "."))
+            except (TypeError, ValueError):
+                invalid_price_field = True
+                break
+            if parsed_value <= 1.0 or parsed_value > 1000:
+                invalid_price_field = True
+                break
+            price_values.append(parsed_value)
+        if invalid_price_field or not price_values:
             continue
-        if not 1.90 <= price <= 3.50:
+        if max(price_values) - min(price_values) > 0.005:
+            print(
+                "Superbet: sprzeczne pola kursu dla "
+                f"Over {line:.1f} {market}: {price_values}; odrzucam ofertę.",
+                flush=True,
+            )
+            continue
+        price = price_values[0]
+        # Minimum accepted price is 1.70. Lower prices are not sent;
+        # the next live scan can pick the same market once its price rises.
+        if not 1.70 <= price <= 3.50:
             continue
 
         candidates.append({
@@ -1764,7 +1791,12 @@ def main():
                     live_price = extract_superbet_live_over_odds(superbet_detail, market, min_goal_line)
                     if not live_price:
                         stats["odds_missing"] += 1
-                        print(f"[{index}] Brak otwartej oferty Superbet Over {market} od linii {min_goal_line:.1f} z kursem 1.90–3.50; pomijam.", flush=True)
+                        print(
+                            f"[{index}] Brak potwierdzonej oferty Superbet Over {market} "
+                            f"od linii {min_goal_line:.1f} z kursem 1.70–3.50. "
+                            "Jeśli kurs jest niższy, mecz będzie ponownie sprawdzony w następnym skanie.",
+                            flush=True,
+                        )
                         continue
                     goal_line = live_price["line"]
                     # Ostatnia kontrola kursu bezpośrednio przed przygotowaniem i wysłaniem wiadomości.
@@ -1776,9 +1808,17 @@ def main():
                         print(f"[{index}] Końcowa kontrola kursu Superbet nieudana dla {home} - {away}: {type(exc).__name__}: {exc}; typ pominięty.", flush=True)
                         continue
                     final_live_price = extract_superbet_live_over_odds(final_superbet_detail, market, goal_line)
-                    if not final_live_price or abs(final_live_price["line"] - goal_line) > 0.001:
+                    if (
+                        not final_live_price
+                        or abs(final_live_price["line"] - goal_line) > 0.001
+                        or not 1.70 <= float(final_live_price["odds"]) <= 3.50
+                    ):
                         stats["odds_missing"] += 1
-                        print(f"[{index}] Końcowa kontrola: linia Over {goal_line:.1f} {market} nie jest już otwarta w Superbet; typ pominięty.", flush=True)
+                        print(
+                            f"[{index}] Końcowa kontrola: Over {goal_line:.1f} {market} "
+                            "nie ma już potwierdzonego kursu 1.70–3.50 w Superbet; typ pominięty.",
+                            flush=True,
+                        )
                         continue
                     live_price = final_live_price
 
