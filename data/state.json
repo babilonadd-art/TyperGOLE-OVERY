@@ -537,6 +537,42 @@
       "won": false,
       "settled_score": "0-0",
       "settled_at": "2026-11-05T16:02:39.012055+01:00"
+    },
+    {
+      "key": "4wyrn4hyzgywq86:FT",
+      "id": "4wyrn4hyzgywq86",
+      "slug": "al-markhiya-vs-al-waab-sc",
+      "home": "Al Markhiya",
+      "away": "Al Waab SC",
+      "league": "Qatar League 2",
+      "minute": 60,
+      "score_home": 0,
+      "score_away": 0,
+      "market": "FT",
+      "date": "2026-11-05",
+      "kickoff_time": "2026-11-05T14:15:00+00:00",
+      "stake": 50.0,
+      "odds": 2.7,
+      "odds_source": "Superbet",
+      "odds_market": "Al Waab - liczba goli",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/al-markhiya-vs-al-waab-15562795?marketGroup=103",
+      "goal_line": 0.5,
+      "live_metrics": {
+        "shots": 22.0,
+        "shots_on_target": 10.0,
+        "shots_off_target": 12.0,
+        "attacks": 116.0,
+        "dangerous_attacks": 77.0,
+        "xg": null,
+        "big_chances": null,
+        "shots_inside_box": null,
+        "touches_in_box": null,
+        "saves": null
+      },
+      "signal_score": 3,
+      "settled": false,
+      "delivery_status": "sent"
     }
   ],
   "reports_sent": []
