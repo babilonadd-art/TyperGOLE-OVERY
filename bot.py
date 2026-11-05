@@ -717,7 +717,7 @@ def current_live_matches():
         numeric_clock = as_int(clock_text)
         if numeric_clock is not None and 1 <= numeric_clock <= 130:
             return True
-        if re.search(r"\\b\\d{1,3}(?:\\s*\\+\\s*\\d+)?\\s*['′’]", clock_text):
+        if re.search(r"\b\d{1,3}(?:\s*\+\s*\d+)?\s*['′’]", clock_text):
             return True
         return False
 
@@ -774,7 +774,7 @@ def score_pair(value):
     if isinstance(value, (list, tuple)) and len(value) >= 2:
         return as_int(value[0]), as_int(value[1])
     if isinstance(value, str):
-        nums = re.findall(r"\\d+", value)
+        nums = re.findall(r"\d+", value)
         if len(nums) >= 2:
             return as_int(nums[0]), as_int(nums[1])
     return None, None
