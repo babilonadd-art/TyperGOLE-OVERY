@@ -9,7 +9,8 @@ on:
       - ".github/workflows/live-bot.yml"
   workflow_dispatch:
   schedule:
-    - cron: "*/5 * * * *"
+    # Przesunięcie o 2 minuty ogranicza opóźnienia w godzinach dużego obciążenia GitHub Actions.
+    - cron: "2-59/5 * * * *"
 
 permissions:
   contents: write
