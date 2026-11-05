@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Trace Superbet selection and share-link handling
+      - name: Find Superbet public share and selection routes
         run: |
           python - <<'PY'
           import requests,re
@@ -25,17 +25,24 @@ jobs:
           a=tail.find('(({')+3; z=tail.find('})[e]||e)')
           names=dict(re.findall(r'([0-9]+):"([a-zA-Z0-9_-]+)"',tail[a:z]))
           hashes=dict(re.findall(r'([0-9]+):"([0-9a-f]{8})"',tail[z:]))
-          targets=("4772","79535","30354","31328","49111","77016")
-          terms=("addSingleSelection","oddUuid","copiedSelection","ticketId","shareTicket","shareBet","shareUrl","copySelection","selectionId","eventId","location.search","URLSearchParams","queryParams","ticket-shared","copiedFromUserId")
-          for i in targets:
-              if i not in hashes: print("NO_HASH",i); continue
-              name=names.get(i,i); url=f"{base}/static/js/async/{name}.{hashes[i]}.js"
+          targets=set(re.findall(r'"([0-9]+)"',tail[a:z]))
+          terms=("shareTicket","share-ticket","shareBet","shareBetSlip","shareUrl","copyTicket","copySelection","addCopiedSelection","addSingleSelection","ticketCode","externalTicketId","copiedTicket","skopiuj_kupon","ticketId")
+          print("CHUNK_COUNT",len(hashes))
+          for i,hashv in hashes.items():
+              name=names.get(i,i)
+              url=f"{base}/static/js/async/{name}.{hashv}.js"
               try:
-                  r=requests.get(url,headers=h,timeout=30); body=r.text
-                  print("\\nCHUNK",i,name,r.status_code,len(body),url)
+                  r=requests.get(url,headers=h,timeout=15)
+                  if r.status_code!=200 or len(r.text)<100: continue
+                  body=r.text
+                  found=[]
                   for term in terms:
-                      positions=[m.start() for m in re.finditer(re.escape(term),body,re.I)]
-                      for p in positions[:4]:
-                          print("HIT",term,body[max(0,p-700):min(len(body),p+1200)])
-              except Exception as e: print("ERR",i,repr(e))
+                      p=body.lower().find(term.lower())
+                      if p>=0: found.append((term,p))
+                  if found:
+                      print("\\nCHUNK",i,name,len(body),url)
+                      for term,p in found:
+                          print("HIT",term,body[max(0,p-500):min(len(body),p+1300)])
+              except Exception as e:
+                  pass
           PY
