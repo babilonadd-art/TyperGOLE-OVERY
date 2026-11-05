@@ -6,6 +6,7 @@ import re
 import unicodedata
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
 
 import requests
@@ -187,6 +188,18 @@ def superbet_live_event_links():
     return events
 
 
+def superbet_goal_market_url(url):
+    """Open the event with Superbet's goal-count market group selected."""
+    if not url:
+        return None
+    parts = urlsplit(url)
+    query = dict(parse_qsl(parts.query, keep_blank_values=True))
+    # marketGroup=103 comes from the Superbet event URL supplied by the user.
+    # It opens the "Liczba goli" market group, not a preselected bet.
+    query["marketGroup"] = "103"
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+
+
 def find_superbet_match_url(home, away, events):
     """Return only an unambiguous official event URL matching both teams."""
     candidates = []
@@ -219,7 +232,7 @@ def find_superbet_match_url(home, away, events):
     if len(candidates) > 1 and candidates[0][0] - candidates[1][0] < 0.05:
         print(f"Superbet: niejednoznaczny link dla {home} - {away}; nie wysyłam linku", flush=True)
         return None
-    return candidates[0][1]
+    return superbet_goal_market_url(candidates[0][1])
 
 
 def find_moviodds_match(home, away, odds_matches):
@@ -1433,7 +1446,7 @@ def main():
                         f"Podatek 12%: {potential['tax']:.2f} zł\n"
                         f"Potencjalna wypłata: {potential['payout']:.2f} zł\n"
                         f"Potencjalny zysk netto: {potential['profit']:+.2f} zł\n"
-                        + (f"Superbet: {pick['superbet_url']}" if pick.get("superbet_url") else "Superbet: nie znaleziono jednoznacznego linku do tego meczu.")
+                        + (f"Superbet (Liczba goli): {pick['superbet_url']}" if pick.get("superbet_url") else "Superbet: nie znaleziono jednoznacznego linku do tego meczu.")
                     )
                     pick["delivery_status"] = "sent"
                     save_state(state)
