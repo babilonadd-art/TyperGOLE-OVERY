@@ -1068,9 +1068,14 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market):
         if wanted_id and (old_id == wanted_id or old_key.startswith(wanted_id + ":")):
             return True
 
-        # Team-name fallback is date-scoped to avoid treating a later rematch
-        # between the same clubs as the already-sent fixture.
-        if old.get("date") != match_date:
+        # Provider IDs can change between list/detail scans. Match the fixture
+        # by both team names as well, allowing a one-day timezone boundary.
+        old_date = str(old.get("date") or "")
+        try:
+            day_gap = abs((datetime.fromisoformat(old_date).date() - datetime.fromisoformat(match_date).date()).days)
+        except (TypeError, ValueError):
+            day_gap = 99
+        if day_gap > 1:
             continue
         old_home = normalized_team_name(old.get("home"))
         old_away = normalized_team_name(old.get("away"))
@@ -1592,41 +1597,30 @@ def settle_picks(state):
                 target_score = f"{home_now}-{away_now}" if current_total is not None else None
                 period_complete = finished
 
-            goal_seen = target_total is not None and target_total > baseline_total
-            if goal_seen:
-                if period_complete:
-                    # The provider marks the fixture as finished and supplies its final
-                    # score. That official final score already includes VAR decisions,
-                    # so do not leave a completed match waiting for another scan.
-                    pick.pop("goal_pending_since", None)
-                    won = True
-                else:
-                    pending_since = pick.get("goal_pending_since")
-                    if not pending_since:
-                        pick["goal_pending_since"] = now.isoformat()
-                        print(f"Wykryto gola dla {pick.get('key')} — uruchamiam 3-minutowe potwierdzenie VAR.")
-                        continue
-                    try:
-                        pending_at = datetime.fromisoformat(pending_since)
-                        if pending_at.tzinfo is None:
-                            pending_at = pending_at.replace(tzinfo=TZ)
-                        elapsed = (now - pending_at.astimezone(TZ)).total_seconds()
-                    except (TypeError, ValueError):
-                        pick["goal_pending_since"] = now.isoformat()
-                        continue
-
-                    if elapsed < confirmation_seconds:
-                        continue
-                    won = True
-            else:
-                # A VAR cancellation resets the pending goal. A loss is only possible
-                # after the relevant period has ended without a qualifying goal.
+            # OVER X.5 is a win only when the final score contains at least
+            # X+1 goals. Never settle from a single goal while the match is live.
+            # For HT picks, period_complete means the first half is confirmed over.
+            if not period_complete:
                 if pick.pop("goal_pending_since", None):
-                    print(f"Gol anulowany lub wynik cofnięty dla {pick.get('key')} — kasuję oczekujące rozliczenie.")
-                if not period_complete:
-                    continue
-                won = False
+                    print(
+                        f"Kasuję przedwczesne oczekujące rozliczenie dla {pick.get('key')}; "
+                        "wynik rozliczamy dopiero po zakończeniu właściwego okresu.",
+                        flush=True,
+                    )
+                continue
 
+            try:
+                selected_line = float(pick.get("goal_line"))
+            except (TypeError, ValueError):
+                print(f"BRAK POPRAWNEJ LINII OVER dla {pick.get('key')} — nie rozliczam.", flush=True)
+                continue
+
+            if target_total is None:
+                print(f"BRAK KOŃCOWEGO WYNIKU dla {pick.get('key')} — nie rozliczam.", flush=True)
+                continue
+
+            won = float(target_total) > selected_line
+            pick.pop("goal_pending_since", None)
             result_text = "🟢 WYGRANA" if won else "🔴 PRZEGRANA"
             score_text = target_score or "brak"
             goals_text = str(target_total) if target_total is not None else "nieznana"
