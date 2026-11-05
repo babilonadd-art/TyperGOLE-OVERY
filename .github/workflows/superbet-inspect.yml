@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Inspect relevant Superbet async chunks
+      - name: Trace Superbet selection and share-link handling
         run: |
           python - <<'PY'
           import requests,re
@@ -24,18 +24,18 @@ jobs:
           tail=b[b.find('o.u=function'):]
           a=tail.find('(({')+3; z=tail.find('})[e]||e)')
           names=dict(re.findall(r'([0-9]+):"([a-zA-Z0-9_-]+)"',tail[a:z]))
-          rest=tail[z:]
-          hashes=dict(re.findall(r'([0-9]+):"([0-9a-f]{8})"',rest))
-          print("NAMED",names)
-          for i in ("4772","79535","30354","31328","49111","77016"):
+          hashes=dict(re.findall(r'([0-9]+):"([0-9a-f]{8})"',tail[z:]))
+          targets=("4772","79535","30354","31328","49111","77016")
+          terms=("addSingleSelection","oddUuid","copiedSelection","ticketId","shareTicket","shareBet","shareUrl","copySelection","selectionId","eventId","location.search","URLSearchParams","queryParams","ticket-shared","copiedFromUserId")
+          for i in targets:
               if i not in hashes: print("NO_HASH",i); continue
-              name=names.get(i,i)
-              url=f"{base}/static/js/async/{name}.{hashes[i]}.js"
+              name=names.get(i,i); url=f"{base}/static/js/async/{name}.{hashes[i]}.js"
               try:
-                  r=requests.get(url,headers=h,timeout=30); body=r.text; low=body.lower()
-                  print("CHUNK",i,name,r.status_code,len(body),url)
-                  for term in ("marketuuid","outcomeid","oddid","betslip","selection","urlsearchparams","location.search","marketlineuuid"):
-                      p=low.find(term)
-                      if p>=0: print("HIT",term,body[max(0,p-250):p+500])
+                  r=requests.get(url,headers=h,timeout=30); body=r.text
+                  print("\\nCHUNK",i,name,r.status_code,len(body),url)
+                  for term in terms:
+                      positions=[m.start() for m in re.finditer(re.escape(term),body,re.I)]
+                      for p in positions[:4]:
+                          print("HIT",term,body[max(0,p-700):min(len(body),p+1200)])
               except Exception as e: print("ERR",i,repr(e))
           PY
