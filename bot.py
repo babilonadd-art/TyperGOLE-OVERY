@@ -756,43 +756,40 @@ def live_match_metrics(match):
 
 def match_stats_look_promising(match, market):
     """
-    Stricter live-goal filter. Requires a minimum number of shots on target
-    and at least two independent attacking signals; unavailable metrics are
-    ignored rather than treated as zero.
+    Moderately relaxed live-goal filter. Shots on target remain mandatory,
+    with one additional attacking indicator; missing metrics are ignored.
     """
     m = live_match_metrics(match)
     if not m:
         return False, m, 0
 
     if market == "HT":
-        min_sot = 2
+        min_sot = 1
         thresholds = {
-            "shots": 5,
-            "shots_on_target": 2,
-            "dangerous_attacks": 25,
-            "xg": 0.70,
+            "shots": 4,
+            "shots_on_target": 1,
+            "dangerous_attacks": 20,
+            "xg": 0.45,
             "big_chances": 1,
-            "shots_inside_box": 3,
-            "touches_in_box": 8,
+            "shots_inside_box": 2,
+            "touches_in_box": 6,
         }
     else:
-        min_sot = 3
+        min_sot = 2
         thresholds = {
-            "shots": 9,
-            "shots_on_target": 3,
-            "dangerous_attacks": 45,
-            "xg": 1.10,
+            "shots": 7,
+            "shots_on_target": 2,
+            "dangerous_attacks": 35,
+            "xg": 0.80,
             "big_chances": 1,
-            "shots_inside_box": 5,
-            "touches_in_box": 15,
+            "shots_inside_box": 4,
+            "touches_in_box": 10,
         }
 
     shots_on_target = m.get("shots_on_target")
     if shots_on_target is None or shots_on_target < min_sot:
         return False, m, 0
 
-    # Shots on target are mandatory; require at least one more independent
-    # indicator before considering the match suitable for a live goal pick.
     signals = sum(
         1 for key, threshold in thresholds.items()
         if m.get(key) is not None and m[key] >= threshold
@@ -1578,9 +1575,9 @@ def main():
                         stats["missing_minute"] += 1
                         continue
 
-                    # Okna polowania i wysyłki: HT 20-35', FT 55-70'.
-                    # Nie wysyłamy później, aby został realny czas na gola.
-                    market = "HT" if 20 <= minute <= 35 else "FT" if 55 <= minute <= 70 else None
+                    # Szersze okna polowania: HT 15-42', FT 50-80'.
+                    # Rynek i linia nadal muszą być dokładnie potwierdzone w feedzie Superbet.
+                    market = "HT" if 15 <= minute <= 42 else "FT" if 50 <= minute <= 80 else None
                     if market is None:
                         stats["outside_window"] += 1
                         continue
