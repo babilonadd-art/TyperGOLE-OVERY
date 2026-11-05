@@ -35,6 +35,10 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Initialize Superbet diagnostic log
+        run: |
+          mkdir -p data
+          : > data/superbet_diagnostics.jsonl
       - name: Run repeated live bot scans
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -64,3 +68,11 @@ jobs:
           else
             echo "No state file was created; nothing to persist."
           fi
+      - name: Upload Superbet diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: superbet-diagnostics
+          path: data/superbet_diagnostics.jsonl
+          if-no-files-found: warn
+          retention-days: 30
