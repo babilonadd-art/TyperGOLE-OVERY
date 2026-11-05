@@ -1732,5 +1732,6 @@
       "settled_at": "2026-11-06T00:40:39.932950+01:00"
     }
   ],
-  "reports_sent": []
+  "reports_sent": [],
+  "telegram_test_pending": true
 }
