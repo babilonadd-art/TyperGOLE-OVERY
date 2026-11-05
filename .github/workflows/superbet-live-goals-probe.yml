@@ -1,0 +1,79 @@
+name: Verify Superbet live football goal odds
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/superbet-live-goals-probe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify live soccer goal markets and odds in Superbet Poland
+        run: |
+          python - <<'PY'
+          import requests, datetime, time, json
+          from concurrent.futures import ThreadPoolExecutor, as_completed
+          from urllib.parse import quote
+
+          base="https://production-superbet-offer-pl.freetls.fastly.net"
+          headers={"User-Agent":"Mozilla/5.0","Accept":"application/json","Origin":"https://superbet.pl","Referer":"https://superbet.pl/"}
+          now=datetime.datetime.now(datetime.timezone.utc)
+          params={
+            "startDate":(now-datetime.timedelta(hours=5)).replace(minute=0,second=0,microsecond=0).isoformat().replace("+00:00","Z"),
+            "endDate":(now+datetime.timedelta(hours=2)).replace(minute=0,second=0,microsecond=0).isoformat().replace("+00:00","Z")
+          }
+          resp=requests.get(base+"/v3/pl-PL/events",params=params,headers=headers,timeout=25)
+          print("LIST_STATUS",resp.status_code,"NOW_UTC",now.isoformat(),flush=True)
+          resp.raise_for_status()
+          events=resp.json().get("events",[])
+          candidates=[]
+          for e in events:
+            f=e.get("fixture") or {}
+            if str(f.get("sport_id"))!="5": continue
+            try: start=datetime.datetime.fromisoformat(str(f.get("utc_date","")).replace("Z","+00:00"))
+            except: continue
+            meta=e.get("inplay_stats_metadata") or {}
+            status=str(meta.get("status","")).upper()
+            if start <= now and status not in ("FINISHED","NOT_STARTED","CANCELLED","POSTPONED"):
+              candidates.append((e,start,status))
+          candidates.sort(key=lambda x:x[1],reverse=True)
+          print("SOCCER_STARTED_CANDIDATES",len(candidates),flush=True)
+          for e,start,status in candidates[:30]:
+            print("CANDIDATE",e.get("event_id"),e.get("fixture",{}).get("event_name"),start.isoformat(),status,flush=True)
+
+          def fetch(item):
+            e,start,status=item
+            url=base+f"/v2/pl-PL/events/{quote(str(e.get('event_id')))}"
+            r=requests.get(url,headers=headers,timeout=12)
+            if r.status_code!=200: return (e,r.status_code,None)
+            payload=r.json()
+            data=payload.get("data") or []
+            if not data: return (e,r.status_code,[])
+            odds=data[0].get("odds") or []
+            goals=[]
+            for o in odds:
+              name=str(o.get("marketName") or "")
+              info=str(o.get("info") or "")
+              label=str(o.get("name") or "")
+              if any(k in (name+" "+info).lower() for k in ("liczba goli","goal","over","under","gole","gola")):
+                goals.append({k:o.get(k) for k in ("marketId","marketUuid","marketName","name","info","price","status","specialBetValue","specifiers","uuid")})
+            return (e,r.status_code,goals)
+          found=0
+          with ThreadPoolExecutor(max_workers=6) as pool:
+            futures=[pool.submit(fetch,x) for x in candidates[:30]]
+            for fut in as_completed(futures):
+              e,code,goals=fut.result()
+              if goals:
+                found+=1
+                print("LIVE_GOAL_MARKETS",e.get("event_id"),e.get("fixture",{}).get("event_name"),"HTTP",code,json.dumps(goals[:35],ensure_ascii=False),flush=True)
+              else:
+                print("NO_GOAL_MARKET",e.get("event_id"),e.get("fixture",{}).get("event_name"),"HTTP",code,flush=True)
+          print("EVENTS_WITH_GOAL_MARKETS",found,flush=True)
+          PY
