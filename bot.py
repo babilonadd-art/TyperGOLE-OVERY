@@ -1627,10 +1627,10 @@ def main():
                         stats["missing_minute"] += 1
                         continue
 
-                    # Polowanie: HT od 25. do końca pierwszej połowy; FT od 60. minuty do końca meczu.
+                    # Polowanie: HT od 25. do 36. minuty; FT od 60. do 76. minuty.
                     # Kurs pobieramy z Superbet bez sztywnego minimum i maksimum.
                     # Rynek i linia nadal muszą być dokładnie potwierdzone w feedzie.
-                    market = "HT" if 25 <= minute <= 35 else "FT" if 60 <= minute <= 75 else None
+                    market = "HT" if 25 <= minute <= 36 else "FT" if 60 <= minute <= 76 else None
                     if market is None:
                         stats["outside_window"] += 1
                         continue
