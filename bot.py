@@ -1622,6 +1622,18 @@ def main():
                         stats["detail_error"] += 1
                         print(f"[{index}] Brak identyfikatora szczegółów SportScore — pomijam mecz.", flush=True)
                         continue
+                    # Filter by the list endpoint's live minute BEFORE requesting
+                    # per-match details. Most live fixtures are outside our two
+                    # betting windows, and each detail request can take up to 20s.
+                    # If the minute is missing or outside the window, the next
+                    # scheduled scan will re-check it without wasting an API call.
+                    if raw_minute is None:
+                        stats["missing_minute"] += 1
+                        continue
+                    if not (25 <= raw_minute <= 36 or 60 <= raw_minute <= 75):
+                        stats["outside_window"] += 1
+                        continue
+
                     try:
                         detail = match_detail(slug)
                     except Exception as exc:
