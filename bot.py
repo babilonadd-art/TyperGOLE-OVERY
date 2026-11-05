@@ -236,6 +236,16 @@ def superbet_live_event_links():
 
 
 
+def log_superbet_diagnostic(record):
+    """Print and persist a structured Superbet audit record for this workflow run."""
+    line = json.dumps(record, ensure_ascii=False, default=str)
+    print("SUPERBET_DIAGNOSTIC " + line, flush=True)
+    audit_path = Path("data/superbet_diagnostics.jsonl")
+    audit_path.parent.mkdir(parents=True, exist_ok=True)
+    with audit_path.open("a", encoding="utf-8") as audit_file:
+        audit_file.write(line + "\\n")
+
+
 def find_superbet_event(home, away, events):
     """Match a Superbet fixture only when BOTH normalized team names match exactly."""
     wanted_home = normalized_team_name(home)
@@ -282,7 +292,7 @@ def find_superbet_event(home, away, events):
 
     if len(exact) != 1:
         diagnostic["result"] = "REJECTED_NO_EXACT_MATCH" if not exact else "REJECTED_AMBIGUOUS"
-        print("SUPERBET_DIAGNOSTIC " + json.dumps(diagnostic, ensure_ascii=False), flush=True)
+        log_superbet_diagnostic(diagnostic)
         return None
 
     selected = exact[0]
@@ -292,7 +302,7 @@ def find_superbet_event(home, away, events):
         "superbet_event_name": selected.get("text"),
         "superbet_url": selected.get("url"),
     })
-    print("SUPERBET_DIAGNOSTIC " + json.dumps(diagnostic, ensure_ascii=False), flush=True)
+    log_superbet_diagnostic(diagnostic)
     return selected
 
 
@@ -1877,7 +1887,7 @@ def main():
                         "quote_updated_at": live_price.get("updated_at"),
                         "source": "Superbet",
                     }
-                    print("SUPERBET_DIAGNOSTIC " + json.dumps(quote_audit, ensure_ascii=False), flush=True)
+                    log_superbet_diagnostic(quote_audit)
 
                     pick = {
                         "key": key,
