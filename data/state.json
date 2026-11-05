@@ -649,9 +649,11 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
-      "goal_pending_since": "2026-11-05T17:18:37.864669+01:00"
+      "won": true,
+      "settled_score": "4-1",
+      "settled_at": "2026-11-05T17:31:42.933524+01:00"
     }
   ],
   "reports_sent": []
