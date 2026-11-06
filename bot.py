@@ -52,7 +52,7 @@ def daily_sent_match_count(state, day):
     for pick in state.get("picks", []):
         if pick.get("date") != day or pick.get("delivery_status", "sent") != "sent":
             continue
-        if pick.get("market") not in (BTTS_HT_MARKET, BTTS_FT_MARKET):
+        if pick.get("market") != BTTS_FT_MARKET:
             continue
         fixture_id = pick.get("id") or pick.get("slug") or pick.get("key")
         if fixture_id:
@@ -2816,7 +2816,7 @@ def send_prematch_btts_full_time_picks(state):
 
 
 def main():
-    print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS 1H + FT START {now_local().isoformat()} ===", flush=True)
+    print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS FT ONLY START {now_local().isoformat()} ===", flush=True)
     print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
     state = load_state()
     if state.get("telegram_test_pending"):
@@ -2829,23 +2829,20 @@ def main():
     settle_picks(state)
 
     today = now_local().date().isoformat()
-    for market, sender, label in (
-        (BTTS_HT_MARKET, send_prematch_btts_picks, "BTTS 1H"),
-        (BTTS_FT_MARKET, send_prematch_btts_full_time_picks, "BTTS FT"),
-    ):
-        sent_matches = daily_sent_match_count(state, today)
-        print(f"Spotkania z wysłanym typem dzisiaj: {sent_matches}/{MAX_DAILY_PICKS}", flush=True)
-        if sent_matches < MAX_DAILY_PICKS:
-            try:
-                sender(state)
-            except Exception as exc:
-                print(f"BŁĄD SKANOWANIA {label}: {type(exc).__name__}: {exc}", flush=True)
+    # Nowe typy wysyłamy wyłącznie na BTTS cały mecz (FT).
+    sent_matches = daily_sent_match_count(state, today)
+    print(f"Spotkania BTTS FT wysłane dzisiaj: {sent_matches}/{MAX_DAILY_PICKS}", flush=True)
+    if sent_matches < MAX_DAILY_PICKS:
+        try:
+            send_prematch_btts_full_time_picks(state)
+        except Exception as exc:
+            print(f"BŁĄD SKANOWANIA BTTS FT: {type(exc).__name__}: {exc}", flush=True)
     try:
         send_monthly_reports(state)
     except Exception as exc:
         print(f"Monthly report error: {type(exc).__name__}: {exc}", flush=True)
     save_state(state)
-    print("=== TyperGOLE-OVERY PRE-MATCH BTTS 1H + FT END ===", flush=True)
+    print("=== TyperGOLE-OVERY PRE-MATCH BTTS FT ONLY END ===", flush=True)
 
 
 if __name__ == "__main__":
