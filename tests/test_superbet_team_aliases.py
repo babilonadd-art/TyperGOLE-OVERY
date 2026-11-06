@@ -145,11 +145,7 @@ class BTTSFirstHalfSettlementTests(unittest.TestCase):
             "minute": 60,
             "half_time_score": "1-1",
         }
-        with patch.object(bot, "match_detail", return_value=match), \\
-             patch.object(bot, "settlement_confirmation_ready", return_value=True), \\
-             patch.object(bot, "now_local", return_value=datetime(2026, 11, 6, 12, 0, tzinfo=timezone.utc)), \\
-             patch.object(bot, "telegram") as send_message, \\
-             patch.object(bot, "save_state"):
+        with patch.object(bot, "match_detail", return_value=match), patch.object(bot, "settlement_confirmation_ready", return_value=True), patch.object(bot, "now_local", return_value=datetime(2026, 11, 6, 12, 0, tzinfo=timezone.utc)), patch.object(bot, "telegram") as send_message, patch.object(bot, "save_state"):
             bot.settle_picks(state)
         self.assertTrue(state["picks"][0]["settled"])
         self.assertTrue(state["picks"][0]["won"])
