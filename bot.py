@@ -1234,6 +1234,7 @@ def telegram(message):
     result = response.json()
     if not result.get("ok"):
         raise RuntimeError(f"Telegram API error: {result}")
+    return result
 
 
 # Settlement lookup supports both live detail and the finished-fixture archive.
@@ -1939,6 +1940,61 @@ def settle_picks(state):
             print(f"ROZLICZONO: {pick.get('key')} -> {result_text}", flush=True)
         except Exception as exc:
             print(f"Settlement error for {pick.get('key')}: {type(exc).__name__}: {exc}", flush=True)
+
+
+
+def retry_pending_settlement_notifications(state):
+    """Retry explicitly queued settlement notices and record Telegram's message ID."""
+    for pick in state.get("picks", []):
+        if not pick.get("settlement_notification_retry"):
+            continue
+        if not pick.get("settled") or pick.get("market") != BTTS_FT_MARKET:
+            continue
+        score = str(pick.get("settled_score") or "brak")
+        try:
+            odds = float(pick.get("odds"))
+        except (TypeError, ValueError):
+            odds = None
+        stake = float(pick.get("stake", STAKE) or STAKE)
+        won = bool(pick.get("won"))
+        result_text = "🟢 WYGRANA" if won else "🔴 PRZEGRANA"
+        if won and odds is not None:
+            result = calculate_bet_result(stake, odds)
+            financial_text = (
+                f"\\nStawka: {result['stake']:.2f} zł | Kurs: {odds:.2f}"
+                f"\\nPodatek 12%: {result['tax']:.2f} zł"
+                f"\\nWypłata po podatku: {result['payout']:.2f} zł"
+                f"\\nZYSK NETTO: {result['profit']:+.2f} zł"
+            )
+        else:
+            financial_text = f"\\nSTRATA: {-stake:.2f} zł" if not won else ""
+        message = (
+            f"🔁 PONOWIONE ROZLICZENIE — BTTS CAŁY MECZ\\n"
+            f"{result_text}\\n{pick.get('home')} - {pick.get('away')}\\n"
+            f"Wynik: {score}"
+        )
+        if odds is not None:
+            message += f"\\nKurs: {odds:.2f}"
+        message += financial_text
+        try:
+            response = telegram(message)
+            telegram_message = response.get("result", {}) if isinstance(response, dict) else {}
+            pick["settlement_notification_retry"] = False
+            pick["settlement_notification_retry_sent"] = True
+            pick["settlement_telegram_message_id"] = telegram_message.get("message_id")
+            pick["settlement_notification_retry_at"] = now_local().isoformat()
+            save_state(state)
+            print(
+                f"PONOWIONE ROZLICZENIE TELEGRAM OK: {pick.get('key')} "
+                f"message_id={pick.get('settlement_telegram_message_id')}",
+                flush=True,
+            )
+        except Exception as exc:
+            print(
+                f"PONOWIONE ROZLICZENIE TELEGRAM BŁĄD: {pick.get('key')} — "
+                f"{type(exc).__name__}: {exc}",
+                flush=True,
+            )
 
 
 def send_monthly_reports(state):
@@ -2878,6 +2934,7 @@ def main():
 
     # Rozliczenia HT i FT są sprawdzane podczas każdego uruchomienia workflow.
     settle_picks(state)
+    retry_pending_settlement_notifications(state)
 
     today = now_local().date().isoformat()
     # Nowe typy wysyłamy wyłącznie na BTTS cały mecz (FT).
