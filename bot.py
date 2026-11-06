@@ -646,6 +646,19 @@ def superbet_goal_market_url(url):
     return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
 
 
+def superbet_btts_first_half_url(url):
+    """Open the event directly in Superbet's BTTS first-half market group."""
+    if not url:
+        return None
+    parts = urlsplit(url)
+    query = dict(parse_qsl(parts.query, keep_blank_values=True))
+    # Parameters copied from the user's working Superbet BTTS 1st-half link.
+    query["t"] = "offer-prematch-102"
+    query["mdt"] = "o"
+    query["marketGroup"] = "78"
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+
+
 def find_superbet_match_url(home, away, events):
     """Return only an unambiguous official event URL matching both teams."""
     candidates = []
@@ -2352,6 +2365,7 @@ def send_prematch_btts_picks(state):
             continue
         estimate = candidate["estimate"]
         probability = round(estimate["probability"] * 100, 1)
+        bet_url = superbet_btts_first_half_url(candidate["event"]["url"])
         pick = {
             "key": f"{candidate['id']}:{BTTS_HT_MARKET}",
             "id": candidate["id"], "slug": candidate["slug"],
@@ -2362,7 +2376,7 @@ def send_prematch_btts_picks(state):
             "odds": final_quote["odds"], "odds_source": "Superbet",
             "odds_market": final_quote["market"],
             "odds_updated_at": final_quote.get("updated_at"),
-            "superbet_url": candidate["event"]["url"],
+            "superbet_url": bet_url,
             "probability": probability, "probability_method": "Poisson HT scoring/conceding rates",
             "model_inputs": estimate, "settled": False,
             "delivery_status": "pending",
@@ -2383,7 +2397,7 @@ def send_prematch_btts_picks(state):
                 f"📚 Próba: {estimate['home_sample']} meczów gospodarzy / {estimate['away_sample']} gości\n"
                 f"Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
                 f"Model: gole w 1. połowie — zdobywane i tracone\n"
-                f"Superbet: {candidate['event']['url']}\n"
+                f"👉 OTWÓRZ BTTS 1. POŁOWA W SUPERBET: {bet_url}\n"
                 f"Powered by SportScore: https://sportscore.com/"
             )
             telegram(message)
