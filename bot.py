@@ -242,7 +242,7 @@ def superbet_event_local_date(event):
         return None
     try:
         value = str(raw).strip()
-        if re.fullmatch(r"\\d{4}-\\d{2}-\\d{2}", value):
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
             return datetime.fromisoformat(value).date()
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
         if parsed.tzinfo is None:
@@ -253,7 +253,7 @@ def superbet_event_local_date(event):
 
 
 def superbet_live_event_links():
-    """Get Superbet event links from its public event API; HTML is only a fallback."""
+    """Get only today's football event links from Superbet date-scoped API."""
     found = {}
     base = "https://production-superbet-offer-pl.freetls.fastly.net"
     local_now = now_local()
