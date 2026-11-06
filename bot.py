@@ -523,8 +523,8 @@ def telegram_btts_ft(message, home, away, home_logo=None, away_logo=None):
     return result
 
 
-def superbet_live_event_links(target_date=None):
-    """Get football event links for one Warsaw-local calendar date."""
+def superbet_prematch_event_links(target_date=None):
+    """Get pre-match football event links for one Warsaw-local calendar date."""
     found = {}
     base = "https://production-superbet-offer-pl.freetls.fastly.net"
     local_now = now_local()
@@ -3134,7 +3134,7 @@ def send_prematch_btts_picks(state):
     history_cache = state.setdefault("team_history_cache", {})
     state["team_history_cache"] = {key: value for key, value in history_cache.items() if key.startswith(today + ":") or key.startswith("FT:" + today + ":")}
     history_cache = state["team_history_cache"]
-    superbet_events = superbet_live_event_links()
+    superbet_events = superbet_prematch_event_links()
     candidates = []
     for index, match in enumerate(fixtures, 1):
         home, away = teams(match)
@@ -3255,7 +3255,7 @@ def send_prematch_btts_full_time_picks(state):
     # slate after today's fixtures have finished and waits until the next morning.
     superbet_events = []
     for scan_day in scan_dates:
-        superbet_events.extend(superbet_live_event_links(scan_day))
+        superbet_events.extend(superbet_prematch_event_links(scan_day))
     fixtures = scheduled_fixtures_today(superbet_events, scan_dates)
     if not fixtures:
         print("Brak przyszłych spotkań BTTS FT w terminarzu na dziś/jutro.", flush=True)
