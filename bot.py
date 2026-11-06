@@ -1664,8 +1664,11 @@ def match_detail(slug, pick=None):
         if result:
             print(f"Open Matchday: wynik FT {result['home']} - {result['away']} {result['home_score']}-{result['away_score']}", flush=True)
             return result
-        print(f"Open Matchday: brak wyniku CSV dla {pick.get('home')} - {pick.get('away')}; czekam na aktualizację.", flush=True)
-        return {}
+        print(
+            f"Open Matchday: brak wyniku CSV dla {pick.get('home')} - {pick.get('away')}; "
+            "sprawdzam dodatkowe źródła wyniku.",
+            flush=True,
+        )
     """
     Fetch match detail and search finished fixtures. The daily archive is
     capped at 200 rows, so also query the documented team filter to find
