@@ -1853,8 +1853,8 @@ def settle_picks(state):
                     flush=True,
                 )
                 continue
-            # A single stale FT response must never settle a newly sent tip.
-            # Require an unchanged final score across at least 180 seconds.
+            # For live goal-line markets, a single stale FT response must
+            # never settle a newly sent tip: retain the 180-second check.
             # BTTS 1H is settled as soon as the provider confirms the HT
             # score/period. The extra 180-second debounce is only for live
             # goal-line markets and must not delay a completed first half.
