@@ -1692,7 +1692,7 @@ def settle_picks(state):
                 )
                 continue
 
-            # BTTS 1H is settled from the confirmed half-time score itself.
+            # BTTS markets settle from their own confirmed period score.
             # It has no live-entry baseline score; requiring one would block every settlement.
             if pick.get("market") not in (BTTS_HT_MARKET, BTTS_FT_MARKET):
                 baseline_home = as_int(pick.get("score_home"))
@@ -1825,7 +1825,7 @@ def settle_picks(state):
                 continue
 
             if target_total is None or not target_score:
-                print(f"BRAK POTWIERDZONEGO WYNIKU 1. POŁOWY dla {pick.get('key')} — nie rozliczam.", flush=True)
+                print(f"BRAK POTWIERDZONEGO WYNIKU dla {pick.get('key')} — nie rozliczam.", flush=True)
                 continue
 
             if pick.get("market") in (BTTS_HT_MARKET, BTTS_FT_MARKET):
@@ -1859,7 +1859,7 @@ def settle_picks(state):
                 continue
             # For live goal-line markets, a single stale FT response must
             # never settle a newly sent tip: retain the 180-second check.
-            # BTTS 1H is settled as soon as the provider confirms the HT
+            # BTTS 1H settles at HT; BTTS FT waits for the confirmed final score.
             # score/period. The extra 180-second debounce is only for live
             # goal-line markets and must not delay a completed first half.
             if (pick.get("market") != BTTS_HT_MARKET
@@ -2003,7 +2003,7 @@ def update_existing_pick_minutes(state):
 
 
 # ---------------------------------------------------------------------------
-# PRE-MATCH BTTS FIRST-HALF STRATEGY
+# PRE-MATCH BTTS FIRST-HALF AND FULL-TIME STRATEGIES
 # ---------------------------------------------------------------------------
 MAX_DAILY_PICKS = 4
 BTTS_HT_MARKET = "BTTS_HT"
@@ -2467,7 +2467,7 @@ def extract_superbet_btts_full_time(event_detail):
         market = norm(" ".join([row.get("_market_context", "")] + [
             str(row.get(k, "")) for k in market_keys if row.get(k) not in (None, "")
         ]))
-        # Both market identity and first-half period must be explicit.
+        # The unqualified BTTS market is full-time; half-specific variants are excluded.
         is_btts = ("obie druzyny strzela" in market or "both teams to score" in market
                    or re.search(r"\bbtts\b", market))
         is_first_half = any(token in market for token in
