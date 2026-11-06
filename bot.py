@@ -1224,15 +1224,20 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market, 
 
 
 
-def telegram(message):
+def telegram(message, reply_to_message_id=None):
+    """Send a Telegram message, optionally as a reply to the original pick."""
     if not TELEGRAM_TOKEN or not CHAT_ID:
         raise RuntimeError("Missing GitHub Secrets: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID")
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    response = requests.post(
-        url,
-        json={"chat_id": CHAT_ID, "text": message, "disable_web_page_preview": True},
-        timeout=20,
-    )
+    payload = {
+        "chat_id": CHAT_ID,
+        "text": message,
+        "disable_web_page_preview": True,
+    }
+    if reply_to_message_id:
+        payload["reply_to_message_id"] = int(reply_to_message_id)
+        payload["allow_sending_without_reply"] = True
+    response = requests.post(url, json=payload, timeout=20)
     response.raise_for_status()
     result = response.json()
     if not result.get("ok"):
@@ -1738,10 +1743,14 @@ def settle_picks(state):
                 else:
                     winnings_text = f"\nSTRATA: {-stake:.2f} zł" if not won else ""
                 yield_text = ""
-                telegram(
+                settlement_message = (
                     f"{result_text}\n{pick['home']} - {pick['away']}\n"
                     f"Wynik: {score_text} | Gole: {goals_text}"
                     f"{winnings_text}{yield_text}"
+                )
+                telegram(
+                    settlement_message,
+                    reply_to_message_id=pick.get("telegram_message_id"),
                 )
                 pick["settled"] = True
                 pick["won"] = won
@@ -1967,10 +1976,14 @@ def settle_picks(state):
             else:
                 winnings_text = f"\nSTRATA: {-stake:.2f} zł" if not won else ""
             yield_text = ""
-            telegram(
+            settlement_message = (
                 f"{result_text}\n{pick['home']} - {pick['away']}\n"
                 f"Wynik: {score_text} | Gole: {goals_text}"
                 f"{winnings_text}{yield_text}"
+            )
+            telegram(
+                settlement_message,
+                reply_to_message_id=pick.get("telegram_message_id"),
             )
             pick["settled"] = True
             pick["won"] = won
@@ -2019,7 +2032,10 @@ def retry_pending_settlement_notifications(state):
             message += f"\nKurs: {odds:.2f}"
         message += financial_text
         try:
-            response = telegram(message)
+            response = telegram(
+                message,
+                reply_to_message_id=pick.get("telegram_message_id"),
+            )
             telegram_message = response.get("result", {}) if isinstance(response, dict) else {}
             pick["settlement_notification_retry"] = False
             pick["settlement_notification_retry_sent"] = True
@@ -2980,7 +2996,9 @@ def send_prematch_btts_full_time_picks(state):
                 f"👉 OTWÓRZ BTTS CAŁY MECZ W SUPERBET: {bet_url}\n"
                 f"Powered by SportScore: https://sportscore.com/"
             )
-            telegram(message)
+            response = telegram(message)
+            telegram_result = response.get("result", {}) if isinstance(response, dict) else {}
+            pick["telegram_message_id"] = telegram_result.get("message_id")
             pick["delivery_status"] = "sent"
             pick["sent_at"] = now_local().isoformat()
             save_state(state)
