@@ -7,7 +7,7 @@ import bot
 from bot import (
     normalized_team_name, team_name_aliases, find_superbet_event,
     extract_superbet_live_over_odds, extract_superbet_btts_first_half,
-    first_half_btts_probability,
+    first_half_btts_probability, same_fixture_pick_exists,
 )
 
 
@@ -189,3 +189,41 @@ class BTTSFirstHalfSettlementTests(unittest.TestCase):
         self.assertTrue(state["picks"][0]["settled"])
         self.assertFalse(state["picks"][0]["won"])
         send_message.assert_called_once()
+
+
+class DuplicateGuardRetryTests(unittest.TestCase):
+    def test_failed_telegram_delivery_does_not_block_retry(self):
+        state = {
+            "duplicate_guard": [{
+                "id": "fixture-3",
+                "key": "fixture-3:BTTS_HT",
+                "market": "BTTS_HT",
+                "date": "2026-11-06",
+                "home": "Home FC",
+                "away": "Away FC",
+                "slug": "home-vs-away",
+                "delivery_status": "failed",
+            }]
+        }
+        self.assertFalse(same_fixture_pick_exists(
+            state, "fixture-3", "Home FC", "Away FC",
+            "2026-11-06", "BTTS_HT", slug="home-vs-away"
+        ))
+
+    def test_successfully_sent_tip_still_blocks_duplicate(self):
+        state = {
+            "duplicate_guard": [{
+                "id": "fixture-4",
+                "key": "fixture-4:BTTS_HT",
+                "market": "BTTS_HT",
+                "date": "2026-11-06",
+                "home": "Home FC",
+                "away": "Away FC",
+                "slug": "home-vs-away",
+                "delivery_status": "sent",
+            }]
+        }
+        self.assertTrue(same_fixture_pick_exists(
+            state, "fixture-4", "Home FC", "Away FC",
+            "2026-11-06", "BTTS_HT", slug="home-vs-away"
+        ))
