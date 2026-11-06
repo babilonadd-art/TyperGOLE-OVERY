@@ -2438,7 +2438,8 @@
       "settlement_notification_retry_sent": true,
       "settlement_corrected_from": "2-3",
       "settlement_telegram_message_id": 202,
-      "settlement_notification_retry_at": "2026-11-06T18:49:00.629962+01:00"
+      "settlement_notification_retry_at": "2026-11-06T18:49:00.629962+01:00",
+      "counts_toward_daily_limit": false
     }
   ],
   "reports_sent": [],
@@ -3088,7 +3089,8 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "sent_at": "2026-11-06T14:46:53.957942+01:00"
+      "sent_at": "2026-11-06T14:46:53.957942+01:00",
+      "counts_toward_daily_limit": false
     }
   ],
   "team_history_cache": {
