@@ -29,6 +29,39 @@ class SuperbetFullTimeBttsQuoteTests(unittest.TestCase):
         self.assertEqual(quote["odds"], 2.22)
         self.assertEqual(quote["market_group_id"], 102)
 
+
+    def test_ignores_btts_combo_markets_and_keeps_standalone_full_time(self):
+        payload = {
+            "markets": [
+                {
+                    "marketName": "Mecz",
+                    "marketGroupId": 539,
+                    "outcomes": [
+                        {"info": "Obie drużyny strzelą gola w meczu", "name": "Tak", "price": "1.90", "status": "active"},
+                    ],
+                },
+                {
+                    "marketName": "Obie drużyny strzelą gola lub powyżej 2,5 gola",
+                    "marketGroupId": 201501,
+                    "outcomes": [
+                        {"name": "Tak", "price": "1.55", "status": "active"},
+                    ],
+                },
+                {
+                    "marketName": "Obie drużyny strzelą w przynajmniej jednej połowie meczu",
+                    "marketGroupId": 200751,
+                    "outcomes": [
+                        {"name": "Tak", "price": "2.05", "status": "active"},
+                    ],
+                },
+            ]
+        }
+        quote = extract_superbet_btts_full_time(payload)
+        self.assertIsNotNone(quote)
+        self.assertEqual(quote["odds"], 1.90)
+        self.assertEqual(quote["market_group_id"], 539)
+
+
     def test_rejects_first_half_btts(self):
         payload = {
             "markets": [{
