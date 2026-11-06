@@ -2283,9 +2283,12 @@
         "home_conceded_rate": 0.7,
         "away_conceded_rate": 0.4
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
-      "sent_at": "2026-11-06T12:15:49.149487+01:00"
+      "sent_at": "2026-11-06T12:15:49.149487+01:00",
+      "won": false,
+      "settled_score": "2-0",
+      "settled_at": "2026-11-06T14:41:27.880105+01:00"
     },
     {
       "key": "y39mp1h68ogzmoj:BTTS_HT",
@@ -2316,9 +2319,12 @@
         "home_conceded_rate": 0.16666666666666666,
         "away_conceded_rate": 0.8333333333333334
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
-      "sent_at": "2026-11-06T12:15:49.871906+01:00"
+      "sent_at": "2026-11-06T12:15:49.871906+01:00",
+      "won": true,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-06T14:41:30.910958+01:00"
     },
     {
       "key": "4wyrn4h61wp5q86:BTTS_HT",
@@ -2349,9 +2355,12 @@
         "home_conceded_rate": 0.6,
         "away_conceded_rate": 0.6
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
-      "sent_at": "2026-11-06T12:15:50.619832+01:00"
+      "sent_at": "2026-11-06T12:15:50.619832+01:00",
+      "won": false,
+      "settled_score": "0-0",
+      "settled_at": "2026-11-06T14:41:33.660032+01:00"
     },
     {
       "key": "x7lm7phjdv7dm2w:BTTS_HT",
@@ -2382,9 +2391,12 @@
         "home_conceded_rate": 0.5,
         "away_conceded_rate": 0.7
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
-      "sent_at": "2026-11-06T12:38:00.994693+01:00"
+      "sent_at": "2026-11-06T12:38:00.994693+01:00",
+      "won": false,
+      "settled_score": "1-0",
+      "settled_at": "2026-11-06T14:41:36.465345+01:00"
     }
   ],
   "reports_sent": [],
