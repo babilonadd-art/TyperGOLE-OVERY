@@ -2544,7 +2544,7 @@ def send_prematch_btts_picks(state):
     if not fixtures:
         return
     history_cache = state.setdefault("team_history_cache", {})
-    state["team_history_cache"] = {key: value for key, value in history_cache.items() if key.startswith(today + ":")}
+    state["team_history_cache"] = {key: value for key, value in history_cache.items() if key.startswith(today + ":") or key.startswith("FT:" + today + ":")}
     history_cache = state["team_history_cache"]
     superbet_events = superbet_live_event_links()
     candidates = []
@@ -2664,7 +2664,7 @@ def send_prematch_btts_full_time_picks(state):
     if not fixtures:
         return
     history_cache = state.setdefault("team_history_cache", {})
-    state["team_history_cache"] = {key: value for key, value in history_cache.items() if key.startswith(today + ":")}
+    state["team_history_cache"] = {key: value for key, value in history_cache.items() if key.startswith(today + ":") or key.startswith("FT:" + today + ":")}
     history_cache = state["team_history_cache"]
     superbet_events = superbet_live_event_links()
     candidates = []
@@ -2797,7 +2797,7 @@ def main():
             try:
                 sender(state)
             except Exception as exc:
-                print(f"BŁĄD SKANOWANIA {label}: {type(exc).__name__}: {exc}", flush=True)}
+                print(f"BŁĄD SKANOWANIA {label}: {type(exc).__name__}: {exc}", flush=True)
     try:
         send_monthly_reports(state)
     except Exception as exc:
