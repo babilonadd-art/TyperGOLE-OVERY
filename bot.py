@@ -2633,10 +2633,20 @@ def extract_superbet_btts_full_time(event_detail):
         ))
         is_btts = (
             "obie druzyny strzela" in market
-            or "obie druzyny strzela gola" in market
             or "both teams to score" in market
             or re.search(r"\\bbtts\\b", market) is not None
         )
+        # Superbet also lists combination markets containing the words BTTS,
+        # e.g. "BTTS + over 2.5", "BTTS or over 2.5", and "BTTS in either half".
+        # Those are NOT the plain full-time BTTS market and must never compete
+        # with the standalone market's price.
+        is_combined_market = any(token in f" {market} " for token in (
+            " lub ", " or ", " powyzej ", " ponad ", " over ",
+            " co najmniej ", " przynajmniej ", " oraz ",
+            " w obu polowach ", " w kazdej polowie ",
+            " w przynajmniej jednej polowie ", " w jednej z polow ",
+            " padnie ", " padna ",
+        ))
         is_first_half = any(token in market for token in (
             "1 polowa", "pierwsza polowa", "first half", "1st half", "1 pol",
             "half time", "halftime",
@@ -2644,7 +2654,7 @@ def extract_superbet_btts_full_time(event_detail):
         is_second_half = any(token in market for token in (
             "2 polowa", "druga polowa", "second half", "2nd half",
         ))
-        if not is_btts or is_first_half or is_second_half:
+        if not is_btts or is_combined_market or is_first_half or is_second_half:
             continue
 
         selection = norm(first(row, *selection_keys, default=""))
