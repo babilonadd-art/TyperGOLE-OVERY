@@ -659,6 +659,24 @@ def superbet_btts_first_half_url(url):
     return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
 
 
+def superbet_btts_full_time_url(url, quote):
+    """Open the event in the exact full-time BTTS market group detected in Superbet data."""
+    if not url:
+        return None
+    parts = urlsplit(url)
+    query = dict(parse_qsl(parts.query, keep_blank_values=True))
+    query["t"] = "offer-prematch-102"
+    query["mdt"] = "o"
+    # Use the group identifier returned by the actual BTTS quote. Never reuse
+    # the first-half group (78) for a full-time selection.
+    group_id = first(quote or {}, "market_group_id")
+    if group_id not in (None, ""):
+        query["marketGroup"] = str(group_id)
+    else:
+        query.pop("marketGroup", None)
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+
+
 def find_superbet_match_url(home, away, events):
     """Return only an unambiguous official event URL matching both teams."""
     candidates = []
@@ -2359,6 +2377,10 @@ def extract_superbet_btts_first_half(event_detail):
             continue
         candidates.append({
             "odds": values[0], "market": market, "selection": "Tak",
+            "market_group_id": first(
+                row, "marketGroupId", "market_group_id", "marketGroupID",
+                "groupId", "group_id", "marketId", "market_id"
+            ),
             "source": "Superbet",
             "updated_at": first(row.get("extra", {}), "feedPlatformTimestamp", "feedOriginTimestamp"),
         })
@@ -2728,7 +2750,9 @@ def send_prematch_btts_full_time_picks(state):
             continue
         estimate = candidate["estimate"]
         probability = round(estimate["probability"] * 100, 1)
-        bet_url = candidate["event"]["url"]
+        bet_url = superbet_btts_full_time_url(
+            candidate["event"]["url"], final_quote
+        )
         pick = {
             "key": f"{candidate['id']}:{BTTS_FT_MARKET}",
             "id": candidate["id"], "slug": candidate["slug"],
