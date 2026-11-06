@@ -101,7 +101,7 @@ def open_matchday_data(force_refresh=False):
         try:
             index_text = archive.read("open-matchday-master/LEAGUE_INDEX.md").decode("utf-8-sig")
             for line in index_text.splitlines():
-                match = re.match(r"\| \`([^ \`]+)\` \| ([^|]+) \|", line)
+                match = re.match(r"\| `([^ `]+)` \| ([^|]+) \|", line)
                 if match:
                     league_names[match.group(1)] = match.group(2).strip()
         except KeyError:
