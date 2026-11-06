@@ -1,6 +1,7 @@
 import difflib
 from html.parser import HTMLParser
 import json
+import math
 import os
 import re
 import unicodedata
@@ -211,9 +212,11 @@ def superbet_live_event_links():
     """Get Superbet event links from its public event API; HTML is only a fallback."""
     found = {}
     base = "https://production-superbet-offer-pl.freetls.fastly.net"
-    now = datetime.now(timezone.utc)
-    start = (now - timedelta(hours=4)).replace(minute=0, second=0, microsecond=0)
-    end = (now + timedelta(hours=4)).replace(minute=0, second=0, microsecond=0)
+    local_now = now_local()
+    local_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+    local_end = local_start + timedelta(days=1)
+    start = local_start.astimezone(timezone.utc)
+    end = local_end.astimezone(timezone.utc)
     try:
         response = requests.get(
             f"{base}/v3/pl-PL/events",
@@ -252,7 +255,7 @@ def superbet_live_event_links():
                 slug = f"{slug_part(home)}-vs-{slug_part(away)}-{event_id}"
                 full_url = f"https://superbet.pl/kursy/pilka-nozna/{slug}"
             found[full_url] = {"url": full_url, "text": name, "event_id": event_id}
-        print(f"Superbet API: {len(api_events)} wydarzeń w oknie ±4h, {len(found)} linków", flush=True)
+        print(f"Superbet API: {len(api_events)} wydarzeń w całym dniu, {len(found)} linków", flush=True)
     except Exception as exc:
         print(f"Superbet API: błąd pobierania wydarzeń: {type(exc).__name__}: {exc}", flush=True)
 
@@ -1709,7 +1712,7 @@ def settle_picks(state):
             target_score = None
             period_complete = False
 
-            if pick["market"] == "HT":
+            if pick["market"] in ("HT", BTTS_HT_MARKET):
                 ht_home, ht_away = extract_half_time_score(match)
                 status_text = str(status or "").lower()
                 halftime_reached = (
@@ -1756,20 +1759,26 @@ def settle_picks(state):
                     )
                 continue
 
-            try:
-                selected_line = float(pick.get("goal_line"))
-            except (TypeError, ValueError):
-                print(f"BRAK POPRAWNEJ LINII OVER dla {pick.get('key')} — nie rozliczam.", flush=True)
+            if target_total is None or not target_score:
+                print(f"BRAK POTWIERDZONEGO WYNIKU 1. POŁOWY dla {pick.get('key')} — nie rozliczam.", flush=True)
                 continue
 
-            if target_total is None:
-                print(f"BRAK KOŃCOWEGO WYNIKU dla {pick.get('key')} — nie rozliczam.", flush=True)
-                continue
-
-            won = over_result_is_win(selected_line, target_total, period_complete)
-            if won is None:
-                print(f"ROZLICZENIE ZABLOKOWANE — nieprawidłowy wynik/okres dla {pick.get('key')}.", flush=True)
-                continue
+            if pick.get("market") == BTTS_HT_MARKET:
+                score_parts = re.search(r"(\d+)\s*[-:]\s*(\d+)", str(target_score))
+                if not score_parts:
+                    print(f"ROZLICZENIE BTTS ZABLOKOWANE — nieczytelny wynik HT dla {pick.get('key')}.", flush=True)
+                    continue
+                won = int(score_parts.group(1)) > 0 and int(score_parts.group(2)) > 0
+            else:
+                try:
+                    selected_line = float(pick.get("goal_line"))
+                except (TypeError, ValueError):
+                    print(f"BRAK POPRAWNEJ LINII OVER dla {pick.get('key')} — nie rozliczam.", flush=True)
+                    continue
+                won = over_result_is_win(selected_line, target_total, period_complete)
+                if won is None:
+                    print(f"ROZLICZENIE ZABLOKOWANE — nieprawidłowy wynik/okres dla {pick.get('key')}.", flush=True)
+                    continue
             # Cross-check the numeric total against the exact score text before posting.
             parsed_target_score = re.search(r"(\d+)\s*[-:]\s*(\d+)", str(target_score or ""))
             if not parsed_target_score:
@@ -1922,451 +1931,419 @@ def update_existing_pick_minutes(state):
         except Exception as exc:
             print(f"BŁĄD AKTUALIZACJI MINUTY {pick.get('home')} - {pick.get('away')}: {type(exc).__name__}: {exc}", flush=True)
 
-def main():
-    print(f"=== TyperGOLE-OVERY START {now_local().isoformat()} ===", flush=True)
-    print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
 
+
+# ---------------------------------------------------------------------------
+# PRE-MATCH BTTS FIRST-HALF STRATEGY
+# ---------------------------------------------------------------------------
+MAX_DAILY_PICKS = 4
+BTTS_HT_MARKET = "BTTS_HT"
+MIN_HT_HISTORY = 5
+HISTORY_MATCHES = 10
+MIN_MODEL_PROBABILITY = 0.15
+
+
+def kickoff_datetime(match):
+    raw = first(match, "time", "start_time", "kickoff", "kickoff_time",
+                "startDate", "start_date", "date", default="")
+    if isinstance(raw, dict):
+        raw = first(raw, "utc", "iso", "date", "time", "timestamp", default="")
+    if not raw:
+        return None
+    try:
+        value = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.astimezone(TZ)
+    except (TypeError, ValueError):
+        return None
+
+
+def scheduled_fixtures_today():
+    """Fetch the complete local-day fixture slate from SportScore fixtures."""
+    local_now = now_local()
+    local_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+    local_end = local_start + timedelta(days=1)
+    utc_days = {
+        local_start.astimezone(timezone.utc).date().isoformat(),
+        (local_end - timedelta(seconds=1)).astimezone(timezone.utc).date().isoformat(),
+    }
+    unique = {}
+    errors = []
+    for utc_day in sorted(utc_days):
+        for endpoint, params in (
+            ("/api/v1/fixtures/", {"sport": "football", "date": utc_day, "limit": 200}),
+            ("/api/v1/fixtures/", {"sport": "football", "date": utc_day, "status": "scheduled", "limit": 200}),
+        ):
+            try:
+                records = extract_matches(api_get(endpoint, params))
+                print(f"SportScore terminarz {utc_day}: {len(records)} rekordów", flush=True)
+                for match in records:
+                    if not isinstance(match, dict):
+                        continue
+                    kickoff = kickoff_datetime(match)
+                    if not kickoff or kickoff.date() != local_now.date():
+                        continue
+                    if kickoff <= local_now + timedelta(minutes=15):
+                        continue
+                    home, away = teams(match)
+                    if home in ("Gospodarze", "") or away in ("Goście", ""):
+                        continue
+                    slug = match_slug(match)
+                    identity = str(match_identifier(match) or slug or
+                                   f"{normalized_team_name(home)}:{normalized_team_name(away)}")
+                    match["_bot_kickoff"] = kickoff.isoformat()
+                    match["_bot_slug"] = slug
+                    unique[identity] = match
+            except Exception as exc:
+                errors.append(f"{utc_day}: {type(exc).__name__}: {exc}")
+    if errors:
+        print("SportScore terminarz błędy: " + " | ".join(errors), flush=True)
+    fixtures = list(unique.values())
+    fixtures.sort(key=lambda item: item.get("_bot_kickoff", ""))
+    print(f"SportScore: {len(fixtures)} przyszłych meczów na dziś", flush=True)
+    return fixtures
+
+
+def _team_history_rows(team_slug, cutoff):
+    """Return recent completed fixtures with a confirmed half-time score."""
+    if not team_slug:
+        return []
+    payload = None
+    for endpoint in ("/api/widget/team/", "/api/v1/team/"):
+        try:
+            payload = api_get(endpoint, {"sport": "football", "slug": team_slug, "limit": 30})
+            rows = extract_matches(payload)
+            if rows:
+                break
+        except Exception as exc:
+            print(f"Historia {team_slug} {endpoint}: {type(exc).__name__}: {exc}", flush=True)
+            rows = []
+    else:
+        rows = []
+    usable = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        kickoff = kickoff_datetime(row)
+        if kickoff and kickoff >= cutoff:
+            continue
+        status = str(first(row, "status", "state", "match_status", default="")).lower()
+        if status and not any(word in status for word in
+                              ("finished", "full time", "ft", "ended", "complete")):
+            continue
+        ht_home, ht_away = extract_half_time_score(row)
+        if ht_home is None or ht_away is None:
+            slug = match_slug(row)
+            if slug:
+                try:
+                    detail = unwrap_match(api_get("/api/widget/match/", {
+                        "sport": "football", "slug": slug
+                    }))
+                    ht_home, ht_away = extract_half_time_score(detail or {})
+                    row = {**row, **(detail or {})}
+                except Exception:
+                    pass
+        if ht_home is None or ht_away is None:
+            continue
+        home, away = teams(row)
+        usable.append({
+            "home": home, "away": away,
+            "ht_home": ht_home, "ht_away": ht_away,
+            "kickoff": kickoff.isoformat() if kickoff else "",
+        })
+    usable.sort(key=lambda item: item["kickoff"], reverse=True)
+    return usable[:HISTORY_MATCHES]
+
+
+def team_first_half_profile(team_slug, cutoff, venue):
+    """Compute first-half goals scored/conceded rates from real completed matches."""
+    rows = _team_history_rows(team_slug, cutoff)
+    if venue in ("home", "away"):
+        same_venue = [
+            row for row in rows
+            if (venue == "home" and normalized_team_name(row["home"]) == normalized_team_name_from_slug(team_slug))
+            or (venue == "away" and normalized_team_name(row["away"]) == normalized_team_name_from_slug(team_slug))
+        ]
+        if len(same_venue) >= MIN_HT_HISTORY:
+            rows = same_venue
+    scored, conceded = [], []
+    for row in rows:
+        # Team slug is derived from the fixture orientation; only compare known
+        # home/away sides, and never infer orientation from a fuzzy name.
+        if normalized_team_name(row["home"]) == normalized_team_name_from_slug(team_slug):
+            scored.append(row["ht_home"])
+            conceded.append(row["ht_away"])
+        elif normalized_team_name(row["away"]) == normalized_team_name_from_slug(team_slug):
+            scored.append(row["ht_away"])
+            conceded.append(row["ht_home"])
+    if len(scored) < MIN_HT_HISTORY:
+        return None
+    return {
+        "sample": len(scored),
+        "scored_avg": sum(scored) / len(scored),
+        "conceded_avg": sum(conceded) / len(conceded),
+        "scored_rate": sum(1 for value in scored if value > 0) / len(scored),
+        "conceded_rate": sum(1 for value in conceded if value > 0) / len(conceded),
+    }
+
+
+def normalized_team_name_from_slug(slug):
+    value = re.sub(r"[-_]+", " ", str(slug or ""))
+    return normalized_team_name(value)
+
+
+def first_half_btts_probability(home_profile, away_profile):
+    """Independent Poisson estimate using first-half scoring/conceding history."""
+    if not home_profile or not away_profile:
+        return None
+    home_lambda = max(0.01, (home_profile["scored_avg"] + away_profile["conceded_avg"]) / 2)
+    away_lambda = max(0.01, (away_profile["scored_avg"] + home_profile["conceded_avg"]) / 2)
+    probability = (1 - math.exp(-home_lambda)) * (1 - math.exp(-away_lambda))
+    # Shrink extreme estimates slightly toward the observed baseline to reduce
+    # overconfidence from small samples. This remains a model estimate.
+    sample_factor = min(home_profile["sample"], away_profile["sample"]) / HISTORY_MATCHES
+    probability = 0.5 * probability + 0.5 * (
+        probability * sample_factor + 0.18 * (1 - sample_factor)
+    )
+    return {
+        "probability": max(0.0, min(0.95, probability)),
+        "home_lambda": home_lambda,
+        "away_lambda": away_lambda,
+        "home_sample": home_profile["sample"],
+        "away_sample": away_profile["sample"],
+        "home_scored_rate": home_profile["scored_rate"],
+        "away_scored_rate": away_profile["scored_rate"],
+        "home_conceded_rate": home_profile["conceded_rate"],
+        "away_conceded_rate": away_profile["conceded_rate"],
+    }
+
+
+def extract_superbet_btts_first_half(event_detail):
+    """Return only an active, actual Superbet YES quote for first-half BTTS."""
+    def norm(value):
+        value = str(value or "").replace("ł", "l").replace("Ł", "L")
+        value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
+        return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", value)).strip()
+
+    rows = []
+    market_keys = ("marketName", "market_name", "marketGroupName", "market_group_name",
+                   "marketTitle", "market_title", "market", "marketGroup", "market_group", "title")
+    selection_keys = ("name", "selectionName", "selection_name", "oddName",
+                      "outcomeName", "label", "displayName")
+    price_keys = ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
+
+    def walk(node, inherited=""):
+        if isinstance(node, list):
+            for child in node:
+                walk(child, inherited)
+            return
+        if not isinstance(node, dict):
+            return
+        local = " ".join(str(node[k]) for k in market_keys
+                         if node.get(k) not in (None, "") and not isinstance(node.get(k), (dict, list)))
+        context = " ".join(part for part in (inherited, local) if part)
+        if any(node.get(k) not in (None, "") for k in price_keys) and any(node.get(k) not in (None, "") for k in selection_keys):
+            row = dict(node)
+            row["_market_context"] = context
+            rows.append(row)
+        for value in node.values():
+            if isinstance(value, (dict, list)):
+                walk(value, context)
+
+    walk(event_detail)
+    candidates = []
+    for row in rows:
+        status = str(first(row, "status", "oddStatus", "state", default="")).lower()
+        if status not in ("active", "opened", "open", "1", "true"):
+            continue
+        market = norm(" ".join([row.get("_market_context", "")] + [
+            str(row.get(k, "")) for k in market_keys if row.get(k) not in (None, "")
+        ]))
+        # Both market identity and first-half period must be explicit.
+        is_btts = ("obie druzyny strzela" in market or "both teams to score" in market
+                   or re.search(r"\bbtts\b", market))
+        is_first_half = any(token in market for token in
+                            ("1 polowa", "pierwsza polowa", "first half", "1st half", "1 pol"))
+        if not is_btts or not is_first_half or "2 polowa" in market or "second half" in market:
+            continue
+        selection = norm(first(row, *selection_keys, default=""))
+        if selection not in ("tak", "yes", "true"):
+            continue
+        values = []
+        invalid = False
+        for key in price_keys:
+            raw = row.get(key)
+            if raw in (None, ""):
+                continue
+            try:
+                value = float(str(raw).replace(",", "."))
+            except (TypeError, ValueError):
+                invalid = True
+                break
+            if not 1.01 <= value <= 1000:
+                invalid = True
+                break
+            values.append(value)
+        if invalid or not values or max(values) - min(values) > 0.005:
+            continue
+        candidates.append({
+            "odds": values[0], "market": market, "selection": "Tak",
+            "source": "Superbet",
+            "updated_at": first(row.get("extra", {}), "feedPlatformTimestamp", "feedOriginTimestamp"),
+        })
+    if not candidates:
+        return None
+    prices = {round(item["odds"], 3) for item in candidates}
+    if len(prices) != 1:
+        print(f"Superbet BTTS 1H: sprzeczne aktywne kursy {sorted(prices)} — odrzucam.", flush=True)
+        return None
+    return candidates[0]
+
+
+def send_prematch_btts_picks(state):
+    today = now_local().date().isoformat()
+    todays = [p for p in state.get("picks", [])
+              if p.get("date") == today and p.get("market") == BTTS_HT_MARKET
+              and p.get("delivery_status", "sent") == "sent"]
+    if len(todays) >= MAX_DAILY_PICKS:
+        print(f"Limit {MAX_DAILY_PICKS} typów BTTS 1H osiągnięty.", flush=True)
+        return
+
+    fixtures = scheduled_fixtures_today()
+    if not fixtures:
+        return
+    superbet_events = superbet_live_event_links()
+    candidates = []
+    for index, match in enumerate(fixtures, 1):
+        home, away = teams(match)
+        kickoff = kickoff_datetime(match)
+        slug = match.get("_bot_slug") or match_slug(match)
+        if not kickoff or not slug or "-vs-" not in slug:
+            continue
+        if same_fixture_pick_exists(state, match_identifier(match) or slug, home, away,
+                                    today, BTTS_HT_MARKET, slug=slug):
+            continue
+        parts = slug.split("-vs-", 1)
+        home_slug, away_slug = parts[0], parts[1]
+        try:
+            hp = team_first_half_profile(home_slug, kickoff, "home")
+            ap = team_first_half_profile(away_slug, kickoff, "away")
+            estimate = first_half_btts_probability(hp, ap)
+            if not estimate or estimate["probability"] < MIN_MODEL_PROBABILITY:
+                print(f"[{index}] {home} - {away}: brak wystarczających danych lub P poniżej progu.", flush=True)
+                continue
+            event = find_superbet_event(home, away, superbet_events)
+            if not event:
+                print(f"[{index}] Brak jednoznacznego wydarzenia Superbet: {home} - {away}", flush=True)
+                continue
+            detail = superbet_event_detail(event["event_id"])
+            quote = extract_superbet_btts_first_half(detail)
+            if not quote:
+                print(f"[{index}] Brak aktywnego kursu Superbet BTTS 1. połowa: {home} - {away}", flush=True)
+                continue
+            league = first(match, "competition_name", "competition", "league_name", default="Liga nieznana")
+            if isinstance(league, dict):
+                league = first(league, "name", "title", default="Liga nieznana")
+            candidates.append({
+                "match": match, "home": home, "away": away, "slug": slug,
+                "id": match_identifier(match) or slug, "kickoff": kickoff,
+                "league": str(league), "event": event, "quote": quote,
+                "estimate": estimate,
+            })
+        except Exception as exc:
+            print(f"[{index}] Analiza {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
+
+    candidates.sort(key=lambda item: item["estimate"]["probability"], reverse=True)
+    slots = MAX_DAILY_PICKS - len(todays)
+    for candidate in candidates[:slots]:
+        # Last-moment independent price refresh; never reuse a stale or guessed quote.
+        try:
+            final_detail = superbet_event_detail(candidate["event"]["event_id"])
+            final_quote = extract_superbet_btts_first_half(final_detail)
+        except Exception as exc:
+            print(f"Końcowa kontrola Superbet nieudana: {type(exc).__name__}: {exc}", flush=True)
+            continue
+        if not final_quote or abs(final_quote["odds"] - candidate["quote"]["odds"]) > 0.005:
+            print(f"Kurs BTTS 1H zmienił się dla {candidate['home']} - {candidate['away']}; pomijam i sprawdzę ponownie.", flush=True)
+            continue
+        estimate = candidate["estimate"]
+        probability = round(estimate["probability"] * 100, 1)
+        pick = {
+            "key": f"{candidate['id']}:{BTTS_HT_MARKET}",
+            "id": candidate["id"], "slug": candidate["slug"],
+            "home": candidate["home"], "away": candidate["away"],
+            "league": candidate["league"], "date": today,
+            "kickoff_time": candidate["kickoff"].isoformat(),
+            "market": BTTS_HT_MARKET, "stake": STAKE,
+            "odds": final_quote["odds"], "odds_source": "Superbet",
+            "odds_market": final_quote["market"],
+            "odds_updated_at": final_quote.get("updated_at"),
+            "superbet_url": candidate["event"]["url"],
+            "probability": probability, "probability_method": "Poisson HT scoring/conceding rates",
+            "model_inputs": estimate, "settled": False,
+            "delivery_status": "pending",
+        }
+        state.setdefault("picks", []).append(pick)
+        state.setdefault("duplicate_guard", []).append(pick)
+        save_state(state)
+        try:
+            payout = calculate_bet_result(STAKE, final_quote["odds"])
+            kickoff_text = candidate["kickoff"].strftime("%d.%m.%Y %H:%M")
+            message = (
+                f"🎯 BTTS 1. POŁOWA — TAK\n"
+                f"⚽ {candidate['home']} – {candidate['away']}\n"
+                f"🏆 Liga: {candidate['league']}\n"
+                f"🕒 Start: {kickoff_text} (przedmeczowo)\n"
+                f"📈 Kurs Superbet: {final_quote['odds']:.2f}\n"
+                f"📊 Szacowane prawdopodobieństwo: {probability:.1f}%\n"
+                f"📚 Próba: {estimate['home_sample']} meczów gospodarzy / {estimate['away_sample']} gości\n"
+                f"Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
+                f"Model: gole w 1. połowie — zdobywane i tracone\n"
+                f"Superbet: {candidate['event']['url']}\n"
+                f"Powered by SportScore: https://sportscore.com/"
+            )
+            telegram(message)
+            pick["delivery_status"] = "sent"
+            pick["sent_at"] = now_local().isoformat()
+            save_state(state)
+            print(f"WYSŁANO BTTS 1H: {candidate['home']} - {candidate['away']} @ {final_quote['odds']:.2f}, P={probability}%", flush=True)
+        except Exception as exc:
+            pick["delivery_status"] = "failed"
+            pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
+            save_state(state)
+            print(f"Telegram BTTS 1H nieudany: {type(exc).__name__}: {exc}", flush=True)
+
+
+def main():
+    print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS 1H START {now_local().isoformat()} ===", flush=True)
+    print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
     state = load_state()
-    # One-time delivery check requested by the user; never a real betting tip.
     if state.get("telegram_test_pending"):
-        telegram("🧪 TEST TELEGRAM — wiadomość kontrolna bota TyperGOLE-OVERY. To nie jest typ ani rekomendacja zakładu.")
+        telegram("🧪 TEST TELEGRAM — TyperGOLE-OVERY. To nie jest typ.")
         state["telegram_test_pending"] = False
         save_state(state)
-        print("WYSŁANO JEDNORAZOWY TEST TELEGRAM", flush=True)
     print(f"Historia typów: {len(state['picks'])}; nierozliczone: {sum(1 for p in state['picks'] if not p.get('settled'))}", flush=True)
 
-    # Settle older picks first; keep history across midnight.
+    # Rozliczenia HT są sprawdzane podczas każdego uruchomienia workflow.
     settle_picks(state)
-    # Nie wysyłaj ponownie typów jako osobnych wiadomości bez linku.
-    # Nowe typy są wysyłane tylko raz; wynik rozliczamy osobnym komunikatem po FT.
 
     today = now_local().date().isoformat()
-    todays_picks = [p for p in state["picks"] if p.get("date") == today and p.get("counts_toward_daily_limit", True)]
-    print(f"Typy wysłane dzisiaj: {len(todays_picks)} (bez limitu dziennego)", flush=True)
-
-    if MAX_DAILY_PICKS is None or len(todays_picks) < MAX_DAILY_PICKS:
+    todays = [p for p in state["picks"] if p.get("date") == today
+              and p.get("market") == BTTS_HT_MARKET
+              and p.get("delivery_status", "sent") == "sent"]
+    print(f"Typy BTTS 1H wysłane dzisiaj: {len(todays)}/{MAX_DAILY_PICKS}", flush=True)
+    if len(todays) < MAX_DAILY_PICKS:
         try:
-            matches = current_live_matches()
-            print(f"API SportScore: pobrano {len(matches)} meczów live", flush=True)
-            if not matches:
-                print("UWAGA: API zwróciło 0 meczów. Sprawdź odpowiedź endpointu fixtures/live.", flush=True)
-
-            if matches:
-                sample = matches[0]
-                print(
-                    "Przykładowe pola rekordu SportScore: "
-                    + ", ".join(sorted(str(k) for k in sample.keys())),
-                    flush=True,
-                )
-                print(
-                    "Przykładowy rekord (bez danych wrażliwych): "
-                    + json.dumps(sample, ensure_ascii=False)[:1800],
-                    flush=True,
-                )
-
-            stats = {
-                "bad_item": 0, "detail_error": 0, "missing_id": 0,
-"missing_minute": 0, "outside_window": 0, "score_not_0_0": 0,
-                "duplicate": 0, "no_promising_stats": 0, "odds_no_match": 0, "odds_missing": 0, "sent": 0, "errors": 0,
-            }
-
-            # Kursy pobieramy bezpośrednio z publicznego feedu Superbet.
-            superbet_events = superbet_live_event_links()
-            print(f"Superbet: tablica wydarzeń gotowa ({len(superbet_events)} pozycji)", flush=True)
-
-            for index, raw in enumerate(matches, start=1):
-                if MAX_DAILY_PICKS is not None and len(todays_picks) >= MAX_DAILY_PICKS:
-                    print("Osiągnięto dzienny limit typów.", flush=True)
-                    break
-                if not isinstance(raw, dict):
-                    stats["bad_item"] += 1
-                    continue
-
-                try:
-                    slug = match_slug(raw)
-                    match = dict(raw)
-                    raw_home, raw_away, raw_minute, raw_status = score_and_minute(raw)
-                    if not slug:
-                        stats["detail_error"] += 1
-                        print(f"[{index}] Brak identyfikatora szczegółów SportScore — pomijam mecz.", flush=True)
-                        continue
-                    # Feed fixtures/live często zwraca status „2nd half” i wynik,
-                    # ale nie zwraca minuty. W takim przypadku pobieramy szczegóły
-                    # meczu, bo tam może znajdować się właściwy zegar. Nie odrzucamy
-                    # meczu przed sprawdzeniem endpointu detail.
-
-                    try:
-                        detail = match_detail(slug)
-                    except Exception as exc:
-                        stats["detail_error"] += 1
-                        print(f"[{index}] Błąd szczegółów meczu {slug}: {type(exc).__name__}: {exc}; pomijam.", flush=True)
-                        continue
-                    if not detail:
-                        stats["detail_error"] += 1
-                        print(f"[{index}] Brak szczegółów SportScore dla {slug} — pomijam mecz.", flush=True)
-                        continue
-                    detail_home, detail_away, detail_minute, detail_status = score_and_minute(detail)
-                    # Do wysłania typu wymagamy dwóch niezależnych, zgodnych odczytów wyniku.
-                    if (
-                        raw_home is None or raw_away is None
-                        or detail_home is None or detail_away is None
-                    ):
-                        print(f"[{index}] Niepełny wynik w liście/szczegółach SportScore — pomijam mecz.", flush=True)
-                        continue
-                    if (raw_home, raw_away) != (detail_home, detail_away):
-                        print(
-                            f"[{index}] ROZBIEŻNY WYNIK SportScore: lista={raw_home}-{raw_away}, "
-                            f"szczegóły={detail_home}-{detail_away}; pomijam mecz.",
-                            flush=True,
-                        )
-                        continue
-                    if raw_minute is not None and detail_minute is not None and abs(raw_minute - detail_minute) > 2:
-                        print(
-                            f"[{index}] ROZBIEŻNY ZEGAR SportScore: lista={raw_minute}', "
-                            f"szczegóły={detail_minute}' (status listy={raw_status!r}, "
-                            f"status szczegółów={detail_status!r}); typ pominięty.",
-                            flush=True,
-                        )
-                        continue
-                    match.update(detail)
-                    print(
-                        f"[{index}] Statystyki SportScore: minuta={detail.get('live_minute')}, "
-                        f"{live_match_metrics(detail)}",
-                        flush=True,
-                    )
-
-                    home, away = teams(match)
-                    identifier = match_identifier(match) or str(slug or "")
-                    if not identifier:
-                        stats["missing_id"] += 1
-                        continue
-
-                    home_score, away_score, minute, status = score_and_minute(match)
-                    if home_score is None or away_score is None:
-                        print(f"[{index}] Brak aktualnego wyniku — pomijam typ.", flush=True)
-                        continue
-                    # Nowa zasada użytkownika: analizujemy wyłącznie mecze z wynikiem 0:0.
-                    # Każdy inny wynik odrzucamy przed statystykami i pobieraniem kursów.
-                    if home_score != 0 or away_score != 0:
-                        stats["score_not_0_0"] += 1
-                        print(
-                            f"[{index}] WYNIK {home_score}-{away_score} — pomijam; "
-                            "analizuję wyłącznie mecze 0:0.",
-                            flush=True,
-                        )
-                        continue
-                    if minute is None:
-                        stats["missing_minute"] += 1
-                        print(
-                            f"[{index}] Brak minuty w SportScore ({home} - {away}); "
-                            "TRYB TESTOWY: mecz nie jest odrzucany z powodu zegara.",
-                            flush=True,
-                        )
-                    if raw_minute is None:
-                        print(
-                            f"[{index}] ZEGAR Z DETAIL: lista bez minuty, "
-                            f"szczegóły={minute}' ({home} - {away}).",
-                            flush=True,
-                        )
-
-                    # Two-stage progression on the same 0:0 fixture.
-                    if minute is None:
-                        stats["missing_minute"] += 1
-                        continue
-                    previous_ht = next((p for p in reversed(state.get("picks", []))
-                        if p.get("market") == "HT"
-                        and (str(p.get("id") or "") == str(identifier)
-                             or (team_name_similarity(p.get("home"), home) >= 0.86
-                                 and team_name_similarity(p.get("away"), away) >= 0.86))
-                        and str(p.get("date", ""))[:10] == today
-                        and p.get("delivery_status", "sent") == "sent"), None)
-                    if 35 <= minute <= 44 and previous_ht is None:
-                        market = "HT"
-                        stake = 10.0
-                    elif (75 <= minute <= 89 and previous_ht is not None
-                          and previous_ht.get("settled") is True
-                          and previous_ht.get("won") is False
-                          and home_score == 0 and away_score == 0):
-                        market = "FT"
-                        stake = 20.0
-                    else:
-                        print(f"[{index}] Poza oknem progresji: minuta={minute}, HT={bool(previous_ht)}; pomijam.", flush=True)
-                        continue
-
-                    key = f"{identifier}:{market}"
-                    if same_fixture_pick_exists(state, identifier, home, away, today, market, slug=slug):
-                        stats["duplicate"] += 1
-                        print(
-                            f"[{index}] DUPLIKAT — {home} - {away}, rynek {market}; "
-                            "kurs nie ma wpływu na identyfikację typu.",
-                            flush=True,
-                        )
-                        continue
-
-                    # Selection depends on minute and score only; no stats thresholds.
-                    metrics = live_match_metrics(match)
-                    signal_score = 0
-
-                    league = first(match, "competition_name", "competition", "league_name", default="Liga nieznana")
-                    if isinstance(league, dict):
-                        league = first(league, "name", "title", default="Liga nieznana")
-
-                    # Nie narzucamy jednej linii. Szukamy w aktualnej ofercie
-                    # Superbet najniższej otwartej linii Over powyżej wyniku.
-                    current_total = home_score + away_score
-                    min_goal_line = current_total + 0.5
-                    superbet_event = find_superbet_event(home, away, superbet_events)
-                    if not superbet_event:
-                        stats["odds_no_match"] += 1
-                        print(f"[{index}] Brak jednoznacznego meczu w Superbet dla {home} - {away}; typ pominięty.", flush=True)
-                        continue
-                    try:
-                        superbet_detail = superbet_event_detail(superbet_event["event_id"])
-                    except Exception as exc:
-                        stats["odds_missing"] += 1
-                        print(f"[{index}] Błąd pobrania kursów Superbet dla {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
-                        continue
-                    live_price = extract_superbet_live_over_odds(superbet_detail, market, min_goal_line)
-                    if not live_price:
-                        stats["odds_missing"] += 1
-                        print(
-                            f"[{index}] Brak potwierdzonej oferty Superbet Over {market} "
-                            f"od linii {min_goal_line:.1f}; bez minimalnego progu kursu. "
-                            "Jeśli kurs jest niższy, mecz będzie ponownie sprawdzony w następnym skanie.",
-                            flush=True,
-                        )
-                        continue
-                    goal_line = live_price["line"]
-                    # Ostatnia kontrola kursu bezpośrednio przed przygotowaniem i wysłaniem wiadomości.
-                    # Jeśli Superbet zmienił kurs albo feed przestał go jednoznacznie potwierdzać, pomijamy typ.
-                    try:
-                        final_superbet_detail = superbet_event_detail(superbet_event["event_id"])
-                    except Exception as exc:
-                        stats["odds_missing"] += 1
-                        print(f"[{index}] Końcowa kontrola kursu Superbet nieudana dla {home} - {away}: {type(exc).__name__}: {exc}; typ pominięty.", flush=True)
-                        continue
-                    final_live_price = extract_superbet_live_over_odds(final_superbet_detail, market, goal_line)
-                    if (
-                        not final_live_price
-                        or abs(final_live_price["line"] - goal_line) > 0.001
-                    ):
-                        stats["odds_missing"] += 1
-                        print(
-                            f"[{index}] Końcowa kontrola: Over {goal_line:.1f} {market} "
-                            "nie ma już potwierdzonego otwartego kursu w Superbet; typ pominięty.",
-                            flush=True,
-                        )
-                        continue
-                    live_price = final_live_price
-
-                    # Final live-state refresh: the SportScore list/detail read can
-                    # become stale while Superbet event/price requests are running.
-                    # Refresh the score immediately before publishing and never send
-                    # a total-goals line that is already below the current score.
-                    try:
-                        final_match_detail = match_detail(slug)
-                    except Exception as exc:
-                        stats["detail_error"] += 1
-                        print(
-                            f"[{index}] Końcowe odświeżenie wyniku SportScore nieudane "
-                            f"dla {home} - {away}: {type(exc).__name__}: {exc}; typ pominięty.",
-                            flush=True,
-                        )
-                        continue
-                    final_home_score, final_away_score, final_minute, final_status = score_and_minute(final_match_detail)
-                    if final_home_score is None or final_away_score is None:
-                        print(
-                            f"[{index}] Końcowy wynik SportScore niepełny dla {home} - {away}; typ pominięty.",
-                            flush=True,
-                        )
-                        continue
-                    # Wynik musi nadal wynosić 0:0 tuż przed wysłaniem typu.
-                    if final_home_score != 0 or final_away_score != 0:
-                        stats["score_not_0_0"] += 1
-                        print(
-                            f"[{index}] WYNIK ZMIENIŁ SIĘ PRZED WYSŁANIEM: "
-                            f"{home} - {away} {final_home_score}-{final_away_score}; "
-                            "typ pominięty, bo dopuszczalne jest wyłącznie 0:0.",
-                            flush=True,
-                        )
-                        continue
-                    if final_minute is None:
-                        print(
-                            f"[{index}] Końcowy zegar SportScore nieczytelny dla {home} - {away}; typ pominięty.",
-                            flush=True,
-                        )
-                        continue
-                    # Confirm the same stage window again immediately before delivery.
-                    if market == "HT" and not 35 <= final_minute <= 44:
-                        print(f"[{index}] Minęło okno HT przed wysłaniem ({final_minute}'); typ pominięty.", flush=True)
-                        continue
-                    if market == "FT" and not 75 <= final_minute <= 89:
-                        print(f"[{index}] Minęło okno FT od 75. minuty przed wysłaniem ({final_minute}'); typ pominięty.", flush=True)
-                        continue
-
-                    final_total_goals = final_home_score + final_away_score
-                    required_line = final_total_goals + 0.5
-                    if goal_line + 0.001 < required_line:
-                        print(
-                            f"[{index}] WYNIK ZMIENIŁ SIĘ PRZED WYSŁANIEM: "
-                            f"{home} - {away} {final_home_score}-{final_away_score}, "
-                            f"Over {goal_line:.1f} jest już za niską linią; "
-                            f"szukam minimum Over {required_line:.1f}.",
-                            flush=True,
-                        )
-                        try:
-                            refreshed_superbet_detail = superbet_event_detail(superbet_event["event_id"])
-                        except Exception as exc:
-                            stats["odds_missing"] += 1
-                            print(
-                                f"[{index}] Nie udało się odświeżyć Superbet po zmianie wyniku: "
-                                f"{type(exc).__name__}: {exc}; typ pominięty.",
-                                flush=True,
-                            )
-                            continue
-                        refreshed_price = extract_superbet_live_over_odds(
-                            refreshed_superbet_detail, market, required_line
-                        )
-                        if not refreshed_price:
-                            stats["odds_missing"] += 1
-                            print(
-                                f"[{index}] Brak aktualnego kursu Superbet dla Over "
-                                f"{required_line:.1f} FT po zmianie wyniku; typ pominięty.",
-                                flush=True,
-                            )
-                            continue
-                        goal_line = refreshed_price["line"]
-                        try:
-                            last_superbet_detail = superbet_event_detail(superbet_event["event_id"])
-                        except Exception as exc:
-                            stats["odds_missing"] += 1
-                            print(
-                                f"[{index}] Ostatnia kontrola Superbet nieudana po zmianie wyniku: "
-                                f"{type(exc).__name__}: {exc}; typ pominięty.",
-                                flush=True,
-                            )
-                            continue
-                        last_price = extract_superbet_live_over_odds(
-                            last_superbet_detail, market, required_line
-                        )
-                        if (
-                            not last_price
-                            or abs(last_price["line"] - goal_line) > 0.001
-                        ):
-                            stats["odds_missing"] += 1
-                            print(
-                                f"[{index}] Końcowa kontrola nowej linii Over {goal_line:.1f} FT "
-                                "nie powiodła się; typ pominięty.",
-                                flush=True,
-                            )
-                            continue
-                        live_price = last_price
-                    else:
-                        # The selected market still covers the live score.
-                        pass
-
-                    # Use the freshest verified score and clock in the Telegram message.
-                    home_score, away_score, minute = (
-                        final_home_score, final_away_score, final_minute
-                    )
-                    log_superbet_diagnostic({
-                        "type": "FINAL_MATCH_STATE",
-                        "checked_at": datetime.now(timezone.utc).isoformat(),
-                        "sportscore_home": home,
-                        "sportscore_away": away,
-                        "score": f"{home_score}-{away_score}",
-                        "minute": minute,
-                        "selected_line": goal_line,
-                        "line_valid_for_score": goal_line >= home_score + away_score + 0.5,
-                    })
-
-                    # Audit trail: retain the exact Superbet fixture and quote in
-                    # GitHub Actions logs so a published price can be traced.
-                    quote_audit = {
-                        "type": "SUPERBET_QUOTE_CONFIRMED",
-                        "checked_at": datetime.now(timezone.utc).isoformat(),
-                        "sportscore_home": home,
-                        "sportscore_away": away,
-                        "superbet_event_id": str(superbet_event.get("event_id")),
-                        "superbet_event_name": superbet_event.get("text"),
-                        "market_phase": market,
-                        "market_name": live_price.get("market"),
-                        "selection": f"Over {float(live_price['line']):.1f}",
-                        "line": float(live_price["line"]),
-                        "odds": float(live_price["odds"]),
-                        "quote_updated_at": live_price.get("updated_at"),
-                        "source": "Superbet",
-                    }
-                    log_superbet_diagnostic(quote_audit)
-
-                    pick = {
-                        "key": key,
-                        "id": identifier,
-                        "slug": slug,
-                        "home": home,
-                        "away": away,
-                        "league": str(league),
-                        "minute": minute,
-                        "score_home": home_score,
-                        "score_away": away_score,
-                        "market": market,
-                        "date": today,
-                        "kickoff_time": first(match, "time", "start_time", "kickoff", "date"),
-                        "stake": stake,
-                        "odds": live_price["odds"],
-                        "odds_source": live_price["source"],
-                        "odds_market": live_price["market"],
-                        "odds_updated_at": live_price.get("updated_at"),
-                        "superbet_url": superbet_goal_market_url(superbet_event["url"]) or "https://superbet.pl/zaklady-bukmacherskie/pilka-nozna/live",
-                        "goal_line": goal_line,
-                        "live_metrics": metrics,
-                        "signal_score": signal_score,
-                        "settled": False,
-                    }
-                    market_text = (f"OVER {goal_line:.1f} HT — od {minute}. minuty do przerwy"
-                                   if market == "HT" else f"OVER {goal_line:.1f} FT — od 75. minuty do końca")
-                    minute_text = f"{minute}'" if minute is not None else "brak odczytu"
-                    # Save the pick before sending to prevent duplicates after an HTTP timeout.
-                    pick["delivery_status"] = "pending"
-                    state["picks"].append(pick)
-                    state.setdefault("duplicate_guard", []).append(pick)
-                    todays_picks.append(pick)
-                    save_state(state)
-
-                    potential = calculate_bet_result(stake, live_price["odds"])
-                    telegram(
-                        f"⚽ {market_text}\n{home} - {away}\n"
-                        f"Liga: {league}\nMinuta: {minute_text} | Wynik: {home_score}-{away_score}\n"
-                        f"Stawka: {stake:.2f} zł | Kurs Superbet: {live_price['odds']:.2f}\n"
-                        f"Podatek 12%: {potential['tax']:.2f} zł\n"
-                        f"Potencjalna wypłata: {potential['payout']:.2f} zł\n"
-                        f"Potencjalny zysk netto: {potential['profit']:+.2f} zł\n"
-                        + f"Superbet (Liczba goli): {pick['superbet_url']}"
-                    )
-                    pick["delivery_status"] = "sent"
-                    pick["sent_at"] = now_local().isoformat()
-                    save_state(state)
-                    stats["sent"] += 1
-                    print(f"WYSŁANO I ZAPISANO TYP: {home} - {away}, {minute}', {market}, stawka={stake:.2f}", flush=True)
-
-                except Exception as exc:
-                    stats["errors"] += 1
-                    print(f"[{index}] Błąd pojedynczego meczu: {type(exc).__name__}: {exc}", flush=True)
-                    continue
-
-            print("PODSUMOWANIE SKANU: " + json.dumps(stats, ensure_ascii=False), flush=True)
-
+            send_prematch_btts_picks(state)
         except Exception as exc:
-            print(f"BŁĄD SKANOWANIA API: {type(exc).__name__}: {exc}", flush=True)
-
+            print(f"BŁĄD SKANOWANIA PRZEDMECZOWEGO: {type(exc).__name__}: {exc}", flush=True)
     try:
         send_monthly_reports(state)
     except Exception as exc:
         print(f"Monthly report error: {type(exc).__name__}: {exc}", flush=True)
-
     save_state(state)
-    print(f"Stan zapisany. Typy dzisiaj: {len(todays_picks)} (bez limitu dziennego)", flush=True)
-    print("=== TyperGOLE-OVERY END ===", flush=True)
+    print("=== TyperGOLE-OVERY PRE-MATCH BTTS 1H END ===", flush=True)
 
 
 if __name__ == "__main__":
