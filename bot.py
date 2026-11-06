@@ -2131,7 +2131,7 @@ def main():
                         stats["odds_missing"] += 1
                         print(
                             f"[{index}] Brak potwierdzonej oferty Superbet Over {market} "
-                            f"od linii {min_goal_line:.1f} z kursem 1.70–3.50. "
+                            f"od linii {min_goal_line:.1f}; bez minimalnego progu kursu. "
                             "Jeśli kurs jest niższy, mecz będzie ponownie sprawdzony w następnym skanie.",
                             flush=True,
                         )
@@ -2153,7 +2153,7 @@ def main():
                         stats["odds_missing"] += 1
                         print(
                             f"[{index}] Końcowa kontrola: Over {goal_line:.1f} {market} "
-                            "nie ma już potwierdzonego kursu 1.70–3.50 w Superbet; typ pominięty.",
+                            "nie ma już potwierdzonego otwartego kursu w Superbet; typ pominięty.",
                             flush=True,
                         )
                         continue
@@ -2195,6 +2195,13 @@ def main():
                             f"[{index}] Końcowy zegar SportScore nieczytelny dla {home} - {away}; typ pominięty.",
                             flush=True,
                         )
+                        continue
+                    # Confirm the same stage window again immediately before delivery.
+                    if market == "HT" and not 35 <= final_minute <= 44:
+                        print(f"[{index}] Minęło okno HT przed wysłaniem ({final_minute}'); typ pominięty.", flush=True)
+                        continue
+                    if market == "FT" and not 75 <= final_minute <= 89:
+                        print(f"[{index}] Minęło okno FT od 75. minuty przed wysłaniem ({final_minute}'); typ pominięty.", flush=True)
                         continue
 
                     final_total_goals = final_home_score + final_away_score
