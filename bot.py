@@ -20,8 +20,8 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
 STAKE = 50.0
 BET_TAX_RATE = 0.12
-# Bez dziennego limitu typów.
-MAX_DAILY_PICKS = None
+# Maksymalnie 6 różnych spotkań dziennie łącznie dla BTTS 1H i BTTS FT.
+MAX_DAILY_PICKS = 6
 
 def calculate_bet_result(stake, odds):
     """Calculate Polish 12% stake tax, payout and net profit."""
@@ -44,6 +44,20 @@ ATTRIBUTION = "Powered by SportScore: https://sportscore.com/"
 
 def now_local():
     return datetime.now(TZ)
+
+
+def daily_sent_match_count(state, day):
+    """Count distinct fixtures with at least one successfully sent pick that day."""
+    fixtures = set()
+    for pick in state.get("picks", []):
+        if pick.get("date") != day or pick.get("delivery_status", "sent") != "sent":
+            continue
+        if pick.get("market") not in (BTTS_HT_MARKET, BTTS_FT_MARKET):
+            continue
+        fixture_id = pick.get("id") or pick.get("slug") or pick.get("key")
+        if fixture_id:
+            fixtures.add(str(fixture_id))
+    return len(fixtures)
 
 
 def load_state():
@@ -2562,8 +2576,9 @@ def send_prematch_btts_picks(state):
     todays = [p for p in state.get("picks", [])
               if p.get("date") == today and p.get("market") == BTTS_HT_MARKET
               and p.get("delivery_status", "sent") == "sent"]
-    if len(todays) >= MAX_DAILY_PICKS:
-        print(f"Limit {MAX_DAILY_PICKS} typów BTTS 1H osiągnięty.", flush=True)
+    sent_matches = daily_sent_match_count(state, today)
+    if sent_matches >= MAX_DAILY_PICKS:
+        print(f"Dzienny limit {MAX_DAILY_PICKS} spotkań osiągnięty (łącznie HT + FT).", flush=True)
         return
 
     fixtures = scheduled_fixtures_today()
@@ -2616,7 +2631,7 @@ def send_prematch_btts_picks(state):
             print(f"[{index}] Analiza {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
 
     candidates.sort(key=lambda item: item["estimate"]["probability"], reverse=True)
-    slots = MAX_DAILY_PICKS - len(todays)
+    slots = MAX_DAILY_PICKS - daily_sent_match_count(state, today)
     for candidate in candidates[:slots]:
         # Last-moment independent price refresh; never reuse a stale or guessed quote.
         try:
@@ -2682,8 +2697,9 @@ def send_prematch_btts_full_time_picks(state):
     todays = [p for p in state.get("picks", [])
               if p.get("date") == today and p.get("market") == BTTS_FT_MARKET
               and p.get("delivery_status", "sent") == "sent"]
-    if len(todays) >= MAX_DAILY_PICKS:
-        print(f"Limit {MAX_DAILY_PICKS} typów BTTS FT osiągnięty.", flush=True)
+    sent_matches = daily_sent_match_count(state, today)
+    if sent_matches >= MAX_DAILY_PICKS:
+        print(f"Dzienny limit {MAX_DAILY_PICKS} spotkań osiągnięty (łącznie HT + FT).", flush=True)
         return
 
     fixtures = scheduled_fixtures_today()
@@ -2736,7 +2752,7 @@ def send_prematch_btts_full_time_picks(state):
             print(f"[{index}] Analiza {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
 
     candidates.sort(key=lambda item: item["estimate"]["probability"], reverse=True)
-    slots = MAX_DAILY_PICKS - len(todays)
+    slots = MAX_DAILY_PICKS - daily_sent_match_count(state, today)
     for candidate in candidates[:slots]:
         # Last-moment independent price refresh; never reuse a stale or guessed quote.
         try:
@@ -2817,11 +2833,9 @@ def main():
         (BTTS_HT_MARKET, send_prematch_btts_picks, "BTTS 1H"),
         (BTTS_FT_MARKET, send_prematch_btts_full_time_picks, "BTTS FT"),
     ):
-        todays = [p for p in state["picks"] if p.get("date") == today
-                  and p.get("market") == market
-                  and p.get("delivery_status", "sent") == "sent"]
-        print(f"Typy {label} wysłane dzisiaj: {len(todays)}/{MAX_DAILY_PICKS}", flush=True)
-        if len(todays) < MAX_DAILY_PICKS:
+        sent_matches = daily_sent_match_count(state, today)
+        print(f"Spotkania z wysłanym typem dzisiaj: {sent_matches}/{MAX_DAILY_PICKS}", flush=True)
+        if sent_matches < MAX_DAILY_PICKS:
             try:
                 sender(state)
             except Exception as exc:
