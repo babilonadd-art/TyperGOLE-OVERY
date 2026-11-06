@@ -777,27 +777,23 @@ def superbet_btts_first_half_url(url):
     return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
 
 
-def superbet_btts_full_time_url(url, quote):
-    """Build a BTTS FT link only when Superbet supplies a specific market group."""
+def superbet_btts_full_time_url(url, quote=None):
+    """Build a clean Superbet event link for BTTS FT without forcing a market tab.
+
+    Superbet's event page exposes the available full-match BTTS prices when
+    opened without a marketGroup override. IDs copied from the odds payload
+    are not reliable URL market-group IDs and can lead to an empty "no odds"
+    tab, so deliberately remove any inherited marketGroup parameter.
+    """
     if not url:
-        return None
-    group_id = first(quote or {}, "market_group_id")
-    # Never fall back to all markets (-1), the known goals group (103),
-    # or the known first-half BTTS group (78). A wrong tab is worse than no link.
-    if group_id in (None, "") or str(group_id).strip() in {"-1", "103", "78"}:
-        print(
-            f"Superbet BTTS FT: brak bezpiecznego identyfikatora grupy; "
-            f"odrzucam link (group_id={group_id!r}).",
-            flush=True,
-        )
         return None
     parts = urlsplit(url)
     query = dict(parse_qsl(parts.query, keep_blank_values=True))
     query["t"] = "offer-prematch-102"
     query["mdt"] = "o"
-    query["marketGroup"] = str(group_id).strip()
+    query.pop("marketGroup", None)
     result = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
-    print(f"Superbet BTTS FT: link ustawiony na marketGroup={group_id}.", flush=True)
+    print("Superbet BTTS FT: link do wydarzenia bez wymuszonego marketGroup.", flush=True)
     return result
 
 
