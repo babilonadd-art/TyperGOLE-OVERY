@@ -85,6 +85,20 @@ class PreMatchBTTSFirstHalfTests(unittest.TestCase):
         self.assertEqual(quote["selection"], "Tak")
         self.assertEqual(quote["odds"], 3.20)
 
+    def test_reads_first_half_period_from_superbet_info_field(self):
+        payload = {
+            "odds": [{
+                "marketName": "Obie drużyny strzelą gola",
+                "info": "1. połowa",
+                "status": "active",
+                "name": "Tak",
+                "price": 3.10,
+            }]
+        }
+        quote = extract_superbet_btts_first_half(payload)
+        self.assertIsNotNone(quote)
+        self.assertEqual(quote["odds"], 3.10)
+
     def test_rejects_full_match_btts_market(self):
         payload = {
             "markets": [{
