@@ -1961,20 +1961,20 @@ def retry_pending_settlement_notifications(state):
         if won and odds is not None:
             result = calculate_bet_result(stake, odds)
             financial_text = (
-                f"\\nStawka: {result['stake']:.2f} zł | Kurs: {odds:.2f}"
-                f"\\nPodatek 12%: {result['tax']:.2f} zł"
-                f"\\nWypłata po podatku: {result['payout']:.2f} zł"
-                f"\\nZYSK NETTO: {result['profit']:+.2f} zł"
+                f"\nStawka: {result['stake']:.2f} zł | Kurs: {odds:.2f}"
+                f"\nPodatek 12%: {result['tax']:.2f} zł"
+                f"\nWypłata po podatku: {result['payout']:.2f} zł"
+                f"\nZYSK NETTO: {result['profit']:+.2f} zł"
             )
         else:
-            financial_text = f"\\nSTRATA: {-stake:.2f} zł" if not won else ""
+            financial_text = f"\nSTRATA: {-stake:.2f} zł" if not won else ""
         message = (
-            f"🔁 PONOWIONE ROZLICZENIE — BTTS CAŁY MECZ\\n"
-            f"{result_text}\\n{pick.get('home')} - {pick.get('away')}\\n"
+            f"🔁 PONOWIONE ROZLICZENIE — BTTS CAŁY MECZ\n"
+            f"{result_text}\n{pick.get('home')} - {pick.get('away')}\n"
             f"Wynik: {score}"
         )
         if odds is not None:
-            message += f"\\nKurs: {odds:.2f}"
+            message += f"\nKurs: {odds:.2f}"
         message += financial_text
         try:
             response = telegram(message)
