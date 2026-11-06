@@ -2565,7 +2565,7 @@ def kickoff_datetime(match):
 
 
 def scheduled_fixtures_today(superbet_events=None, target_dates=None):
-    """Build a fixture slate for selected Warsaw-local dates from Matchday + Superbet."""
+    """Build the BTTS fixture slate exclusively from Superbet's date-scoped event feed."""
     local_now = now_local()
     scan_days = set(target_dates or [local_now.date()])
     scan_days = {
@@ -2573,58 +2573,40 @@ def scheduled_fixtures_today(superbet_events=None, target_dates=None):
         for day in scan_days
     }
     fixtures = []
-    try:
-        for row in open_matchday_data()["fixtures"]:
-            match = open_matchday_fixture(row)
-            if not match:
-                continue
-            kickoff = kickoff_datetime(match)
-            if not kickoff or kickoff.date() not in scan_days or kickoff <= local_now + timedelta(minutes=15):
-                continue
-            if not any(
-                tuple(sorted((normalized_team_name(item["home"]), normalized_team_name(item["away"])))) ==
-                tuple(sorted((normalized_team_name(match["home"]), normalized_team_name(match["away"]))))
-                for item in fixtures
-            ):
-                fixtures.append(match)
-    except Exception as exc:
-        print(f"Open Matchday terminarz błąd: {type(exc).__name__}: {exc}", flush=True)
-        raise
-
-    # Open Matchday remains the source for historical results and probabilities.
-    # Superbet's date-scoped event board fills missing fixtures in the public CSV.
-    added_superbet = 0
+    seen_pairs = set()
     for event in superbet_events or []:
-        home, away = str(event.get("home") or "").strip(), str(event.get("away") or "").strip()
+        home = str(event.get("home") or "").strip()
+        away = str(event.get("away") or "").strip()
         kickoff = kickoff_datetime(event)
-        if not home or not away or not kickoff or kickoff.date() not in scan_days:
+        event_id = event.get("event_id")
+        if not home or not away or not event_id or not kickoff:
             continue
-        if kickoff <= local_now + timedelta(minutes=15):
+        if kickoff.date() not in scan_days or kickoff <= local_now + timedelta(minutes=15):
             continue
-        team_pair = tuple(sorted((normalized_team_name(home), normalized_team_name(away))))
-        if any(
-            tuple(sorted((normalized_team_name(item["home"]), normalized_team_name(item["away"])))) == team_pair
-            for item in fixtures
-        ):
+        team_pair = tuple(sorted((
+            normalized_team_name(home), normalized_team_name(away)
+        )))
+        if team_pair in seen_pairs:
             continue
+        seen_pairs.add(team_pair)
+
         def slugify(value):
             value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
             return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", value)).strip("-")
+
         slug = f"{slugify(home)}-vs-{slugify(away)}"
         fixtures.append({
-            "id": f"superbet:{event.get('event_id')}", "slug": slug,
+            "id": f"superbet:{event_id}", "slug": slug,
             "_bot_slug": slug, "home": home, "away": away,
             "time": kickoff.isoformat(), "date": kickoff.date().isoformat(),
-            "competition_name": "Liga z oferty Superbet",
+            "competition_name": event.get("competition_name") or "Liga z oferty Superbet",
             "_bot_kickoff": kickoff.isoformat(), "_source": "Superbet",
         })
-        added_superbet += 1
 
     fixtures.sort(key=lambda item: item["_bot_kickoff"])
     print(
-        f"Terminarz na daty {', '.join(day.isoformat() for day in sorted(scan_days))}: "
-        f"{len(fixtures)} meczów; Open Matchday + Superbet, "
-        f"dodatkowe z Superbet: {added_superbet}.",
+        f"Terminarz Superbet na daty {', '.join(day.isoformat() for day in sorted(scan_days))}: "
+        f"{len(fixtures)} przyszłych meczów; Open Matchday nie uczestniczy w wyborze terminarza.",
         flush=True,
     )
     return fixtures
@@ -3245,7 +3227,7 @@ def send_prematch_btts_picks(state):
                 f"Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
                 f"Model: gole w 1. połowie — zdobywane i tracone\n"
                 f"👉 OTWÓRZ BTTS 1. POŁOWA W SUPERBET: {bet_url}\n"
-                f"Dane meczowe: Open Matchday — https://github.com/oladeeayo/open-matchday"
+                f"Terminarz i kurs: Superbet | Historia wyników: Open Matchday"
             )
             telegram(message)
             pick["delivery_status"] = "sent"
