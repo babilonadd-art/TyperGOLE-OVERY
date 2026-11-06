@@ -2125,10 +2125,12 @@ def _team_history_rows(team_slug, cutoff):
                     row = {**row, **(detail or {})}
                 except Exception as exc:
                     print(f"Brak HT dla historii {slug}: {type(exc).__name__}: {exc}", flush=True)
-        if ht_home is None or ht_away is None:
-            continue
         home, away = teams(row)
         ft_home, ft_away, _, _ = score_and_minute(row)
+        # Keep a completed fixture for full-time BTTS history even if SportScore
+        # does not expose its separate half-time score.
+        if (ht_home is None or ht_away is None) and (ft_home is None or ft_away is None):
+            continue
         usable.append({
             "home": home, "away": away,
             "ht_home": ht_home, "ht_away": ht_away,
@@ -2157,6 +2159,8 @@ def team_first_half_profile(team_slug, cutoff, venue, cache=None):
     for row in rows:
         # Team slug is derived from the fixture orientation; only compare known
         # home/away sides, and never infer orientation from a fuzzy name.
+        if row.get("ht_home") is None or row.get("ht_away") is None:
+            continue
         if normalized_team_name(row["home"]) == normalized_team_name_from_slug(team_slug):
             scored.append(row["ht_home"])
             conceded.append(row["ht_away"])
