@@ -3035,7 +3035,7 @@ def send_prematch_btts_picks(state):
                 f"Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
                 f"Model: gole w 1. połowie — zdobywane i tracone\n"
                 f"👉 OTWÓRZ BTTS 1. POŁOWA W SUPERBET: {bet_url}\n"
-                f"Powered by SportScore: https://sportscore.com/"
+                f"Dane meczowe: Open Matchday — https://github.com/oladeeayo/open-matchday"
             )
             telegram(message)
             pick["delivery_status"] = "sent"
@@ -3172,7 +3172,7 @@ def send_prematch_btts_full_time_picks(state):
                 f"Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
                 f"Model: gole w całym meczu — zdobywane i tracone\n"
                 f"👉 OTWÓRZ BTTS CAŁY MECZ W SUPERBET: {bet_url}\n"
-                f"Powered by SportScore: https://sportscore.com/"
+                f"Dane meczowe: Open Matchday — https://github.com/oladeeayo/open-matchday"
             )
             response = telegram(message)
             telegram_result = response.get("result", {}) if isinstance(response, dict) else {}
