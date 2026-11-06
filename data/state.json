@@ -2087,11 +2087,12 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T01:59:18.485448+01:00",
-      "settlement_pending_score": "3-2",
-      "settlement_pending_since": "2026-11-06T03:54:54.905028+01:00"
+      "won": true,
+      "settled_score": "3-2",
+      "settled_at": "2026-11-06T04:43:25.145617+01:00"
     },
     {
       "key": "8yomo4hyew38q0j:FT",
@@ -2166,11 +2167,51 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T03:54:58.895711+01:00",
-      "settlement_pending_score": "2-0",
-      "settlement_pending_since": "2026-11-06T03:55:30.217927+01:00"
+      "won": false,
+      "settled_score": "2-0",
+      "settled_at": "2026-11-06T04:43:25.894512+01:00"
+    },
+    {
+      "key": "4wyrn4h6319gq86:FT",
+      "id": "4wyrn4h6319gq86",
+      "slug": "santos-laguna-women-vs-tijuana-women",
+      "home": "Santos Laguna Women",
+      "away": "Tijuana Women",
+      "league": "Mexico Liga MX Femenil",
+      "minute": 34,
+      "score_home": 2,
+      "score_away": 0,
+      "market": "FT",
+      "date": "2026-11-06",
+      "kickoff_time": "2026-11-06T03:10:00+00:00",
+      "stake": 50.0,
+      "odds": 2.55,
+      "odds_source": "Superbet",
+      "odds_market": "Liczba goli",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/santos-laguna-k-vs-tijuana-k-15578171?marketGroup=103",
+      "goal_line": 4.5,
+      "live_metrics": {
+        "shots": 7.0,
+        "shots_on_target": 4.0,
+        "shots_off_target": 3.0,
+        "attacks": 27.0,
+        "dangerous_attacks": 26.0,
+        "xg": null,
+        "big_chances": null,
+        "shots_inside_box": null,
+        "touches_in_box": null,
+        "saves": null
+      },
+      "signal_score": 2,
+      "settled": false,
+      "delivery_status": "sent",
+      "sent_at": "2026-11-06T04:43:28.972027+01:00",
+      "settlement_pending_score": "2-2",
+      "settlement_pending_since": "2026-11-06T04:44:00.282890+01:00"
     }
   ],
   "reports_sent": [],
@@ -2582,6 +2623,43 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T03:54:58.895711+01:00"
+    },
+    {
+      "key": "4wyrn4h6319gq86:FT",
+      "id": "4wyrn4h6319gq86",
+      "slug": "santos-laguna-women-vs-tijuana-women",
+      "home": "Santos Laguna Women",
+      "away": "Tijuana Women",
+      "league": "Mexico Liga MX Femenil",
+      "minute": 34,
+      "score_home": 2,
+      "score_away": 0,
+      "market": "FT",
+      "date": "2026-11-06",
+      "kickoff_time": "2026-11-06T03:10:00+00:00",
+      "stake": 50.0,
+      "odds": 2.55,
+      "odds_source": "Superbet",
+      "odds_market": "Liczba goli",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/santos-laguna-k-vs-tijuana-k-15578171?marketGroup=103",
+      "goal_line": 4.5,
+      "live_metrics": {
+        "shots": 7.0,
+        "shots_on_target": 4.0,
+        "shots_off_target": 3.0,
+        "attacks": 27.0,
+        "dangerous_attacks": 26.0,
+        "xg": null,
+        "big_chances": null,
+        "shots_inside_box": null,
+        "touches_in_box": null,
+        "saves": null
+      },
+      "signal_score": 2,
+      "settled": false,
+      "delivery_status": "sent",
+      "sent_at": "2026-11-06T04:43:28.972027+01:00"
     }
   ]
 }
