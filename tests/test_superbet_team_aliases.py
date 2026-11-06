@@ -2,7 +2,8 @@ import unittest
 
 from bot import (
     normalized_team_name, team_name_aliases, find_superbet_event,
-    extract_superbet_live_over_odds,
+    extract_superbet_live_over_odds, extract_superbet_btts_first_half,
+    first_half_btts_probability,
 )
 
 
@@ -58,6 +59,57 @@ class TestSuperbetTeamAliases(unittest.TestCase):
             }]
         }
         self.assertIsNone(extract_superbet_live_over_odds(event_detail, "FT", 1.5))
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+
+class PreMatchBTTSFirstHalfTests(unittest.TestCase):
+    def test_extracts_only_active_yes_from_explicit_first_half_btts_market(self):
+        payload = {
+            "markets": [{
+                "marketName": "Obie drużyny strzelą gola - 1. połowa",
+                "odds": [
+                    {"status": "active", "name": "Tak", "price": 3.20},
+                    {"status": "active", "name": "Nie", "price": 1.30},
+                ],
+            }]
+        }
+        quote = extract_superbet_btts_first_half(payload)
+        self.assertIsNotNone(quote)
+        self.assertEqual(quote["selection"], "Tak")
+        self.assertEqual(quote["odds"], 3.20)
+
+    def test_rejects_full_match_btts_market(self):
+        payload = {
+            "markets": [{
+                "marketName": "Obie drużyny strzelą gola - cały mecz",
+                "odds": [{"status": "active", "name": "Tak", "price": 1.80}],
+            }]
+        }
+        self.assertIsNone(extract_superbet_btts_first_half(payload))
+
+    def test_rejects_blocked_quote(self):
+        payload = {
+            "markets": [{
+                "marketName": "Obie drużyny strzelą gola - 1. połowa",
+                "odds": [{"status": "blocked", "name": "Tak", "price": 3.20}],
+            }]
+        }
+        self.assertIsNone(extract_superbet_btts_first_half(payload))
+
+    def test_probability_uses_both_team_first_half_profiles(self):
+        home = {"sample": 10, "scored_avg": 0.8, "conceded_avg": 0.5,
+                "scored_rate": 0.7, "conceded_rate": 0.5}
+        away = {"sample": 10, "scored_avg": 0.7, "conceded_avg": 0.6,
+                "scored_rate": 0.6, "conceded_rate": 0.6}
+        result = first_half_btts_probability(home, away)
+        self.assertIsNotNone(result)
+        self.assertGreater(result["probability"], 0)
+        self.assertLess(result["probability"], 1)
+        self.assertEqual(result["home_sample"], 10)
+        self.assertEqual(result["away_sample"], 10)
 
 
 if __name__ == "__main__":
