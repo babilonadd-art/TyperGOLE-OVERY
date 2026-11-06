@@ -8,11 +8,11 @@ class SuperbetFullTimeBttsQuoteTests(unittest.TestCase):
         payload = {
             "markets": [
                 {
-                    "marketName": "Obie drużyny strzelą",
+                    "marketName": "Mecz",
                     "marketGroupId": 102,
                     "outcomes": [
-                        {"name": "Tak", "price": "2.22", "status": "active"},
-                        {"name": "Nie", "price": "1.58", "status": "active"},
+                        {"info": "Obie drużyny strzelą", "name": "Tak", "price": "2.22", "status": "active"},
+                        {"info": "Obie drużyny strzelą", "name": "Nie", "price": "1.58", "status": "active"},
                     ],
                 },
                 {
