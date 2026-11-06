@@ -2966,12 +2966,12 @@ def send_prematch_btts_full_time_picks(state):
         save_state(state)
         try:
             payout = calculate_bet_result(STAKE, final_quote["odds"])
-            kickoff_text = candidate["kickoff"].strftime("%d.%m.%Y %H:%M")
+            kickoff_text = candidate["kickoff"].strftime("%H:%M")
             message = (
+                f"🕒 START GODZINA {kickoff_text} CZASU POLSKIEGO\n"
                 f"🎯 BTTS CAŁY MECZ — TAK\n"
                 f"⚽ {candidate['home']} – {candidate['away']}\n"
                 f"🏆 Liga: {candidate['league']}\n"
-                f"🕒 Start: {kickoff_text} (przedmeczowo)\n"
                 f"📈 Kurs Superbet: {final_quote['odds']:.2f}\n"
                 f"📊 Szacowane prawdopodobieństwo: {probability:.1f}%\n"
                 f"📚 Próba: {estimate['home_sample']} meczów gospodarzy / {estimate['away_sample']} gości\n"
