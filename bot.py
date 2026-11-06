@@ -2452,6 +2452,7 @@ def extract_superbet_btts_full_time(event_detail):
         "groupId", "group_id", "marketId", "market_id",
     )
     generic_market_labels = {"mecz", "match", "main", "glowne", "rynek", "market", "all markets"}
+    info_keys = ("info", "marketInfo", "market_info")
 
     def label_text(value):
         if isinstance(value, dict):
@@ -2477,12 +2478,26 @@ def extract_superbet_btts_full_time(event_detail):
         local_labels = [value for value in local_labels if value]
         local_market = " ".join(local_labels)
         normalized_local = norm(local_market)
+        local_info = " ".join(label_text(node.get(key)) for key in info_keys
+                              if node.get(key) not in (None, ""))
+        normalized_info = norm(local_info)
+        info_is_btts_label = (
+            "obie druzyny strzela" in normalized_info
+            or "both teams to score" in normalized_info
+            or re.search(r"\\bbtts\\b", normalized_info) is not None
+        )
         # Generic wrappers such as "Mecz" must not erase a more specific
         # market name inherited from their parent. A specific child market
         # replaces the parent's label so neighbouring markets cannot leak in.
         context_market = inherited_market
         if local_market and normalized_local not in generic_market_labels:
             context_market = local_market
+        # Superbet sometimes puts the actual market description in "info"
+        # while marketName is only the generic category "Mecz". Inherit info
+        # only when it explicitly names BTTS; selection descriptions such as
+        # "Team wins the match" must never contaminate neighbouring rows.
+        if info_is_btts_label:
+            context_market = " ".join(part for part in (context_market, local_info) if part)
 
         group_id = first(node, *group_keys, default=inherited_group)
         period_values = [
@@ -2514,8 +2529,8 @@ def extract_superbet_btts_full_time(event_detail):
             continue
 
         direct_market = " ".join(
-            label_text(row.get(key)) for key in market_keys
-            if row.get(key) not in (None, "")
+            [label_text(row.get(key)) for key in market_keys + info_keys
+             if row.get(key) not in (None, "")]
         )
         market = norm(" ".join(
             part for part in (row.get("_market_context", ""), direct_market, row.get("_period_context", ""))
