@@ -2867,7 +2867,7 @@ def send_prematch_btts_picks(state):
 def send_prematch_btts_full_time_picks(state):
     today = now_local().date().isoformat()
     sent_today = daily_sent_match_count(state, today)
-    print(f"Limit BTTS FT: {sent_today}/{MAX_DAILY_BTTS_FT_PICKS} typów wykorzystanych dzisiaj.", flush=True)
+    print(f"Limit BTTS FT: {sent_today}/{MAX_DAILY_BTTS_FT_PICKS} typów wykorzystanych dzisiaj; minimalny kurs: {MIN_BTTS_FT_ODDS:.2f}.", flush=True)
     if sent_today >= MAX_DAILY_BTTS_FT_PICKS:
         print("Dzienny limit BTTS FT osiągnięty; kończę skanowanie wysyłkowe.", flush=True)
         return
