@@ -1969,7 +1969,7 @@ def main():
 
             stats = {
                 "bad_item": 0, "detail_error": 0, "missing_id": 0,
-"missing_minute": 0, "outside_window": 0,
+"missing_minute": 0, "outside_window": 0, "score_not_0_0": 0,
                 "duplicate": 0, "no_promising_stats": 0, "odds_no_match": 0, "odds_missing": 0, "sent": 0, "errors": 0,
             }
 
@@ -2047,6 +2047,16 @@ def main():
                     home_score, away_score, minute, status = score_and_minute(match)
                     if home_score is None or away_score is None:
                         print(f"[{index}] Brak aktualnego wyniku — pomijam typ.", flush=True)
+                        continue
+                    # Nowa zasada użytkownika: analizujemy wyłącznie mecze z wynikiem 0:0.
+                    # Każdy inny wynik odrzucamy przed statystykami i pobieraniem kursów.
+                    if home_score != 0 or away_score != 0:
+                        stats["score_not_0_0"] += 1
+                        print(
+                            f"[{index}] WYNIK {home_score}-{away_score} — pomijam; "
+                            "analizuję wyłącznie mecze 0:0.",
+                            flush=True,
+                        )
                         continue
                     if minute is None:
                         stats["missing_minute"] += 1
@@ -2156,6 +2166,16 @@ def main():
                     if final_home_score is None or final_away_score is None:
                         print(
                             f"[{index}] Końcowy wynik SportScore niepełny dla {home} - {away}; typ pominięty.",
+                            flush=True,
+                        )
+                        continue
+                    # Wynik musi nadal wynosić 0:0 tuż przed wysłaniem typu.
+                    if final_home_score != 0 or final_away_score != 0:
+                        stats["score_not_0_0"] += 1
+                        print(
+                            f"[{index}] WYNIK ZMIENIŁ SIĘ PRZED WYSŁANIEM: "
+                            f"{home} - {away} {final_home_score}-{final_away_score}; "
+                            "typ pominięty, bo dopuszczalne jest wyłącznie 0:0.",
                             flush=True,
                         )
                         continue
