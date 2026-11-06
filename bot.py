@@ -2640,13 +2640,15 @@ def extract_superbet_btts_full_time(event_detail):
         # e.g. "BTTS + over 2.5", "BTTS or over 2.5", and "BTTS in either half".
         # Those are NOT the plain full-time BTTS market and must never compete
         # with the standalone market's price.
-        is_combined_market = any(token in f" {market} " for token in (
-            " lub ", " or ", " powyzej ", " ponad ", " over ",
-            " co najmniej ", " przynajmniej ", " oraz ",
-            " w obu polowach ", " w kazdej polowie ",
-            " w przynajmniej jednej polowie ", " w jednej z polow ",
-            " padnie ", " padna ",
-        ))
+        # Strict allow-list: only the standalone full-match BTTS market.
+        # Any extra condition or another market in the label is rejected.
+        allowed_btts_words = {
+            "mecz", "meczu", "caly", "calym", "spotkaniu", "w",
+            "obie", "druzyny", "strzela", "gola", "gol",
+            "both", "teams", "to", "score", "btts",
+        }
+        market_words = set(market.split())
+        is_combined_market = not market_words.issubset(allowed_btts_words)
         is_first_half = any(token in market for token in (
             "1 polowa", "pierwsza polowa", "first half", "1st half", "1 pol",
             "half time", "halftime",
