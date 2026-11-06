@@ -1998,7 +1998,7 @@ def settle_picks(state):
             match = match_detail(pick["slug"], pick)
             if not match:
                 print(
-                    f"ROZLICZENIE OCZEKUJE: brak szczegółów/archiwum SportScore dla "
+                    f"ROZLICZENIE OCZEKUJE: brak wyniku w plikach wynikowych Open Matchday dla "
                     f"{pick.get('home')} - {pick.get('away')} ({pick.get('key')}).",
                     flush=True,
                 )
