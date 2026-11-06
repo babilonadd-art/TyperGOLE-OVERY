@@ -420,8 +420,52 @@ def extract_team_logo_urls(event, home, away):
     return found
 
 
+def wikipedia_team_logo_url(team_name):
+    """Use the free Wikipedia page-image API as a no-key crest fallback."""
+    if not team_name:
+        return None
+    try:
+        response = requests.get(
+            "https://en.wikipedia.org/w/api.php",
+            params={
+                "action": "query", "generator": "search",
+                "gsrsearch": f'"{team_name}" football club',
+                "gsrnamespace": 0, "gsrlimit": 8,
+                "prop": "pageimages", "piprop": "thumbnail",
+                "pithumbsize": 400, "format": "json",
+            },
+            headers={**HEADERS, "User-Agent": "TyperGOLE-OVERY/1.0 (club crest lookup)"},
+            timeout=10,
+        )
+        response.raise_for_status()
+        pages = (response.json().get("query") or {}).get("pages") or {}
+        wanted = team_name_aliases(team_name)
+        matches = []
+        for page in pages.values():
+            title = re.sub(r"\\s*\\([^)]*\\)$", "", str(page.get("title") or ""))
+            thumbnail = (page.get("thumbnail") or {}).get("source")
+            if not thumbnail or not str(thumbnail).startswith("https://"):
+                continue
+            similarity = max(
+                (team_name_similarity(alias, title) for alias in wanted),
+                default=0.0,
+            )
+            # Accept only a strong club-name match; never substitute a generic sport image.
+            if similarity >= 0.72:
+                matches.append((similarity, thumbnail))
+        if not matches:
+            return None
+        matches.sort(reverse=True)
+        if len(matches) > 1 and matches[0][0] == matches[1][0] and matches[0][1] != matches[1][1]:
+            return None
+        return matches[0][1]
+    except Exception as exc:
+        print(f"Wikipedia herb {team_name}: {type(exc).__name__}.", flush=True)
+        return None
+
+
 def public_team_logo_url(team_name):
-    """Look up a club crest from TheSportsDB free team directory as a fallback."""
+    """Look up a club crest using free public directories, without an API key."""
     if not team_name:
         return None
     try:
@@ -443,17 +487,13 @@ def public_team_logo_url(team_name):
             similarity = team_name_similarity(team_name, official_name)
             if badge and str(badge).startswith("https://") and similarity >= 0.93:
                 matches.append((similarity, badge))
-        if not matches:
-            return None
-        matches.sort(reverse=True)
-        # Do not guess when two different teams have equally strong matches.
-        if len(matches) > 1 and matches[0][0] == matches[1][0] and matches[0][1] != matches[1][1]:
-            return None
-        return matches[0][1]
+        if matches:
+            matches.sort(reverse=True)
+            if len(matches) == 1 or matches[0][0] != matches[1][0] or matches[0][1] == matches[1][1]:
+                return matches[0][1]
     except Exception as exc:
-        print(f"Herb {team_name}: katalog zewnętrzny niedostępny ({type(exc).__name__}).", flush=True)
-        return None
-
+        print(f"TheSportsDB herb {team_name}: {type(exc).__name__}; próba Wikipedia.", flush=True)
+    return wikipedia_team_logo_url(team_name)
 
 def telegram_btts_ft(message, home, away, home_logo=None, away_logo=None):
     """Send BTTS FT as a two-crest Telegram album when both images are available."""
