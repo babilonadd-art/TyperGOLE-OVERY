@@ -18,7 +18,7 @@ permissions:
 
 concurrency:
   group: typergole-live
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
 
 jobs:
   run-bot:
