@@ -2158,6 +2158,25 @@ def extract_superbet_btts_first_half(event_detail):
                       "outcomeName", "label", "displayName")
     price_keys = ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
 
+    def nested_market_text(value, depth=0):
+        if depth > 3:
+            return ""
+        if isinstance(value, dict):
+            parts = []
+            for key, child in value.items():
+                if child in (None, ""):
+                    continue
+                if isinstance(child, (dict, list)):
+                    nested = nested_market_text(child, depth + 1)
+                    if nested:
+                        parts.append(nested)
+                elif str(key).lower() not in {"id", "uuid", "price", "status", "code"}:
+                    parts.append(str(child))
+            return " ".join(parts)
+        if isinstance(value, list):
+            return " ".join(nested_market_text(child, depth + 1) for child in value)
+        return str(value)
+
     def walk(node, inherited=""):
         if isinstance(node, list):
             for child in node:
@@ -2165,8 +2184,17 @@ def extract_superbet_btts_first_half(event_detail):
             return
         if not isinstance(node, dict):
             return
-        local = " ".join(str(node[k]) for k in market_keys
-                         if node.get(k) not in (None, "") and not isinstance(node.get(k), (dict, list)))
+        local_parts = [
+            str(node[k]) for k in market_keys
+            if node.get(k) not in (None, "") and not isinstance(node.get(k), (dict, list))
+        ]
+        for nested_key in ("market", "marketGroup", "market_group", "period", "phase"):
+            nested_value = node.get(nested_key)
+            if isinstance(nested_value, (dict, list)):
+                nested_text = nested_market_text(nested_value)
+                if nested_text:
+                    local_parts.append(nested_text)
+        local = " ".join(local_parts)
         context = " ".join(part for part in (inherited, local) if part)
         if any(node.get(k) not in (None, "") for k in price_keys) and any(node.get(k) not in (None, "") for k in selection_keys):
             row = dict(node)
@@ -2229,8 +2257,11 @@ def extract_superbet_btts_first_half(event_detail):
                 continue
             seen.add(signature)
             sample.append({
-                "market": market_text[:160], "selection": selection_text[:50],
-                "price": first(row, *price_keys), "status": first(row, "status", "oddStatus", "state"),
+                "market": market_text[:160], "market_raw": row.get("market"),
+                "market_group_raw": row.get("marketGroup", row.get("market_group")),
+                "info_raw": row.get("info"), "period_raw": row.get("period"),
+                "selection": selection_text[:50], "price": first(row, *price_keys),
+                "status": first(row, "status", "oddStatus", "state"),
             })
             if len(sample) >= 10:
                 break
