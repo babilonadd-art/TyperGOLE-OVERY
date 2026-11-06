@@ -2240,12 +2240,8 @@ def send_prematch_btts_picks(state):
         parts = slug.split("-vs-", 1)
         home_slug, away_slug = parts[0], parts[1]
         try:
-            hp = team_first_half_profile(home_slug, kickoff, "home", history_cache)
-            ap = team_first_half_profile(away_slug, kickoff, "away", history_cache)
-            estimate = first_half_btts_probability(hp, ap)
-            if not estimate or estimate["probability"] < MIN_MODEL_PROBABILITY:
-                print(f"[{index}] {home} - {away}: brak wystarczających danych lub P poniżej progu.", flush=True)
-                continue
+            # Confirm the exact Superbet event and market before spending requests
+            # on historical team data.
             event = find_superbet_event(home, away, superbet_events)
             if not event:
                 print(f"[{index}] Brak jednoznacznego wydarzenia Superbet: {home} - {away}", flush=True)
@@ -2254,6 +2250,12 @@ def send_prematch_btts_picks(state):
             quote = extract_superbet_btts_first_half(detail)
             if not quote:
                 print(f"[{index}] Brak aktywnego kursu Superbet BTTS 1. połowa: {home} - {away}", flush=True)
+                continue
+            hp = team_first_half_profile(home_slug, kickoff, "home", history_cache)
+            ap = team_first_half_profile(away_slug, kickoff, "away", history_cache)
+            estimate = first_half_btts_probability(hp, ap)
+            if not estimate or estimate["probability"] < MIN_MODEL_PROBABILITY:
+                print(f"[{index}] {home} - {away}: brak wystarczających danych lub P poniżej progu.", flush=True)
                 continue
             league = first(match, "competition_name", "competition", "league_name", default="Liga nieznana")
             if isinstance(league, dict):
