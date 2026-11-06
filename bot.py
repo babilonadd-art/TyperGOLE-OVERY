@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import csv
 import difflib
 import io
@@ -3134,6 +3135,40 @@ def send_prematch_btts_picks(state):
     state["team_history_cache"] = {key: value for key, value in history_cache.items() if key.startswith(today + ":") or key.startswith("FT:" + today + ":")}
     history_cache = state["team_history_cache"]
     superbet_events = superbet_live_event_links()
+    # Fetch Superbet event details concurrently. A sequential 15-second timeout
+    # per fixture could exceed the GitHub Actions 8-minute job limit before
+    # the bot reaches the candidate selection and Telegram delivery stages.
+    matched_events = {}
+    for match in fixtures:
+        home, away = teams(match)
+        event = find_superbet_event(
+            home, away, superbet_events, womens=fixture_is_womens(match)
+        )
+        if event and event.get("event_id"):
+            matched_events[str(event["event_id"])] = event
+
+    event_details = {}
+    def fetch_event_detail(event_id):
+        return event_id, superbet_event_detail(event_id)
+
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        futures = [
+            executor.submit(fetch_event_detail, event_id)
+            for event_id in matched_events
+        ]
+        for future in as_completed(futures):
+            try:
+                event_id, detail = future.result()
+                event_details[str(event_id)] = detail
+            except Exception as exc:
+                print(f"Superbet: błąd pobierania szczegółów wydarzenia: {type(exc).__name__}: {exc}", flush=True)
+
+    print(
+        f"Superbet: pobrano szczegóły {len(event_details)}/{len(matched_events)} wydarzeń "
+        "równolegle (20 wątków).",
+        flush=True,
+    )
+
     candidates = []
     for index, match in enumerate(fixtures, 1):
         home, away = teams(match)
@@ -3292,7 +3327,10 @@ def send_prematch_btts_full_time_picks(state):
             if not event:
                 print(f"[{index}] Brak jednoznacznego wydarzenia Superbet: {home} - {away}", flush=True)
                 continue
-            detail = superbet_event_detail(event["event_id"])
+            detail = event_details.get(str(event["event_id"]))
+            if not detail:
+                print(f"[{index}] Brak pobranych szczegółów Superbet: {home} - {away}", flush=True)
+                continue
             quote = extract_superbet_btts_full_time(detail)
             if not quote:
                 print(f"[{index}] Brak aktywnego kursu Superbet BTTS cały mecz: {home} - {away}", flush=True)
