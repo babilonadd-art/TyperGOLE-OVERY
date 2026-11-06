@@ -3425,7 +3425,9 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "sent_at": "2026-11-06T19:46:46.675379+01:00"
+      "sent_at": "2026-11-06T19:46:46.675379+01:00",
+      "settlement_pending_score": "3-1",
+      "settlement_pending_since": "2026-11-06T19:49:58.125545+01:00"
     },
     {
       "key": "3glrw7h4w3v4qdy:BTTS_FT",
@@ -3458,7 +3460,9 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "sent_at": "2026-11-06T19:46:47.375816+01:00"
+      "sent_at": "2026-11-06T19:46:47.375816+01:00",
+      "settlement_pending_score": "2-2",
+      "settlement_pending_since": "2026-11-06T19:49:58.732872+01:00"
     },
     {
       "key": "4wyrn4hyzzd1q86:BTTS_FT",
@@ -3491,7 +3495,9 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "sent_at": "2026-11-06T19:46:48.023191+01:00"
+      "sent_at": "2026-11-06T19:46:48.023191+01:00",
+      "settlement_pending_score": "1-2",
+      "settlement_pending_since": "2026-11-06T19:49:59.288074+01:00"
     },
     {
       "key": "6ypq3nhvod1wmd7:BTTS_FT",
@@ -3557,7 +3563,9 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "sent_at": "2026-11-06T19:46:49.702199+01:00"
+      "sent_at": "2026-11-06T19:46:49.702199+01:00",
+      "settlement_pending_score": "2-0",
+      "settlement_pending_since": "2026-11-06T19:50:03.043214+01:00"
     },
     {
       "key": "318q66hxp3e2qo9:BTTS_FT",
@@ -3590,7 +3598,9 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "sent_at": "2026-11-06T19:46:53.440722+01:00"
+      "sent_at": "2026-11-06T19:46:53.440722+01:00",
+      "settlement_pending_score": "2-1",
+      "settlement_pending_since": "2026-11-06T19:50:03.744006+01:00"
     }
   ],
   "reports_sent": [],
