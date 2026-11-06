@@ -2988,12 +2988,13 @@
         "home_conceded_rate": 0.4,
         "away_conceded_rate": 0.8
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:01:06.665231+01:00",
       "counts_toward_daily_limit": false,
-      "settlement_pending_score": "1-0",
-      "settlement_pending_since": "2026-11-06T23:51:50.029590+01:00"
+      "won": false,
+      "settled_score": "1-0",
+      "settled_at": "2026-11-07T00:05:03.761033+01:00"
     },
     {
       "key": "4wyrn4h6pzvvq86:BTTS_FT",
@@ -3061,12 +3062,13 @@
         "home_conceded_rate": 0.6,
         "away_conceded_rate": 1
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:01:11.390794+01:00",
       "counts_toward_daily_limit": false,
-      "settlement_pending_score": "1-2",
-      "settlement_pending_since": "2026-11-06T23:51:50.639085+01:00"
+      "won": true,
+      "settled_score": "1-2",
+      "settled_at": "2026-11-07T00:05:04.895105+01:00"
     },
     {
       "key": "3glrw7hn5d2yqdy:BTTS_FT",
