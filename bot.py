@@ -1238,6 +1238,25 @@ def telegram(message):
 
 
 # Settlement lookup supports both live detail and the finished-fixture archive.
+def settlement_fixture_matches_pick(match, pick):
+    """Reject stale/recycled slugs: team names AND scheduled calendar date must match."""
+    if not isinstance(match, dict) or not isinstance(pick, dict):
+        return False
+    home, away = teams(match)
+    direct = team_name_similarity(home, pick.get("home")) >= 0.86 and team_name_similarity(away, pick.get("away")) >= 0.86
+    reverse = team_name_similarity(home, pick.get("away")) >= 0.86 and team_name_similarity(away, pick.get("home")) >= 0.86
+    if not (direct or reverse):
+        return False
+    try:
+        expected = datetime.fromisoformat(str(pick.get("kickoff_time") or pick.get("date")).replace("Z", "+00:00"))
+        if expected.tzinfo is None:
+            expected = expected.replace(tzinfo=TZ)
+        expected_day = expected.astimezone(TZ).date()
+    except (TypeError, ValueError):
+        return False
+    actual = kickoff_datetime(match)
+    return actual is not None and abs((actual.date() - expected_day).days) <= 1
+
 def match_detail(slug, pick=None):
     """
     Fetch match detail and search finished fixtures. The daily archive is
@@ -1250,6 +1269,10 @@ def match_detail(slug, pick=None):
             try:
                 detail = unwrap_match(api_get(endpoint, {"sport": "football", "slug": slug}))
                 if detail and first(detail, "home", "away", "status", "home_score", "score") is not None:
+                    if pick and not settlement_fixture_matches_pick(detail, pick):
+                        dh, da = teams(detail)
+                        print(f"ODRZUCAM STARY/NIEZGODNY DETAIL slug={slug}: {dh} - {da}, data={kickoff_datetime(detail)}; oczekiwano {pick.get('home')} - {pick.get('away')} {pick.get('kickoff_time')}", flush=True)
+                        continue
                     if confirmed_final_fixture(detail):
                         return detail
                     if not live_detail or (
@@ -1301,6 +1324,10 @@ def match_detail(slug, pick=None):
                         first(fixture, "url", "match_url", "link", default="")
                     )
                     if pick.get("id") and fixture_id and str(pick["id"]).lower() == fixture_id.lower():
+                        if not settlement_fixture_matches_pick(fixture, pick):
+                            fh, fa = teams(fixture)
+                            print(f"ID pasuje, ale data/drużyny nie: {fh} - {fa}, data={kickoff_datetime(fixture)}; oczekiwano {pick.get('home')} - {pick.get('away')} {pick.get('kickoff_time')}", flush=True)
+                            continue
                         if confirmed_final_fixture(fixture):
                             print(f"Harmonogram: potwierdzony zakończony mecz po ID {fixture_id}", flush=True)
                             return fixture
@@ -1362,6 +1389,9 @@ def match_detail(slug, pick=None):
                             and normalized_team_name(fa) == normalized_team_name(pick.get("home"))
                         )
                         if direct or reverse:
+                            if not settlement_fixture_matches_pick(fixture, pick):
+                                print("Archiwum: nazwy pasują, ale data meczu jest inna lub brak daty — pomijam.", flush=True)
+                                continue
                             if confirmed_final_fixture(fixture):
                                 print(
                                     f"Archiwum: potwierdzony zakończony mecz po nazwach drużyn "
