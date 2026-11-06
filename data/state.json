@@ -2253,6 +2253,105 @@
       "won": true,
       "settled_score": "7-1",
       "settled_at": "2026-11-06T08:55:08.129439+01:00"
+    },
+    {
+      "key": "dn1m1ghldxyxmoe:BTTS_HT",
+      "id": "dn1m1ghldxyxmoe",
+      "slug": "kiryat-yam-sc-vs-ashdod-ms",
+      "home": "Kiryat Yam SC",
+      "away": "Ashdod MS",
+      "league": "Israel Leumit League",
+      "date": "2026-11-06",
+      "kickoff_time": "2026-11-06T14:00:00+01:00",
+      "market": "BTTS_HT",
+      "stake": 50.0,
+      "odds": 3.7,
+      "odds_source": "Superbet",
+      "odds_market": "1 polowa obie druzyny strzela obie druzyny strzela gola w 1 polowie 1 polowa obie druzyny strzela obie druzyny strzela gola w 1 polowie",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/kiryat-yam-vs-sc-ashdod-15578406",
+      "probability": 31.1,
+      "probability_method": "Poisson HT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.31069999818056326,
+        "home_lambda": 0.65,
+        "away_lambda": 1.05,
+        "home_sample": 10,
+        "away_sample": 10,
+        "home_scored_rate": 0.6,
+        "away_scored_rate": 0.8,
+        "home_conceded_rate": 0.7,
+        "away_conceded_rate": 0.4
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "sent_at": "2026-11-06T12:15:49.149487+01:00"
+    },
+    {
+      "key": "y39mp1h68ogzmoj:BTTS_HT",
+      "id": "y39mp1h68ogzmoj",
+      "slug": "hapoel-raanana-vs-hapoel-rishon-lezion",
+      "home": "Hapoel Rishon Lezion",
+      "away": "Hapoel Raanana",
+      "league": "Israel Leumit League",
+      "date": "2026-11-06",
+      "kickoff_time": "2026-11-06T14:00:00+01:00",
+      "market": "BTTS_HT",
+      "stake": 50.0,
+      "odds": 3.55,
+      "odds_source": "Superbet",
+      "odds_market": "1 polowa obie druzyny strzela obie druzyny strzela gola w 1 polowie 1 polowa obie druzyny strzela obie druzyny strzela gola w 1 polowie",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/hapoel-rishon-lezion-vs-hapoel-raanana-15578378",
+      "probability": 29.4,
+      "probability_method": "Poisson HT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.29351311944888875,
+        "home_lambda": 1.0833333333333335,
+        "away_lambda": 0.6666666666666667,
+        "home_sample": 6,
+        "away_sample": 6,
+        "home_scored_rate": 0.5,
+        "away_scored_rate": 0.8333333333333334,
+        "home_conceded_rate": 0.16666666666666666,
+        "away_conceded_rate": 0.8333333333333334
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "sent_at": "2026-11-06T12:15:49.871906+01:00"
+    },
+    {
+      "key": "4wyrn4h61wp5q86:BTTS_HT",
+      "id": "4wyrn4h61wp5q86",
+      "slug": "maccabi-herzliya-vs-hapoel-kfar-shalem",
+      "home": "Maccabi Herzliya",
+      "away": "Hapoel Kfar Shalem",
+      "league": "Israel Leumit League",
+      "date": "2026-11-06",
+      "kickoff_time": "2026-11-06T14:00:00+01:00",
+      "market": "BTTS_HT",
+      "stake": 50.0,
+      "odds": 3.5,
+      "odds_source": "Superbet",
+      "odds_market": "1 polowa obie druzyny strzela obie druzyny strzela gola w 1 polowie 1 polowa obie druzyny strzela obie druzyny strzela gola w 1 polowie",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/maccabi-herzliya-vs-hapoel-kfar-shalem-15578379",
+      "probability": 28.4,
+      "probability_method": "Poisson HT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.2836640843174121,
+        "home_lambda": 1.0,
+        "away_lambda": 0.7,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 0.4,
+        "away_scored_rate": 0.6,
+        "home_conceded_rate": 0.6,
+        "away_conceded_rate": 0.6
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "sent_at": "2026-11-06T12:15:50.619832+01:00"
     }
   ],
   "reports_sent": [],
@@ -2738,6 +2837,329 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T05:04:54.076104+01:00"
+    },
+    {
+      "key": "dn1m1ghldxyxmoe:BTTS_HT",
+      "id": "dn1m1ghldxyxmoe",
+      "slug": "kiryat-yam-sc-vs-ashdod-ms",
+      "home": "Kiryat Yam SC",
+      "away": "Ashdod MS",
+      "league": "Israel Leumit League",
+      "date": "2026-11-06",
+      "kickoff_time": "2026-11-06T14:00:00+01:00",
+      "market": "BTTS_HT",
+      "stake": 50.0,
+      "odds": 3.7,
+      "odds_source": "Superbet",
+      "odds_market": "1 polowa obie druzyny strzela obie druzyny strzela gola w 1 polowie 1 polowa obie druzyny strzela obie druzyny strzela gola w 1 polowie",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/kiryat-yam-vs-sc-ashdod-15578406",
+      "probability": 31.1,
+      "probability_method": "Poisson HT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.31069999818056326,
+        "home_lambda": 0.65,
+        "away_lambda": 1.05,
+        "home_sample": 10,
+        "away_sample": 10,
+        "home_scored_rate": 0.6,
+        "away_scored_rate": 0.8,
+        "home_conceded_rate": 0.7,
+        "away_conceded_rate": 0.4
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "sent_at": "2026-11-06T12:15:49.149487+01:00"
+    },
+    {
+      "key": "y39mp1h68ogzmoj:BTTS_HT",
+      "id": "y39mp1h68ogzmoj",
+      "slug": "hapoel-raanana-vs-hapoel-rishon-lezion",
+      "home": "Hapoel Rishon Lezion",
+      "away": "Hapoel Raanana",
+      "league": "Israel Leumit League",
+      "date": "2026-11-06",
+      "kickoff_time": "2026-11-06T14:00:00+01:00",
+      "market": "BTTS_HT",
+      "stake": 50.0,
+      "odds": 3.55,
+      "odds_source": "Superbet",
+      "odds_market": "1 polowa obie druzyny strzela obie druzyny strzela gola w 1 polowie 1 polowa obie druzyny strzela obie druzyny strzela gola w 1 polowie",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/hapoel-rishon-lezion-vs-hapoel-raanana-15578378",
+      "probability": 29.4,
+      "probability_method": "Poisson HT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.29351311944888875,
+        "home_lambda": 1.0833333333333335,
+        "away_lambda": 0.6666666666666667,
+        "home_sample": 6,
+        "away_sample": 6,
+        "home_scored_rate": 0.5,
+        "away_scored_rate": 0.8333333333333334,
+        "home_conceded_rate": 0.16666666666666666,
+        "away_conceded_rate": 0.8333333333333334
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "sent_at": "2026-11-06T12:15:49.871906+01:00"
+    },
+    {
+      "key": "4wyrn4h61wp5q86:BTTS_HT",
+      "id": "4wyrn4h61wp5q86",
+      "slug": "maccabi-herzliya-vs-hapoel-kfar-shalem",
+      "home": "Maccabi Herzliya",
+      "away": "Hapoel Kfar Shalem",
+      "league": "Israel Leumit League",
+      "date": "2026-11-06",
+      "kickoff_time": "2026-11-06T14:00:00+01:00",
+      "market": "BTTS_HT",
+      "stake": 50.0,
+      "odds": 3.5,
+      "odds_source": "Superbet",
+      "odds_market": "1 polowa obie druzyny strzela obie druzyny strzela gola w 1 polowie 1 polowa obie druzyny strzela obie druzyny strzela gola w 1 polowie",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/maccabi-herzliya-vs-hapoel-kfar-shalem-15578379",
+      "probability": 28.4,
+      "probability_method": "Poisson HT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.2836640843174121,
+        "home_lambda": 1.0,
+        "away_lambda": 0.7,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 0.4,
+        "away_scored_rate": 0.6,
+        "home_conceded_rate": 0.6,
+        "away_conceded_rate": 0.6
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "sent_at": "2026-11-06T12:15:50.619832+01:00"
     }
-  ]
+  ],
+  "team_history_cache": {
+    "2026-11-06:madura-united": null,
+    "2026-11-06:arema-fc": null,
+    "2026-11-06:maccabi-tel-aviv": {
+      "sample": 6,
+      "scored_avg": 0.5,
+      "conceded_avg": 0.5,
+      "scored_rate": 0.3333333333333333,
+      "conceded_rate": 0.5
+    },
+    "2026-11-06:maccabi-petah-tikva-fc": {
+      "sample": 10,
+      "scored_avg": 0.9,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.7
+    },
+    "2026-11-06:sepahan": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 0.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.2
+    },
+    "2026-11-06:malavan": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "2026-11-06:aluminium-arak-fc": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 0.4,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.4
+    },
+    "2026-11-06:mes-shahr-babak-fc": {
+      "sample": 10,
+      "scored_avg": 0.0,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.0,
+      "conceded_rate": 0.7
+    },
+    "2026-11-06:bnei-yehuda-tel-aviv": {
+      "sample": 10,
+      "scored_avg": 0.7,
+      "conceded_avg": 0.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.4
+    },
+    "2026-11-06:maccabi-ahi-nazareth": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.4
+    },
+    "2026-11-06:hapoel-raanana": {
+      "sample": 6,
+      "scored_avg": 1.1666666666666667,
+      "conceded_avg": 0.16666666666666666,
+      "scored_rate": 0.5,
+      "conceded_rate": 0.16666666666666666
+    },
+    "2026-11-06:hapoel-rishon-lezion": {
+      "sample": 6,
+      "scored_avg": 1.1666666666666667,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8333333333333334,
+      "conceded_rate": 0.8333333333333334
+    },
+    "2026-11-06:kiryat-yam-sc": {
+      "sample": 10,
+      "scored_avg": 0.9,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.7
+    },
+    "2026-11-06:ashdod-ms": {
+      "sample": 10,
+      "scored_avg": 1.1,
+      "conceded_avg": 0.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "2026-11-06:maccabi-herzliya": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.6
+    },
+    "2026-11-06:hapoel-kfar-shalem": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "2026-11-06:persepolis": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 0.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.0
+    },
+    "2026-11-06:fajr-sepasi": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.4
+    },
+    "2026-11-06:turan-tovuz": {
+      "sample": 7,
+      "scored_avg": 0.42857142857142855,
+      "conceded_avg": 0.42857142857142855,
+      "scored_rate": 0.2857142857142857,
+      "conceded_rate": 0.42857142857142855
+    },
+    "2026-11-06:qarabag": {
+      "sample": 6,
+      "scored_avg": 0.16666666666666666,
+      "conceded_avg": 0.3333333333333333,
+      "scored_rate": 0.16666666666666666,
+      "conceded_rate": 0.16666666666666666
+    },
+    "2026-11-06:bengaluru": {
+      "sample": 6,
+      "scored_avg": 0.6666666666666666,
+      "conceded_avg": 0.3333333333333333,
+      "scored_rate": 0.6666666666666666,
+      "conceded_rate": 0.16666666666666666
+    },
+    "2026-11-06:fc-goa": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 0.0,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.0
+    },
+    "2026-11-06:proxy-sc": {
+      "sample": 6,
+      "scored_avg": 0.16666666666666666,
+      "conceded_avg": 0.16666666666666666,
+      "scored_rate": 0.16666666666666666,
+      "conceded_rate": 0.16666666666666666
+    },
+    "2026-11-06:enppi": {
+      "sample": 10,
+      "scored_avg": 0.9,
+      "conceded_avg": 0.7,
+      "scored_rate": 0.5,
+      "conceded_rate": 0.5
+    },
+    "2026-11-06:al-wehdat": {
+      "sample": 7,
+      "scored_avg": 0.2857142857142857,
+      "conceded_avg": 0.0,
+      "scored_rate": 0.2857142857142857,
+      "conceded_rate": 0.0
+    },
+    "2026-11-06:al-baqs": null,
+    "2026-11-06:vejle": {
+      "sample": 10,
+      "scored_avg": 0.5,
+      "conceded_avg": 0.4,
+      "scored_rate": 0.5,
+      "conceded_rate": 0.4
+    },
+    "2026-11-06:fredericia": {
+      "sample": 6,
+      "scored_avg": 0.5,
+      "conceded_avg": 0.0,
+      "scored_rate": 0.3333333333333333,
+      "conceded_rate": 0.0
+    },
+    "2026-11-06:antalyaspor": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.4
+    },
+    "2026-11-06:bursaspor": null,
+    "2026-11-06:fc-dunav-ruse": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 0.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.2
+    },
+    "2026-11-06:botev-plovdiv": {
+      "sample": 10,
+      "scored_avg": 0.9,
+      "conceded_avg": 0.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.2
+    },
+    "2026-11-06:energie-cottbus": {
+      "sample": 6,
+      "scored_avg": 0.8333333333333334,
+      "conceded_avg": 0.3333333333333333,
+      "scored_rate": 0.8333333333333334,
+      "conceded_rate": 0.3333333333333333
+    },
+    "2026-11-06:eintracht-braunschweig": {
+      "sample": 6,
+      "scored_avg": 0.3333333333333333,
+      "conceded_avg": 0.6666666666666666,
+      "scored_rate": 0.3333333333333333,
+      "conceded_rate": 0.5
+    },
+    "2026-11-06:elfsborg": {
+      "sample": 6,
+      "scored_avg": 0.5,
+      "conceded_avg": 0.16666666666666666,
+      "scored_rate": 0.3333333333333333,
+      "conceded_rate": 0.16666666666666666
+    },
+    "2026-11-06:hammarby": null
+  }
 }
