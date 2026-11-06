@@ -1986,6 +1986,9 @@ def scheduled_fixtures_today():
                         continue
                     if kickoff <= local_now + timedelta(minutes=15):
                         continue
+                    status_text = str(first(match, "status", "state", "match_status", default="")).lower()
+                    if any(token in status_text for token in ("postponed", "cancelled", "canceled", "abandoned", "finished", "live", "in play")):
+                        continue
                     home, away = teams(match)
                     if home in ("Gospodarze", "") or away in ("Goście", ""):
                         continue
