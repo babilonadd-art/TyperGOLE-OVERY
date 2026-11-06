@@ -1,4 +1,8 @@
 import unittest
+from datetime import datetime, timezone
+from unittest.mock import patch
+
+import bot
 
 from bot import (
     normalized_team_name, team_name_aliases, find_superbet_event,
@@ -114,3 +118,74 @@ class PreMatchBTTSFirstHalfTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BTTSFirstHalfSettlementTests(unittest.TestCase):
+    def test_btts_ht_pick_settles_without_live_baseline_score(self):
+        state = {
+            "picks": [{
+                "key": "fixture-1:BTTS_HT",
+                "id": "fixture-1",
+                "slug": "home-vs-away",
+                "home": "Home FC",
+                "away": "Away FC",
+                "market": "BTTS_HT",
+                "delivery_status": "sent",
+                "settled": False,
+                "odds": 2.10,
+                "stake": 50.0,
+            }]
+        }
+        match = {
+            "home": "Home FC",
+            "away": "Away FC",
+            "home_score": 1,
+            "away_score": 1,
+            "status": "2nd half",
+            "minute": 60,
+            "half_time_score": "1-1",
+        }
+        with patch.object(bot, "match_detail", return_value=match), \\
+             patch.object(bot, "settlement_confirmation_ready", return_value=True), \\
+             patch.object(bot, "now_local", return_value=datetime(2026, 11, 6, 12, 0, tzinfo=timezone.utc)), \\
+             patch.object(bot, "telegram") as send_message, \\
+             patch.object(bot, "save_state"):
+            bot.settle_picks(state)
+        self.assertTrue(state["picks"][0]["settled"])
+        self.assertTrue(state["picks"][0]["won"])
+        send_message.assert_called_once()
+        self.assertIn("1-1", send_message.call_args.args[0])
+
+    def test_btts_ht_pick_loses_if_only_one_team_scored_at_half_time(self):
+        state = {
+            "picks": [{
+                "key": "fixture-2:BTTS_HT",
+                "id": "fixture-2",
+                "slug": "home-vs-away",
+                "home": "Home FC",
+                "away": "Away FC",
+                "market": "BTTS_HT",
+                "delivery_status": "sent",
+                "settled": False,
+                "odds": 2.10,
+                "stake": 50.0,
+            }]
+        }
+        match = {
+            "home": "Home FC",
+            "away": "Away FC",
+            "home_score": 1,
+            "away_score": 0,
+            "status": "2nd half",
+            "minute": 60,
+            "half_time_score": "1-0",
+        }
+        with patch.object(bot, "match_detail", return_value=match), \\
+             patch.object(bot, "settlement_confirmation_ready", return_value=True), \\
+             patch.object(bot, "now_local", return_value=datetime(2026, 11, 6, 12, 0, tzinfo=timezone.utc)), \\
+             patch.object(bot, "telegram") as send_message, \\
+             patch.object(bot, "save_state"):
+            bot.settle_picks(state)
+        self.assertTrue(state["picks"][0]["settled"])
+        self.assertFalse(state["picks"][0]["won"])
+        send_message.assert_called_once()
