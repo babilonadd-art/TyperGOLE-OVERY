@@ -2431,88 +2431,116 @@ def extract_superbet_btts_first_half(event_detail):
 
 
 def extract_superbet_btts_full_time(event_detail):
-    """Return only an active, actual Superbet YES quote for full-time BTTS."""
+    """Return one verified active YES quote from the full-match BTTS market only."""
     def norm(value):
         value = str(value or "").replace("ł", "l").replace("Ł", "L")
         value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
-        return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", value)).strip()
+        return re.sub(r"\\s+", " ", re.sub(r"[^a-z0-9]+", " ", value)).strip()
+
+    market_keys = (
+        "marketName", "market_name", "marketGroupName", "market_group_name",
+        "marketTitle", "market_title", "market", "marketGroup", "market_group",
+        "title", "groupName", "group_name",
+    )
+    selection_keys = (
+        "name", "selectionName", "selection_name", "oddName",
+        "outcomeName", "label", "displayName",
+    )
+    price_keys = ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
+    group_keys = (
+        "marketGroupId", "market_group_id", "marketGroupID",
+        "groupId", "group_id", "marketId", "market_id",
+    )
+    generic_market_labels = {"mecz", "match", "main", "glowne", "rynek", "market", "all markets"}
+
+    def label_text(value):
+        if isinstance(value, dict):
+            value = first(value, "name", "title", "label", "description", "displayName", default="")
+        if isinstance(value, (list, tuple)):
+            return " ".join(label_text(item) for item in value if item not in (None, ""))
+        return str(value or "").strip()
 
     rows = []
-    market_keys = ("marketName", "market_name", "marketGroupName", "market_group_name",
-                   "marketTitle", "market_title", "market", "marketGroup", "market_group", "title",
-                   "period", "periodName", "period_name", "phase", "info", "marketInfo",
-                   "market_info", "groupName", "group_name")
-    selection_keys = ("name", "selectionName", "selection_name", "oddName",
-                      "outcomeName", "label", "displayName")
-    price_keys = ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
 
-    def nested_market_text(value, depth=0):
-        if depth > 3:
-            return ""
-        if isinstance(value, dict):
-            parts = []
-            for key, child in value.items():
-                if child in (None, ""):
-                    continue
-                if isinstance(child, (dict, list)):
-                    nested = nested_market_text(child, depth + 1)
-                    if nested:
-                        parts.append(nested)
-                elif str(key).lower() not in {"id", "uuid", "price", "status", "code"}:
-                    parts.append(str(child))
-            return " ".join(parts)
-        if isinstance(value, list):
-            return " ".join(nested_market_text(child, depth + 1) for child in value)
-        return str(value)
-
-    def walk(node, inherited=""):
+    def walk(node, inherited_market="", inherited_group=None, inherited_period=""):
         if isinstance(node, list):
             for child in node:
-                walk(child, inherited)
+                walk(child, inherited_market, inherited_group, inherited_period)
             return
         if not isinstance(node, dict):
             return
-        local_parts = [
-            str(node[k]) for k in market_keys
-            if node.get(k) not in (None, "") and not isinstance(node.get(k), (dict, list))
+
+        local_labels = [
+            label_text(node.get(key)) for key in market_keys
+            if node.get(key) not in (None, "")
         ]
-        for nested_key in ("market", "marketGroup", "market_group", "period", "phase"):
-            nested_value = node.get(nested_key)
-            if isinstance(nested_value, (dict, list)):
-                nested_text = nested_market_text(nested_value)
-                if nested_text:
-                    local_parts.append(nested_text)
-        local = " ".join(local_parts)
-        context = " ".join(part for part in (inherited, local) if part)
-        if any(node.get(k) not in (None, "") for k in price_keys) and any(node.get(k) not in (None, "") for k in selection_keys):
+        local_labels = [value for value in local_labels if value]
+        local_market = " ".join(local_labels)
+        normalized_local = norm(local_market)
+        # Generic wrappers such as "Mecz" must not erase a more specific
+        # market name inherited from their parent. A specific child market
+        # replaces the parent's label so neighbouring markets cannot leak in.
+        context_market = inherited_market
+        if local_market and normalized_local not in generic_market_labels:
+            context_market = local_market
+
+        group_id = first(node, *group_keys, default=inherited_group)
+        period_values = [
+            label_text(node.get(key)) for key in
+            ("period", "periodName", "period_name", "phase", "phaseName", "phase_name")
+            if node.get(key) not in (None, "")
+        ]
+        period_context = " ".join(x for x in (inherited_period, *period_values) if x)
+
+        has_price = any(node.get(key) not in (None, "") for key in price_keys)
+        has_selection = any(node.get(key) not in (None, "") for key in selection_keys)
+        if has_price and has_selection:
             row = dict(node)
-            row["_market_context"] = context
+            row["_market_context"] = context_market
+            row["_period_context"] = period_context
+            row["_market_group_id"] = group_id
             rows.append(row)
+
         for value in node.values():
             if isinstance(value, (dict, list)):
-                walk(value, context)
+                walk(value, context_market, group_id, period_context)
 
     walk(event_detail)
+
     candidates = []
     for row in rows:
-        status = str(first(row, "status", "oddStatus", "state", default="")).lower()
-        if status not in ("active", "opened", "open", "1", "true"):
+        status = str(first(row, "status", "oddStatus", "state", default="")).strip().lower()
+        if status not in {"active", "opened", "open", "1", "true"}:
             continue
-        market = norm(" ".join([row.get("_market_context", "")] + [
-            str(row.get(k, "")) for k in market_keys if row.get(k) not in (None, "")
-        ]))
-        # The unqualified BTTS market is full-time; half-specific variants are excluded.
-        is_btts = ("obie druzyny strzela" in market or "both teams to score" in market
-                   or re.search(r"\bbtts\b", market))
-        is_first_half = any(token in market for token in
-                            ("1 polowa", "pierwsza polowa", "first half", "1st half", "1 pol"))
-        is_second_half = any(token in market for token in
-                             ("2 polowa", "druga polowa", "second half", "2nd half"))
+
+        direct_market = " ".join(
+            label_text(row.get(key)) for key in market_keys
+            if row.get(key) not in (None, "")
+        )
+        market = norm(" ".join(
+            part for part in (row.get("_market_context", ""), direct_market, row.get("_period_context", ""))
+            if part
+        ))
+        is_btts = (
+            "obie druzyny strzela" in market
+            or "obie druzyny strzela gola" in market
+            or "both teams to score" in market
+            or re.search(r"\\bbtts\\b", market) is not None
+        )
+        is_first_half = any(token in market for token in (
+            "1 polowa", "pierwsza polowa", "first half", "1st half", "1 pol",
+            "half time", "halftime",
+        ))
+        is_second_half = any(token in market for token in (
+            "2 polowa", "druga polowa", "second half", "2nd half",
+        ))
         if not is_btts or is_first_half or is_second_half:
             continue
+
         selection = norm(first(row, *selection_keys, default=""))
-        if selection not in ("tak", "yes", "true"):
+        if selection not in {"tak", "yes", "true"}:
             continue
+
         values = []
         invalid = False
         for key in price_keys:
@@ -2530,43 +2558,65 @@ def extract_superbet_btts_full_time(event_detail):
             values.append(value)
         if invalid or not values or max(values) - min(values) > 0.005:
             continue
+
         candidates.append({
-            "odds": values[0], "market": market, "selection": "Tak",
+            "odds": values[0],
+            "market": market,
+            "selection": "Tak",
+            "market_group_id": row.get("_market_group_id"),
             "source": "Superbet",
             "updated_at": first(row.get("extra", {}), "feedPlatformTimestamp", "feedOriginTimestamp"),
         })
-    if not candidates:
-        sample = []
-        seen = set()
-        for row in rows:
-            market_text = " ".join(str(row.get(k, "")) for k in market_keys if row.get(k) not in (None, ""))
-            selection_text = str(first(row, *selection_keys, default=""))
-            signature = (market_text, selection_text, str(first(row, *price_keys, default="")),
-                         str(first(row, "status", "oddStatus", "state", default="")))
-            if signature in seen:
-                continue
-            seen.add(signature)
-            sample.append({
-                "market": market_text[:160], "market_raw": row.get("market"),
-                "market_group_raw": row.get("marketGroup", row.get("market_group")),
-                "info_raw": row.get("info"), "period_raw": row.get("period"),
-                "selection": selection_text[:50], "price": first(row, *price_keys),
-                "status": first(row, "status", "oddStatus", "state"),
-                "row_keys": sorted(key for key in row if not str(key).startswith("_")),
-                "raw_sample": {key: value for key, value in row.items()
-                               if not str(key).startswith("_")},
-            })
-            if len(sample) >= 10:
-                break
-        print("Superbet BTTS FT — brak dopasowania; klucze eventu=" +
-              json.dumps(sorted(event_detail.keys()) if isinstance(event_detail, dict) else [], ensure_ascii=False) +
-              "; próbka rynków: " + json.dumps(sample, ensure_ascii=False)[:3200], flush=True)
+
+    # There should be exactly one full-time BTTS YES price. Duplicate feed
+    # rows in the same market are collapsed; competing groups/prices are not guessed.
+    grouped = {}
+    for item in candidates:
+        key = str(item.get("market_group_id") or item["market"])
+        grouped.setdefault(key, set()).add(round(item["odds"], 3))
+    valid = [(key, prices) for key, prices in grouped.items() if len(prices) == 1]
+    if len(valid) == 1:
+        key, prices = valid[0]
+        chosen_odds = next(iter(prices))
+        chosen = next(item for item in candidates
+                      if str(item.get("market_group_id") or item["market"]) == key
+                      and round(item["odds"], 3) == chosen_odds)
+        print(
+            f"Superbet BTTS FT: potwierdzony rynek {chosen['market']} "
+            f"@ {chosen['odds']:.2f}, grupa={chosen.get('market_group_id')}",
+            flush=True,
+        )
+        return chosen
+
+    if candidates:
+        print(
+            "Superbet BTTS FT: niejednoznaczne aktywne oferty Tak — "
+            + json.dumps([
+                {"market": item["market"], "group": item.get("market_group_id"), "odds": item["odds"]}
+                for item in candidates[:12]
+            ], ensure_ascii=False),
+            flush=True,
+        )
         return None
-    prices = {round(item["odds"], 3) for item in candidates}
-    if len(prices) != 1:
-        print(f"Superbet BTTS FT: sprzeczne aktywne kursy {sorted(prices)} — odrzucam.", flush=True)
-        return None
-    return candidates[0]
+
+    sample = []
+    for row in rows[:12]:
+        sample.append({
+            "market_context": row.get("_market_context"),
+            "period_context": row.get("_period_context"),
+            "group": row.get("_market_group_id"),
+            "selection": first(row, *selection_keys),
+            "price": first(row, *price_keys),
+            "status": first(row, "status", "oddStatus", "state"),
+            "row_keys": sorted(key for key in row if not str(key).startswith("_")),
+        })
+    print(
+        "Superbet BTTS FT — brak dopasowania; klucze eventu="
+        + json.dumps(sorted(event_detail.keys()) if isinstance(event_detail, dict) else [], ensure_ascii=False)
+        + "; próbka ofert: " + json.dumps(sample, ensure_ascii=False)[:3200],
+        flush=True,
+    )
+    return None
 
 
 def send_prematch_btts_picks(state):
