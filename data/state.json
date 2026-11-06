@@ -2745,7 +2745,9 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:00:59.442827+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "settlement_pending_score": "5-1",
+      "settlement_pending_since": "2026-11-06T21:25:53.757973+01:00"
     },
     {
       "key": "318q66hx90e5qo9:BTTS_FT",
@@ -3128,7 +3130,9 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:01:13.458836+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "settlement_pending_score": "1-0",
+      "settlement_pending_since": "2026-11-06T21:26:14.597731+01:00"
     },
     {
       "key": "y0or5jh87k27qwz:BTTS_FT",
