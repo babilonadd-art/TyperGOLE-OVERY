@@ -3668,6 +3668,40 @@
       "settled_score": "2-1",
       "settled_at": "2026-11-06T20:37:49.176376+01:00",
       "counts_toward_daily_limit": false
+    },
+    {
+      "key": "operario-pr-vs-sport-recife:BTTS_FT",
+      "id": "operario-pr-vs-sport-recife",
+      "slug": "operario-pr-vs-sport-recife",
+      "home": "Operario PR",
+      "away": "Sport Recife",
+      "league": "Liga z oferty Superbet",
+      "date": "2026-11-06",
+      "kickoff_time": "2026-11-06T23:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.75,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/operario-pr-vs-sport-recife-14438768?t=offer-prematch-102&mdt=o",
+      "probability": 55.7,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.5568257800788974,
+        "home_lambda": 1.3,
+        "away_lambda": 1.45,
+        "home_sample": 10,
+        "away_sample": 10,
+        "home_scored_rate": 0.7,
+        "away_scored_rate": 0.9,
+        "home_conceded_rate": 0.7,
+        "away_conceded_rate": 0.9
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 257,
+      "sent_at": "2026-11-06T23:01:45.329090+01:00"
     }
   ],
   "reports_sent": [],
@@ -5461,6 +5495,40 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:46:53.440722+01:00"
+    },
+    {
+      "key": "operario-pr-vs-sport-recife:BTTS_FT",
+      "id": "operario-pr-vs-sport-recife",
+      "slug": "operario-pr-vs-sport-recife",
+      "home": "Operario PR",
+      "away": "Sport Recife",
+      "league": "Liga z oferty Superbet",
+      "date": "2026-11-06",
+      "kickoff_time": "2026-11-06T23:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.75,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/operario-pr-vs-sport-recife-14438768?t=offer-prematch-102&mdt=o",
+      "probability": 55.7,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.5568257800788974,
+        "home_lambda": 1.3,
+        "away_lambda": 1.45,
+        "home_sample": 10,
+        "away_sample": 10,
+        "home_scored_rate": 0.7,
+        "away_scored_rate": 0.9,
+        "home_conceded_rate": 0.7,
+        "away_conceded_rate": 0.9
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 257,
+      "sent_at": "2026-11-06T23:01:45.329090+01:00"
     }
   ],
   "team_history_cache": {
@@ -6201,6 +6269,20 @@
       "scored_avg": 1.1,
       "conceded_avg": 1.1,
       "scored_rate": 0.7,
+      "conceded_rate": 0.9
+    },
+    "FT:2026-11-06:operario-pr": {
+      "sample": 10,
+      "scored_avg": 1.3,
+      "conceded_avg": 1.5,
+      "scored_rate": 0.7,
+      "conceded_rate": 0.7
+    },
+    "FT:2026-11-06:sport-recife": {
+      "sample": 10,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.3,
+      "scored_rate": 0.9,
       "conceded_rate": 0.9
     }
   }
