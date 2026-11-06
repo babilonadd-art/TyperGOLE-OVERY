@@ -342,13 +342,13 @@ class SuperbetEventParser(HTMLParser):
             self.current_text = []
 
 
-def superbet_event_local_date(event):
-    """Return the event's Warsaw-local calendar date, or None when missing."""
+def superbet_event_kickoff(event):
+    """Return the event's exact Warsaw-local kickoff from Superbet metadata."""
     fixture = event.get("fixture") or {}
     millis = first(fixture, "unix_date_millis", default=first(event, "unix_date_millis"))
     if millis not in (None, ""):
         try:
-            return datetime.fromtimestamp(float(millis) / 1000, timezone.utc).astimezone(TZ).date()
+            return datetime.fromtimestamp(float(millis) / 1000, timezone.utc).astimezone(TZ)
         except (TypeError, ValueError, OverflowError, OSError):
             pass
     raw = first(
@@ -359,15 +359,18 @@ def superbet_event_local_date(event):
     if raw in (None, ""):
         return None
     try:
-        value = str(raw).strip()
-        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
-            return datetime.fromisoformat(value).date()
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(str(raw).strip().replace("Z", "+00:00"))
         if parsed.tzinfo is None:
             parsed = parsed.replace(tzinfo=timezone.utc)
-        return parsed.astimezone(TZ).date()
+        return parsed.astimezone(TZ)
     except (TypeError, ValueError, OverflowError):
         return None
+
+
+def superbet_event_local_date(event):
+    """Return the event's Warsaw-local calendar date, or None when missing."""
+    kickoff = superbet_event_kickoff(event)
+    return kickoff.date() if kickoff else None
 
 
 def superbet_live_event_links():
@@ -427,7 +430,12 @@ def superbet_live_event_links():
                     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", value)).strip("-")
                 slug = f"{slug_part(home)}-vs-{slug_part(away)}-{event_id}"
                 full_url = f"https://superbet.pl/kursy/pilka-nozna/{slug}"
-            found[full_url] = {"url": full_url, "text": name, "event_id": event_id}
+            kickoff = superbet_event_kickoff(event)
+            found[full_url] = {
+                "url": full_url, "text": name, "event_id": event_id,
+                "home": home, "away": away,
+                "time": kickoff.isoformat() if kickoff else None,
+            }
         print(
             f"Superbet API: {len(api_events)} rekordów pobranych; "
             f"odrzucono {rejected_date} spoza dzisiejszej daty/brak daty i "
@@ -2403,10 +2411,10 @@ def kickoff_datetime(match):
         return None
 
 
-def scheduled_fixtures_today():
-    """Fetch today's complete fixture slate from Open Matchday CSVs."""
+def scheduled_fixtures_today(superbet_events=None):
+    """Build today's fixture slate from Open Matchday plus Superbet's full daily board."""
     local_now = now_local()
-    fixtures, seen = [], set()
+    fixtures = []
     try:
         for row in open_matchday_data()["fixtures"]:
             match = open_matchday_fixture(row)
@@ -2415,14 +2423,51 @@ def scheduled_fixtures_today():
             kickoff = kickoff_datetime(match)
             if not kickoff or kickoff.date() != local_now.date() or kickoff <= local_now + timedelta(minutes=15):
                 continue
-            if match["id"] not in seen:
-                seen.add(match["id"])
+            if not any(
+                tuple(sorted((normalized_team_name(item["home"]), normalized_team_name(item["away"])))) ==
+                tuple(sorted((normalized_team_name(match["home"]), normalized_team_name(match["away"]))))
+                for item in fixtures
+            ):
                 fixtures.append(match)
     except Exception as exc:
         print(f"Open Matchday terminarz błąd: {type(exc).__name__}: {exc}", flush=True)
         raise
+
+    # Open Matchday remains the source for historical results and probabilities.
+    # Superbet's date-scoped event board fills missing fixtures in the public CSV.
+    added_superbet = 0
+    for event in superbet_events or []:
+        home, away = str(event.get("home") or "").strip(), str(event.get("away") or "").strip()
+        kickoff = kickoff_datetime(event)
+        if not home or not away or not kickoff or kickoff.date() != local_now.date():
+            continue
+        if kickoff <= local_now + timedelta(minutes=15):
+            continue
+        team_pair = tuple(sorted((normalized_team_name(home), normalized_team_name(away))))
+        if any(
+            tuple(sorted((normalized_team_name(item["home"]), normalized_team_name(item["away"])))) == team_pair
+            for item in fixtures
+        ):
+            continue
+        def slugify(value):
+            value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
+            return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", value)).strip("-")
+        slug = f"{slugify(home)}-vs-{slugify(away)}"
+        fixtures.append({
+            "id": f"superbet:{event.get('event_id')}", "slug": slug,
+            "_bot_slug": slug, "home": home, "away": away,
+            "time": kickoff.isoformat(), "date": kickoff.date().isoformat(),
+            "competition_name": "Liga z oferty Superbet",
+            "_bot_kickoff": kickoff.isoformat(), "_source": "Superbet",
+        })
+        added_superbet += 1
+
     fixtures.sort(key=lambda item: item["_bot_kickoff"])
-    print(f"Open Matchday: {len(fixtures)} przyszłych meczów na dziś ({local_now.date()})", flush=True)
+    print(
+        f"Terminarz na dziś: {len(fixtures)} meczów; "
+        f"Open Matchday + Superbet, dodatkowe z Superbet: {added_superbet}.",
+        flush=True,
+    )
     return fixtures
 
 
@@ -2431,10 +2476,13 @@ def _team_history_rows(team_slug, cutoff):
     if not team_slug:
         return []
     target = normalized_team_name_from_slug(team_slug)
+    target_aliases = team_name_aliases(target)
     usable, seen = [], set()
     for row in open_matchday_data()["results"]:
         home, away = str(row.get("home") or ""), str(row.get("away") or "")
-        if not (team_name_similarity(home, target) >= 0.88 or team_name_similarity(away, target) >= 0.88):
+        home_match = bool(target_aliases & team_name_aliases(home)) or team_name_similarity(home, target) >= 0.90
+        away_match = bool(target_aliases & team_name_aliases(away)) or team_name_similarity(away, target) >= 0.90
+        if not (home_match or away_match):
             continue
         kickoff = open_matchday_kickoff(row)
         if not kickoff or kickoff >= cutoff:
@@ -2510,10 +2558,13 @@ def team_full_time_profile(team_slug, cutoff, venue, cache=None):
     rows = _team_history_rows(team_slug, cutoff)
     scored, conceded = [], []
     team_name = normalized_team_name_from_slug(team_slug)
+    team_aliases = team_name_aliases(team_name)
     for row in rows:
-        if team_name_similarity(row["home"], team_name) >= 0.88:
+        home_match = bool(team_aliases & team_name_aliases(row["home"])) or team_name_similarity(row["home"], team_name) >= 0.90
+        away_match = bool(team_aliases & team_name_aliases(row["away"])) or team_name_similarity(row["away"], team_name) >= 0.90
+        if home_match:
             scored.append(row.get("ft_home")); conceded.append(row.get("ft_away"))
-        elif team_name_similarity(row["away"], team_name) >= 0.88:
+        elif away_match:
             scored.append(row.get("ft_away")); conceded.append(row.get("ft_home"))
     pairs = [(a,b) for a,b in zip(scored,conceded)
              if isinstance(a,int) and isinstance(b,int) and a >= 0 and b >= 0]
@@ -3056,13 +3107,13 @@ def send_prematch_btts_full_time_picks(state):
     if sent_today >= MAX_DAILY_BTTS_FT_PICKS:
         print("Dzienny limit BTTS FT osiągnięty; kończę skanowanie wysyłkowe.", flush=True)
         return
-    fixtures = scheduled_fixtures_today()
+    superbet_events = superbet_live_event_links()
+    fixtures = scheduled_fixtures_today(superbet_events)
     if not fixtures:
         return
     history_cache = state.setdefault("team_history_cache", {})
     state["team_history_cache"] = {key: value for key, value in history_cache.items() if key.startswith(today + ":") or key.startswith("FT:" + today + ":")}
     history_cache = state["team_history_cache"]
-    superbet_events = superbet_live_event_links()
     candidates = []
     for index, match in enumerate(fixtures, 1):
         home, away = teams(match)
