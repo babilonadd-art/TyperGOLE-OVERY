@@ -1631,8 +1631,8 @@ def settlement_confirmation_ready(pick, score_text, now, confirmation_seconds=18
 
 
 def settle_picks(state):
-    # GitHub workflow scans repeat every 30 seconds. Require the same final
-    # score to remain confirmed for 3 full minutes before publishing settlement.
+    # Non-BTTS live goal-line markets retain a 3-minute score confirmation.
+    # BTTS first-half markets settle immediately on a confirmed HT score.
     confirmation_seconds = 180
 
     for pick in state["picks"]:
@@ -1759,13 +1759,13 @@ def settle_picks(state):
                     r"[_-]+", " ", " ".join(phase_values).lower()
                 )
                 at_half_time = any(re.search(pattern, phase_text) for pattern in (
-                    r"\bhalf\\s*time\\b", r"\bhalftime\\b",
+                    r"\bhalf\s*time\\b", r"\bhalftime\\b",
                     r"\binterval\\b", r"\bbreak\\b",
                     r"\bprzerwa\\b", r"\bht\\b",
                 ))
                 in_second_half = any(re.search(pattern, phase_text) for pattern in (
-                    r"\b2nd\\s*half\\b", r"\bsecond\\s*half\\b",
-                    r"\b2h\\b", r"\bdruga\\s*polowa\\b",
+                    r"\b2nd\s*half\\b", r"\bsecond\s*half\\b",
+                    r"\b2h\\b", r"\bdruga\s*polowa\\b",
                 ))
                 # A populated, explicit HT score is itself evidence that the
                 # first-half period has been recorded. Otherwise require an
