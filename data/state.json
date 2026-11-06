@@ -1764,11 +1764,12 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T00:55:17.646477+01:00",
-      "settlement_pending_score": "0-1",
-      "settlement_pending_since": "2026-11-06T00:56:02.503285+01:00"
+      "won": false,
+      "settled_score": "0-1",
+      "settled_at": "2026-11-06T00:59:30.145680+01:00"
     },
     {
       "key": "3glrw7hn3wlxqdy:FT",
@@ -1840,11 +1841,12 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T00:55:21.999274+01:00",
-      "settlement_pending_score": "0-0",
-      "settlement_pending_since": "2026-11-06T00:56:06.694644+01:00"
+      "won": false,
+      "settled_score": "0-0",
+      "settled_at": "2026-11-06T00:59:33.957467+01:00"
     },
     {
       "key": "23xmvkh6z0x1qg8:FT",
@@ -1879,11 +1881,12 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T00:55:24.168003+01:00",
-      "settlement_pending_score": "3-1",
-      "settlement_pending_since": "2026-11-06T00:56:07.370034+01:00"
+      "won": true,
+      "settled_score": "3-1",
+      "settled_at": "2026-11-06T00:59:34.929420+01:00"
     },
     {
       "key": "318q66hxedk5qo9:FT",
@@ -1918,11 +1921,12 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T00:55:26.597846+01:00",
-      "settlement_pending_score": "3-2",
-      "settlement_pending_since": "2026-11-06T00:56:08.085635+01:00"
+      "won": true,
+      "settled_score": "3-2",
+      "settled_at": "2026-11-06T00:59:35.874942+01:00"
     }
   ],
   "reports_sent": [],
