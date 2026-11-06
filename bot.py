@@ -21,7 +21,6 @@ STATE_PATH = Path("data/state.json")
 STAKE = 50.0
 BET_TAX_RATE = 0.12
 # Maksymalnie 6 różnych spotkań dziennie łącznie dla BTTS 1H i BTTS FT.
-MAX_DAILY_PICKS = 6
 
 def calculate_bet_result(stake, odds):
     """Calculate Polish 12% stake tax, payout and net profit."""
@@ -2037,7 +2036,6 @@ def update_existing_pick_minutes(state):
 # ---------------------------------------------------------------------------
 # PRE-MATCH BTTS FIRST-HALF AND FULL-TIME STRATEGIES
 # ---------------------------------------------------------------------------
-MAX_DAILY_PICKS = 4
 BTTS_HT_MARKET = "BTTS_HT"
 BTTS_FT_MARKET = "BTTS_FT"
 MIN_HT_HISTORY = 5
@@ -2576,11 +2574,6 @@ def send_prematch_btts_picks(state):
     todays = [p for p in state.get("picks", [])
               if p.get("date") == today and p.get("market") == BTTS_HT_MARKET
               and p.get("delivery_status", "sent") == "sent"]
-    sent_matches = daily_sent_match_count(state, today)
-    if sent_matches >= MAX_DAILY_PICKS:
-        print(f"Dzienny limit {MAX_DAILY_PICKS} spotkań osiągnięty (łącznie HT + FT).", flush=True)
-        return
-
     fixtures = scheduled_fixtures_today()
     if not fixtures:
         return
@@ -2631,8 +2624,7 @@ def send_prematch_btts_picks(state):
             print(f"[{index}] Analiza {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
 
     candidates.sort(key=lambda item: item["estimate"]["probability"], reverse=True)
-    slots = MAX_DAILY_PICKS - daily_sent_match_count(state, today)
-    for candidate in candidates[:slots]:
+    for candidate in candidates:
         # Last-moment independent price refresh; never reuse a stale or guessed quote.
         try:
             final_detail = superbet_event_detail(candidate["event"]["event_id"])
@@ -2697,11 +2689,6 @@ def send_prematch_btts_full_time_picks(state):
     todays = [p for p in state.get("picks", [])
               if p.get("date") == today and p.get("market") == BTTS_FT_MARKET
               and p.get("delivery_status", "sent") == "sent"]
-    sent_matches = daily_sent_match_count(state, today)
-    if sent_matches >= MAX_DAILY_PICKS:
-        print(f"Dzienny limit {MAX_DAILY_PICKS} spotkań osiągnięty (łącznie HT + FT).", flush=True)
-        return
-
     fixtures = scheduled_fixtures_today()
     if not fixtures:
         return
@@ -2752,8 +2739,7 @@ def send_prematch_btts_full_time_picks(state):
             print(f"[{index}] Analiza {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
 
     candidates.sort(key=lambda item: item["estimate"]["probability"], reverse=True)
-    slots = MAX_DAILY_PICKS - daily_sent_match_count(state, today)
-    for candidate in candidates[:slots]:
+    for candidate in candidates:
         # Last-moment independent price refresh; never reuse a stale or guessed quote.
         try:
             final_detail = superbet_event_detail(candidate["event"]["event_id"])
@@ -2831,12 +2817,11 @@ def main():
     today = now_local().date().isoformat()
     # Nowe typy wysyłamy wyłącznie na BTTS cały mecz (FT).
     sent_matches = daily_sent_match_count(state, today)
-    print(f"Spotkania BTTS FT wysłane dzisiaj: {sent_matches}/{MAX_DAILY_PICKS}", flush=True)
-    if sent_matches < MAX_DAILY_PICKS:
-        try:
-            send_prematch_btts_full_time_picks(state)
-        except Exception as exc:
-            print(f"BŁĄD SKANOWANIA BTTS FT: {type(exc).__name__}: {exc}", flush=True)
+    print(f"Spotkania BTTS FT wysłane dzisiaj: {sent_matches}", flush=True)
+    try:
+        send_prematch_btts_full_time_picks(state)
+    except Exception as exc:
+        print(f"BŁĄD SKANOWANIA BTTS FT: {type(exc).__name__}: {exc}", flush=True)
     try:
         send_monthly_reports(state)
     except Exception as exc:
