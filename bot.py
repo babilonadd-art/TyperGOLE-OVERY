@@ -420,6 +420,41 @@ def extract_team_logo_urls(event, home, away):
     return found
 
 
+def public_team_logo_url(team_name):
+    """Look up a club crest from TheSportsDB free team directory as a fallback."""
+    if not team_name:
+        return None
+    try:
+        response = requests.get(
+            "https://www.thesportsdb.com/api/v1/json/3/searchteams.php",
+            params={"t": team_name},
+            headers=HEADERS,
+            timeout=8,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        teams_found = payload.get("teams") or []
+        matches = []
+        for team in teams_found:
+            if not isinstance(team, dict):
+                continue
+            official_name = str(team.get("strTeam") or "")
+            badge = team.get("strTeamBadge")
+            similarity = team_name_similarity(team_name, official_name)
+            if badge and str(badge).startswith("https://") and similarity >= 0.93:
+                matches.append((similarity, badge))
+        if not matches:
+            return None
+        matches.sort(reverse=True)
+        # Do not guess when two different teams have equally strong matches.
+        if len(matches) > 1 and matches[0][0] == matches[1][0] and matches[0][1] != matches[1][1]:
+            return None
+        return matches[0][1]
+    except Exception as exc:
+        print(f"Herb {team_name}: katalog zewnętrzny niedostępny ({type(exc).__name__}).", flush=True)
+        return None
+
+
 def telegram_btts_ft(message, home, away, home_logo=None, away_logo=None):
     """Send BTTS FT as a two-crest Telegram album when both images are available."""
     if not (home_logo and away_logo):
@@ -3301,10 +3336,11 @@ def send_prematch_btts_full_time_picks(state):
                 f"👉 OTWÓRZ BTTS CAŁY MECZ W SUPERBET: {bet_url}\n"
                 f"Dane meczowe: Open Matchday — https://github.com/oladeeayo/open-matchday"
             )
+            home_logo = candidate["event"].get("home_logo") or public_team_logo_url(candidate["home"])
+            away_logo = candidate["event"].get("away_logo") or public_team_logo_url(candidate["away"])
             response = telegram_btts_ft(
                 message, candidate["home"], candidate["away"],
-                candidate["event"].get("home_logo"),
-                candidate["event"].get("away_logo"),
+                home_logo, away_logo,
             )
             telegram_result = response.get("result", []) if isinstance(response, dict) else []
             if isinstance(telegram_result, list) and telegram_result:
