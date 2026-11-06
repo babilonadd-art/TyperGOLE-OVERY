@@ -2397,6 +2397,39 @@
       "won": false,
       "settled_score": "1-0",
       "settled_at": "2026-11-06T14:41:36.465345+01:00"
+    },
+    {
+      "key": "k82rekh2vw98rep:BTTS_FT",
+      "id": "k82rekh2vw98rep",
+      "slug": "csm-targu-jiu-vs-oltul-curtisoara",
+      "home": "CSM Targu Jiu",
+      "away": "Oltul Curtisoara",
+      "league": "Romanian Liga III",
+      "date": "2026-11-06",
+      "kickoff_time": "2026-11-06T16:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 2.22,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/csm-targu-jiu-vs-oltul-curtisoara-15578485",
+      "probability": 63.4,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.6340209549784723,
+        "home_lambda": 2.0555555555555554,
+        "away_lambda": 1.3333333333333333,
+        "home_sample": 9,
+        "away_sample": 9,
+        "home_scored_rate": 1.0,
+        "away_scored_rate": 0.7777777777777778,
+        "home_conceded_rate": 0.6666666666666666,
+        "away_conceded_rate": 0.8888888888888888
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "sent_at": "2026-11-06T14:46:53.957942+01:00"
     }
   ],
   "reports_sent": [],
@@ -3014,6 +3047,39 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T12:38:00.994693+01:00"
+    },
+    {
+      "key": "k82rekh2vw98rep:BTTS_FT",
+      "id": "k82rekh2vw98rep",
+      "slug": "csm-targu-jiu-vs-oltul-curtisoara",
+      "home": "CSM Targu Jiu",
+      "away": "Oltul Curtisoara",
+      "league": "Romanian Liga III",
+      "date": "2026-11-06",
+      "kickoff_time": "2026-11-06T16:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 2.22,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/csm-targu-jiu-vs-oltul-curtisoara-15578485",
+      "probability": 63.4,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.6340209549784723,
+        "home_lambda": 2.0555555555555554,
+        "away_lambda": 1.3333333333333333,
+        "home_sample": 9,
+        "away_sample": 9,
+        "home_scored_rate": 1.0,
+        "away_scored_rate": 0.7777777777777778,
+        "home_conceded_rate": 0.6666666666666666,
+        "away_conceded_rate": 0.8888888888888888
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "sent_at": "2026-11-06T14:46:53.957942+01:00"
     }
   ],
   "team_history_cache": {
@@ -3238,6 +3304,20 @@
       "scored_rate": 0.3333333333333333,
       "conceded_rate": 0.16666666666666666
     },
-    "2026-11-06:hammarby": null
+    "2026-11-06:hammarby": null,
+    "FT:2026-11-06:csm-targu-jiu": {
+      "sample": 9,
+      "scored_avg": 2.0,
+      "conceded_avg": 1.3333333333333333,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6666666666666666
+    },
+    "FT:2026-11-06:oltul-curtisoara": {
+      "sample": 9,
+      "scored_avg": 1.3333333333333333,
+      "conceded_avg": 2.111111111111111,
+      "scored_rate": 0.7777777777777778,
+      "conceded_rate": 0.8888888888888888
+    }
   }
 }
