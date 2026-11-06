@@ -1,4 +1,6 @@
+import csv
 import difflib
+import io
 from html.parser import HTMLParser
 import json
 import math
@@ -7,13 +9,17 @@ import re
 import unicodedata
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import zipfile
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
 
 import requests
 
 TZ = ZoneInfo("Europe/Warsaw")
-API = "https://sportscore.com"
+API = "https://sportscore.com"  # legacy fallback for older pick types
+OPEN_MATCHDAY_ZIP = "https://github.com/oladeeayo/open-matchday/archive/refs/heads/master.zip"
+OPEN_MATCHDAY_SEASON = "2627"
+_OPEN_MATCHDAY_CACHE = None
 MOVIODDS_API = "https://moviodds.com"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
@@ -38,7 +44,7 @@ def calculate_bet_result(stake, odds):
         "profit": profit,
     }
 HEADERS = {"User-Agent": "TyperGOLE-OVERY/1.0", "Accept": "application/json"}
-ATTRIBUTION = "Powered by SportScore: https://sportscore.com/"
+ATTRIBUTION = "Dane meczowe: Open Matchday (https://github.com/oladeeayo/open-matchday)"
 
 
 def now_local():
@@ -80,6 +86,106 @@ def load_state():
 def save_state(state):
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     STATE_PATH.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+
+def open_matchday_data(force_refresh=False):
+    """Load public Open Matchday CSV data; no API key or signup required."""
+    global _OPEN_MATCHDAY_CACHE
+    if _OPEN_MATCHDAY_CACHE is not None and not force_refresh:
+        return _OPEN_MATCHDAY_CACHE
+    response = requests.get(OPEN_MATCHDAY_ZIP, headers=HEADERS, timeout=90)
+    response.raise_for_status()
+    fixtures, results, league_names = [], [], {}
+    with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+        try:
+            index_text = archive.read("open-matchday-master/LEAGUE_INDEX.md").decode("utf-8-sig")
+            for line in index_text.splitlines():
+                match = re.match(r"\| \`([^ \`]+)\` \| ([^|]+) \|", line)
+                if match:
+                    league_names[match.group(1)] = match.group(2).strip()
+        except KeyError:
+            pass
+        for filename in archive.namelist():
+            if not filename.endswith((f"fixtures_{OPEN_MATCHDAY_SEASON}.csv",
+                                      f"results_{OPEN_MATCHDAY_SEASON}.csv")):
+                continue
+            folder = filename.split("/")[-2] if "/" in filename else ""
+            league = league_names.get(folder, folder.replace("_", " ").strip())
+            raw = archive.read(filename).decode("utf-8-sig")
+            target = fixtures if "/fixtures_" in filename else results
+            for row in csv.DictReader(io.StringIO(raw)):
+                row["_league"] = league
+                row["_folder"] = folder
+                target.append(row)
+    if not fixtures and not results:
+        raise RuntimeError("Open Matchday ZIP nie zawiera CSV sezonu 2627")
+    _OPEN_MATCHDAY_CACHE = {"fixtures": fixtures, "results": results}
+    print(f"Open Matchday: {len(fixtures)} terminarzowych, {len(results)} wyników; CSV 2627, bez klucza API.", flush=True)
+    return _OPEN_MATCHDAY_CACHE
+
+
+def open_matchday_kickoff(row):
+    """CSV date/time uses fixed CET (UTC+1) convention."""
+    day, clock = str(row.get("date") or "").strip(), str(row.get("time") or "").strip()
+    try:
+        if not day:
+            return None
+        naive = datetime.fromisoformat(f"{day}T{clock or '12:00'}")
+        return naive.replace(tzinfo=timezone(timedelta(hours=1))).astimezone(TZ)
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
+def open_matchday_fixture(row):
+    home, away = str(row.get("home") or "").strip(), str(row.get("away") or "").strip()
+    kickoff = open_matchday_kickoff(row)
+    if not home or not away or not kickoff:
+        return None
+    def slugify(value):
+        value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
+        return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", value)).strip("-")
+    slug = f"{slugify(home)}-vs-{slugify(away)}"
+    identity = f"openmatchday:{row.get('_folder','')}:{row.get('date')}:{slug}"
+    return {
+        "id": identity, "slug": slug, "_bot_slug": slug, "home": home, "away": away,
+        "time": kickoff.isoformat(), "date": row.get("date"),
+        "competition_name": row.get("_league", "Liga nieznana"),
+        "_bot_kickoff": kickoff.isoformat(), "_source": "Open Matchday",
+    }
+
+
+def open_matchday_result_for_pick(pick):
+    """Find a completed result only when team orientation and match date agree."""
+    try:
+        expected = datetime.fromisoformat(
+            str(pick.get("kickoff_time") or pick.get("date")).replace("Z", "+00:00")
+        )
+        if expected.tzinfo is None:
+            expected = expected.replace(tzinfo=TZ)
+        expected_day = expected.astimezone(TZ).date()
+    except (TypeError, ValueError):
+        return None
+    for row in open_matchday_data()["results"]:
+        home, away = str(row.get("home") or ""), str(row.get("away") or "")
+        direct = team_name_similarity(home, pick.get("home")) >= 0.88 and team_name_similarity(away, pick.get("away")) >= 0.88
+        reverse = team_name_similarity(home, pick.get("away")) >= 0.88 and team_name_similarity(away, pick.get("home")) >= 0.88
+        if not (direct or reverse):
+            continue
+        kickoff = open_matchday_kickoff(row)
+        if not kickoff or abs((kickoff.date() - expected_day).days) > 1:
+            continue
+        fh, fa = as_int(row.get("ft_home")), as_int(row.get("ft_away"))
+        if fh is None or fa is None:
+            continue
+        return {
+            "home": home, "away": away, "time": kickoff.isoformat(), "status": "finished",
+            "home_score": fh, "away_score": fa, "ft_home": fh, "ft_away": fa,
+            "ht_home": as_int(row.get("ht_home")), "ht_away": as_int(row.get("ht_away")),
+            "half_time_score": {"home": as_int(row.get("ht_home")), "away": as_int(row.get("ht_away"))},
+            "competition_name": row.get("_league", "Liga nieznana"), "_source": "Open Matchday",
+        }
+    return None
 
 
 def api_get(path, params=None):
@@ -1391,6 +1497,13 @@ def settlement_fixture_matches_pick(match, pick):
     return True
 
 def match_detail(slug, pick=None):
+    if pick and pick.get("market") == BTTS_FT_MARKET:
+        result = open_matchday_result_for_pick(pick)
+        if result:
+            print(f"Open Matchday: wynik FT {result['home']} - {result['away']} {result['home_score']}-{result['away_score']}", flush=True)
+            return result
+        print(f"Open Matchday: brak wyniku CSV dla {pick.get('home')} - {pick.get('away')}; czekam na aktualizację.", flush=True)
+        return {}
     """
     Fetch match detail and search finished fixtures. The daily archive is
     capped at 200 rows, so also query the documented team filter to find
@@ -2291,112 +2404,52 @@ def kickoff_datetime(match):
 
 
 def scheduled_fixtures_today():
-    """Fetch the complete local-day fixture slate from SportScore fixtures."""
+    """Fetch today's complete fixture slate from Open Matchday CSVs."""
     local_now = now_local()
-    local_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
-    local_end = local_start + timedelta(days=1)
-    utc_days = {
-        local_start.astimezone(timezone.utc).date().isoformat(),
-        (local_end - timedelta(seconds=1)).astimezone(timezone.utc).date().isoformat(),
-    }
-    unique = {}
-    errors = []
-    for utc_day in sorted(utc_days):
-        for endpoint, params in (
-            ("/api/v1/fixtures/", {"sport": "football", "date": utc_day, "limit": 200}),
-            ("/api/v1/fixtures/", {"sport": "football", "date": utc_day, "status": "upcoming", "limit": 200}),
-        ):
-            try:
-                records = extract_matches(api_get(endpoint, params))
-                print(f"SportScore terminarz {utc_day}: {len(records)} rekordów", flush=True)
-                for match in records:
-                    if not isinstance(match, dict):
-                        continue
-                    kickoff = kickoff_datetime(match)
-                    if not kickoff or kickoff.date() != local_now.date():
-                        continue
-                    if kickoff <= local_now + timedelta(minutes=15):
-                        continue
-                    status_text = str(first(match, "status", "state", "match_status", default="")).lower()
-                    if any(token in status_text for token in ("postponed", "cancelled", "canceled", "abandoned", "finished", "live", "in play")):
-                        continue
-                    home, away = teams(match)
-                    if home in ("Gospodarze", "") or away in ("Goście", ""):
-                        continue
-                    slug = match_slug(match)
-                    identity = str(match_identifier(match) or slug or
-                                   f"{normalized_team_name(home)}:{normalized_team_name(away)}")
-                    match["_bot_kickoff"] = kickoff.isoformat()
-                    match["_bot_slug"] = slug
-                    unique[identity] = match
-            except Exception as exc:
-                errors.append(f"{utc_day}: {type(exc).__name__}: {exc}")
-    if errors:
-        print("SportScore terminarz błędy: " + " | ".join(errors), flush=True)
-    fixtures = list(unique.values())
-    fixtures.sort(key=lambda item: item.get("_bot_kickoff", ""))
-    print(f"SportScore: {len(fixtures)} przyszłych meczów na dziś", flush=True)
+    fixtures, seen = [], set()
+    try:
+        for row in open_matchday_data()["fixtures"]:
+            match = open_matchday_fixture(row)
+            if not match:
+                continue
+            kickoff = kickoff_datetime(match)
+            if not kickoff or kickoff.date() != local_now.date() or kickoff <= local_now + timedelta(minutes=15):
+                continue
+            if match["id"] not in seen:
+                seen.add(match["id"])
+                fixtures.append(match)
+    except Exception as exc:
+        print(f"Open Matchday terminarz błąd: {type(exc).__name__}: {exc}", flush=True)
+        raise
+    fixtures.sort(key=lambda item: item["_bot_kickoff"])
+    print(f"Open Matchday: {len(fixtures)} przyszłych meczów na dziś ({local_now.date()})", flush=True)
     return fixtures
 
 
 def _team_history_rows(team_slug, cutoff):
-    """Return recent completed fixtures with a confirmed half-time score."""
+    """Recent completed matches for a team, sourced only from Open Matchday."""
     if not team_slug:
         return []
-    payload = None
-    for endpoint in ("/api/widget/team/", "/api/v1/team/"):
-        try:
-            payload = api_get(endpoint, {"sport": "football", "slug": team_slug, "limit": 30})
-            rows = extract_matches(payload)
-            if rows:
-                break
-        except Exception as exc:
-            print(f"Historia {team_slug} {endpoint}: {type(exc).__name__}: {exc}", flush=True)
-            rows = []
-    else:
-        rows = []
-    # Sort and cap candidates before requesting individual match details.
-    # The team endpoint returns up to 30 fixtures; fetching details for every
-    # row can make a single scan exceed the GitHub Actions time limit.
-    candidates = []
-    for row in rows:
-        if not isinstance(row, dict):
+    target = normalized_team_name_from_slug(team_slug)
+    usable, seen = [], set()
+    for row in open_matchday_data()["results"]:
+        home, away = str(row.get("home") or ""), str(row.get("away") or "")
+        if not (team_name_similarity(home, target) >= 0.88 or team_name_similarity(away, target) >= 0.88):
             continue
-        kickoff = kickoff_datetime(row)
-        if kickoff and kickoff >= cutoff:
+        kickoff = open_matchday_kickoff(row)
+        if not kickoff or kickoff >= cutoff:
             continue
-        status = str(first(row, "status", "state", "match_status", default="")).lower()
-        if status and not any(word in status for word in
-                              ("finished", "full time", "ft", "ended", "complete")):
+        fh, fa = as_int(row.get("ft_home")), as_int(row.get("ft_away"))
+        if fh is None or fa is None:
             continue
-        candidates.append((kickoff, row))
-    candidates.sort(key=lambda item: item[0] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
-
-    usable = []
-    for kickoff, row in candidates[:HISTORY_MATCHES + 5]:
-        ht_home, ht_away = extract_half_time_score(row)
-        if ht_home is None or ht_away is None:
-            slug = match_slug(row)
-            if slug:
-                try:
-                    detail = unwrap_match(api_get("/api/widget/match/", {
-                        "sport": "football", "slug": slug
-                    }))
-                    ht_home, ht_away = extract_half_time_score(detail or {})
-                    row = {**row, **(detail or {})}
-                except Exception as exc:
-                    print(f"Brak HT dla historii {slug}: {type(exc).__name__}: {exc}", flush=True)
-        home, away = teams(row)
-        ft_home, ft_away, _, _ = score_and_minute(row)
-        # Keep a completed fixture for full-time BTTS history even if SportScore
-        # does not expose its separate half-time score.
-        if (ht_home is None or ht_away is None) and (ft_home is None or ft_away is None):
+        identity = (row.get("date"), normalized_team_name(home), normalized_team_name(away))
+        if identity in seen:
             continue
+        seen.add(identity)
         usable.append({
-            "home": home, "away": away,
-            "ht_home": ht_home, "ht_away": ht_away,
-            "ft_home": ft_home, "ft_away": ft_away,
-            "kickoff": kickoff.isoformat() if kickoff else "",
+            "home": home, "away": away, "ht_home": as_int(row.get("ht_home")),
+            "ht_away": as_int(row.get("ht_away")), "ft_home": fh, "ft_away": fa,
+            "kickoff": kickoff.isoformat(),
         })
     usable.sort(key=lambda item: item["kickoff"], reverse=True)
     return usable[:HISTORY_MATCHES]
@@ -2422,10 +2475,10 @@ def team_first_half_profile(team_slug, cutoff, venue, cache=None):
         # home/away sides, and never infer orientation from a fuzzy name.
         if row.get("ht_home") is None or row.get("ht_away") is None:
             continue
-        if normalized_team_name(row["home"]) == normalized_team_name_from_slug(team_slug):
+        if team_name_similarity(row["home"], normalized_team_name_from_slug(team_slug)) >= 0.88:
             scored.append(row["ht_home"])
             conceded.append(row["ht_away"])
-        elif normalized_team_name(row["away"]) == normalized_team_name_from_slug(team_slug):
+        elif team_name_similarity(row["away"], normalized_team_name_from_slug(team_slug)) >= 0.88:
             scored.append(row["ht_away"])
             conceded.append(row["ht_home"])
     if len(scored) < MIN_HT_HISTORY:
@@ -2458,9 +2511,9 @@ def team_full_time_profile(team_slug, cutoff, venue, cache=None):
     scored, conceded = [], []
     team_name = normalized_team_name_from_slug(team_slug)
     for row in rows:
-        if normalized_team_name(row["home"]) == team_name:
+        if team_name_similarity(row["home"], team_name) >= 0.88:
             scored.append(row.get("ft_home")); conceded.append(row.get("ft_away"))
-        elif normalized_team_name(row["away"]) == team_name:
+        elif team_name_similarity(row["away"], team_name) >= 0.88:
             scored.append(row.get("ft_away")); conceded.append(row.get("ft_home"))
     pairs = [(a,b) for a,b in zip(scored,conceded)
              if isinstance(a,int) and isinstance(b,int) and a >= 0 and b >= 0]
