@@ -2136,6 +2136,7 @@ def update_existing_pick_minutes(state):
 # ---------------------------------------------------------------------------
 BTTS_HT_MARKET = "BTTS_HT"
 BTTS_FT_MARKET = "BTTS_FT"
+MIN_BTTS_FT_ODDS = 1.65
 MIN_HT_HISTORY = 5
 HISTORY_MATCHES = 10
 MIN_MODEL_PROBABILITY = 0.15
@@ -2901,6 +2902,9 @@ def send_prematch_btts_full_time_picks(state):
             if not quote:
                 print(f"[{index}] Brak aktywnego kursu Superbet BTTS cały mecz: {home} - {away}", flush=True)
                 continue
+            if quote["odds"] < MIN_BTTS_FT_ODDS:
+                print(f"[{index}] Kurs BTTS FT {quote['odds']:.2f} poniżej minimum {MIN_BTTS_FT_ODDS:.2f}: {home} - {away}; pomijam.", flush=True)
+                continue
             hp = team_full_time_profile(home_slug, kickoff, "home", history_cache)
             ap = team_full_time_profile(away_slug, kickoff, "away", history_cache)
             estimate = full_time_btts_probability(hp, ap)
@@ -2928,7 +2932,13 @@ def send_prematch_btts_full_time_picks(state):
         except Exception as exc:
             print(f"Końcowa kontrola Superbet nieudana: {type(exc).__name__}: {exc}", flush=True)
             continue
-        if not final_quote or abs(final_quote["odds"] - candidate["quote"]["odds"]) > 0.005:
+        if not final_quote:
+            print(f"Brak aktualnego kursu BTTS FT dla {candidate['home']} - {candidate['away']}; pomijam.", flush=True)
+            continue
+        if final_quote["odds"] < MIN_BTTS_FT_ODDS:
+            print(f"Końcowy kurs BTTS FT {final_quote['odds']:.2f} poniżej minimum {MIN_BTTS_FT_ODDS:.2f}: {candidate['home']} - {candidate['away']}; BLOKADA wysyłki.", flush=True)
+            continue
+        if abs(final_quote["odds"] - candidate["quote"]["odds"]) > 0.005:
             print(f"Kurs BTTS FT zmienił się dla {candidate['home']} - {candidate['away']}; pomijam i sprawdzę ponownie.", flush=True)
             continue
         estimate = candidate["estimate"]
