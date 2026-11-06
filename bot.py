@@ -373,6 +373,80 @@ def superbet_event_local_date(event):
     return kickoff.date() if kickoff else None
 
 
+def extract_team_logo_urls(event, home, away):
+    """Find team crest URLs in Superbet event metadata when supplied."""
+    wanted = {
+        "home": team_name_aliases(home),
+        "away": team_name_aliases(away),
+    }
+    found = {"home": None, "away": None}
+    image_keys = ("logo", "image", "crest", "badge", "emblem", "icon", "picture", "photo")
+
+    def walk(node):
+        if isinstance(node, dict):
+            # Superbet payload versions use different participant/team schemas.
+            name = first(
+                node, "team_name", "teamName", "participant_name", "participantName",
+                "competitor_name", "competitorName", "name", "title", "label",
+            )
+            if name:
+                aliases = team_name_aliases(str(name))
+                for side in ("home", "away"):
+                    if found[side] or not (aliases & wanted[side]):
+                        continue
+                    for key, value in node.items():
+                        if isinstance(value, str) and any(tag in key.lower() for tag in image_keys):
+                            if value.startswith("https://"):
+                                found[side] = value
+                                break
+            # Also support explicit home/away logo fields at fixture/event level.
+            for side in ("home", "away"):
+                if found[side]:
+                    continue
+                for key, value in node.items():
+                    key_lower = key.lower()
+                    if side in key_lower and any(tag in key_lower for tag in image_keys):
+                        if isinstance(value, str) and value.startswith("https://"):
+                            found[side] = value
+                            break
+            for value in node.values():
+                if isinstance(value, (dict, list)):
+                    walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    walk(event)
+    return found
+
+
+def telegram_btts_ft(message, home, away, home_logo=None, away_logo=None):
+    """Send BTTS FT as a two-crest Telegram album when both images are available."""
+    if not (home_logo and away_logo):
+        return telegram(message)
+    if len(message) > 900:
+        return telegram(message)
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMediaGroup"
+    media = [
+        {
+            "type": "photo", "media": home_logo,
+            "caption": f"🏠 {home}\n{message}",
+        },
+        {
+            "type": "photo", "media": away_logo,
+            "caption": f"🛡️ {away}",
+        },
+    ]
+    response = requests.post(
+        url, json={"chat_id": CHAT_ID, "media": media}, timeout=25
+    )
+    response.raise_for_status()
+    result = response.json()
+    if not result.get("ok"):
+        raise RuntimeError(f"Telegram media group error: {result}")
+    return result
+
+
 def superbet_live_event_links():
     """Get only today's football event links from Superbet date-scoped API."""
     found = {}
@@ -431,9 +505,11 @@ def superbet_live_event_links():
                 slug = f"{slug_part(home)}-vs-{slug_part(away)}-{event_id}"
                 full_url = f"https://superbet.pl/kursy/pilka-nozna/{slug}"
             kickoff = superbet_event_kickoff(event)
+            logos = extract_team_logo_urls(event, home, away)
             found[full_url] = {
                 "url": full_url, "text": name, "event_id": event_id,
                 "home": home, "away": away,
+                "home_logo": logos["home"], "away_logo": logos["away"],
                 "time": kickoff.isoformat() if kickoff else None,
             }
         print(
@@ -3225,9 +3301,16 @@ def send_prematch_btts_full_time_picks(state):
                 f"👉 OTWÓRZ BTTS CAŁY MECZ W SUPERBET: {bet_url}\n"
                 f"Dane meczowe: Open Matchday — https://github.com/oladeeayo/open-matchday"
             )
-            response = telegram(message)
-            telegram_result = response.get("result", {}) if isinstance(response, dict) else {}
-            pick["telegram_message_id"] = telegram_result.get("message_id")
+            response = telegram_btts_ft(
+                message, candidate["home"], candidate["away"],
+                candidate["event"].get("home_logo"),
+                candidate["event"].get("away_logo"),
+            )
+            telegram_result = response.get("result", []) if isinstance(response, dict) else []
+            if isinstance(telegram_result, list) and telegram_result:
+                pick["telegram_message_id"] = telegram_result[0].get("message_id")
+            elif isinstance(telegram_result, dict):
+                pick["telegram_message_id"] = telegram_result.get("message_id")
             pick["delivery_status"] = "sent"
             pick["sent_at"] = now_local().isoformat()
             save_state(state)
