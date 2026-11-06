@@ -161,6 +161,18 @@ def team_name_aliases(value):
         if re.search(r"\binter\b", name):
             aliases.add(re.sub(r"\binter\b", "international", name))
 
+    # Known provider naming variants. These remain aliases only; both teams
+    # must still match in the correct home/away order.
+    for name in list(aliases):
+        if name == "san lorenzo almagro":
+            aliases.add("san lorenzo")
+        elif name == "san lorenzo":
+            aliases.add("san lorenzo almagro")
+        if name == "operario ferroviario pr":
+            aliases.add("operario pr")
+        elif name == "operario pr":
+            aliases.add("operario ferroviario pr")
+
     # Remove common club/legal prefixes without changing the core name.
     prefix_patterns = (
         r"^(?:club\s+social\s+y\s+deportivo|club\s+social\s+deportivo|club\s+atletico|club\s+deportivo)\s+",
@@ -3013,7 +3025,9 @@ def send_prematch_btts_full_time_picks(state):
         try:
             # Confirm the exact Superbet event and market before spending requests
             # on historical team data.
-            event = find_superbet_event(home, away, superbet_events)
+            event = find_superbet_event(
+                home, away, superbet_events, womens=fixture_is_womens(match)
+            )
             if not event:
                 print(f"[{index}] Brak jednoznacznego wydarzenia Superbet: {home} - {away}", flush=True)
                 continue
