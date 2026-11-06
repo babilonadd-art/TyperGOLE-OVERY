@@ -121,11 +121,11 @@ if __name__ == "__main__":
 
 
 class BTTSFirstHalfSettlementTests(unittest.TestCase):
-    def test_btts_ht_pick_settles_without_live_baseline_score(self):
+    def _run_settlement(self, ht_score, current_score):
         state = {
             "picks": [{
-                "key": "fixture-1:BTTS_HT",
-                "id": "fixture-1",
+                "key": "fixture:BTTS_HT",
+                "id": "fixture",
                 "slug": "home-vs-away",
                 "home": "Home FC",
                 "away": "Away FC",
@@ -139,17 +139,32 @@ class BTTSFirstHalfSettlementTests(unittest.TestCase):
         match = {
             "home": "Home FC",
             "away": "Away FC",
-            "home_score": 1,
-            "away_score": 1,
+            "home_score": current_score[0],
+            "away_score": current_score[1],
             "status": "2nd half",
             "minute": 60,
-            "half_time_score": "1-1",
+            "half_time_score": ht_score,
         }
-        with patch.object(bot, "match_detail", return_value=match), patch.object(bot, "settlement_confirmation_ready", return_value=True), patch.object(bot, "now_local", return_value=datetime(2026, 11, 6, 12, 0, tzinfo=timezone.utc)), patch.object(bot, "telegram") as send_message, patch.object(bot, "save_state"):
+        with (
+            patch.object(bot, "match_detail", return_value=match),
+            patch.object(bot, "settlement_confirmation_ready", return_value=True),
+            patch.object(bot, "now_local", return_value=datetime(2026, 11, 6, 12, 0, tzinfo=timezone.utc)),
+            patch.object(bot, "telegram") as send_message,
+            patch.object(bot, "save_state"),
+        ):
             bot.settle_picks(state)
         self.assertTrue(state["picks"][0]["settled"])
-        self.assertFalse(state["picks"][0]["won"])
         send_message.assert_called_once()
+        self.assertIn(ht_score, send_message.call_args.args[0])
+        return state["picks"][0]
+
+    def test_btts_ht_pick_wins_when_both_teams_scored_at_half_time(self):
+        pick = self._run_settlement("1-1", (1, 1))
+        self.assertTrue(pick["won"])
+
+    def test_btts_ht_pick_loses_if_only_one_team_scored_at_half_time(self):
+        pick = self._run_settlement("1-0", (1, 0))
+        self.assertFalse(pick["won"])
 
 
 class DuplicateGuardRetryTests(unittest.TestCase):
