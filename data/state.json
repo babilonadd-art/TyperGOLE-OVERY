@@ -1572,10 +1572,11 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
-      "settlement_pending_score": "6-1",
-      "settlement_pending_since": "2026-11-06T01:59:08.325701+01:00"
+      "won": false,
+      "settled_score": "6-1",
+      "settled_at": "2026-11-06T03:06:43.742183+01:00"
     },
     {
       "key": "dj2ryohlljeyq1z:FT",
@@ -1806,11 +1807,12 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T00:55:19.870958+01:00",
-      "settlement_pending_score": "6-1",
-      "settlement_pending_since": "2026-11-06T01:59:08.521074+01:00"
+      "won": false,
+      "settled_score": "6-1",
+      "settled_at": "2026-11-06T03:06:44.427938+01:00"
     },
     {
       "key": "dj2ryohlljeyq1z:FT",
@@ -1968,8 +1970,8 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T01:59:11.462832+01:00",
-      "settlement_pending_score": "0-3",
-      "settlement_pending_since": "2026-11-06T01:59:50.198253+01:00"
+      "settlement_pending_score": "2-0",
+      "settlement_pending_since": "2026-11-06T03:06:45.322932+01:00"
     },
     {
       "key": "dn1m1gh9vz2lmoe:FT",
@@ -2004,11 +2006,12 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T01:59:13.666799+01:00",
-      "settlement_pending_score": "1-1",
-      "settlement_pending_since": "2026-11-06T01:59:51.081122+01:00"
+      "won": true,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-06T03:06:45.693404+01:00"
     },
     {
       "key": "l7oqdehjn85dr51:FT",
@@ -2043,11 +2046,12 @@
         "saves": null
       },
       "signal_score": 2,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T01:59:16.429869+01:00",
-      "settlement_pending_score": "1-1",
-      "settlement_pending_since": "2026-11-06T01:59:51.676868+01:00"
+      "won": false,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-06T03:06:46.581556+01:00"
     },
     {
       "key": "l5ergph4lo5yr8k:FT",
@@ -2085,6 +2089,45 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T01:59:18.485448+01:00"
+    },
+    {
+      "key": "8yomo4hyew38q0j:FT",
+      "id": "8yomo4hyew38q0j",
+      "slug": "platense-vs-marathon",
+      "home": "Marathon",
+      "away": "Platense",
+      "league": "Honduras Primera Division",
+      "minute": 38,
+      "score_home": 0,
+      "score_away": 0,
+      "market": "FT",
+      "date": "2026-11-06",
+      "kickoff_time": "2026-11-06T01:30:00+00:00",
+      "stake": 50.0,
+      "odds": 1.85,
+      "odds_source": "Superbet",
+      "odds_market": "Liczba goli",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/cd-marathon-vs-cd-platense-15672237?marketGroup=103",
+      "goal_line": 2.5,
+      "live_metrics": {
+        "shots": 5.0,
+        "shots_on_target": 1.0,
+        "shots_off_target": 4.0,
+        "attacks": 59.0,
+        "dangerous_attacks": 63.0,
+        "xg": null,
+        "big_chances": null,
+        "shots_inside_box": null,
+        "touches_in_box": null,
+        "saves": null
+      },
+      "signal_score": 2,
+      "settled": false,
+      "delivery_status": "sent",
+      "sent_at": "2026-11-06T03:06:54.863744+01:00",
+      "settlement_pending_score": "1-1",
+      "settlement_pending_since": "2026-11-06T03:07:29.674935+01:00"
     }
   ],
   "reports_sent": [],
@@ -2422,6 +2465,43 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T01:59:18.485448+01:00"
+    },
+    {
+      "key": "8yomo4hyew38q0j:FT",
+      "id": "8yomo4hyew38q0j",
+      "slug": "platense-vs-marathon",
+      "home": "Marathon",
+      "away": "Platense",
+      "league": "Honduras Primera Division",
+      "minute": 38,
+      "score_home": 0,
+      "score_away": 0,
+      "market": "FT",
+      "date": "2026-11-06",
+      "kickoff_time": "2026-11-06T01:30:00+00:00",
+      "stake": 50.0,
+      "odds": 1.85,
+      "odds_source": "Superbet",
+      "odds_market": "Liczba goli",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/cd-marathon-vs-cd-platense-15672237?marketGroup=103",
+      "goal_line": 2.5,
+      "live_metrics": {
+        "shots": 5.0,
+        "shots_on_target": 1.0,
+        "shots_off_target": 4.0,
+        "attacks": 59.0,
+        "dangerous_attacks": 63.0,
+        "xg": null,
+        "big_chances": null,
+        "shots_inside_box": null,
+        "touches_in_box": null,
+        "saves": null
+      },
+      "signal_score": 2,
+      "settled": false,
+      "delivery_status": "sent",
+      "sent_at": "2026-11-06T03:06:54.863744+01:00"
     }
   ]
 }
