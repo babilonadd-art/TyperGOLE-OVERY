@@ -1,81 +1,19 @@
-name: TyperGOLE-OVERY Live Bot
+name: TyperGOLE-OVERY (legacy disabled)
 
 on:
-  # Uruchom także po zmianie kodu, ale nie po samym zapisie state.json.
-  push:
-    branches: [main]
-    paths:
-      - "bot.py"
-      - "tests/**"
-      - ".github/workflows/live-bot.yml"
   workflow_dispatch:
-  schedule:
-    # Przesunięcie o 2 minuty ogranicza opóźnienia w godzinach dużego obciążenia GitHub Actions.
-    - cron: "2-59/5 * * * *"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: typergole-live
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
-  run-bot:
+  legacy-live-bot:
+    if: false
     runs-on: ubuntu-latest
-    timeout-minutes: 8
     steps:
-      - name: Checkout latest main (including saved pick state)
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          persist-credentials: true
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Run clock regression tests
-        run: python -m unittest discover -s tests -v
-      - name: Initialize Superbet diagnostic log
-        run: |
-          mkdir -p data
-          : > data/superbet_diagnostics.jsonl
-      - name: Run repeated live bot scans
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TZ: Europe/Warsaw
-        run: |
-          # GitHub uruchamia harmonogram co 5 minut; wykonaj kilka skanów w ramach jednego zadania.
-          for scan in 1 2 3 4 5; do
-            echo "===== SKAN LIVE ${scan}/5 ====="
-            python bot.py
-            if [ "${scan}" -lt 5 ]; then
-              sleep 30
-            fi
-          done
-      - name: Save bot state
-        if: always()
-        run: |
-          mkdir -p data
-          if [ -f data/state.json ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+users.noreply.github.com"
-            git add -f data/state.json
-            if ! git diff --cached --quiet; then
-              git commit -m "Persist live pick and settlement state"
-              git push
-            fi
-          else
-            echo "No state file was created; nothing to persist."
-          fi
-      - name: Upload Superbet diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: superbet-diagnostics
-          path: data/superbet_diagnostics.jsonl
-          if-no-files-found: warn
-          retention-days: 30
+      - name: Legacy strategy disabled
+        run: echo "Old LIVE/OVER strategy is disabled."
