@@ -1668,6 +1668,12 @@ def settle_picks(state):
 
             # BTTS 1H is settled from the confirmed half-time score itself.
             # It has no live-entry baseline score; requiring one would block every settlement.
+            if pick.get("market") != BTTS_HT_MARKET:
+                baseline_home = as_int(pick.get("score_home"))
+                baseline_away = as_int(pick.get("score_away"))
+                if baseline_home is None or baseline_away is None:
+                    print(f"Pomijam rozliczenie typu bez wyniku początkowego: {pick.get('key')}")
+                    continue
             # Never settle against a different fixture returned by an archive/search endpoint.
             fixture_home, fixture_away = teams(match)
             direct_match = (
