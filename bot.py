@@ -1255,7 +1255,16 @@ def settlement_fixture_matches_pick(match, pick):
     except (TypeError, ValueError):
         return False
     actual = kickoff_datetime(match)
-    return actual is not None and abs((actual.date() - expected_day).days) <= 1
+    if actual is None:
+        return False
+    day_gap = abs((actual.date() - expected_day).days)
+    if day_gap > 1:
+        print(
+            f"Settlement guard: odrzucono rekord z innej daty ({actual.date()} != {expected_day})",
+            flush=True,
+        )
+        return False
+    return True
 
 def match_detail(slug, pick=None):
     """
