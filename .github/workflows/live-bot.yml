@@ -45,7 +45,7 @@ jobs:
       - name: Run pre-match BTTS bot and first-half settlement
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.BTTS_TELEGRAM_CHAT_ID }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TZ: Europe/Warsaw
         run: python bot.py
       - name: Save bot state
