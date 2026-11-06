@@ -3358,10 +3358,47 @@ def send_prematch_btts_full_time_picks(state):
             print(f"Telegram BTTS FT nieudany: {type(exc).__name__}: {exc}", flush=True)
 
 
+
+def send_manual_archive_resend(state):
+    """Send one explicitly queued historical pick once, clearly marked as archive."""
+    item = state.get("manual_archive_resend")
+    if not item:
+        return
+    home, away = item["home"], item["away"]
+    message = (
+        "🧪 ARCHIWALNY TEST WYSYŁKI — MECZ ZAKOŃCZONY\n"
+        f"⚽ {home} – {away}\n"
+        f"🏆 Liga: {item.get('league', 'Brazylia')}\n"
+        f"🎯 Rynek: {item.get('market', 'typ archiwalny')}\n"
+        f"📈 Kurs z wcześniejszego typu: {float(item.get('odds', 0)):.2f}\n"
+        f"🏁 Wynik końcowy: {item.get('result', 'brak')}\n"
+        "To wyłącznie test wysyłki i herbów — nie jest aktualnym typem."
+    )
+    home_logo = public_team_logo_url(home)
+    away_logo = public_team_logo_url(away)
+    response = telegram_btts_ft(message, home, away, home_logo, away_logo)
+    result = response.get("result", []) if isinstance(response, dict) else []
+    message_id = None
+    if isinstance(result, list) and result:
+        message_id = result[0].get("message_id")
+    elif isinstance(result, dict):
+        message_id = result.get("message_id")
+    state.pop("manual_archive_resend", None)
+    state["last_manual_archive_resend"] = {
+        "home": home, "away": away, "sent_at": now_local().isoformat(),
+        "telegram_message_id": message_id,
+    }
+    save_state(state)
+    print(f"WYSŁANO ARCHIWALNY TEST: {home} - {away}; message_id={message_id}", flush=True)
+
 def main():
     print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS FT ONLY START {now_local().isoformat()} ===", flush=True)
     print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
     state = load_state()
+    try:
+        send_manual_archive_resend(state)
+    except Exception as exc:
+        print(f"Nie udało się wysłać archiwalnego testu: {type(exc).__name__}: {exc}", flush=True)
     if state.get("telegram_test_pending"):
         telegram("🧪 TEST TELEGRAM — TyperGOLE-OVERY. To nie jest typ.")
         state["telegram_test_pending"] = False
