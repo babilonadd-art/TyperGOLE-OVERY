@@ -1759,13 +1759,13 @@ def settle_picks(state):
                     r"[_-]+", " ", " ".join(phase_values).lower()
                 )
                 at_half_time = any(re.search(pattern, phase_text) for pattern in (
-                    r"\bhalf\s*time\\b", r"\bhalftime\\b",
-                    r"\binterval\\b", r"\bbreak\\b",
-                    r"\bprzerwa\\b", r"\bht\\b",
+                    r"\bhalf\s*time\b", r"\bhalftime\b",
+                    r"\binterval\b", r"\bbreak\b",
+                    r"\bprzerwa\b", r"\bht\b",
                 ))
                 in_second_half = any(re.search(pattern, phase_text) for pattern in (
-                    r"\b2nd\s*half\\b", r"\bsecond\s*half\\b",
-                    r"\b2h\\b", r"\bdruga\s*polowa\\b",
+                    r"\b2nd\s*half\b", r"\bsecond\s*half\b",
+                    r"\b2h\b", r"\bdruga\s*polowa\b",
                 ))
                 # A populated, explicit HT score is itself evidence that the
                 # first-half period has been recorded. Otherwise require an
