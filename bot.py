@@ -2029,7 +2029,10 @@ def _team_history_rows(team_slug, cutoff):
             rows = []
     else:
         rows = []
-    usable = []
+    # Sort and cap candidates before requesting individual match details.
+    # The team endpoint returns up to 30 fixtures; fetching details for every
+    # row can make a single scan exceed the GitHub Actions time limit.
+    candidates = []
     for row in rows:
         if not isinstance(row, dict):
             continue
@@ -2040,6 +2043,11 @@ def _team_history_rows(team_slug, cutoff):
         if status and not any(word in status for word in
                               ("finished", "full time", "ft", "ended", "complete")):
             continue
+        candidates.append((kickoff, row))
+    candidates.sort(key=lambda item: item[0] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+
+    usable = []
+    for kickoff, row in candidates[:HISTORY_MATCHES + 5]:
         ht_home, ht_away = extract_half_time_score(row)
         if ht_home is None or ht_away is None:
             slug = match_slug(row)
@@ -2050,8 +2058,8 @@ def _team_history_rows(team_slug, cutoff):
                     }))
                     ht_home, ht_away = extract_half_time_score(detail or {})
                     row = {**row, **(detail or {})}
-                except Exception:
-                    pass
+                except Exception as exc:
+                    print(f"Brak HT dla historii {slug}: {type(exc).__name__}: {exc}", flush=True)
         if ht_home is None or ht_away is None:
             continue
         home, away = teams(row)
