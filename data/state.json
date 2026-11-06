@@ -6195,6 +6195,13 @@
       "scored_rate": 0.8,
       "conceded_rate": 0.7
     },
-    "FT:2026-11-06:san-lorenzo": null
+    "FT:2026-11-06:san-lorenzo": null,
+    "FT:2026-11-06:platense": {
+      "sample": 10,
+      "scored_avg": 1.1,
+      "conceded_avg": 1.1,
+      "scored_rate": 0.7,
+      "conceded_rate": 0.9
+    }
   }
 }
