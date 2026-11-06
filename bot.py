@@ -3359,6 +3359,8 @@ def send_prematch_btts_full_time_picks(state):
             print(f"[{index}] Analiza {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
             return None
 
+    # Warm the shared historical-results cache once before worker threads start.
+    open_matchday_data()
     indexed_fixtures = list(enumerate(fixtures, 1))
     print(
         f"Ranking dnia: równoległa analiza {len(indexed_fixtures)} spotkań "
