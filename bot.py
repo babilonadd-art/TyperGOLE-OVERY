@@ -1694,7 +1694,7 @@ def settle_picks(state):
 
             # BTTS 1H is settled from the confirmed half-time score itself.
             # It has no live-entry baseline score; requiring one would block every settlement.
-            if pick.get("market") != BTTS_HT_MARKET:
+            if pick.get("market") not in (BTTS_HT_MARKET, BTTS_FT_MARKET):
                 baseline_home = as_int(pick.get("score_home"))
                 baseline_away = as_int(pick.get("score_away"))
                 if baseline_home is None or baseline_away is None:
@@ -1799,6 +1799,10 @@ def settle_picks(state):
                         flush=True,
                     )
                     continue
+            elif pick.get("market") == BTTS_FT_MARKET:
+                target_total = current_total
+                target_score = f"{home_now}-{away_now}" if current_total is not None else None
+                period_complete = finished
             else:
                 target_total = current_total
                 target_score = f"{home_now}-{away_now}" if current_total is not None else None
@@ -1824,10 +1828,10 @@ def settle_picks(state):
                 print(f"BRAK POTWIERDZONEGO WYNIKU 1. POŁOWY dla {pick.get('key')} — nie rozliczam.", flush=True)
                 continue
 
-            if pick.get("market") == BTTS_HT_MARKET:
+            if pick.get("market") in (BTTS_HT_MARKET, BTTS_FT_MARKET):
                 score_parts = re.search(r"(\d+)\s*[-:]\s*(\d+)", str(target_score))
                 if not score_parts:
-                    print(f"ROZLICZENIE BTTS ZABLOKOWANE — nieczytelny wynik HT dla {pick.get('key')}.", flush=True)
+                    print(f"ROZLICZENIE BTTS ZABLOKOWANE — nieczytelny wynik dla {pick.get('key')}.", flush=True)
                     continue
                 won = btts_first_half_won(int(score_parts.group(1)), int(score_parts.group(2)))
             else:
@@ -2003,6 +2007,7 @@ def update_existing_pick_minutes(state):
 # ---------------------------------------------------------------------------
 MAX_DAILY_PICKS = 4
 BTTS_HT_MARKET = "BTTS_HT"
+BTTS_FT_MARKET = "BTTS_FT"
 MIN_HT_HISTORY = 5
 HISTORY_MATCHES = 10
 MIN_MODEL_PROBABILITY = 0.15
@@ -2123,9 +2128,11 @@ def _team_history_rows(team_slug, cutoff):
         if ht_home is None or ht_away is None:
             continue
         home, away = teams(row)
+        ft_home, ft_away, _, _ = score_and_minute(row)
         usable.append({
             "home": home, "away": away,
             "ht_home": ht_home, "ht_away": ht_away,
+            "ft_home": ft_home, "ft_away": ft_away,
             "kickoff": kickoff.isoformat() if kickoff else "",
         })
     usable.sort(key=lambda item: item["kickoff"], reverse=True)
@@ -2174,6 +2181,52 @@ def team_first_half_profile(team_slug, cutoff, venue, cache=None):
 def normalized_team_name_from_slug(slug):
     value = re.sub(r"[-_]+", " ", str(slug or ""))
     return normalized_team_name(value)
+
+
+
+def team_full_time_profile(team_slug, cutoff, venue, cache=None):
+    """Compute full-time goals scored/conceded rates from completed fixtures."""
+    cache_key = f"FT:{cutoff.date().isoformat()}:{team_slug}"
+    if isinstance(cache, dict) and cache_key in cache:
+        return cache[cache_key]
+    rows = _team_history_rows(team_slug, cutoff)
+    scored, conceded = [], []
+    team_name = normalized_team_name_from_slug(team_slug)
+    for row in rows:
+        if normalized_team_name(row["home"]) == team_name:
+            scored.append(row.get("ft_home")); conceded.append(row.get("ft_away"))
+        elif normalized_team_name(row["away"]) == team_name:
+            scored.append(row.get("ft_away")); conceded.append(row.get("ft_home"))
+    pairs = [(a,b) for a,b in zip(scored,conceded)
+             if isinstance(a,int) and isinstance(b,int) and a >= 0 and b >= 0]
+    profile = None if len(pairs) < MIN_HT_HISTORY else {
+        "sample": len(pairs),
+        "scored_avg": sum(a for a,_ in pairs)/len(pairs),
+        "conceded_avg": sum(b for _,b in pairs)/len(pairs),
+        "scored_rate": sum(a > 0 for a,_ in pairs)/len(pairs),
+        "conceded_rate": sum(b > 0 for _,b in pairs)/len(pairs),
+    }
+    if isinstance(cache,dict): cache[cache_key]=profile
+    return profile
+
+
+def full_time_btts_probability(home_profile, away_profile):
+    """Independent Poisson estimate for BTTS across the full match."""
+    if not home_profile or not away_profile: return None
+    lh=max(0.01,(home_profile["scored_avg"]+away_profile["conceded_avg"])/2)
+    la=max(0.01,(away_profile["scored_avg"]+home_profile["conceded_avg"])/2)
+    probability=(1-math.exp(-lh))*(1-math.exp(-la))
+    factor=min(home_profile["sample"],away_profile["sample"])/HISTORY_MATCHES
+    probability=0.5*probability+0.5*(probability*factor+0.48*(1-factor))
+    return {
+        "probability":max(0.0,min(0.95,probability)),
+        "home_lambda":lh,"away_lambda":la,
+        "home_sample":home_profile["sample"],"away_sample":away_profile["sample"],
+        "home_scored_rate":home_profile["scored_rate"],
+        "away_scored_rate":away_profile["scored_rate"],
+        "home_conceded_rate":home_profile["conceded_rate"],
+        "away_conceded_rate":away_profile["conceded_rate"],
+    }
 
 
 def first_half_btts_probability(home_profile, away_profile):
@@ -2339,6 +2392,145 @@ def extract_superbet_btts_first_half(event_detail):
     return candidates[0]
 
 
+def extract_superbet_btts_full_time(event_detail):
+    """Return only an active, actual Superbet YES quote for full-time BTTS."""
+    def norm(value):
+        value = str(value or "").replace("ł", "l").replace("Ł", "L")
+        value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
+        return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", value)).strip()
+
+    rows = []
+    market_keys = ("marketName", "market_name", "marketGroupName", "market_group_name",
+                   "marketTitle", "market_title", "market", "marketGroup", "market_group", "title",
+                   "period", "periodName", "period_name", "phase", "info", "marketInfo",
+                   "market_info", "groupName", "group_name")
+    selection_keys = ("name", "selectionName", "selection_name", "oddName",
+                      "outcomeName", "label", "displayName")
+    price_keys = ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
+
+    def nested_market_text(value, depth=0):
+        if depth > 3:
+            return ""
+        if isinstance(value, dict):
+            parts = []
+            for key, child in value.items():
+                if child in (None, ""):
+                    continue
+                if isinstance(child, (dict, list)):
+                    nested = nested_market_text(child, depth + 1)
+                    if nested:
+                        parts.append(nested)
+                elif str(key).lower() not in {"id", "uuid", "price", "status", "code"}:
+                    parts.append(str(child))
+            return " ".join(parts)
+        if isinstance(value, list):
+            return " ".join(nested_market_text(child, depth + 1) for child in value)
+        return str(value)
+
+    def walk(node, inherited=""):
+        if isinstance(node, list):
+            for child in node:
+                walk(child, inherited)
+            return
+        if not isinstance(node, dict):
+            return
+        local_parts = [
+            str(node[k]) for k in market_keys
+            if node.get(k) not in (None, "") and not isinstance(node.get(k), (dict, list))
+        ]
+        for nested_key in ("market", "marketGroup", "market_group", "period", "phase"):
+            nested_value = node.get(nested_key)
+            if isinstance(nested_value, (dict, list)):
+                nested_text = nested_market_text(nested_value)
+                if nested_text:
+                    local_parts.append(nested_text)
+        local = " ".join(local_parts)
+        context = " ".join(part for part in (inherited, local) if part)
+        if any(node.get(k) not in (None, "") for k in price_keys) and any(node.get(k) not in (None, "") for k in selection_keys):
+            row = dict(node)
+            row["_market_context"] = context
+            rows.append(row)
+        for value in node.values():
+            if isinstance(value, (dict, list)):
+                walk(value, context)
+
+    walk(event_detail)
+    candidates = []
+    for row in rows:
+        status = str(first(row, "status", "oddStatus", "state", default="")).lower()
+        if status not in ("active", "opened", "open", "1", "true"):
+            continue
+        market = norm(" ".join([row.get("_market_context", "")] + [
+            str(row.get(k, "")) for k in market_keys if row.get(k) not in (None, "")
+        ]))
+        # Both market identity and first-half period must be explicit.
+        is_btts = ("obie druzyny strzela" in market or "both teams to score" in market
+                   or re.search(r"\bbtts\b", market))
+        is_first_half = any(token in market for token in
+                            ("1 polowa", "pierwsza polowa", "first half", "1st half", "1 pol"))
+        is_second_half = any(token in market for token in
+                             ("2 polowa", "druga polowa", "second half", "2nd half"))
+        if not is_btts or is_first_half or is_second_half:
+            continue
+        selection = norm(first(row, *selection_keys, default=""))
+        if selection not in ("tak", "yes", "true"):
+            continue
+        values = []
+        invalid = False
+        for key in price_keys:
+            raw = row.get(key)
+            if raw in (None, ""):
+                continue
+            try:
+                value = float(str(raw).replace(",", "."))
+            except (TypeError, ValueError):
+                invalid = True
+                break
+            if not 1.01 <= value <= 1000:
+                invalid = True
+                break
+            values.append(value)
+        if invalid or not values or max(values) - min(values) > 0.005:
+            continue
+        candidates.append({
+            "odds": values[0], "market": market, "selection": "Tak",
+            "source": "Superbet",
+            "updated_at": first(row.get("extra", {}), "feedPlatformTimestamp", "feedOriginTimestamp"),
+        })
+    if not candidates:
+        sample = []
+        seen = set()
+        for row in rows:
+            market_text = " ".join(str(row.get(k, "")) for k in market_keys if row.get(k) not in (None, ""))
+            selection_text = str(first(row, *selection_keys, default=""))
+            signature = (market_text, selection_text, str(first(row, *price_keys, default="")),
+                         str(first(row, "status", "oddStatus", "state", default="")))
+            if signature in seen:
+                continue
+            seen.add(signature)
+            sample.append({
+                "market": market_text[:160], "market_raw": row.get("market"),
+                "market_group_raw": row.get("marketGroup", row.get("market_group")),
+                "info_raw": row.get("info"), "period_raw": row.get("period"),
+                "selection": selection_text[:50], "price": first(row, *price_keys),
+                "status": first(row, "status", "oddStatus", "state"),
+                "row_keys": sorted(key for key in row if not str(key).startswith("_")),
+                "raw_sample": {key: value for key, value in row.items()
+                               if not str(key).startswith("_")},
+            })
+            if len(sample) >= 10:
+                break
+        print("Superbet BTTS FT — brak dopasowania; klucze eventu=" +
+              json.dumps(sorted(event_detail.keys()) if isinstance(event_detail, dict) else [], ensure_ascii=False) +
+              "; próbka rynków: " + json.dumps(sample, ensure_ascii=False)[:3200], flush=True)
+        return None
+    prices = {round(item["odds"], 3) for item in candidates}
+    if len(prices) != 1:
+        print(f"Superbet BTTS FT: sprzeczne aktywne kursy {sorted(prices)} — odrzucam.", flush=True)
+        return None
+    return candidates[0]
+
+
 def send_prematch_btts_picks(state):
     today = now_local().date().isoformat()
     todays = [p for p in state.get("picks", [])
@@ -2459,8 +2651,128 @@ def send_prematch_btts_picks(state):
             print(f"Telegram BTTS 1H nieudany: {type(exc).__name__}: {exc}", flush=True)
 
 
+def send_prematch_btts_full_time_picks(state):
+    today = now_local().date().isoformat()
+    todays = [p for p in state.get("picks", [])
+              if p.get("date") == today and p.get("market") == BTTS_FT_MARKET
+              and p.get("delivery_status", "sent") == "sent"]
+    if len(todays) >= MAX_DAILY_PICKS:
+        print(f"Limit {MAX_DAILY_PICKS} typów BTTS FT osiągnięty.", flush=True)
+        return
+
+    fixtures = scheduled_fixtures_today()
+    if not fixtures:
+        return
+    history_cache = state.setdefault("team_history_cache", {})
+    state["team_history_cache"] = {key: value for key, value in history_cache.items() if key.startswith(today + ":")}
+    history_cache = state["team_history_cache"]
+    superbet_events = superbet_live_event_links()
+    candidates = []
+    for index, match in enumerate(fixtures, 1):
+        home, away = teams(match)
+        kickoff = kickoff_datetime(match)
+        slug = match.get("_bot_slug") or match_slug(match)
+        if not kickoff or not slug or "-vs-" not in slug:
+            continue
+        if same_fixture_pick_exists(state, match_identifier(match) or slug, home, away,
+                                    today, BTTS_FT_MARKET, slug=slug):
+            continue
+        parts = slug.split("-vs-", 1)
+        home_slug, away_slug = parts[0], parts[1]
+        try:
+            # Confirm the exact Superbet event and market before spending requests
+            # on historical team data.
+            event = find_superbet_event(home, away, superbet_events)
+            if not event:
+                print(f"[{index}] Brak jednoznacznego wydarzenia Superbet: {home} - {away}", flush=True)
+                continue
+            detail = superbet_event_detail(event["event_id"])
+            quote = extract_superbet_btts_full_time(detail)
+            if not quote:
+                print(f"[{index}] Brak aktywnego kursu Superbet BTTS cały mecz: {home} - {away}", flush=True)
+                continue
+            hp = team_full_time_profile(home_slug, kickoff, "home", history_cache)
+            ap = team_full_time_profile(away_slug, kickoff, "away", history_cache)
+            estimate = full_time_btts_probability(hp, ap)
+            if not estimate or estimate["probability"] < MIN_MODEL_PROBABILITY:
+                print(f"[{index}] {home} - {away}: brak wystarczających danych lub P poniżej progu.", flush=True)
+                continue
+            league = first(match, "competition_name", "competition", "league_name", default="Liga nieznana")
+            if isinstance(league, dict):
+                league = first(league, "name", "title", default="Liga nieznana")
+            candidates.append({
+                "match": match, "home": home, "away": away, "slug": slug,
+                "id": match_identifier(match) or slug, "kickoff": kickoff,
+                "league": str(league), "event": event, "quote": quote,
+                "estimate": estimate,
+            })
+        except Exception as exc:
+            print(f"[{index}] Analiza {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
+
+    candidates.sort(key=lambda item: item["estimate"]["probability"], reverse=True)
+    slots = MAX_DAILY_PICKS - len(todays)
+    for candidate in candidates[:slots]:
+        # Last-moment independent price refresh; never reuse a stale or guessed quote.
+        try:
+            final_detail = superbet_event_detail(candidate["event"]["event_id"])
+            final_quote = extract_superbet_btts_full_time(final_detail)
+        except Exception as exc:
+            print(f"Końcowa kontrola Superbet nieudana: {type(exc).__name__}: {exc}", flush=True)
+            continue
+        if not final_quote or abs(final_quote["odds"] - candidate["quote"]["odds"]) > 0.005:
+            print(f"Kurs BTTS FT zmienił się dla {candidate['home']} - {candidate['away']}; pomijam i sprawdzę ponownie.", flush=True)
+            continue
+        estimate = candidate["estimate"]
+        probability = round(estimate["probability"] * 100, 1)
+        bet_url = candidate["event"]["url"]
+        pick = {
+            "key": f"{candidate['id']}:{BTTS_FT_MARKET}",
+            "id": candidate["id"], "slug": candidate["slug"],
+            "home": candidate["home"], "away": candidate["away"],
+            "league": candidate["league"], "date": today,
+            "kickoff_time": candidate["kickoff"].isoformat(),
+            "market": BTTS_FT_MARKET, "stake": STAKE,
+            "odds": final_quote["odds"], "odds_source": "Superbet",
+            "odds_market": final_quote["market"],
+            "odds_updated_at": final_quote.get("updated_at"),
+            "superbet_url": bet_url,
+            "probability": probability, "probability_method": "Poisson FT scoring/conceding rates",
+            "model_inputs": estimate, "settled": False,
+            "delivery_status": "pending",
+        }
+        state.setdefault("picks", []).append(pick)
+        state.setdefault("duplicate_guard", []).append(pick)
+        save_state(state)
+        try:
+            payout = calculate_bet_result(STAKE, final_quote["odds"])
+            kickoff_text = candidate["kickoff"].strftime("%d.%m.%Y %H:%M")
+            message = (
+                f"🎯 BTTS CAŁY MECZ — TAK\n"
+                f"⚽ {candidate['home']} – {candidate['away']}\n"
+                f"🏆 Liga: {candidate['league']}\n"
+                f"🕒 Start: {kickoff_text} (przedmeczowo)\n"
+                f"📈 Kurs Superbet: {final_quote['odds']:.2f}\n"
+                f"📊 Szacowane prawdopodobieństwo: {probability:.1f}%\n"
+                f"📚 Próba: {estimate['home_sample']} meczów gospodarzy / {estimate['away_sample']} gości\n"
+                f"Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
+                f"Model: gole w całym meczu — zdobywane i tracone\n"
+                f"👉 OTWÓRZ BTTS CAŁY MECZ W SUPERBET: {bet_url}\n"
+                f"Powered by SportScore: https://sportscore.com/"
+            )
+            telegram(message)
+            pick["delivery_status"] = "sent"
+            pick["sent_at"] = now_local().isoformat()
+            save_state(state)
+            print(f"WYSŁANO BTTS FT: {candidate['home']} - {candidate['away']} @ {final_quote['odds']:.2f}, P={probability}%", flush=True)
+        except Exception as exc:
+            pick["delivery_status"] = "failed"
+            pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
+            save_state(state)
+            print(f"Telegram BTTS FT nieudany: {type(exc).__name__}: {exc}", flush=True)
+
+
 def main():
-    print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS 1H START {now_local().isoformat()} ===", flush=True)
+    print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS 1H + FT START {now_local().isoformat()} ===", flush=True)
     print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
     state = load_state()
     if state.get("telegram_test_pending"):
@@ -2469,25 +2781,29 @@ def main():
         save_state(state)
     print(f"Historia typów: {len(state['picks'])}; nierozliczone: {sum(1 for p in state['picks'] if not p.get('settled'))}", flush=True)
 
-    # Rozliczenia HT są sprawdzane podczas każdego uruchomienia workflow.
+    # Rozliczenia HT i FT są sprawdzane podczas każdego uruchomienia workflow.
     settle_picks(state)
 
     today = now_local().date().isoformat()
-    todays = [p for p in state["picks"] if p.get("date") == today
-              and p.get("market") == BTTS_HT_MARKET
-              and p.get("delivery_status", "sent") == "sent"]
-    print(f"Typy BTTS 1H wysłane dzisiaj: {len(todays)}/{MAX_DAILY_PICKS}", flush=True)
-    if len(todays) < MAX_DAILY_PICKS:
-        try:
-            send_prematch_btts_picks(state)
-        except Exception as exc:
-            print(f"BŁĄD SKANOWANIA PRZEDMECZOWEGO: {type(exc).__name__}: {exc}", flush=True)
+    for market, sender, label in (
+        (BTTS_HT_MARKET, send_prematch_btts_picks, "BTTS 1H"),
+        (BTTS_FT_MARKET, send_prematch_btts_full_time_picks, "BTTS FT"),
+    ):
+        todays = [p for p in state["picks"] if p.get("date") == today
+                  and p.get("market") == market
+                  and p.get("delivery_status", "sent") == "sent"]
+        print(f"Typy {label} wysłane dzisiaj: {len(todays)}/{MAX_DAILY_PICKS}", flush=True)
+        if len(todays) < MAX_DAILY_PICKS:
+            try:
+                sender(state)
+            except Exception as exc:
+                print(f"BŁĄD SKANOWANIA {label}: {type(exc).__name__}: {exc}", flush=True)}
     try:
         send_monthly_reports(state)
     except Exception as exc:
         print(f"Monthly report error: {type(exc).__name__}: {exc}", flush=True)
     save_state(state)
-    print("=== TyperGOLE-OVERY PRE-MATCH BTTS 1H END ===", flush=True)
+    print("=== TyperGOLE-OVERY PRE-MATCH BTTS 1H + FT END ===", flush=True)
 
 
 if __name__ == "__main__":
