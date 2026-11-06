@@ -20,7 +20,7 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
 STAKE = 50.0
 BET_TAX_RATE = 0.12
-# Maksymalnie 6 różnych spotkań dziennie łącznie dla BTTS 1H i BTTS FT.
+# Maksymalnie 10 typów BTTS FT dziennie.
 
 def calculate_bet_result(stake, odds):
     """Calculate Polish 12% stake tax, payout and net profit."""
@@ -45,13 +45,16 @@ def now_local():
     return datetime.now(TZ)
 
 
+MAX_DAILY_BTTS_FT_PICKS = 10
+
+
 def daily_sent_match_count(state, day):
-    """Count distinct fixtures with at least one successfully sent pick that day."""
+    """Count distinct BTTS FT fixtures that count toward the daily cap."""
     fixtures = set()
     for pick in state.get("picks", []):
         if pick.get("date") != day or pick.get("delivery_status", "sent") != "sent":
             continue
-        if pick.get("market") != BTTS_FT_MARKET:
+        if pick.get("market") != BTTS_FT_MARKET or pick.get("counts_toward_daily_limit") is False:
             continue
         fixture_id = pick.get("id") or pick.get("slug") or pick.get("key")
         if fixture_id:
@@ -2797,6 +2800,10 @@ def send_prematch_btts_picks(state):
 
     candidates.sort(key=lambda item: item["estimate"]["probability"], reverse=True)
     for candidate in candidates:
+        sent_today = daily_sent_match_count(state, today)
+        if sent_today >= MAX_DAILY_BTTS_FT_PICKS:
+            print(f"Osiągnięto limit {MAX_DAILY_BTTS_FT_PICKS} typów BTTS FT na dziś.", flush=True)
+            break
         # Last-moment independent price refresh; never reuse a stale or guessed quote.
         try:
             final_detail = superbet_event_detail(candidate["event"]["event_id"])
@@ -2858,9 +2865,11 @@ def send_prematch_btts_picks(state):
 
 def send_prematch_btts_full_time_picks(state):
     today = now_local().date().isoformat()
-    todays = [p for p in state.get("picks", [])
-              if p.get("date") == today and p.get("market") == BTTS_FT_MARKET
-              and p.get("delivery_status", "sent") == "sent"]
+    sent_today = daily_sent_match_count(state, today)
+    print(f"Limit BTTS FT: {sent_today}/{MAX_DAILY_BTTS_FT_PICKS} typów wykorzystanych dzisiaj.", flush=True)
+    if sent_today >= MAX_DAILY_BTTS_FT_PICKS:
+        print("Dzienny limit BTTS FT osiągnięty; kończę skanowanie wysyłkowe.", flush=True)
+        return
     fixtures = scheduled_fixtures_today()
     if not fixtures:
         return
