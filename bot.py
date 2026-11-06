@@ -1978,7 +1978,7 @@ def scheduled_fixtures_today():
     for utc_day in sorted(utc_days):
         for endpoint, params in (
             ("/api/v1/fixtures/", {"sport": "football", "date": utc_day, "limit": 200}),
-            ("/api/v1/fixtures/", {"sport": "football", "date": utc_day, "status": "scheduled", "limit": 200}),
+            ("/api/v1/fixtures/", {"sport": "football", "date": utc_day, "status": "upcoming", "limit": 200}),
         ):
             try:
                 records = extract_matches(api_get(endpoint, params))
