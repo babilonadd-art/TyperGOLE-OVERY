@@ -2427,11 +2427,12 @@
         "home_conceded_rate": 0.6666666666666666,
         "away_conceded_rate": 0.8888888888888888
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T14:46:53.957942+01:00",
-      "settlement_pending_score": "2-3",
-      "settlement_pending_since": "2026-11-06T14:51:58.241430+01:00"
+      "won": true,
+      "settled_score": "2-3",
+      "settled_at": "2026-11-06T15:37:43.344507+01:00"
     }
   ],
   "reports_sent": [],
