@@ -3679,7 +3679,7 @@
       "date": "2026-11-06",
       "kickoff_time": "2026-11-06T23:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.75,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -5506,7 +5506,7 @@
       "date": "2026-11-06",
       "kickoff_time": "2026-11-06T23:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.75,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -6285,5 +6285,16 @@
       "scored_rate": 0.9,
       "conceded_rate": 0.9
     }
+  },
+  "manual_archive_resend": {
+    "home": "Palmeiras - SP",
+    "away": "Remo - PA",
+    "league": "Brazilian Serie A",
+    "market": "Over 7.5 gola",
+    "odds": 2.5,
+    "result": "6-1",
+    "kickoff_time": "2026-11-05T22:30:00+00:00",
+    "superbet_url": "https://superbet.pl/kursy/pilka-nozna/palmeiras-vs-remo-14395784?marketGroup=103",
+    "note": "ARCHIWALNY TEST — mecz zakończony, nie jest aktualnym typem"
   }
 }
