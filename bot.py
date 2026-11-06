@@ -341,11 +341,73 @@ def log_superbet_diagnostic(record):
         audit_file.write(line + "\n")
 
 
-def find_superbet_event(home, away, events):
-    """Match a fixture by conservative aliases and require one unique oriented event."""
+def is_womens_team_name(value):
+    """Recognize Superbet's Polish women's marker (K) and common feed labels."""
+    raw = str(value or "")
+    return bool(re.search(
+        r"\(\s*k\s*\)|\b(?:women|woman|female|feminine|femenil|feminino|femenino)\b|\bW\b",
+        raw, re.I
+    ))
+
+
+def gender_neutral_team_aliases(value):
+    """Aliases without gender tokens, used only for a guarded (K) fallback."""
+    raw = str(value or "")
+    raw = re.sub(r"\(\s*k\s*\)", " ", raw, flags=re.I)
+    raw = re.sub(
+        r"\b(?:women|woman|female|feminine|femenil|feminino|femenino|w)\b",
+        " ", raw, flags=re.I
+    )
+    return team_name_aliases(raw)
+
+
+def fixture_is_womens(match):
+    """Read women's/female markers from Matchday team and competition metadata."""
+    if not isinstance(match, dict):
+        return None
+    markers = []
+    relevant_keys = {
+        "gender", "sex", "competition", "competition_name", "competitionName",
+        "league", "league_name", "leagueName", "tournament", "tournament_name",
+        "category", "name", "short_name", "slug", "title",
+    }
+
+    def inspect(node, depth=0):
+        if depth > 3:
+            return
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if str(key).lower() in relevant_keys:
+                    if isinstance(value, (str, int, float)):
+                        markers.append(str(value))
+                    elif isinstance(value, (dict, list)):
+                        inspect(value, depth + 1)
+                elif isinstance(value, (dict, list)) and depth < 3:
+                    inspect(value, depth + 1)
+        elif isinstance(node, list):
+            for value in node[:20]:
+                inspect(value, depth + 1)
+
+    inspect(match)
+    if any(is_womens_team_name(value) or re.search(
+        r"\b(?:women|woman|female|feminine|femenil|feminino|femenino|kobiet|kobieca)\b",
+        value, re.I
+    ) for value in markers):
+        return True
+    return None
+
+
+def find_superbet_event(home, away, events, womens=None):
+    """Match exact oriented teams; support Superbet's (K) marker without mixing sexes."""
+    if womens is True:
+        home = home if is_womens_team_name(home) else f"{home} W"
+        away = away if is_womens_team_name(away) else f"{away} W"
     wanted_home = team_name_aliases(home)
     wanted_away = team_name_aliases(away)
+    neutral_home = gender_neutral_team_aliases(home)
+    neutral_away = gender_neutral_team_aliases(away)
     exact = []
+    womens_fallback = []
     near = []
 
     for event in events:
@@ -356,11 +418,22 @@ def find_superbet_event(home, away, events):
         found_home = team_name_aliases(left)
         found_away = team_name_aliases(right)
 
-        # Same home/away orientation only. No fuzzy selection of odds.
+        # Same home/away orientation only. Never use fuzzy names to choose odds.
         if wanted_home & found_home and wanted_away & found_away:
             if event.get("event_id"):
                 exact.append(event)
             continue
+
+        # Matchday may omit the women's suffix while Superbet appends (K).
+        # This fallback is restricted to explicitly women's bookmaker events.
+        if womens is not False and (
+            is_womens_team_name(left) or is_womens_team_name(right)
+        ):
+            if (neutral_home & gender_neutral_team_aliases(left)
+                    and neutral_away & gender_neutral_team_aliases(right)
+                    and event.get("event_id")):
+                womens_fallback.append(event)
+                continue
 
         direct_home = team_name_similarity(home, left)
         direct_away = team_name_similarity(away, right)
@@ -372,8 +445,10 @@ def find_superbet_event(home, away, events):
                 "away_similarity": round(direct_away, 3),
             })
 
-    # Repeated API representations of one event are not separate candidates.
-    unique = {str(event["event_id"]): event for event in exact}
+    # Prefer explicit gender-aware exact matches; use the guarded (K) fallback
+    # only when no exact match exists. Deduplicate repeated API representations.
+    selected_pool = exact if exact else womens_fallback
+    unique = {str(event["event_id"]): event for event in selected_pool}
     exact = list(unique.values())
 
     diagnostic = {
@@ -386,6 +461,7 @@ def find_superbet_event(home, away, events):
         "home_aliases": sorted(wanted_home),
         "away_aliases": sorted(wanted_away),
         "exact_matches": len(exact),
+        "womens_marker_fallback_matches": len(womens_fallback),
         "near_candidates": near[:5],
     }
     if len(exact) != 1:
@@ -2820,7 +2896,7 @@ def send_prematch_btts_picks(state):
         try:
             # Confirm the exact Superbet event and market before spending requests
             # on historical team data.
-            event = find_superbet_event(home, away, superbet_events)
+            event = find_superbet_event(home, away, superbet_events, womens=fixture_is_womens(match))
             if not event:
                 print(f"[{index}] Brak jednoznacznego wydarzenia Superbet: {home} - {away}", flush=True)
                 continue
