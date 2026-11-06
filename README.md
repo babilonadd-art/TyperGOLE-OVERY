@@ -1,28 +1,22 @@
 # TyperGOLE-OVERY
 
-Live Telegram alerts for late-goal opportunities, using the free SportScore API.
+Przedmeczowy Telegram bot dla rynku **obie drużyny strzelą gola w 1. połowie — TAK**.
 
-## Strategy
-- Up to 4 alerts per Warsaw calendar day.
-- If the match is 0:0 around minute 30 (29–33): Over 0.5 goal before half-time.
-- If the match is 0:0 around minute 70 (69–73): Over 0.5 goal before full-time.
-- Stake recorded: 50 PLN per pick.
-- The bot requires positive live shot statistics before sending an alert. If SportScore does not return usable statistics for a match, the bot skips it rather than treating missing data as a positive signal.
-- Picks are settled automatically when the API provides the required half-time or full-time score.
-- Odds are optional. No odds are fabricated. If no real bookmaker odds are available, the message contains the match and pick only; profit/yield are not calculated without genuine odds.
+## Strategia
+- Wyłącznie spotkania, które jeszcze się nie rozpoczęły.
+- Maksymalnie 4 najlepsze typy w warszawskim dniu kalendarzowym; mniej, jeśli nie ma czterech kandydatów spełniających kryteria.
+- Rzeczywisty, aktywny kurs na dokładny rynek BTTS 1. połowa pobierany z publicznej oferty Superbet. Kurs jest odświeżany tuż przed publikacją; bot nie szacuje kursów.
+- Model prawdopodobieństwa wykorzystuje ostatnie zakończone mecze obu drużyn, potwierdzone wyniki do przerwy oraz gole zdobywane i tracone w pierwszych połowach. Wymagane jest minimum 5 meczów z danymi HT dla każdej drużyny.
+- Procent w wiadomości jest estymacją modelu (nie gwarancją ani kursem bukmachera). Jeśli dane historyczne są niekompletne lub rynek/kurs nie jest jednoznaczny, mecz jest pomijany.
+- Typ jest rozliczany po potwierdzeniu wyniku pierwszej połowy: wygrana tylko wtedy, gdy obie drużyny strzeliły co najmniej jednego gola przed przerwą.
+- Historia typów i rozliczeń pozostaje w `data/state.json`.
+
+## Harmonogram
+GitHub Actions skanuje terminarz co 5 minut i w każdym uruchomieniu sprawdza również nierozliczone typy. Nie ma już skanowania LIVE ani starej progresji Over HT/FT.
 
 ## GitHub Secrets
-Add these two **repository secrets in this repository** (secrets from another repository are not shared):
-- `TELEGRAM_BOT_TOKEN` — token from BotFather.
-- `TELEGRAM_CHAT_ID` — ID of the Telegram channel/group where this new bot should post. The bot must be an administrator with permission to post.
+Dodaj w tym repozytorium:
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
 
-SportScore requires no API key on its free attribution tier. It allows approximately 10,000 requests per 24 hours per IP. Its terms require visible attribution; Telegram messages include a "Powered by SportScore" link.
-
-## Run
-GitHub Actions runs every 5 minutes. You can also start it manually from Actions → TyperGOLE-OVERY Live Bot → Run workflow.
-
-## Notes
-- State is stored in `data/state.json` and committed back to the repository so daily limits and unsettled picks survive workflow runs and midnight.
-- Daily reports are sent after all picks from that day have been settled; if a match finishes late, the report waits for its result.
-- SportScore's fixtures endpoint uses UTC calendar dates. The bot queries the current UTC day.
-- API fields may vary. If the API omits minute, score, shot statistics, or HT/FT scores, the bot skips the alert or delays settlement rather than inventing data.
+SportScore nie wymaga klucza API na bezpłatnym poziomie z atrybucją. Wiadomości zachowują wymagany link „Powered by SportScore”.
