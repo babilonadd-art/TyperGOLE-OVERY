@@ -17,6 +17,41 @@ class TestSuperbetTeamAliases(unittest.TestCase):
         self.assertIn("atlante women", team_name_aliases("Atlante FC (K)"))
         self.assertNotEqual(normalized_team_name("Tigres Women"), normalized_team_name("Tigres"))
 
+    def test_matches_superbet_k_marker_when_matchday_omits_womens_suffix(self):
+        events = [
+            {"event_id": "w1", "text": "Atlante FC (K) · UANL Tigres (K)"},
+        ]
+        with patch("bot.log_superbet_diagnostic"):
+            result = find_superbet_event("Atlante FC", "UANL Tigres", events)
+        self.assertEqual(result["event_id"], "w1")
+
+    def test_womens_competition_prefers_k_fixture_over_mens_fixture(self):
+        events = [
+            {"event_id": "m1", "text": "Atlante FC · UANL Tigres"},
+            {"event_id": "w1", "text": "Atlante FC (K) · UANL Tigres (K)"},
+        ]
+        match = {
+            "home": "Atlante FC",
+            "away": "UANL Tigres",
+            "competition_name": "Liga Femenil",
+        }
+        with patch("bot.log_superbet_diagnostic"):
+            result = find_superbet_event(
+                "Atlante FC", "UANL Tigres", events,
+                womens=bot.fixture_is_womens(match)
+            )
+        self.assertEqual(result["event_id"], "w1")
+
+    def test_womens_fallback_rejects_ambiguous_mens_and_k_events(self):
+        events = [
+            {"event_id": "m1", "text": "Atlante FC · UANL Tigres"},
+            {"event_id": "w1", "text": "Atlante FC (K) · UANL Tigres (K)"},
+        ]
+        with patch("bot.log_superbet_diagnostic"):
+            result = find_superbet_event("Atlante FC", "UANL Tigres", events)
+        # Explicit male exact match wins; the K fallback must not override it.
+        self.assertEqual(result["event_id"], "m1")
+
     def test_region_suffix_is_optional(self):
         self.assertIn("londrina", team_name_aliases("Londrina PR"))
         self.assertIn("palmeiras", team_name_aliases("Palmeiras - SP"))
