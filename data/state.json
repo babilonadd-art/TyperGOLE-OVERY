@@ -2473,7 +2473,9 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:00:51.464275+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "settlement_pending_score": "2-2",
+      "settlement_pending_since": "2026-11-06T22:46:52.383573+01:00"
     },
     {
       "key": "dn1m1ghl5ej5moe:BTTS_FT",
@@ -2504,12 +2506,13 @@
         "home_conceded_rate": 0.9,
         "away_conceded_rate": 0.9
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:00:52.053237+01:00",
       "counts_toward_daily_limit": false,
-      "settlement_pending_score": "1-4",
-      "settlement_pending_since": "2026-11-06T22:10:16.535227+01:00"
+      "won": true,
+      "settled_score": "1-4",
+      "settled_at": "2026-11-06T22:46:52.520678+01:00"
     },
     {
       "key": "y39mp1hdvvj6moj:BTTS_FT",
@@ -2540,12 +2543,13 @@
         "home_conceded_rate": 0.9,
         "away_conceded_rate": 0.8888888888888888
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:00:52.686819+01:00",
       "counts_toward_daily_limit": false,
-      "settlement_pending_score": "2-1",
-      "settlement_pending_since": "2026-11-06T22:10:17.013827+01:00"
+      "won": true,
+      "settled_score": "2-1",
+      "settled_at": "2026-11-06T22:46:53.194365+01:00"
     },
     {
       "key": "y39mp1h6x5lgmoj:BTTS_FT",
@@ -2576,12 +2580,13 @@
         "home_conceded_rate": 0.9,
         "away_conceded_rate": 0.9
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:00:53.296119+01:00",
       "counts_toward_daily_limit": false,
-      "settlement_pending_score": "0-2",
-      "settlement_pending_since": "2026-11-06T22:10:17.518053+01:00"
+      "won": false,
+      "settled_score": "0-2",
+      "settled_at": "2026-11-06T22:46:53.766494+01:00"
     },
     {
       "key": "4wyrn4h6je3gq86:BTTS_FT",
@@ -2612,12 +2617,13 @@
         "home_conceded_rate": 1,
         "away_conceded_rate": 0.9
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:00:53.887437+01:00",
       "counts_toward_daily_limit": false,
-      "settlement_pending_score": "1-2",
-      "settlement_pending_since": "2026-11-06T22:10:18.031363+01:00"
+      "won": true,
+      "settled_score": "1-2",
+      "settled_at": "2026-11-06T22:46:54.333881+01:00"
     },
     {
       "key": "x7lm7phje4ypm2w:BTTS_FT",
@@ -2651,7 +2657,9 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:00:57.588638+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "settlement_pending_score": "2-2",
+      "settlement_pending_since": "2026-11-06T22:46:55.002793+01:00"
     },
     {
       "key": "jw2r09hkvdw8rz8:BTTS_FT",
@@ -2685,7 +2693,9 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:00:58.187883+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "settlement_pending_score": "0-1",
+      "settlement_pending_since": "2026-11-06T22:46:55.289314+01:00"
     },
     {
       "key": "4wyrn4h6k3z3q86:BTTS_FT",
@@ -2716,12 +2726,13 @@
         "home_conceded_rate": 0.6,
         "away_conceded_rate": 1
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:00:58.792628+01:00",
       "counts_toward_daily_limit": false,
-      "settlement_pending_score": "4-1",
-      "settlement_pending_since": "2026-11-06T22:10:25.471176+01:00"
+      "won": true,
+      "settled_score": "4-1",
+      "settled_at": "2026-11-06T22:46:55.436366+01:00"
     },
     {
       "key": "ednm9whw4ly2ryo:BTTS_FT",
@@ -2789,12 +2800,13 @@
         "home_conceded_rate": 0.8,
         "away_conceded_rate": 0.9
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:01:00.109767+01:00",
       "counts_toward_daily_limit": false,
-      "settlement_pending_score": "1-1",
-      "settlement_pending_since": "2026-11-06T22:10:26.979028+01:00"
+      "won": true,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-06T22:46:55.934647+01:00"
     },
     {
       "key": "1l4rjnh9pgzpm7v:BTTS_FT",
@@ -2865,7 +2877,9 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:01:04.563826+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "settlement_pending_score": "1-2",
+      "settlement_pending_since": "2026-11-06T22:46:59.584773+01:00"
     },
     {
       "key": "23xmvkh6zk2dqg8:BTTS_FT",
@@ -3007,7 +3021,9 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:01:10.706339+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "settlement_pending_score": "0-3",
+      "settlement_pending_since": "2026-11-06T22:47:01.938763+01:00"
     },
     {
       "key": "4wyrn4h6n53oq86:BTTS_FT",
@@ -3075,7 +3091,9 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:01:12.167472+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "settlement_pending_score": "2-1",
+      "settlement_pending_since": "2026-11-06T22:47:04.216977+01:00"
     },
     {
       "key": "3glrw7hnegvlqdy:BTTS_FT",
@@ -3109,7 +3127,9 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:01:12.814922+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "settlement_pending_score": "0-0",
+      "settlement_pending_since": "2026-11-06T22:47:04.490923+01:00"
     },
     {
       "key": "4jwq2ghnjdy9m0v:BTTS_FT",
@@ -3563,7 +3583,9 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T19:46:48.755527+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "settlement_pending_score": "0-1",
+      "settlement_pending_since": "2026-11-06T22:47:04.789885+01:00"
     },
     {
       "key": "ednm9whwpxpyryo:BTTS_FT",
