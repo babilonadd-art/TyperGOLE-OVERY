@@ -2582,7 +2582,7 @@ def scheduled_fixtures_today(superbet_events=None, target_dates=None):
         event_id = event.get("event_id")
         if not home or not away or not event_id or not kickoff:
             continue
-        if kickoff.date() not in scan_days or kickoff <= local_now + timedelta(minutes=15):
+        if kickoff.date() not in scan_days or kickoff <= local_now:
             continue
         team_pair = tuple(sorted((
             normalized_team_name(home), normalized_team_name(away)
