@@ -579,10 +579,7 @@ def extract_superbet_live_over_odds(event_detail, market, min_line):
             )
             continue
         price = price_values[0]
-        # Minimum accepted price is 1.70. Lower prices are not sent;
-        # the next live scan can pick the same market once its price rises.
-        if not 1.70 <= price <= 3.50:
-            continue
+        # No minimum-odds threshold: publish the actual open Superbet quote.
 
         candidates.append({
             "odds": price,
@@ -2072,10 +2069,29 @@ def main():
                             flush=True,
                         )
 
-                    # TYMCZASOWY TEST: wyłączone okna minutowe HT/FT.
-                    # Każdy mecz LIVE oceniamy na rynku FT, niezależnie od minuty.
-                    # Nadal wymagamy dokładnego meczu, linii i aktualnego kursu Superbet.
-                    market = "FT"
+                    # Two-stage progression on the same 0:0 fixture.
+                    if minute is None:
+                        stats["missing_minute"] += 1
+                        continue
+                    previous_ht = next((p for p in reversed(state.get("picks", []))
+                        if p.get("market") == "HT"
+                        and (str(p.get("id") or "") == str(identifier)
+                             or (team_name_similarity(p.get("home"), home) >= 0.86
+                                 and team_name_similarity(p.get("away"), away) >= 0.86))
+                        and str(p.get("date", ""))[:10] == today
+                        and p.get("delivery_status", "sent") == "sent"), None)
+                    if 35 <= minute <= 44 and previous_ht is None:
+                        market = "HT"
+                        stake = 10.0
+                    elif (75 <= minute <= 89 and previous_ht is not None
+                          and previous_ht.get("settled") is True
+                          and previous_ht.get("won") is False
+                          and home_score == 0 and away_score == 0):
+                        market = "FT"
+                        stake = 20.0
+                    else:
+                        print(f"[{index}] Poza oknem progresji: minuta={minute}, HT={bool(previous_ht)}; pomijam.", flush=True)
+                        continue
 
                     key = f"{identifier}:{market}"
                     if same_fixture_pick_exists(state, identifier, home, away, today, market, slug=slug):
@@ -2087,13 +2103,9 @@ def main():
                         )
                         continue
 
-                    # Existing goals do not disqualify a match: evaluate the chance
-                    # of another goal using the live attacking-stat thresholds below.
-                    promising, metrics, signal_score = match_stats_look_promising(match, market)
-                    if not promising:
-                        stats["no_promising_stats"] += 1
-                        print(f"[{index}] Za mało sygnałów ofensywnych: {metrics}, score={signal_score}", flush=True)
-                        continue
+                    # Selection depends on minute and score only; no stats thresholds.
+                    metrics = live_match_metrics(match)
+                    signal_score = 0
 
                     league = first(match, "competition_name", "competition", "league_name", default="Liga nieznana")
                     if isinstance(league, dict):
@@ -2137,7 +2149,6 @@ def main():
                     if (
                         not final_live_price
                         or abs(final_live_price["line"] - goal_line) > 0.001
-                        or not 1.70 <= float(final_live_price["odds"]) <= 3.50
                     ):
                         stats["odds_missing"] += 1
                         print(
@@ -2234,7 +2245,6 @@ def main():
                         if (
                             not last_price
                             or abs(last_price["line"] - goal_line) > 0.001
-                            or not 1.70 <= float(last_price["odds"]) <= 3.50
                         ):
                             stats["odds_missing"] += 1
                             print(
@@ -2295,7 +2305,7 @@ def main():
                         "market": market,
                         "date": today,
                         "kickoff_time": first(match, "time", "start_time", "kickoff", "date"),
-                        "stake": STAKE,
+                        "stake": stake,
                         "odds": live_price["odds"],
                         "odds_source": live_price["source"],
                         "odds_market": live_price["market"],
@@ -2306,7 +2316,8 @@ def main():
                         "signal_score": signal_score,
                         "settled": False,
                     }
-                    market_text = f"OVER {goal_line:.1f} CAŁY MECZ"
+                    market_text = (f"OVER {goal_line:.1f} HT — od {minute}. minuty do przerwy"
+                                   if market == "HT" else f"OVER {goal_line:.1f} FT — od 75. minuty do końca")
                     minute_text = f"{minute}'" if minute is not None else "brak odczytu"
                     # Save the pick before sending to prevent duplicates after an HTTP timeout.
                     pick["delivery_status"] = "pending"
@@ -2315,11 +2326,11 @@ def main():
                     todays_picks.append(pick)
                     save_state(state)
 
-                    potential = calculate_bet_result(STAKE, live_price["odds"])
+                    potential = calculate_bet_result(stake, live_price["odds"])
                     telegram(
                         f"⚽ {market_text}\n{home} - {away}\n"
                         f"Liga: {league}\nMinuta: {minute_text} | Wynik: {home_score}-{away_score}\n"
-                        f"Stawka: {STAKE:.2f} zł | Kurs Superbet: {live_price['odds']:.2f}\n"
+                        f"Stawka: {stake:.2f} zł | Kurs Superbet: {live_price['odds']:.2f}\n"
                         f"Podatek 12%: {potential['tax']:.2f} zł\n"
                         f"Potencjalna wypłata: {potential['payout']:.2f} zł\n"
                         f"Potencjalny zysk netto: {potential['profit']:+.2f} zł\n"
@@ -2329,7 +2340,7 @@ def main():
                     pick["sent_at"] = now_local().isoformat()
                     save_state(state)
                     stats["sent"] += 1
-                    print(f"WYSŁANO I ZAPISANO TYP: {home} - {away}, {minute}', {market}", flush=True)
+                    print(f"WYSŁANO I ZAPISANO TYP: {home} - {away}, {minute}', {market}, stawka={stake:.2f}", flush=True)
 
                 except Exception as exc:
                     stats["errors"] += 1
