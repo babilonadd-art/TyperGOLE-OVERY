@@ -45,7 +45,6 @@ jobs:
         run: python prematch_btts.py
       - name: Persist picks state
         if: always() && github.event_name != 'pull_request'
-        if: always()
         run: |
           if [ -f data/state.json ]; then
             git config user.name "github-actions[bot]"
