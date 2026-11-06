@@ -2247,11 +2247,12 @@
         "saves": null
       },
       "signal_score": 1,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T05:04:54.076104+01:00",
-      "settlement_pending_score": "7-1",
-      "settlement_pending_since": "2026-11-06T07:41:19.267029+01:00"
+      "won": true,
+      "settled_score": "7-1",
+      "settled_at": "2026-11-06T08:55:08.129439+01:00"
     }
   ],
   "reports_sent": [],
