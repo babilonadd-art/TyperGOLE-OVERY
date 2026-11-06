@@ -676,21 +676,27 @@ def superbet_btts_first_half_url(url):
 
 
 def superbet_btts_full_time_url(url, quote):
-    """Open the event in the exact full-time BTTS market group detected in Superbet data."""
+    """Build a BTTS FT link only when Superbet supplies a specific market group."""
     if not url:
+        return None
+    group_id = first(quote or {}, "market_group_id")
+    # Never fall back to all markets (-1), the known goals group (103),
+    # or the known first-half BTTS group (78). A wrong tab is worse than no link.
+    if group_id in (None, "") or str(group_id).strip() in {"-1", "103", "78"}:
+        print(
+            f"Superbet BTTS FT: brak bezpiecznego identyfikatora grupy; "
+            f"odrzucam link (group_id={group_id!r}).",
+            flush=True,
+        )
         return None
     parts = urlsplit(url)
     query = dict(parse_qsl(parts.query, keep_blank_values=True))
     query["t"] = "offer-prematch-102"
     query["mdt"] = "o"
-    # Use the group identifier returned by the actual BTTS quote. Never reuse
-    # the first-half group (78) for a full-time selection.
-    group_id = first(quote or {}, "market_group_id")
-    if group_id not in (None, ""):
-        query["marketGroup"] = str(group_id)
-    else:
-        query.pop("marketGroup", None)
-    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+    query["marketGroup"] = str(group_id).strip()
+    result = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+    print(f"Superbet BTTS FT: link ustawiony na marketGroup={group_id}.", flush=True)
+    return result
 
 
 def find_superbet_match_url(home, away, events):
@@ -2962,6 +2968,13 @@ def send_prematch_btts_full_time_picks(state):
         bet_url = superbet_btts_full_time_url(
             candidate["event"]["url"], final_quote
         )
+        if not bet_url:
+            print(
+                f"Pomijam {candidate['home']} - {candidate['away']}: "
+                "brak potwierdzonego linku do grupy BTTS FT w Superbet.",
+                flush=True,
+            )
+            continue
         pick = {
             "key": f"{candidate['id']}:{BTTS_FT_MARKET}",
             "id": candidate["id"], "slug": candidate["slug"],
