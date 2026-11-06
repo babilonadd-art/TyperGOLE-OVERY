@@ -2056,8 +2056,11 @@ def _team_history_rows(team_slug, cutoff):
     return usable[:HISTORY_MATCHES]
 
 
-def team_first_half_profile(team_slug, cutoff, venue):
+def team_first_half_profile(team_slug, cutoff, venue, cache=None):
     """Compute first-half goals scored/conceded rates from real completed matches."""
+    cache_key = f"{cutoff.date().isoformat()}:{team_slug}"
+    if isinstance(cache, dict) and cache_key in cache:
+        return cache[cache_key]
     rows = _team_history_rows(team_slug, cutoff)
     if venue in ("home", "away"):
         same_venue = [
@@ -2078,14 +2081,18 @@ def team_first_half_profile(team_slug, cutoff, venue):
             scored.append(row["ht_away"])
             conceded.append(row["ht_home"])
     if len(scored) < MIN_HT_HISTORY:
-        return None
-    return {
-        "sample": len(scored),
-        "scored_avg": sum(scored) / len(scored),
-        "conceded_avg": sum(conceded) / len(conceded),
-        "scored_rate": sum(1 for value in scored if value > 0) / len(scored),
-        "conceded_rate": sum(1 for value in conceded if value > 0) / len(conceded),
-    }
+        profile = None
+    else:
+        profile = {
+            "sample": len(scored),
+            "scored_avg": sum(scored) / len(scored),
+            "conceded_avg": sum(conceded) / len(conceded),
+            "scored_rate": sum(1 for value in scored if value > 0) / len(scored),
+            "conceded_rate": sum(1 for value in conceded if value > 0) / len(conceded),
+        }
+    if isinstance(cache, dict):
+        cache[cache_key] = profile
+    return profile
 
 
 def normalized_team_name_from_slug(slug):
@@ -2213,6 +2220,9 @@ def send_prematch_btts_picks(state):
     fixtures = scheduled_fixtures_today()
     if not fixtures:
         return
+    history_cache = state.setdefault("team_history_cache", {})
+    state["team_history_cache"] = {key: value for key, value in history_cache.items() if key.startswith(today + ":")}
+    history_cache = state["team_history_cache"]
     superbet_events = superbet_live_event_links()
     candidates = []
     for index, match in enumerate(fixtures, 1):
@@ -2227,8 +2237,8 @@ def send_prematch_btts_picks(state):
         parts = slug.split("-vs-", 1)
         home_slug, away_slug = parts[0], parts[1]
         try:
-            hp = team_first_half_profile(home_slug, kickoff, "home")
-            ap = team_first_half_profile(away_slug, kickoff, "away")
+            hp = team_first_half_profile(home_slug, kickoff, "home", history_cache)
+            ap = team_first_half_profile(away_slug, kickoff, "away", history_cache)
             estimate = first_half_btts_probability(hp, ap)
             if not estimate or estimate["probability"] < MIN_MODEL_PROBABILITY:
                 print(f"[{index}] {home} - {away}: brak wystarczających danych lub P poniżej progu.", flush=True)
