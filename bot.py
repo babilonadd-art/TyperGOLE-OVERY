@@ -2616,36 +2616,76 @@ def scheduled_fixtures_today(superbet_events=None, target_dates=None):
     return fixtures
 
 
+_TEAM_HISTORY_INDEX = None
+
+
+def _team_history_index():
+    """Build one in-memory index of Open Matchday results instead of rescanning
+    the entire CSV for every team in every fixture."""
+    global _TEAM_HISTORY_INDEX
+    if _TEAM_HISTORY_INDEX is not None:
+        return _TEAM_HISTORY_INDEX
+
+    by_alias = {}
+    all_rows = []
+    for row in open_matchday_data()["results"]:
+        home, away = str(row.get("home") or "").strip(), str(row.get("away") or "").strip()
+        if not home or not away:
+            continue
+        kickoff = open_matchday_kickoff(row)
+        fh, fa = as_int(row.get("ft_home")), as_int(row.get("ft_away"))
+        if not kickoff or fh is None or fa is None:
+            continue
+        item = {
+            "home": home, "away": away, "ht_home": as_int(row.get("ht_home")),
+            "ht_away": as_int(row.get("ht_away")), "ft_home": fh, "ft_away": fa,
+            "kickoff": kickoff.isoformat(),
+            "_kickoff": kickoff,
+            "_identity": (row.get("date"), normalized_team_name(home), normalized_team_name(away)),
+        }
+        all_rows.append(item)
+        for team in (home, away):
+            for alias in team_name_aliases(team):
+                by_alias.setdefault(alias, []).append(item)
+
+    _TEAM_HISTORY_INDEX = {"by_alias": by_alias, "all_rows": all_rows}
+    print(
+        f"Open Matchday: zbudowano indeks historii {len(all_rows)} wyników "
+        f"({len(by_alias)} aliasów drużyn).",
+        flush=True,
+    )
+    return _TEAM_HISTORY_INDEX
+
+
 def _team_history_rows(team_slug, cutoff):
-    """Recent completed matches for a team, sourced only from Open Matchday."""
+    """Recent completed matches for a team, sourced only from indexed Open Matchday."""
     if not team_slug:
         return []
     target = normalized_team_name_from_slug(team_slug)
     target_aliases = team_name_aliases(target)
-    usable, seen = [], set()
-    for row in open_matchday_data()["results"]:
-        home, away = str(row.get("home") or ""), str(row.get("away") or "")
-        home_match = bool(target_aliases & team_name_aliases(home)) or team_name_similarity(home, target) >= 0.90
-        away_match = bool(target_aliases & team_name_aliases(away)) or team_name_similarity(away, target) >= 0.90
-        if not (home_match or away_match):
-            continue
-        kickoff = open_matchday_kickoff(row)
-        if not kickoff or kickoff >= cutoff:
-            continue
-        fh, fa = as_int(row.get("ft_home")), as_int(row.get("ft_away"))
-        if fh is None or fa is None:
-            continue
-        identity = (row.get("date"), normalized_team_name(home), normalized_team_name(away))
-        if identity in seen:
-            continue
-        seen.add(identity)
-        usable.append({
-            "home": home, "away": away, "ht_home": as_int(row.get("ht_home")),
-            "ht_away": as_int(row.get("ht_away")), "ft_home": fh, "ft_away": fa,
-            "kickoff": kickoff.isoformat(),
-        })
+    index = _team_history_index()
+    candidates = {}
+    for alias in target_aliases:
+        for row in index["by_alias"].get(alias, ()):
+            candidates[row["_identity"]] = row
+
+    # Preserve the old fuzzy-name fallback for unusual provider spellings,
+    # but only scan the full list when exact aliases did not yield five rows.
+    if len(candidates) < HISTORY_MATCHES:
+        for row in index["all_rows"]:
+            if (team_name_similarity(row["home"], target) >= 0.90
+                    or team_name_similarity(row["away"], target) >= 0.90):
+                candidates[row["_identity"]] = row
+
+    usable = [
+        row for row in candidates.values()
+        if row["_kickoff"] < cutoff
+    ]
     usable.sort(key=lambda item: item["kickoff"], reverse=True)
-    return usable[:HISTORY_MATCHES]
+    return [
+        {key: value for key, value in row.items() if not key.startswith("_")}
+        for row in usable[:HISTORY_MATCHES]
+    ]
 
 
 def team_first_half_profile(team_slug, cutoff, venue, cache=None):
