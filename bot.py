@@ -2262,11 +2262,15 @@ def extract_superbet_btts_first_half(event_detail):
                 "info_raw": row.get("info"), "period_raw": row.get("period"),
                 "selection": selection_text[:50], "price": first(row, *price_keys),
                 "status": first(row, "status", "oddStatus", "state"),
+                "row_keys": sorted(key for key in row if not str(key).startswith("_")),
+                "raw_sample": {key: value for key, value in row.items()
+                               if not str(key).startswith("_")},
             })
             if len(sample) >= 10:
                 break
-        print("Superbet BTTS 1H — brak dopasowania; próbka rynków: " +
-              json.dumps(sample, ensure_ascii=False)[:2200], flush=True)
+        print("Superbet BTTS 1H — brak dopasowania; klucze eventu=" +
+              json.dumps(sorted(event_detail.keys()) if isinstance(event_detail, dict) else [], ensure_ascii=False) +
+              "; próbka rynków: " + json.dumps(sample, ensure_ascii=False)[:3200], flush=True)
         return None
     prices = {round(item["odds"], 3) for item in candidates}
     if len(prices) != 1:
