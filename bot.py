@@ -522,12 +522,15 @@ def telegram_btts_ft(message, home, away, home_logo=None, away_logo=None):
     return result
 
 
-def superbet_live_event_links():
-    """Get only today's football event links from Superbet date-scoped API."""
+def superbet_live_event_links(target_date=None):
+    """Get football event links for one Warsaw-local calendar date."""
     found = {}
     base = "https://production-superbet-offer-pl.freetls.fastly.net"
     local_now = now_local()
-    local_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+    target_day = target_date or local_now.date()
+    if isinstance(target_day, str):
+        target_day = datetime.fromisoformat(target_day).date()
+    local_start = datetime(target_day.year, target_day.month, target_day.day, tzinfo=TZ)
     local_end = local_start + timedelta(days=1)
     start = local_start.astimezone(timezone.utc)
     end = local_end.astimezone(timezone.utc)
@@ -550,13 +553,12 @@ def superbet_live_event_links():
         api_events = payload.get("events", []) if isinstance(payload, dict) else []
         rejected_date = 0
         rejected_sport = 0
-        today = local_now.date()
         for event in api_events:
             if not isinstance(event, dict):
                 continue
             fixture = event.get("fixture") or {}
             event_date = superbet_event_local_date(event)
-            if event_date != today:
+            if event_date != target_day:
                 rejected_date += 1
                 continue
             sport_id = first(fixture, "sport_id", "sportId", default=first(event, "sport_id", "sportId"))
@@ -591,7 +593,7 @@ def superbet_live_event_links():
             f"Superbet API: {len(api_events)} rekordów pobranych; "
             f"odrzucono {rejected_date} spoza dzisiejszej daty/brak daty i "
             f"{rejected_sport} spoza piłki nożnej; "
-            f"pozostało {len(found)} meczów piłkarskich na {today.isoformat()}.",
+            f"pozostało {len(found)} meczów piłkarskich na {target_day.isoformat()}.",
             flush=True,
         )
     except Exception as exc:
@@ -2562,9 +2564,14 @@ def kickoff_datetime(match):
         return None
 
 
-def scheduled_fixtures_today(superbet_events=None):
-    """Build today's fixture slate from Open Matchday plus Superbet's full daily board."""
+def scheduled_fixtures_today(superbet_events=None, target_dates=None):
+    """Build a fixture slate for selected Warsaw-local dates from Matchday + Superbet."""
     local_now = now_local()
+    scan_days = set(target_dates or [local_now.date()])
+    scan_days = {
+        datetime.fromisoformat(day).date() if isinstance(day, str) else day
+        for day in scan_days
+    }
     fixtures = []
     try:
         for row in open_matchday_data()["fixtures"]:
@@ -2572,7 +2579,7 @@ def scheduled_fixtures_today(superbet_events=None):
             if not match:
                 continue
             kickoff = kickoff_datetime(match)
-            if not kickoff or kickoff.date() != local_now.date() or kickoff <= local_now + timedelta(minutes=15):
+            if not kickoff or kickoff.date() not in scan_days or kickoff <= local_now + timedelta(minutes=15):
                 continue
             if not any(
                 tuple(sorted((normalized_team_name(item["home"]), normalized_team_name(item["away"])))) ==
@@ -2590,7 +2597,7 @@ def scheduled_fixtures_today(superbet_events=None):
     for event in superbet_events or []:
         home, away = str(event.get("home") or "").strip(), str(event.get("away") or "").strip()
         kickoff = kickoff_datetime(event)
-        if not home or not away or not kickoff or kickoff.date() != local_now.date():
+        if not home or not away or not kickoff or kickoff.date() not in scan_days:
             continue
         if kickoff <= local_now + timedelta(minutes=15):
             continue
@@ -2615,8 +2622,9 @@ def scheduled_fixtures_today(superbet_events=None):
 
     fixtures.sort(key=lambda item: item["_bot_kickoff"])
     print(
-        f"Terminarz na dziś: {len(fixtures)} meczów; "
-        f"Open Matchday + Superbet, dodatkowe z Superbet: {added_superbet}.",
+        f"Terminarz na daty {', '.join(day.isoformat() for day in sorted(scan_days))}: "
+        f"{len(fixtures)} meczów; Open Matchday + Superbet, "
+        f"dodatkowe z Superbet: {added_superbet}.",
         flush=True,
     )
     return fixtures
@@ -3252,18 +3260,33 @@ def send_prematch_btts_picks(state):
 
 
 def send_prematch_btts_full_time_picks(state):
-    today = now_local().date().isoformat()
-    sent_today = daily_sent_match_count(state, today)
-    print(f"Limit BTTS FT: {sent_today}/{MAX_DAILY_BTTS_FT_PICKS} typów wykorzystanych dzisiaj; minimalny kurs: {MIN_BTTS_FT_ODDS:.2f}.", flush=True)
-    if sent_today >= MAX_DAILY_BTTS_FT_PICKS:
-        print("Dzienny limit BTTS FT osiągnięty; kończę skanowanie wysyłkowe.", flush=True)
-        return
-    superbet_events = superbet_live_event_links()
-    fixtures = scheduled_fixtures_today(superbet_events)
+    today_date = now_local().date()
+    today = today_date.isoformat()
+    scan_dates = [today_date, today_date + timedelta(days=1)]
+    print(
+        f"Limit BTTS FT: dziś {daily_sent_match_count(state, today)}/{MAX_DAILY_BTTS_FT_PICKS}; "
+        f"minimum kursu: {MIN_BTTS_FT_ODDS:.2f}. Skanuję dziś i jutro.",
+        flush=True,
+    )
+    # Late-evening scans must include tomorrow: otherwise the bot sees an empty
+    # slate after today's fixtures have finished and waits until the next morning.
+    superbet_events = []
+    for scan_day in scan_dates:
+        superbet_events.extend(superbet_live_event_links(scan_day))
+    fixtures = scheduled_fixtures_today(superbet_events, scan_dates)
     if not fixtures:
+        print("Brak przyszłych spotkań BTTS FT w terminarzu na dziś/jutro.", flush=True)
         return
     history_cache = state.setdefault("team_history_cache", {})
-    state["team_history_cache"] = {key: value for key, value in history_cache.items() if key.startswith(today + ":") or key.startswith("FT:" + today + ":")}
+    allowed_cache_prefixes = tuple(
+        prefix
+        for day in scan_dates
+        for prefix in (day.isoformat() + ":", "FT:" + day.isoformat() + ":")
+    )
+    state["team_history_cache"] = {
+        key: value for key, value in history_cache.items()
+        if key.startswith(allowed_cache_prefixes)
+    }
     history_cache = state["team_history_cache"]
     candidates = []
     for index, match in enumerate(fixtures, 1):
@@ -3272,8 +3295,9 @@ def send_prematch_btts_full_time_picks(state):
         slug = match.get("_bot_slug") or match_slug(match)
         if not kickoff or not slug or "-vs-" not in slug:
             continue
+        fixture_day = kickoff.date().isoformat()
         if same_fixture_pick_exists(state, match_identifier(match) or slug, home, away,
-                                    today, BTTS_FT_MARKET, slug=slug):
+                                    fixture_day, BTTS_FT_MARKET, slug=slug):
             continue
         parts = slug.split("-vs-", 1)
         home_slug, away_slug = parts[0], parts[1]
@@ -3314,6 +3338,15 @@ def send_prematch_btts_full_time_picks(state):
 
     candidates.sort(key=lambda item: item["estimate"]["probability"], reverse=True)
     for candidate in candidates:
+        candidate_day = candidate["kickoff"].date().isoformat()
+        day_count = daily_sent_match_count(state, candidate_day)
+        if day_count >= MAX_DAILY_BTTS_FT_PICKS:
+            print(
+                f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {candidate_day}; "
+                f"pomijam {candidate['home']} - {candidate['away']}.",
+                flush=True,
+            )
+            continue
         # Last-moment independent price refresh; never reuse a stale or guessed quote.
         try:
             final_detail = superbet_event_detail(candidate["event"]["event_id"])
@@ -3346,7 +3379,7 @@ def send_prematch_btts_full_time_picks(state):
             "key": f"{candidate['id']}:{BTTS_FT_MARKET}",
             "id": candidate["id"], "slug": candidate["slug"],
             "home": candidate["home"], "away": candidate["away"],
-            "league": candidate["league"], "date": today,
+            "league": candidate["league"], "date": candidate_day,
             "kickoff_time": candidate["kickoff"].isoformat(),
             "market": BTTS_FT_MARKET, "stake": STAKE,
             "odds": final_quote["odds"], "odds_source": "Superbet",
