@@ -1549,6 +1549,15 @@ def extract_half_time_score(match):
     return walk(match) or (None, None)
 
 
+def btts_first_half_won(home_ht, away_ht):
+    """Return BTTS 1H result; None means the halftime score is not usable."""
+    home = as_int(home_ht)
+    away = as_int(away_ht)
+    if home is None or away is None or home < 0 or away < 0:
+        return None
+    return home > 0 and away > 0
+
+
 def final_status(match):
     """Accept only explicit full-time/final states, never a loose 'ft' substring."""
     values = []
@@ -1732,15 +1741,48 @@ def settle_picks(state):
 
             if pick["market"] in ("HT", BTTS_HT_MARKET):
                 ht_home, ht_away = extract_half_time_score(match)
-                status_text = str(status or "").lower()
-                halftime_reached = (
-                    finished
-                    or any(term in status_text for term in (
-                        "half time", "halftime", "2nd half", "second half", "2h"
-                    ))
-                    or (minute is not None and minute > 45)
+                phase_values = []
+                for phase_key in (
+                    "status", "state", "match_status", "fixture_status",
+                    "status_text", "period", "phase", "current_period",
+                    "period_name", "periodName", "currentPeriod",
+                ):
+                    phase_value = match.get(phase_key) if isinstance(match, dict) else None
+                    if isinstance(phase_value, dict):
+                        phase_value = first(
+                            phase_value, "short", "long", "name", "description",
+                            "label", "status", "period", "value", default=""
+                        )
+                    if phase_value is not None:
+                        phase_values.append(str(phase_value))
+                phase_text = re.sub(
+                    r"[_-]+", " ", " ".join(phase_values).lower()
                 )
-                if ht_home is not None and ht_away is not None and halftime_reached:
+                at_half_time = any(re.search(pattern, phase_text) for pattern in (
+                    r"\\bhalf\\s*time\\b", r"\\bhalftime\\b",
+                    r"\\binterval\\b", r"\\bbreak\\b",
+                    r"\\bprzerwa\\b", r"\\bht\\b",
+                ))
+                in_second_half = any(re.search(pattern, phase_text) for pattern in (
+                    r"\\b2nd\\s*half\\b", r"\\bsecond\\s*half\\b",
+                    r"\\b2h\\b", r"\\bdruga\\s*polowa\\b",
+                ))
+                # A populated, explicit HT score is itself evidence that the
+                # first-half period has been recorded. Otherwise require an
+                # explicit break/second-half/final status; 45+ stoppage time
+                # alone is NOT enough to settle a first-half market.
+                explicit_ht_score = ht_home is not None and ht_away is not None
+                halftime_reached = finished or at_half_time or in_second_half or explicit_ht_score
+
+                # At the actual half-time break, the live score is also the
+                # HT score if SportScore omits its separate HT fields.
+                # Never use a second-half or full-time score as an HT fallback.
+                if (not explicit_ht_score and at_half_time
+                        and home_now is not None and away_now is not None):
+                    ht_home, ht_away = home_now, away_now
+                    explicit_ht_score = True
+
+                if explicit_ht_score and halftime_reached:
                     target_total = ht_home + ht_away
                     target_score = f"{ht_home}-{ht_away}"
                     period_complete = True
@@ -1748,7 +1790,8 @@ def settle_picks(state):
                     target_total = current_total
                     target_score = f"{home_now}-{away_now}" if current_total is not None else None
                 elif finished:
-                    # If provider omits HT score, do not infer it from the FT score.
+                    # If provider omits HT score and no explicit break score
+                    # exists, never infer it from the full-time score.
                     print(
                         f"BRAK WYNIKU HT dla {pick.get('key')}; "
                         f"rekord API ma pola: {', '.join(sorted(str(k) for k in match.keys()))}. "
@@ -1786,7 +1829,7 @@ def settle_picks(state):
                 if not score_parts:
                     print(f"ROZLICZENIE BTTS ZABLOKOWANE — nieczytelny wynik HT dla {pick.get('key')}.", flush=True)
                     continue
-                won = int(score_parts.group(1)) > 0 and int(score_parts.group(2)) > 0
+                won = btts_first_half_won(int(score_parts.group(1)), int(score_parts.group(2)))
             else:
                 try:
                     selected_line = float(pick.get("goal_line"))
@@ -1812,7 +1855,11 @@ def settle_picks(state):
                 continue
             # A single stale FT response must never settle a newly sent tip.
             # Require an unchanged final score across at least 180 seconds.
-            if not settlement_confirmation_ready(pick, target_score, now, confirmation_seconds):
+            # BTTS 1H is settled as soon as the provider confirms the HT
+            # score/period. The extra 180-second debounce is only for live
+            # goal-line markets and must not delay a completed first half.
+            if (pick.get("market") != BTTS_HT_MARKET
+                    and not settlement_confirmation_ready(pick, target_score, now, confirmation_seconds)):
                 save_state(state)
                 print(
                     f"ROZLICZENIE WSTRZYMANE: {pick.get('key')} — "
