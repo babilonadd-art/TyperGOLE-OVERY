@@ -3305,57 +3305,74 @@ def send_prematch_btts_full_time_picks(state):
         flush=True,
     )
 
-    candidates = []
-    for index, match in enumerate(fixtures, 1):
+    def analyze_fixture(index_match):
+        index, match = index_match
         home, away = teams(match)
         kickoff = kickoff_datetime(match)
         slug = match.get("_bot_slug") or match_slug(match)
         if not kickoff or not slug or "-vs-" not in slug:
-            continue
+            return None
         fixture_day = kickoff.date().isoformat()
-        if same_fixture_pick_exists(state, match_identifier(match) or slug, home, away,
-                                    fixture_day, BTTS_FT_MARKET, slug=slug):
-            continue
-        parts = slug.split("-vs-", 1)
-        home_slug, away_slug = parts[0], parts[1]
+        if same_fixture_pick_exists(
+            state, match_identifier(match) or slug, home, away,
+            fixture_day, BTTS_FT_MARKET, slug=slug
+        ):
+            return None
+        home_slug, away_slug = slug.split("-vs-", 1)
         try:
-            # Confirm the exact Superbet event and market before spending requests
-            # on historical team data.
             event = find_superbet_event(
                 home, away, superbet_events, womens=fixture_is_womens(match)
             )
             if not event:
                 print(f"[{index}] Brak jednoznacznego wydarzenia Superbet: {home} - {away}", flush=True)
-                continue
+                return None
             detail = event_details.get(str(event["event_id"]))
             if not detail:
                 print(f"[{index}] Brak pobranych szczegółów Superbet: {home} - {away}", flush=True)
-                continue
+                return None
             quote = extract_superbet_btts_full_time(detail)
             if not quote:
                 print(f"[{index}] Brak aktywnego kursu Superbet BTTS cały mecz: {home} - {away}", flush=True)
-                continue
+                return None
             if quote["odds"] < MIN_BTTS_FT_ODDS:
                 print(f"[{index}] Kurs BTTS FT {quote['odds']:.2f} poniżej minimum {MIN_BTTS_FT_ODDS:.2f}: {home} - {away}; pomijam.", flush=True)
-                continue
-            hp = team_full_time_profile(home_slug, kickoff, "home", history_cache)
-            ap = team_full_time_profile(away_slug, kickoff, "away", history_cache)
+                return None
+            # Each worker owns a small cache to avoid concurrent mutation of
+            # persistent state while the whole day's fixtures are evaluated.
+            local_history_cache = {}
+            hp = team_full_time_profile(home_slug, kickoff, "home", local_history_cache)
+            ap = team_full_time_profile(away_slug, kickoff, "away", local_history_cache)
             estimate = full_time_btts_probability(hp, ap)
             if not estimate or estimate["probability"] < MIN_MODEL_PROBABILITY:
                 print(f"[{index}] {home} - {away}: brak wystarczających danych lub P poniżej progu.", flush=True)
-                continue
+                return None
             league = first(match, "competition_name", "competition", "league_name", default="Liga nieznana")
             if isinstance(league, dict):
                 league = first(league, "name", "title", default="Liga nieznana")
-            candidates.append({
+            return {
                 "match": match, "home": home, "away": away, "slug": slug,
                 "id": match_identifier(match) or slug, "kickoff": kickoff,
                 "league": str(league), "event": event, "quote": quote,
                 "estimate": estimate,
-            })
+            }
         except Exception as exc:
             print(f"[{index}] Analiza {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
+            return None
 
+    indexed_fixtures = list(enumerate(fixtures, 1))
+    print(
+        f"Ranking dnia: równoległa analiza {len(indexed_fixtures)} spotkań "
+        "z kursem i rynkiem BTTS FT.",
+        flush=True,
+    )
+    with ThreadPoolExecutor(max_workers=16) as executor:
+        analyzed = list(executor.map(analyze_fixture, indexed_fixtures))
+    candidates = [candidate for candidate in analyzed if candidate]
+    print(
+        f"Ranking dnia zakończony: {len(candidates)} kandydatów spełnia kryteria "
+        f"z {len(fixtures)} spotkań.",
+        flush=True,
+    )
     candidates.sort(key=lambda item: item["estimate"]["probability"], reverse=True)
     for candidate in candidates:
         candidate_day = candidate["kickoff"].date().isoformat()
