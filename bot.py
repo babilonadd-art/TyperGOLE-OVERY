@@ -2144,7 +2144,8 @@ def extract_superbet_btts_first_half(event_detail):
     rows = []
     market_keys = ("marketName", "market_name", "marketGroupName", "market_group_name",
                    "marketTitle", "market_title", "market", "marketGroup", "market_group", "title",
-                   "period", "periodName", "period_name", "phase")
+                   "period", "periodName", "period_name", "phase", "info", "marketInfo",
+                   "market_info", "groupName", "group_name")
     selection_keys = ("name", "selectionName", "selection_name", "oddName",
                       "outcomeName", "label", "displayName")
     price_keys = ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
@@ -2209,6 +2210,24 @@ def extract_superbet_btts_first_half(event_detail):
             "updated_at": first(row.get("extra", {}), "feedPlatformTimestamp", "feedOriginTimestamp"),
         })
     if not candidates:
+        sample = []
+        seen = set()
+        for row in rows:
+            market_text = " ".join(str(row.get(k, "")) for k in market_keys if row.get(k) not in (None, ""))
+            selection_text = str(first(row, *selection_keys, default=""))
+            signature = (market_text, selection_text, str(first(row, *price_keys, default="")),
+                         str(first(row, "status", "oddStatus", "state", default="")))
+            if signature in seen:
+                continue
+            seen.add(signature)
+            sample.append({
+                "market": market_text[:160], "selection": selection_text[:50],
+                "price": first(row, *price_keys), "status": first(row, "status", "oddStatus", "state"),
+            })
+            if len(sample) >= 10:
+                break
+        print("Superbet BTTS 1H — brak dopasowania; próbka rynków: " +
+              json.dumps(sample, ensure_ascii=False)[:2200], flush=True)
         return None
     prices = {round(item["odds"], 3) for item in candidates}
     if len(prices) != 1:
