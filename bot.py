@@ -2138,7 +2138,8 @@ def extract_superbet_btts_first_half(event_detail):
 
     rows = []
     market_keys = ("marketName", "market_name", "marketGroupName", "market_group_name",
-                   "marketTitle", "market_title", "market", "marketGroup", "market_group", "title")
+                   "marketTitle", "market_title", "market", "marketGroup", "market_group", "title",
+                   "period", "periodName", "period_name", "phase")
     selection_keys = ("name", "selectionName", "selection_name", "oddName",
                       "outcomeName", "label", "displayName")
     price_keys = ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
