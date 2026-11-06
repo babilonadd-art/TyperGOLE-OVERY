@@ -37,14 +37,14 @@ jobs:
       - name: Run strategy tests
         run: python -m unittest discover -s tests -v
       - name: Run pre-match BTTS scan
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TZ: Europe/Warsaw
         run: python prematch_btts.py
       - name: Persist picks state
-        if: always() && github.event_name != 'pull_request'
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
           if [ -f data/state.json ]; then
             git config user.name "github-actions[bot]"
