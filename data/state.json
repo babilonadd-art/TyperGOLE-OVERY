@@ -2434,9 +2434,11 @@
       "settled_score": "3-1",
       "settled_at": "2026-11-06T15:37:43.344507+01:00",
       "settlement_method": "user_corrected_score",
-      "settlement_notification_retry": true,
-      "settlement_notification_retry_sent": false,
-      "settlement_corrected_from": "2-3"
+      "settlement_notification_retry": false,
+      "settlement_notification_retry_sent": true,
+      "settlement_corrected_from": "2-3",
+      "settlement_telegram_message_id": 202,
+      "settlement_notification_retry_at": "2026-11-06T18:49:00.629962+01:00"
     }
   ],
   "reports_sent": [],
