@@ -130,7 +130,7 @@ class SuperbetFullTimeBttsQuoteTests(unittest.TestCase):
         quote = extract_superbet_over_15_ht(payload)
         self.assertIsNotNone(quote)
         self.assertEqual(quote["odds"], 2.20)
-        self.assertEqual(quote["market_group_id"], 501)
+        self.assertIn("1 polowa liczba goli", quote["market"])
 
 
 
