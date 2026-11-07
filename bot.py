@@ -3518,7 +3518,6 @@ def send_prematch_over_15_ht_picks(state):
     }
     pre_candidates = []
     rejected_duplicate = 0
-    rejected_history = 0
     for match in fixtures:
         home, away = teams(match)
         kickoff = kickoff_datetime(match)
@@ -3645,11 +3644,11 @@ def send_prematch_over_15_ht_picks(state):
     candidates = [candidate for candidate in analyzed if candidate]
     print(
         f"Ranking Over 1.5 HT zakończony: {len(candidates)} kandydatów z aktywnym "
-        f"rynkiem i kursem 1.60–3.50; sprawdzono szczegółowo {len(shortlisted)} "
-        f"z {len(fixtures)} meczów.",
+        f"rynkiem i kursem {MIN_OVER_15_HT_ODDS:.2f}–{MAX_OVER_15_HT_ODDS:.2f}; "
+        f"bez analizy historii, sprawdzono {len(shortlisted)} z {len(fixtures)} meczów.",
         flush=True,
     )
-    # Prioritize today's fixtures, then the strongest model probability.
+    # Prioritize today's fixtures, then the strongest Iddaa percentage.
     # Deliver at most one pick per workflow run (cron runs every five minutes)
     # to stay below Telegram group/channel flood limits.
     candidates.sort(key=lambda item: (item["kickoff"].date(), -item["iddaa"]["probability"], -item["estimate"]["probability"]))
@@ -3681,8 +3680,7 @@ def send_prematch_over_15_ht_picks(state):
             continue
         estimate = candidate["estimate"]
         probability = float(candidate["iddaa"]["probability"])
-        model_probability = probability
-        bet_url = superbet_btts_full_time_url(
+            bet_url = superbet_btts_full_time_url(
             candidate["event"]["url"], final_quote
         )
         if not bet_url:
