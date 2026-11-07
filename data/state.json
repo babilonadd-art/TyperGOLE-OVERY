@@ -2465,6 +2465,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 294,
       "sent_at": "2026-11-07T13:35:50.639331+01:00"
+    },
+    {
+      "key": "argentinos-juniors-vs-ca-huracan:BTTS_FT",
+      "id": "argentinos-juniors-vs-ca-huracan",
+      "slug": "argentinos-juniors-vs-ca-huracan",
+      "home": "Argentinos Juniors",
+      "away": "CA Huracan",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T21:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 2.22,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/argentinos-juniors-vs-ca-huracan-14539404?t=offer-prematch-102&mdt=o",
+      "probability": 30.6,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.30567446337554943,
+        "home_lambda": 1.5,
+        "away_lambda": 0.5,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 1.0,
+        "away_scored_rate": 0.4,
+        "home_conceded_rate": 0.6,
+        "away_conceded_rate": 0.8
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 295,
+      "sent_at": "2026-11-07T14:30:49.625567+01:00"
     }
   ],
   "reports_sent": [],
@@ -3150,6 +3184,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 294,
       "sent_at": "2026-11-07T13:35:50.639331+01:00"
+    },
+    {
+      "key": "argentinos-juniors-vs-ca-huracan:BTTS_FT",
+      "id": "argentinos-juniors-vs-ca-huracan",
+      "slug": "argentinos-juniors-vs-ca-huracan",
+      "home": "Argentinos Juniors",
+      "away": "CA Huracan",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T21:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 2.22,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/argentinos-juniors-vs-ca-huracan-14539404?t=offer-prematch-102&mdt=o",
+      "probability": 30.6,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.30567446337554943,
+        "home_lambda": 1.5,
+        "away_lambda": 0.5,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 1.0,
+        "away_scored_rate": 0.4,
+        "home_conceded_rate": 0.6,
+        "away_conceded_rate": 0.8
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 295,
+      "sent_at": "2026-11-07T14:30:49.625567+01:00"
     }
   ],
   "team_history_cache": {
@@ -3446,6 +3514,20 @@
       "conceded_avg": 0.6,
       "scored_rate": 0.4,
       "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:zhejiang-professional": {
+      "sample": 5,
+      "scored_avg": 2.2,
+      "conceded_avg": 2.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:henan-fc": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
     }
   },
   "last_manual_archive_resend": {
@@ -3454,5 +3536,5 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 2
+  "btts_image_cursor": 3
 }
