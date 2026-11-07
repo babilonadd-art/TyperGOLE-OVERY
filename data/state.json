@@ -3911,7 +3911,9 @@
       "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 266,
-      "sent_at": "2026-11-07T03:36:57.976543+01:00"
+      "sent_at": "2026-11-07T03:36:57.976543+01:00",
+      "settlement_pending_score": "3-4",
+      "settlement_pending_since": "2026-11-07T04:09:21.489928+01:00"
     },
     {
       "key": "auxerre-vs-paris-fc:BTTS_FT",
@@ -3979,7 +3981,9 @@
       "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 268,
-      "sent_at": "2026-11-07T03:36:59.433909+01:00"
+      "sent_at": "2026-11-07T03:36:59.433909+01:00",
+      "settlement_pending_score": "0-2",
+      "settlement_pending_since": "2026-11-07T04:09:25.897516+01:00"
     },
     {
       "key": "raal-la-louviere-vs-cercle-brugge:BTTS_FT",
