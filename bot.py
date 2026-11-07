@@ -404,13 +404,14 @@ def make_btts_graphic(image_index):
     width, height = 1200, 675
     image = Image.new("RGB", (width, height), (7, 15, 25))
     pixels = image.load()
+    glow_center = rng.choice([180, 1020])
 
     # Deep navy night sky with a restrained emerald stadium glow.
     for y in range(height):
         t = y / height
         base = (int(7 + 5*t), int(15 + 17*t), int(25 + 12*t))
         for x in range(width):
-            glow = max(0.0, 1.0 - (((x - rng.choice([180, 1020])) / 650) ** 2 + ((y - 150) / 330) ** 2))
+            glow = max(0.0, 1.0 - (((x - glow_center) / 650) ** 2 + ((y - 150) / 330) ** 2))
             pixels[x, y] = (
                 min(255, base[0] + int(glow * 10)),
                 min(255, base[1] + int(glow * 27)),
