@@ -2717,9 +2717,12 @@ def _team_history_rows(team_slug, cutoff):
         for row in index["by_alias"].get(alias, ()):
             candidates[row["_identity"]] = row
 
-    # Preserve the old fuzzy-name fallback for unusual provider spellings,
-    # but only scan the full list when exact aliases did not yield five rows.
-    if len(candidates) < HISTORY_MATCHES:
+    # Exact aliases are indexed once and are the normal fast path. The old
+    # fallback scanned all 9k+ historical rows for EVERY team with fewer than
+    # HISTORY_MATCHES exact rows. On a 1,700-match slate that caused millions
+    # of fuzzy comparisons and made the workflow appear stuck. Only use the
+    # expensive fallback when aliases found absolutely nothing.
+    if not candidates:
         for row in index["all_rows"]:
             if (team_name_similarity(row["home"], target) >= 0.90
                     or team_name_similarity(row["away"], target) >= 0.90):
@@ -3334,8 +3337,10 @@ def send_prematch_btts_full_time_picks(state):
             print(f"[{index}] Analiza {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
             return None
 
-    # Warm the shared historical-results cache once before worker threads start.
+    # Build both the CSV cache and its alias index BEFORE starting workers.
+    # Otherwise several first workers race to build the same 9k-row index.
     open_matchday_data()
+    _team_history_index()
     indexed_fixtures = list(enumerate(fixtures, 1))
     print(
         f"Ranking dnia: równoległa analiza {len(indexed_fixtures)} spotkań "
