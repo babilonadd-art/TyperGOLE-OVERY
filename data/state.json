@@ -2397,6 +2397,40 @@
       "won": false,
       "settled_score": "1-0",
       "settled_at": "2026-11-06T14:41:36.465345+01:00"
+    },
+    {
+      "key": "avai-vs-sao-bernardo:BTTS_FT",
+      "id": "avai-vs-sao-bernardo",
+      "slug": "avai-vs-sao-bernardo",
+      "home": "Avai",
+      "away": "Sao Bernardo",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T20:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.76,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/avai-vs-sao-bernardo-14438771?t=offer-prematch-102&mdt=o",
+      "probability": 46.6,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.4661935481125222,
+        "home_lambda": 1.1,
+        "away_lambda": 1.2000000000000002,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 0.4,
+        "away_scored_rate": 0.8,
+        "home_conceded_rate": 0.6,
+        "away_conceded_rate": 1.0
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 293,
+      "sent_at": "2026-11-07T13:31:16.354678+01:00"
     }
   ],
   "reports_sent": [],
@@ -3014,14 +3048,329 @@
       "settled": false,
       "delivery_status": "sent",
       "sent_at": "2026-11-06T12:38:00.994693+01:00"
+    },
+    {
+      "key": "avai-vs-sao-bernardo:BTTS_FT",
+      "id": "avai-vs-sao-bernardo",
+      "slug": "avai-vs-sao-bernardo",
+      "home": "Avai",
+      "away": "Sao Bernardo",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T20:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.76,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/avai-vs-sao-bernardo-14438771?t=offer-prematch-102&mdt=o",
+      "probability": 46.6,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.4661935481125222,
+        "home_lambda": 1.1,
+        "away_lambda": 1.2000000000000002,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 0.4,
+        "away_scored_rate": 0.8,
+        "home_conceded_rate": 0.6,
+        "away_conceded_rate": 1.0
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 293,
+      "sent_at": "2026-11-07T13:31:16.354678+01:00"
     }
   ],
-  "team_history_cache": {},
+  "team_history_cache": {
+    "FT:2026-11-07:avai": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:sao-bernardo": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:cuiaba": {
+      "sample": 5,
+      "scored_avg": 0.2,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.2,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:juventude": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 1.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:goias": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 0.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-08:ponte-preta": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:austin": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 2.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:portland-timbers": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:dallas": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:colorado-rapids": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:minnesota-united": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:san-jose-earthquakes": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:san-diego-fc": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 2.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:sporting-kansas-city": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:montreal": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.4,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:vancouver-whitecaps": {
+      "sample": 5,
+      "scored_avg": 2.2,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:cincinnati": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:nashville": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:inter-miami": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:charlotte": {
+      "sample": 5,
+      "scored_avg": 2.6,
+      "conceded_avg": 1.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:orlando-city": {
+      "sample": 5,
+      "scored_avg": 2.2,
+      "conceded_avg": 2.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:new-england-revolution": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:seattle-sounders": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.0,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:los-angeles-fc": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:vasco-da-gama": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:palmeiras": {
+      "sample": 5,
+      "scored_avg": 2.8,
+      "conceded_avg": 0.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:chicago-fire": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 2.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:columbus-crew": {
+      "sample": 5,
+      "scored_avg": 2.8,
+      "conceded_avg": 0.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:philadelphia-union": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:toronto": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 2.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:machida-zelvia": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 0.0,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.0
+    },
+    "FT:2026-11-08:sanfrecce-hiroshima": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.2
+    },
+    "FT:2026-11-08:vissel-kobe": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:urawa-red-diamonds": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:argentinos-juniors": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 0.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:ca-huracan": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:gamba-osaka": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:cerezo-osaka": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:ca-boca-juniors": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 0.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:defensa-y-justicia": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    }
+  },
   "last_manual_archive_resend": {
     "home": "Palmeiras - SP",
     "away": "Remo - PA",
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 0
+  "btts_image_cursor": 1
 }
