@@ -3298,11 +3298,11 @@ def send_prematch_btts_full_time_picks(state):
     # Shortlist by usable history coverage first; only these fixtures receive
     # the more expensive goal-rate and BTTS probability calculation.
     pre_candidates.sort(key=lambda item: (
-        item["kickoff"].date(),
         -min(item["home_history_count"], item["away_history_count"]),
         -(item["home_history_count"] + item["away_history_count"]),
+        item["kickoff"],
     ))
-    DETAIL_SHORTLIST_SIZE = 15
+    DETAIL_SHORTLIST_SIZE = 20
     shortlisted = pre_candidates[:DETAIL_SHORTLIST_SIZE]
     print(
         f"BTTS szybki wybór: terminarz={len(fixtures)}, "
