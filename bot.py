@@ -3520,3 +3520,4 @@ if __name__ == "__main__":
     main()
 # Manual live scan trigger: 2026-11-06
 # Duplicate guard reset: fresh picks only; historical settlement records retained.
+# Daily counter reset: sent historical picks flagged false do not consume today's cap.
