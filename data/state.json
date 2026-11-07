@@ -4109,6 +4109,82 @@
       "conceded_avg": 2.2,
       "scored_rate": 1.0,
       "conceded_rate": 1.0
+    },
+    "2026-11-07:inter-miami": null,
+    "2026-11-07:charlotte": null,
+    "2026-11-07:luzern": null,
+    "2026-11-07:young-boys": null,
+    "2026-11-07:rosenborg": null,
+    "2026-11-07:start": null,
+    "2026-11-07:orlando-city": null,
+    "2026-11-07:new-england-revolution": null,
+    "2026-11-07:cordoba": null,
+    "2026-11-07:ceuta": null,
+    "2026-11-07:vaduz": null,
+    "2026-11-07:sion": null,
+    "2026-11-07:philadelphia-union": null,
+    "2026-11-07:toronto": null,
+    "2026-11-07:montreal": null,
+    "2026-11-07:vancouver-whitecaps": null,
+    "2026-11-07:chicago-fire": null,
+    "2026-11-07:columbus-crew": null,
+    "2026-11-07:peterborough-united": {
+      "sample": 4,
+      "scored_avg": 0.25,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.25,
+      "conceded_rate": 1.0
+    },
+    "2026-11-07:reading": {
+      "sample": 3,
+      "scored_avg": 0.0,
+      "conceded_avg": 0.0,
+      "scored_rate": 0.0,
+      "conceded_rate": 0.0
+    },
+    "2026-11-07:bravo": null,
+    "2026-11-07:maribor": null,
+    "2026-11-07:st-mirren": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.4
+    },
+    "2026-11-07:rangers": {
+      "sample": 4,
+      "scored_avg": 1.5,
+      "conceded_avg": 0.25,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.25
+    },
+    "2026-11-07:ado-den-haag": {
+      "sample": 4,
+      "scored_avg": 0.5,
+      "conceded_avg": 1.25,
+      "scored_rate": 0.25,
+      "conceded_rate": 1.0
+    },
+    "2026-11-07:sparta-rotterdam": {
+      "sample": 4,
+      "scored_avg": 1.25,
+      "conceded_avg": 1.25,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.75
+    },
+    "2026-11-07:antwerp": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 0.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.4
+    },
+    "2026-11-07:lommel": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.4
     }
   },
   "last_manual_archive_resend": {
