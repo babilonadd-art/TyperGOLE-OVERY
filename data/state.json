@@ -2431,6 +2431,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 293,
       "sent_at": "2026-11-07T13:31:16.354678+01:00"
+    },
+    {
+      "key": "ca-boca-juniors-vs-defensa-y-justicia:BTTS_FT",
+      "id": "ca-boca-juniors-vs-defensa-y-justicia",
+      "slug": "ca-boca-juniors-vs-defensa-y-justicia",
+      "home": "CA Boca Juniors",
+      "away": "Defensa y Justicia",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T21:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.9,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/ca-boca-juniors-vs-defensa-y-justicia-14539401?t=offer-prematch-102&mdt=o",
+      "probability": 46.6,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.46619354811252206,
+        "home_lambda": 1.2,
+        "away_lambda": 1.1,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 1.0,
+        "away_scored_rate": 0.8,
+        "home_conceded_rate": 0.4,
+        "away_conceded_rate": 0.6
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 294,
+      "sent_at": "2026-11-07T13:35:50.639331+01:00"
     }
   ],
   "reports_sent": [],
@@ -3082,6 +3116,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 293,
       "sent_at": "2026-11-07T13:31:16.354678+01:00"
+    },
+    {
+      "key": "ca-boca-juniors-vs-defensa-y-justicia:BTTS_FT",
+      "id": "ca-boca-juniors-vs-defensa-y-justicia",
+      "slug": "ca-boca-juniors-vs-defensa-y-justicia",
+      "home": "CA Boca Juniors",
+      "away": "Defensa y Justicia",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T21:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.9,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/ca-boca-juniors-vs-defensa-y-justicia-14539401?t=offer-prematch-102&mdt=o",
+      "probability": 46.6,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.46619354811252206,
+        "home_lambda": 1.2,
+        "away_lambda": 1.1,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 1.0,
+        "away_scored_rate": 0.8,
+        "home_conceded_rate": 0.4,
+        "away_conceded_rate": 0.6
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 294,
+      "sent_at": "2026-11-07T13:35:50.639331+01:00"
     }
   ],
   "team_history_cache": {
@@ -3364,6 +3432,20 @@
       "conceded_avg": 0.6,
       "scored_rate": 0.8,
       "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:instituto-cordoba": {
+      "sample": 5,
+      "scored_avg": 2.2,
+      "conceded_avg": 1.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:newell-s-old-boys": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.6
     }
   },
   "last_manual_archive_resend": {
@@ -3372,5 +3454,5 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 1
+  "btts_image_cursor": 2
 }
