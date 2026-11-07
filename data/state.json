@@ -5666,6 +5666,40 @@
       "telegram_message_id": 281,
       "sent_at": "2026-11-07T03:37:51.087999+01:00",
       "counts_toward_daily_limit": false
+    },
+    {
+      "key": "america-mg-k-vs-cruzeiro-k:BTTS_FT",
+      "id": "america-mg-k-vs-cruzeiro-k",
+      "slug": "america-mg-k-vs-cruzeiro-k",
+      "home": "America MG (K)",
+      "away": "Cruzeiro (K)",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T19:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.63,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/america-mg-k-vs-cruzeiro-k-15610721?t=offer-prematch-102&mdt=o",
+      "probability": 78.0,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.7803089723968851,
+        "home_lambda": 2.2,
+        "away_lambda": 2.1,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 1.0,
+        "away_scored_rate": 1.0,
+        "home_conceded_rate": 1.0,
+        "away_conceded_rate": 0.6
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 288,
+      "sent_at": "2026-11-07T09:28:36.179701+01:00"
     }
   ],
   "reports_sent": [],
@@ -9427,6 +9461,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 281,
       "sent_at": "2026-11-07T03:37:51.087999+01:00"
+    },
+    {
+      "key": "america-mg-k-vs-cruzeiro-k:BTTS_FT",
+      "id": "america-mg-k-vs-cruzeiro-k",
+      "slug": "america-mg-k-vs-cruzeiro-k",
+      "home": "America MG (K)",
+      "away": "Cruzeiro (K)",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T19:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.63,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/america-mg-k-vs-cruzeiro-k-15610721?t=offer-prematch-102&mdt=o",
+      "probability": 78.0,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.7803089723968851,
+        "home_lambda": 2.2,
+        "away_lambda": 2.1,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 1.0,
+        "away_scored_rate": 1.0,
+        "home_conceded_rate": 1.0,
+        "away_conceded_rate": 0.6
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 288,
+      "sent_at": "2026-11-07T09:28:36.179701+01:00"
     }
   ],
   "team_history_cache": {},
@@ -9435,5 +9503,6 @@
     "away": "Remo - PA",
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
-  }
+  },
+  "btts_image_cursor": 1
 }
