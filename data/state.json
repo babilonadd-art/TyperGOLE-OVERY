@@ -2567,6 +2567,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 297,
       "sent_at": "2026-11-07T15:18:48.161214+01:00"
+    },
+    {
+      "key": "cadiz-vs-real-oviedo:BTTS_FT",
+      "id": "cadiz-vs-real-oviedo",
+      "slug": "cadiz-vs-real-oviedo",
+      "home": "Cadiz",
+      "away": "Real Oviedo",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T16:15:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.8,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/cadiz-vs-real-oviedo-14453985?t=offer-prematch-102&mdt=o",
+      "probability": 69.5,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.6950715791719227,
+        "home_lambda": 1.7,
+        "away_lambda": 1.9,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 0.6,
+        "away_scored_rate": 1.0,
+        "home_conceded_rate": 1.0,
+        "away_conceded_rate": 1.0
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 298,
+      "sent_at": "2026-11-07T15:58:15.699196+01:00"
     }
   ],
   "reports_sent": [],
@@ -3354,6 +3388,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 297,
       "sent_at": "2026-11-07T15:18:48.161214+01:00"
+    },
+    {
+      "key": "cadiz-vs-real-oviedo:BTTS_FT",
+      "id": "cadiz-vs-real-oviedo",
+      "slug": "cadiz-vs-real-oviedo",
+      "home": "Cadiz",
+      "away": "Real Oviedo",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T16:15:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.8,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/cadiz-vs-real-oviedo-14453985?t=offer-prematch-102&mdt=o",
+      "probability": 69.5,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.6950715791719227,
+        "home_lambda": 1.7,
+        "away_lambda": 1.9,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 0.6,
+        "away_scored_rate": 1.0,
+        "home_conceded_rate": 1.0,
+        "away_conceded_rate": 1.0
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 298,
+      "sent_at": "2026-11-07T15:58:15.699196+01:00"
     }
   ],
   "team_history_cache": {
@@ -3678,6 +3746,188 @@
       "conceded_avg": 2.6,
       "scored_rate": 0.8,
       "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:luzern": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:young-boys": {
+      "sample": 5,
+      "scored_avg": 3.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:bravo": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:maribor": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:aberdeen": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.4,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:hibernian": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:altrincham": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:notts-county": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:den-bosch": {
+      "sample": 5,
+      "scored_avg": 3.0,
+      "conceded_avg": 1.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:jong-utrecht": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 3.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:cordoba": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:ceuta": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 2.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:st-mirren": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:rangers": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 1.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:cadiz": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:real-oviedo": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 2.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:orgryte": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:vasteras-sk": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:vaduz": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:sion": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:degerfors": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 2.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:gais": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:rosenborg": {
+      "sample": 5,
+      "scored_avg": 2.6,
+      "conceded_avg": 0.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:start": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:granada": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 0.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.2
+    },
+    "FT:2026-11-07:tenerife": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
     }
   },
   "last_manual_archive_resend": {
@@ -3686,5 +3936,5 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 5
+  "btts_image_cursor": 6
 }
