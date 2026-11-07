@@ -382,134 +382,107 @@ def superbet_event_local_date(event):
     return kickoff.date() if kickoff else None
 
 
-# 50 unikalnych, generowanych lokalnie grafik piłkarskich. Bez herbów i oznaczeń klubowych.
+# Pula prawdziwych fotografii piłkarskich z Wikimedia Commons.
+# Nie generujemy ilustracji: jeśli pobranie zdjęcia się nie powiedzie, wysyłka
+# grafiki jest pomijana (telegram_btts_ft zgłosi błąd zamiast wysłać rysunek).
 BTTS_IMAGE_POOL = tuple(range(50))
-BTTS_GRAPHIC_PALETTES = [
-    ((13, 27, 43), (31, 89, 110), (235, 238, 232)),
-    ((34, 25, 44), (105, 45, 72), (235, 235, 230)),
-    ((12, 42, 36), (36, 112, 82), (238, 238, 225)),
-    ((31, 35, 53), (76, 84, 128), (242, 239, 226)),
-    ((48, 31, 22), (133, 76, 42), (239, 235, 222)),
-    ((24, 37, 48), (57, 105, 130), (226, 232, 235)),
-    ((38, 38, 38), (94, 94, 94), (242, 242, 236)),
-    ((30, 43, 29), (83, 112, 57), (236, 237, 220)),
-]
+_BTTS_PHOTO_CACHE = {}
 
 def make_btts_graphic(image_index):
-    """Create a premium, unbranded football-stadium graphic; no cartoon players."""
-    from PIL import Image, ImageDraw, ImageFilter
+    """Fetch a real editorial-style football photograph; never draw synthetic art."""
+    from PIL import Image
     import random
 
-    rng = random.Random(int(image_index) + 731)
-    width, height = 1200, 675
-    image = Image.new("RGB", (width, height), (7, 15, 25))
-    pixels = image.load()
-    glow_center = rng.choice([180, 1020])
+    index = int(image_index) % len(BTTS_IMAGE_POOL)
+    if index in _BTTS_PHOTO_CACHE:
+        cached = _BTTS_PHOTO_CACHE[index]
+        cached.seek(0)
+        return cached
 
-    # Deep navy night sky with a restrained emerald stadium glow.
-    for y in range(height):
-        t = y / height
-        base = (int(7 + 5*t), int(15 + 17*t), int(25 + 12*t))
-        for x in range(width):
-            glow = max(0.0, 1.0 - (((x - glow_center) / 650) ** 2 + ((y - 150) / 330) ** 2))
-            pixels[x, y] = (
-                min(255, base[0] + int(glow * 10)),
-                min(255, base[1] + int(glow * 27)),
-                min(255, base[2] + int(glow * 22)),
-            )
+    api = "https://commons.wikimedia.org/w/api.php"
+    headers = {
+        **HEADERS,
+        "User-Agent": "TyperGOLE-OVERY/1.0 (football photo preview; contact: bot operator)",
+    }
+    search_terms = (
+        "association football match player action",
+        "footballer celebrating goal match",
+        "professional football match action",
+        "soccer player kicking ball stadium",
+    )
+    rng = random.Random(index + 20261107)
+    query = search_terms[index % len(search_terms)]
+    response = requests.get(
+        api,
+        params={
+            "action": "query", "format": "json",
+            "generator": "search", "gsrsearch": query,
+            "gsrnamespace": 6, "gsrlimit": 50,
+            "prop": "imageinfo", "iiprop": "url|mime",
+            "iiurlwidth": 1400,
+        },
+        headers=headers, timeout=25,
+    )
+    response.raise_for_status()
+    pages = list((response.json().get("query") or {}).get("pages", {}).values())
+    candidates = []
+    for page in pages:
+        info = (page.get("imageinfo") or [{}])[0]
+        image_url = info.get("thumburl") or info.get("url")
+        mime = str(info.get("mime") or "")
+        title = str(page.get("title") or "").lower()
+        if image_url and mime.startswith("image/") and not any(
+            word in title for word in ("logo", "flag", "emblem", "icon", "diagram", "kit")
+        ):
+            candidates.append(image_url)
+    if not candidates:
+        raise RuntimeError("Wikimedia Commons nie zwróciło prawdziwych zdjęć piłkarskich")
 
-    draw = ImageDraw.Draw(image, "RGBA")
-
-    # Stadium roofline and distant stands.
-    draw.polygon([(0, 175), (180, 105), (1020, 105), (1200, 175), (1200, 470), (0, 470)],
-                 fill=(5, 10, 18, 180))
-    draw.line([(0, 178), (180, 112), (1020, 112), (1200, 178)],
-              fill=(160, 190, 185, 75), width=5)
-    for row in range(8):
-        y = 225 + row * 25
-        for x in range(24, 1180, 19):
-            brightness = rng.randint(12, 58)
-            draw.ellipse((x, y, x+3, y+3), fill=(190, 210, 205, brightness))
-
-    # Floodlight banks with soft bloom.
-    glow_layer = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    gd = ImageDraw.Draw(glow_layer, "RGBA")
-    for side in (70, 1130):
-        for i in range(5):
-            x = side + (i-2)*13
-            gd.ellipse((x-7, 115, x+7, 143), fill=(235, 247, 235, 210))
-    glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(24))
-    image = Image.alpha_composite(image.convert("RGBA"), glow_layer)
-    draw = ImageDraw.Draw(image, "RGBA")
-    
-    # Perspective pitch with clean white markings.
-    draw.polygon([(0, 470), (1200, 445), (1200, 675), (0, 675)], fill=(12, 48, 39, 255))
-    draw.polygon([(0, 520), (1200, 495), (1200, 675), (0, 675)], fill=(17, 67, 48, 120))
-    draw.line([(0, 510), (1200, 485)], fill=(225, 235, 225, 105), width=3)
-    draw.line([(600, 490), (600, 675)], fill=(225, 235, 225, 95), width=3)
-    draw.ellipse((420, 500, 780, 850), outline=(225, 235, 225, 95), width=3)
-
-    # Large premium football detail, varied placement and scale per image.
-    bx = rng.choice([260, 930, 600])
-    by = rng.randint(455, 555)
-    radius = rng.randint(72, 98)
-    ball_layer = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    bd = ImageDraw.Draw(ball_layer, "RGBA")
-    bd.ellipse((bx-radius+12, by-radius+18, bx+radius+12, by+radius+18),
-               fill=(0, 0, 0, 145))
-    ball_layer = ball_layer.filter(ImageFilter.GaussianBlur(18))
-    image = Image.alpha_composite(image, ball_layer)
-    draw = ImageDraw.Draw(image, "RGBA")
-    draw.ellipse((bx-radius, by-radius, bx+radius, by+radius),
-                 fill=(232, 236, 226, 255), outline=(255, 255, 255, 220), width=5)
-    # Minimal dark panel geometry, not a cartoon illustration.
-    panel = (22, 34, 37, 255)
-    draw.polygon([(bx, by-radius*0.48), (bx+radius*0.43, by-radius*0.16),
-                  (bx+radius*0.28, by+radius*0.38), (bx-radius*0.28, by+radius*0.38),
-                  (bx-radius*0.43, by-radius*0.16)], fill=panel)
-    draw.line([(bx, by-radius*0.48), (bx, by-radius)], fill=(30, 40, 40, 190), width=4)
-    draw.line([(bx+radius*0.43, by-radius*0.16), (bx+radius, by-radius*0.38)],
-              fill=(30, 40, 40, 190), width=4)
-    draw.line([(bx-radius*0.43, by-radius*0.16), (bx-radius, by-radius*0.38)],
-              fill=(30, 40, 40, 190), width=4)
-
-    # Premium restrained frame and accent line.
-    draw.rounded_rectangle((24, 24, width-24, height-24), radius=18,
-                           outline=(225, 238, 230, 70), width=2)
-    draw.line((48, 48, 250, 48), fill=(89, 205, 151, 210), width=5)
-
-    output = io.BytesIO()
-    image.convert("RGB").save(output, format="JPEG", quality=91, optimize=True)
-    output.seek(0)
-    return output
+    # Deterministic rotation by cursor; skip inaccessible files until one works.
+    offset = (index * 7) % len(candidates)
+    ordered = candidates[offset:] + candidates[:offset]
+    last_error = None
+    for image_url in ordered[:12]:
+        try:
+            photo_response = requests.get(image_url, headers=headers, timeout=30)
+            photo_response.raise_for_status()
+            if not photo_response.headers.get("Content-Type", "").lower().startswith("image/"):
+                continue
+            photo = Image.open(io.BytesIO(photo_response.content)).convert("RGB")
+            if photo.width < 500 or photo.height < 300:
+                continue
+            photo.thumbnail((1400, 900), Image.Resampling.LANCZOS)
+            output = io.BytesIO()
+            photo.save(output, format="JPEG", quality=90, optimize=True)
+            output.seek(0)
+            _BTTS_PHOTO_CACHE[index] = output
+            return output
+        except Exception as exc:
+            last_error = exc
+    raise RuntimeError(f"Nie udało się pobrać prawdziwego zdjęcia piłkarskiego: {last_error}")
 
 def telegram_btts_ft(message, image_index=None):
-    """Send a generated football graphic above the BTTS pick caption."""
+    """Send a real football photograph above the BTTS pick caption."""
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
     payload = {"chat_id": CHAT_ID, "caption": message}
     if image_index is not None:
-        try:
-            photo = make_btts_graphic(image_index)
-            response = requests.post(
-                url, data=payload,
-                files={"photo": (f"btts-{int(image_index):02d}.jpg", photo, "image/jpeg")},
-                timeout=45,
-            )
-            if response.status_code == 429:
-                try:
-                    retry_after = response.json().get("parameters", {}).get("retry_after", 300)
-                except Exception:
-                    retry_after = 300
-                raise RuntimeError(f"Telegram rate limit 429; retry_after={retry_after}s")
-            response.raise_for_status()
-            result = response.json()
-            if result.get("ok"):
-                return result
-            print(f"Telegram sendPhoto error: {result}; fallback to text.", flush=True)
-        except Exception as exc:
-            if "Telegram rate limit 429" in str(exc):
-                raise
-            print(f"Telegram sendPhoto failed: {type(exc).__name__}: {exc}; fallback to text.", flush=True)
+        photo = make_btts_graphic(image_index)
+        response = requests.post(
+            url, data=payload,
+            files={"photo": (f"btts-photo-{int(image_index):02d}.jpg", photo, "image/jpeg")},
+            timeout=45,
+        )
+        if response.status_code == 429:
+            try:
+                retry_after = response.json().get("parameters", {}).get("retry_after", 300)
+            except Exception:
+                retry_after = 300
+            raise RuntimeError(f"Telegram rate limit 429; retry_after={retry_after}s")
+        response.raise_for_status()
+        result = response.json()
+        if result.get("ok"):
+            return result
+        raise RuntimeError(f"Telegram sendPhoto error: {result}")
     return telegram(message)
 
 def superbet_prematch_event_links(target_date=None):
