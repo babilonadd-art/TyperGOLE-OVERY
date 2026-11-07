@@ -2601,6 +2601,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 298,
       "sent_at": "2026-11-07T15:58:15.699196+01:00"
+    },
+    {
+      "key": "leganes-vs-albacete:BTTS_FT",
+      "id": "leganes-vs-albacete",
+      "slug": "leganes-vs-albacete",
+      "home": "Leganes",
+      "away": "Albacete",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T18:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.75,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/leganes-vs-albacete-14453990?t=offer-prematch-102&mdt=o",
+      "probability": 66.1,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.6606744905892612,
+        "home_lambda": 1.5,
+        "away_lambda": 1.9,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 0.4,
+        "away_scored_rate": 0.8,
+        "home_conceded_rate": 1.0,
+        "away_conceded_rate": 0.8
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 299,
+      "sent_at": "2026-11-07T16:31:38.292091+01:00"
     }
   ],
   "reports_sent": [],
@@ -3422,6 +3456,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 298,
       "sent_at": "2026-11-07T15:58:15.699196+01:00"
+    },
+    {
+      "key": "leganes-vs-albacete:BTTS_FT",
+      "id": "leganes-vs-albacete",
+      "slug": "leganes-vs-albacete",
+      "home": "Leganes",
+      "away": "Albacete",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T18:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.75,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/leganes-vs-albacete-14453990?t=offer-prematch-102&mdt=o",
+      "probability": 66.1,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.6606744905892612,
+        "home_lambda": 1.5,
+        "away_lambda": 1.9,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 0.4,
+        "away_scored_rate": 0.8,
+        "home_conceded_rate": 1.0,
+        "away_conceded_rate": 0.8
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 299,
+      "sent_at": "2026-11-07T16:31:38.292091+01:00"
     }
   ],
   "team_history_cache": {
@@ -3928,6 +3996,34 @@
       "conceded_avg": 1.6,
       "scored_rate": 1.0,
       "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:gornik-zabrze": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:wieczysta-krakow": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:leganes": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.6,
+      "scored_rate": 0.4,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:albacete": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
     }
   },
   "last_manual_archive_resend": {
@@ -3936,5 +4032,5 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 6
+  "btts_image_cursor": 7
 }
