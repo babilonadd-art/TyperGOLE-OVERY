@@ -2703,10 +2703,48 @@
       },
       "iddaa_source": "https://www.iddaaorantahmin.com/en/soccer-odds-analysis/ht-over-1-5-goals-tips",
       "goal_line": 1.5,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 303,
-      "sent_at": "2026-11-07T17:43:43.712360+01:00"
+      "sent_at": "2026-11-07T17:43:43.712360+01:00",
+      "won": false,
+      "settled_score": "0-0",
+      "settled_at": "2026-11-07T17:45:59.648003+01:00"
+    },
+    {
+      "key": "ado-den-haag-vs-sparta-rotterdam:OVER_15_HT",
+      "id": "ado-den-haag-vs-sparta-rotterdam",
+      "slug": "ado-den-haag-vs-sparta-rotterdam",
+      "home": "ADO Den Haag",
+      "away": "Sparta Rotterdam",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T18:45:00+01:00",
+      "market": "OVER_15_HT",
+      "stake": 10.0,
+      "odds": 2.22,
+      "odds_source": "Superbet",
+      "odds_market": "1 polowa liczba goli powyzej 1 5 goli w 1 polowie meczu 1 polowa liczba goli powyzej 1 5 goli w 1 polowie meczu powyzej 1 5",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/ado-den-haag-vs-sparta-rotterdam-14438764?t=offer-prematch-102&mdt=o",
+      "probability": 40.0,
+      "iddaa_probability": 40,
+      "iddaa_source_odds": 2.02,
+      "probability_method": "iddaaorantahmin.com HT Over 1.5; model is secondary",
+      "model_inputs": {
+        "probability": 0.5614175793332009,
+        "home_lambda": 0.875,
+        "away_lambda": 1.25,
+        "total_lambda": 2.125,
+        "home_sample": 4,
+        "away_sample": 4
+      },
+      "iddaa_source": "https://www.iddaaorantahmin.com/en/soccer-odds-analysis/ht-over-1-5-goals-tips",
+      "goal_line": 1.5,
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 305,
+      "sent_at": "2026-11-07T17:46:07.295990+01:00"
     }
   ],
   "reports_sent": [],
@@ -3631,6 +3669,41 @@
       "delivery_status": "sent",
       "telegram_message_id": 303,
       "sent_at": "2026-11-07T17:43:43.712360+01:00"
+    },
+    {
+      "key": "ado-den-haag-vs-sparta-rotterdam:OVER_15_HT",
+      "id": "ado-den-haag-vs-sparta-rotterdam",
+      "slug": "ado-den-haag-vs-sparta-rotterdam",
+      "home": "ADO Den Haag",
+      "away": "Sparta Rotterdam",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T18:45:00+01:00",
+      "market": "OVER_15_HT",
+      "stake": 10.0,
+      "odds": 2.22,
+      "odds_source": "Superbet",
+      "odds_market": "1 polowa liczba goli powyzej 1 5 goli w 1 polowie meczu 1 polowa liczba goli powyzej 1 5 goli w 1 polowie meczu powyzej 1 5",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/ado-den-haag-vs-sparta-rotterdam-14438764?t=offer-prematch-102&mdt=o",
+      "probability": 40.0,
+      "iddaa_probability": 40,
+      "iddaa_source_odds": 2.02,
+      "probability_method": "iddaaorantahmin.com HT Over 1.5; model is secondary",
+      "model_inputs": {
+        "probability": 0.5614175793332009,
+        "home_lambda": 0.875,
+        "away_lambda": 1.25,
+        "total_lambda": 2.125,
+        "home_sample": 4,
+        "away_sample": 4
+      },
+      "iddaa_source": "https://www.iddaaorantahmin.com/en/soccer-odds-analysis/ht-over-1-5-goals-tips",
+      "goal_line": 1.5,
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 305,
+      "sent_at": "2026-11-07T17:46:07.295990+01:00"
     }
   ],
   "team_history_cache": {
@@ -4263,5 +4336,5 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 9
+  "btts_image_cursor": 10
 }
