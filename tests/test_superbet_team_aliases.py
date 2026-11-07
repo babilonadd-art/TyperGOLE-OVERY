@@ -194,6 +194,7 @@ class BTTSFirstHalfSettlementTests(unittest.TestCase):
                 "slug": "home-vs-away",
                 "home": "Home FC",
                 "away": "Away FC",
+                "kickoff_time": "2026-11-06T10:00:00+00:00",
                 "market": "BTTS_HT",
                 "delivery_status": "sent",
                 "settled": False,
