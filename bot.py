@@ -253,10 +253,13 @@ def normalized_team_name(value):
     is_womens = is_womens_team_name(raw) if "is_womens_team_name" in globals() else bool(
         re.search(r"\(\s*[kw]\s*\)|\b(?:women|woman|female|feminine|femenil|feminino|femenino)\b", raw, re.I)
     )
-    age_groups = sorted(set(re.findall(
-        r"\b(?:u\s*[- ]?\s*(1[6-9]|2[0-3])|under\s*(1[6-9]|2[0-3]))\b",
-        raw, re.I
-    )))
+    age_groups = sorted({
+        next(group for group in match.groups() if group)
+        for match in re.finditer(
+            r"\b(?:u\s*[- ]?\s*(1[6-9]|2[0-3])|under\s*(1[6-9]|2[0-3]))\b",
+            raw, re.I
+        )
+    })
     raw = re.sub(r"\(\s*[kw]\s*\)", " ", raw, flags=re.I)
     raw = re.sub(r"\b(?:u\s*[- ]?\s*(1[6-9]|2[0-3])|under\s*(1[6-9]|2[0-3]))\b", " ", raw, flags=re.I)
     value = unicodedata.normalize("NFKD", raw).encode("ascii", "ignore").decode().lower()
@@ -705,6 +708,23 @@ def fixture_categories_compatible(home_a, away_a, competition_a, home_b, away_b,
     if "ambiguous" in (left["age_group"], right["age_group"]):
         return False
     return left == right
+
+
+def format_fixture_competition(competition, home="", away=""):
+    """Keep youth age and explicitly mark women's competitions in Telegram."""
+    label = str(competition or "Liga nieznana").strip()
+    category = fixture_category_signature(home, away, label)
+    if category["age_group"].startswith("U") and not re.search(
+        r"\b(?:u\s*[- ]?\s*(1[6-9]|2[0-3])|under\s*(1[6-9]|2[0-3]))\b",
+        label, re.I
+    ):
+        label = f"{label} {category['age_group']}"
+    if category["gender"] == "WOMEN" and not re.search(
+        r"\(\s*[kw]\s*\)|\b(?:women|woman|female|feminine|femenil|feminino|femenino|ladies|kobiet|kobieca)\b",
+        label, re.I
+    ):
+        label = f"{label} (K)"
+    return label
 
 
 def find_superbet_event(home, away, events, womens=None):
@@ -1599,18 +1619,20 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market, 
             continue
         if old.get("market") != market:
             continue
-        # Never collapse senior, youth, women's and men's fixtures into one.
+        old_id = str(old.get("id") or "").strip().lower()
+        old_key = str(old.get("key") or "").strip().lower()
+        # An identical provider fixture ID is always already claimed, even if
+        # its metadata conflicts: fail closed instead of sending it twice.
+        if wanted_id and (old_id == wanted_id or old_key.startswith(wanted_id + ":")):
+            return True
+
+        # For fuzzy team/date matching, require the same exact gender and age group.
         old_competition = old.get("league") or old.get("competition") or ""
         if not fixture_categories_compatible(
             old.get("home"), old.get("away"), old_competition,
             home, away, competition,
         ):
             continue
-
-        old_id = str(old.get("id") or "").strip().lower()
-        old_key = str(old.get("key") or "").strip().lower()
-        if wanted_id and (old_id == wanted_id or old_key.startswith(wanted_id + ":")):
-            return True
 
         # Provider IDs can change between list/detail scans. Match the fixture
         # by both team names as well, allowing a one-day timezone boundary.
@@ -3739,6 +3761,7 @@ def send_prematch_over_15_ht_picks(state):
             )
             if isinstance(league, dict):
                 league = first(league, "name", "title", default="Liga nieznana")
+            league = format_fixture_competition(str(league), home, away)
             return {
                 "match": match, "home": home, "away": away, "slug": slug,
                 "id": item["id"], "kickoff": kickoff,
