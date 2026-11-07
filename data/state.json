@@ -5802,6 +5802,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 291,
       "sent_at": "2026-11-07T13:27:22.404307+01:00"
+    },
+    {
+      "key": "west-bromwich-albion-vs-millwall:BTTS_FT",
+      "id": "west-bromwich-albion-vs-millwall",
+      "slug": "west-bromwich-albion-vs-millwall",
+      "home": "West Bromwich Albion",
+      "away": "Millwall",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T16:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.73,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/west-bromwich-albion-vs-millwall-14438733?t=offer-prematch-102&mdt=o",
+      "probability": 61.9,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.6186617917217185,
+        "home_lambda": 1.9,
+        "away_lambda": 1.2999999999999998,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 1.0,
+        "away_scored_rate": 0.6,
+        "home_conceded_rate": 1.0,
+        "away_conceded_rate": 1.0
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 292,
+      "sent_at": "2026-11-07T13:29:57.215683+01:00"
     }
   ],
   "reports_sent": [],
@@ -9699,6 +9733,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 291,
       "sent_at": "2026-11-07T13:27:22.404307+01:00"
+    },
+    {
+      "key": "west-bromwich-albion-vs-millwall:BTTS_FT",
+      "id": "west-bromwich-albion-vs-millwall",
+      "slug": "west-bromwich-albion-vs-millwall",
+      "home": "West Bromwich Albion",
+      "away": "Millwall",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T16:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.73,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/west-bromwich-albion-vs-millwall-14438733?t=offer-prematch-102&mdt=o",
+      "probability": 61.9,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.6186617917217185,
+        "home_lambda": 1.9,
+        "away_lambda": 1.2999999999999998,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 1.0,
+        "away_scored_rate": 0.6,
+        "home_conceded_rate": 1.0,
+        "away_conceded_rate": 1.0
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 292,
+      "sent_at": "2026-11-07T13:29:57.215683+01:00"
     }
   ],
   "team_history_cache": {
@@ -11389,5 +11457,5 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 4
+  "btts_image_cursor": 5
 }
