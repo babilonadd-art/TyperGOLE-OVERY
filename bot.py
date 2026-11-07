@@ -2557,9 +2557,9 @@ BTTS_HT_MARKET = "BTTS_HT"
 BTTS_FT_MARKET = "BTTS_FT"
 MIN_BTTS_FT_ODDS = 1.60
 MAX_BTTS_FT_ODDS = 3.50
-MIN_HT_HISTORY = 5
+MIN_HT_HISTORY = 3
 HISTORY_MATCHES = 5
-MIN_MODEL_PROBABILITY = 0.15
+MIN_MODEL_PROBABILITY = 0.08
 
 
 def kickoff_datetime(match):
@@ -3311,7 +3311,7 @@ def send_prematch_btts_full_time_picks(state):
     pre_candidates.sort(key=lambda item: (
         item["kickoff"].date(), -item["estimate"]["probability"]
     ))
-    DETAIL_SHORTLIST_SIZE = 60
+    DETAIL_SHORTLIST_SIZE = 120
     shortlisted = pre_candidates[:DETAIL_SHORTLIST_SIZE]
     print(
         f"BTTS szybki filtr: terminarz={len(fixtures)}, "
