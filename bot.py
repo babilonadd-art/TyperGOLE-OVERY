@@ -1521,9 +1521,11 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market, 
     wanted_id = str(identifier or "").strip().lower()
 
     for old in state.get("duplicate_guard", []):
-        # Failed or interrupted deliveries must be retried on a later scan;
-        # only a confirmed Telegram send should permanently block duplicates.
-        if old.get("delivery_status", "sent") != "sent":
+        # A persisted pending record means the send was started. Treat it as
+        # already claimed so a rerun cannot send the same fixture twice if the
+        # process stopped after Telegram accepted the message but before the
+        # final "sent" state was saved. Explicit failures remain retryable.
+        if old.get("delivery_status", "sent") not in {"sent", "pending"}:
             continue
         if old.get("market") != market:
             continue
