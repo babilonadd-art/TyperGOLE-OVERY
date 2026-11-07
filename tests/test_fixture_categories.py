@@ -50,7 +50,7 @@ class FixtureCategorySafetyTests(unittest.TestCase):
     def test_normalized_names_keep_exact_age_and_gender_identity(self):
         self.assertNotEqual(normalized_team_name("Academy FC U16"), normalized_team_name("Academy FC U18"))
         self.assertNotEqual(normalized_team_name("Club A (W)"), normalized_team_name("Club A"))
-        self.assertNotEqual(normalized_team_name("Club A (K)"), normalized_team_name("Club A (W)") if False else normalized_team_name("Club A"))
+        self.assertNotEqual(normalized_team_name("Club A (K)"), normalized_team_name("Club A"))
 
     def test_category_mismatch_is_never_considered_same_fixture(self):
         self.assertFalse(fixture_categories_compatible(
