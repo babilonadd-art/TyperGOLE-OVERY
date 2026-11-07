@@ -3813,7 +3813,7 @@ def send_prematch_over_15_ht_picks(state):
             continue
         estimate = candidate["estimate"]
         probability = float(candidate["iddaa"]["probability"])
-            bet_url = superbet_btts_full_time_url(
+        bet_url = superbet_btts_full_time_url(
             candidate["event"]["url"], final_quote
         )
         if not bet_url:
