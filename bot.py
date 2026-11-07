@@ -447,9 +447,10 @@ def make_btts_graphic(image_index):
         image_url = info.get("thumburl") or info.get("url")
         mime = str(info.get("mime") or "")
         title = str(page.get("title") or "").lower()
-        if image_url and mime.startswith("image/") and not any(
-            word in title for word in ("logo", "flag", "emblem", "icon", "diagram", "kit")
-        ):
+        football_terms = ("football", "soccer", "futbol", "match", "stadium", "player", "goal", "league", "cup", "fc_", "f.c.")
+        if (image_url and mime.startswith("image/")
+                and any(word in title for word in football_terms)
+                and not any(word in title for word in ("logo", "flag", "emblem", "icon", "diagram", "kit"))):
             candidates.append(image_url)
     if not candidates:
         raise RuntimeError("Wikimedia Commons nie zwróciło prawdziwych zdjęć piłkarskich")
@@ -482,23 +483,28 @@ def telegram_btts_ft(message, image_index=None):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
     payload = {"chat_id": CHAT_ID, "caption": message}
     if image_index is not None:
-        photo = make_btts_graphic(image_index)
-        response = requests.post(
-            url, data=payload,
-            files={"photo": (f"btts-photo-{int(image_index):02d}.jpg", photo, "image/jpeg")},
-            timeout=45,
-        )
-        if response.status_code == 429:
-            try:
-                retry_after = response.json().get("parameters", {}).get("retry_after", 300)
-            except Exception:
-                retry_after = 300
-            raise RuntimeError(f"Telegram rate limit 429; retry_after={retry_after}s")
-        response.raise_for_status()
-        result = response.json()
-        if result.get("ok"):
-            return result
-        raise RuntimeError(f"Telegram sendPhoto error: {result}")
+        try:
+            photo = make_btts_graphic(image_index)
+            response = requests.post(
+                url, data=payload,
+                files={"photo": (f"btts-photo-{int(image_index):02d}.jpg", photo, "image/jpeg")},
+                timeout=45,
+            )
+            if response.status_code == 429:
+                try:
+                    retry_after = response.json().get("parameters", {}).get("retry_after", 300)
+                except Exception:
+                    retry_after = 300
+                raise RuntimeError(f"Telegram rate limit 429; retry_after={retry_after}s")
+            response.raise_for_status()
+            result = response.json()
+            if result.get("ok"):
+                return result
+            raise RuntimeError(f"Telegram sendPhoto error: {result}")
+        except Exception as exc:
+            if "429" in str(exc):
+                raise
+            print(f"Grafika piłkarska niedostępna — wysyłam typ bez zdjęcia: {exc}", flush=True)
     return telegram(message)
 
 def superbet_prematch_event_links(target_date=None):
@@ -1907,7 +1913,7 @@ def moviodds_btts_candidates(state, now=None, board=None):
         if str(match.get("sport") or "soccer").lower() not in {"soccer", "football"}:
             continue
         kickoff = kickoff_datetime({"kickoff_time": match.get("kickoff_utc")})
-        if kickoff is None or kickoff <= current:
+        if kickoff is None or kickoff <= current or kickoff.date() != current.date():
             continue
         home, away = str(match.get("home") or "").strip(), str(match.get("away") or "").strip()
         fixture_id = str(match.get("id") or "").strip()
@@ -4105,7 +4111,10 @@ MAX_DAILY_BTTS_FT_PICKS = 3
 def send_prematch_bet365_btts_picks(state):
     """Send up to three unique prematch BTTS FT picks daily from Bet365."""
     initial_board = moviodds_prematch_board()
-    candidates = moviodds_btts_candidates(state, board=initial_board)
+    today = now_local().date()
+    candidates = [c for c in moviodds_btts_candidates(state, now=now_local(), board=initial_board)
+                  if c["kickoff"].date() == today]
+    print(f"Bet365: po filtrze daty {today.isoformat()} pozostało {len(candidates)} meczów na dziś.", flush=True)
     # One fresh second read validates all candidates; avoid downloading the
     # very large soccer board once per selected fixture.
     try:
@@ -4123,10 +4132,14 @@ def send_prematch_bet365_btts_picks(state):
             day = str(pick.get("date") or "")
             sent_by_day[day] = sent_by_day.get(day, 0) + 1
 
+    today_key = today.isoformat()
     for candidate in candidates:
         day = candidate["kickoff"].date().isoformat()
-        if sent_by_day.get(day, 0) >= MAX_DAILY_BTTS_FT_PICKS:
+        if day != today_key:
             continue
+        if sent_by_day.get(today_key, 0) >= MAX_DAILY_BTTS_FT_PICKS:
+            print(f"Limit {MAX_DAILY_BTTS_FT_PICKS} typów na dziś osiągnięty — koniec wysyłki.", flush=True)
+            break
 
         # Validate against the single fresh board read for this run.
         refreshed = refresh_by_id.get(candidate["id"])
