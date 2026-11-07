@@ -3741,7 +3741,8 @@
       "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 261,
-      "sent_at": "2026-11-07T03:36:50.869463+01:00"
+      "sent_at": "2026-11-07T03:36:50.869463+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "napoli-u19-vs-frosinone-u19:BTTS_FT",
@@ -3880,7 +3881,8 @@
       "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 265,
-      "sent_at": "2026-11-07T03:36:54.327271+01:00"
+      "sent_at": "2026-11-07T03:36:54.327271+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "hjk-helsinki-vs-ac-oulu:BTTS_FT",
@@ -3916,7 +3918,8 @@
       "telegram_message_id": 266,
       "sent_at": "2026-11-07T03:36:57.976543+01:00",
       "settlement_pending_score": "3-4",
-      "settlement_pending_since": "2026-11-07T04:09:21.489928+01:00"
+      "settlement_pending_since": "2026-11-07T04:09:21.489928+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "auxerre-vs-paris-fc:BTTS_FT",
@@ -3987,7 +3990,8 @@
       "telegram_message_id": 268,
       "sent_at": "2026-11-07T03:36:59.433909+01:00",
       "settlement_pending_score": "0-2",
-      "settlement_pending_since": "2026-11-07T04:09:25.897516+01:00"
+      "settlement_pending_since": "2026-11-07T04:09:25.897516+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "raal-la-louviere-vs-cercle-brugge:BTTS_FT",
@@ -4056,7 +4060,8 @@
       "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 270,
-      "sent_at": "2026-11-07T03:37:01.134463+01:00"
+      "sent_at": "2026-11-07T03:37:01.134463+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "korona-kielce-vs-radomiak-radom:BTTS_FT",
@@ -4230,7 +4235,8 @@
       "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 276,
-      "sent_at": "2026-11-07T03:37:11.725063+01:00"
+      "sent_at": "2026-11-07T03:37:11.725063+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "osasuna-vs-athletic-bilbao:BTTS_FT",
@@ -4299,7 +4305,8 @@
       "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 278,
-      "sent_at": "2026-11-07T03:37:13.114032+01:00"
+      "sent_at": "2026-11-07T03:37:13.114032+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "asteras-tripolis-vs-kalamata:BTTS_FT",
@@ -4333,7 +4340,8 @@
       "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 279,
-      "sent_at": "2026-11-07T03:37:13.922592+01:00"
+      "sent_at": "2026-11-07T03:37:13.922592+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "gijon-vs-real-valladolid:BTTS_FT",
@@ -4367,7 +4375,8 @@
       "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 280,
-      "sent_at": "2026-11-07T03:37:14.569145+01:00"
+      "sent_at": "2026-11-07T03:37:14.569145+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "rasisalai-united-vs-bangkok-united:BTTS_FT",
@@ -5655,7 +5664,8 @@
       "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 281,
-      "sent_at": "2026-11-07T03:37:51.087999+01:00"
+      "sent_at": "2026-11-07T03:37:51.087999+01:00",
+      "counts_toward_daily_limit": false
     }
   ],
   "reports_sent": [],
