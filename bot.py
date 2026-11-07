@@ -3220,20 +3220,19 @@ def extract_superbet_btts_full_time(event_detail):
 def send_prematch_btts_full_time_picks(state):
     today_date = now_local().date()
     today = today_date.isoformat()
-    scan_dates = [today_date, today_date + timedelta(days=1)]
+    # New picks are restricted strictly to the current Warsaw-local calendar day.
+    scan_dates = [today_date]
     print(
         f"Limit BTTS FT: dziś {daily_sent_match_count(state, today)}/{MAX_DAILY_BTTS_FT_PICKS}; "
-        f"zakres kursu: {MIN_BTTS_FT_ODDS:.2f}–{MAX_BTTS_FT_ODDS:.2f}. Skanuję dziś i jutro.",
+        f"zakres kursu: {MIN_BTTS_FT_ODDS:.2f}–{MAX_BTTS_FT_ODDS:.2f}. Skanuję wyłącznie dzisiaj.",
         flush=True,
     )
-    # Late-evening scans must include tomorrow: otherwise the bot sees an empty
-    # slate after today's fixtures have finished and waits until the next morning.
     superbet_events = []
     for scan_day in scan_dates:
         superbet_events.extend(superbet_prematch_event_links(scan_day))
     fixtures = scheduled_fixtures_today(superbet_events, scan_dates)
     if not fixtures:
-        print("Brak przyszłych spotkań BTTS FT w terminarzu na dziś/jutro.", flush=True)
+        print("Brak przyszłych spotkań BTTS FT w dzisiejszym terminarzu.", flush=True)
         return
     history_cache = state.setdefault("team_history_cache", {})
     allowed_cache_prefixes = tuple(
