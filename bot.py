@@ -3317,7 +3317,7 @@ def send_prematch_btts_full_time_picks(state):
         -min(item["home_history_count"], item["away_history_count"]),
         -(item["home_history_count"] + item["away_history_count"]),
     ))
-    DETAIL_SHORTLIST_SIZE = 120
+    DETAIL_SHORTLIST_SIZE = 15
     shortlisted = pre_candidates[:DETAIL_SHORTLIST_SIZE]
     print(
         f"BTTS szybki wybór: terminarz={len(fixtures)}, "
