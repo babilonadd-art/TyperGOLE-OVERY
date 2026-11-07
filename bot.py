@@ -1633,16 +1633,6 @@ def settlement_fixture_matches_pick(match, pick):
     return True
 
 def match_detail(slug, pick=None):
-    if pick and pick.get("market") == BTTS_FT_MARKET:
-        result = open_matchday_result_for_pick(pick)
-        if result:
-            print(f"Open Matchday: wynik FT {result['home']} - {result['away']} {result['home_score']}-{result['away_score']}", flush=True)
-            return result
-        print(
-            f"Open Matchday: brak wyniku CSV dla {pick.get('home')} - {pick.get('away')}; "
-            "sprawdzam dodatkowe źródła wyniku.",
-            flush=True,
-        )
     """
     Fetch match detail and search finished fixtures. The daily archive is
     capped at 200 rows, so also query the documented team filter to find
@@ -1667,6 +1657,23 @@ def match_detail(slug, pick=None):
                         live_detail = detail
             except Exception as exc:
                 print(f"Match detail {endpoint} niedostępny dla {slug}: {type(exc).__name__}: {exc}", flush=True)
+
+    if pick and pick.get("market") == BTTS_FT_MARKET:
+        # BTTS FT can be settled from the exact live fixture as soon as both
+        # teams score. Do not spend minutes querying broad historical archives.
+        if live_detail:
+            print("BTTS FT: używam szczegółów dokładnie dopasowanego meczu LIVE/FT; pomijam archiwalne zapytania.", flush=True)
+            return live_detail
+        result = open_matchday_result_for_pick(pick)
+        if result:
+            print(f"Open Matchday: wynik FT {result['home']} - {result['away']} {result['home_score']}-{result['away_score']}", flush=True)
+            return result
+        print(
+            f"BTTS FT: brak wyniku CSV dla {pick.get('home')} - {pick.get('away')}; "
+            "pomijam kosztowne zapytania archiwalne i przechodzę dalej.",
+            flush=True,
+        )
+        return {}
 
     if pick:
         dates = []
@@ -2260,7 +2267,12 @@ def settle_picks(state):
             elif pick.get("market") == BTTS_FT_MARKET:
                 target_total = current_total
                 target_score = f"{home_now}-{away_now}" if current_total is not None else None
-                period_complete = finished
+                # BTTS FT is won immediately once both teams have scored;
+                # otherwise a loss is final only when the match is finished.
+                period_complete = finished or (
+                    home_now is not None and away_now is not None
+                    and home_now > 0 and away_now > 0
+                )
             else:
                 target_total = current_total
                 target_score = f"{home_now}-{away_now}" if current_total is not None else None
@@ -2320,7 +2332,7 @@ def settle_picks(state):
             # BTTS 1H settles at HT; BTTS FT waits for the confirmed final score.
             # score/period. The extra 180-second debounce is only for live
             # goal-line markets and must not delay a completed first half.
-            if (pick.get("market") != BTTS_HT_MARKET
+            if (pick.get("market") not in (BTTS_HT_MARKET, BTTS_FT_MARKET)
                     and not settlement_confirmation_ready(pick, target_score, now, confirmation_seconds)):
                 save_state(state)
                 print(
