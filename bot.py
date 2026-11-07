@@ -1407,8 +1407,73 @@ def parse_minute(match):
     return None
 
 
+def score_from_value(value):
+    """Parse a home-away score pair, ignoring penalty suffixes."""
+    if isinstance(value, dict):
+        h = as_int(first(value, "home", "home_score", "homeScore"))
+        a = as_int(first(value, "away", "away_score", "awayScore"))
+        return (h, a) if h is not None and a is not None else (None, None)
+    if isinstance(value, (list, tuple)) and len(value) >= 2:
+        return as_int(value[0]), as_int(value[1])
+    if isinstance(value, str):
+        found = re.search(r"(?<!\d)(\d+)\s*[-:]\s*(\d+)(?!\d)", value)
+        if found:
+            return int(found.group(1)), int(found.group(2))
+    return None, None
+
+
+def extract_regulation_time_score(match):
+    """Return 90-minute score only; never count extra-time or shootout goals."""
+    for key in (
+        "regulation_time_score", "regular_time_score", "ninety_minute_score",
+        "score_90", "ft_90_score", "full_time_90_score", "regulation_score",
+        "score_at_90", "score90",
+    ):
+        pair = score_from_value(match.get(key)) if isinstance(match, dict) else (None, None)
+        if pair[0] is not None and pair[1] is not None:
+            return pair
+
+    status_values = []
+    for key in ("status", "state", "match_status", "fixture_status", "status_text"):
+        value = match.get(key) if isinstance(match, dict) else None
+        if isinstance(value, dict):
+            value = first(value, "short", "long", "name", "description", default="")
+        if value is not None:
+            status_values.append(str(value).lower())
+    status = " ".join(status_values)
+    beyond_regulation = bool(
+        match.get("overtime") is True
+        or re.search(r"\b(?:aet|pen|pens|penalties|shootout|shoot out|after extra time|after penalties|extra time|overtime)\b", status)
+    )
+    if beyond_regulation:
+        first_half = second_half = None
+        periods = match.get("periods") if isinstance(match, dict) else None
+        for period in periods if isinstance(periods, list) else []:
+            if not isinstance(period, dict):
+                continue
+            name = re.sub(r"[^a-z0-9]+", " ", str(period.get("name") or "").lower()).strip()
+            pair = score_from_value(period.get("score") or period)
+            if pair[0] is None or pair[1] is None:
+                continue
+            if name in {"1st half", "first half", "half 1", "1 half"}:
+                first_half = pair
+            elif name in {"2nd half", "second half", "half 2", "2 half"}:
+                second_half = pair
+        if first_half and second_half:
+            return first_half[0] + second_half[0], first_half[1] + second_half[1]
+        return None, None
+
+    for key in ("final_score", "full_time_score", "ft_score", "score_ft", "score"):
+        pair = score_from_value(match.get(key)) if isinstance(match, dict) else (None, None)
+        if pair[0] is not None and pair[1] is not None:
+            return pair
+    home = as_int(first(match, "home_score", "homeScore", "goals_home"))
+    away = as_int(first(match, "away_score", "awayScore", "goals_away"))
+    return (home, away) if home is not None and away is not None else (None, None)
+
+
 def score_and_minute(match):
-    score = first(match, "score", "scores", "current_score", default={})
+    score = first(match, "score", "scores", "current_score", "final_score", default={})
     home_score = first(match, "home_score", "homeScore", "goals_home")
     away_score = first(match, "away_score", "awayScore", "goals_away")
     if isinstance(score, dict):
@@ -2418,14 +2483,17 @@ def settle_picks(state, allowed_markets=None):
                     )
                     continue
             elif pick.get("market") == BTTS_FT_MARKET:
-                target_total = current_total
-                target_score = f"{home_now}-{away_now}" if current_total is not None else None
-                # BTTS FT is won immediately once both teams have scored;
-                # otherwise a loss is final only when the match is finished.
-                period_complete = finished or (
-                    home_now is not None and away_now is not None
-                    and home_now > 0 and away_now > 0
-                )
+                regulation_home, regulation_away = extract_regulation_time_score(match)
+                if regulation_home is None or regulation_away is None:
+                    print(
+                        f"BTTS FT: brak wiarygodnego wyniku po 90 minutach dla {pick.get('key')}; "
+                        "nie używam wyniku dogrywki ani serii karnych.",
+                        flush=True,
+                    )
+                    continue
+                target_total = regulation_home + regulation_away
+                target_score = f"{regulation_home}-{regulation_away}"
+                period_complete = finished
             else:
                 target_total = current_total
                 target_score = f"{home_now}-{away_now}" if current_total is not None else None
