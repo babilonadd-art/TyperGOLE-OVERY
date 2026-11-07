@@ -2217,12 +2217,15 @@ def kickoff_reached_for_settlement(pick, now=None):
     return current.astimezone(TZ) >= kickoff
 
 
-def settle_picks(state):
+def settle_picks(state, allowed_markets=None):
     # Non-BTTS live goal-line markets retain a 3-minute score confirmation.
     # BTTS first-half markets settle immediately on a confirmed HT score.
     confirmation_seconds = 180
 
+    allowed_markets = set(allowed_markets) if allowed_markets is not None else None
     for pick in state["picks"]:
+        if allowed_markets is not None and pick.get("market") not in allowed_markets:
+            continue
         if pick.get("delivery_status", "sent") != "sent":
             continue
         if pick.get("settled"):
@@ -3932,18 +3935,16 @@ def main():
         save_state(state)
     print(f"Historia typów: {len(state['picks'])}; nierozliczone: {sum(1 for p in state['picks'] if not p.get('settled'))}", flush=True)
 
-    # Rozliczenia HT i FT są sprawdzane podczas każdego uruchomienia workflow.
-    settle_picks(state)
+    # New bot is FT BTTS only. Legacy HT/Over picks are not auto-settled
+    # or sent by this workflow while the Bet365 prematch feed is being wired.
+    settle_picks(state, allowed_markets={BTTS_FT_MARKET})
     retry_pending_settlement_notifications(state)
 
-    today = now_local().date().isoformat()
-    # Nowe typy grupy BTTS to wyłącznie Over 1.5 gola w pierwszej połowie (HT).
-    sent_matches = daily_sent_match_count(state, today)
-    print(f"Spotkania Over 1.5 HT wysłane dzisiaj: {sent_matches}", flush=True)
-    try:
-        send_prematch_over_15_ht_picks(state)
-    except Exception as exc:
-        print(f"BŁĄD SKANOWANIA OVER 1.5 HT: {type(exc).__name__}: {exc}", flush=True)
+    print(
+        "BEZPIECZNIK: stary skaner HT/Over wyłączony. "
+        "Nowe typy będą odblokowane dopiero po podłączeniu i teście źródła Bet365 BTTS FT.",
+        flush=True,
+    )
     try:
         send_monthly_reports(state)
     except Exception as exc:
