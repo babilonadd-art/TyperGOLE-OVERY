@@ -1804,6 +1804,125 @@ def settlement_fixture_matches_pick(match, pick):
         return False
     return True
 
+def moviodds_get(path, params=None, timeout=60):
+    """Read the public MoviOdds API; no API key or paid account required."""
+    response = requests.get(
+        f"{MOVIODDS_API}{path}", params=params or {},
+        headers={**HEADERS, "Accept-Encoding": "gzip"}, timeout=timeout,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"MoviOdds returned unexpected JSON for {path}")
+    return payload
+
+
+def moviodds_finished_result(pick):
+    """Fetch result for the exact Bet365 fixture ID stored with the pick."""
+    fixture_id = str(pick.get("id") or "").strip()
+    if not fixture_id:
+        return {}
+    payload = moviodds_get("/results", {"sport": "soccer", "fi": fixture_id}, timeout=20)
+    rows = payload.get("results", [])
+    if isinstance(rows, dict):
+        rows = [rows]
+    for row in rows if isinstance(rows, list) else []:
+        if str(row.get("fixture_id") or row.get("id") or "") != fixture_id:
+            continue
+        result = dict(row)
+        result["id"] = fixture_id
+        result["time"] = pick.get("kickoff_time")
+        result["competition_name"] = row.get("league") or pick.get("league") or ""
+        result["score"] = row.get("final_score") or ""
+        return result
+    return {}
+
+
+def moviodds_prematch_board():
+    """Fetch all Bet365 pre-match soccer fixtures and prices."""
+    payload = moviodds_get("/odds", {"sport": "soccer", "links": "1"}, timeout=90)
+    matches = payload.get("matches", [])
+    if not isinstance(matches, list):
+        raise RuntimeError("MoviOdds /odds returned no matches list")
+    return matches
+
+
+def extract_moviodds_btts_ft_quote(match):
+    """Select only standalone full-time Both Teams to Score — Yes."""
+    candidates = []
+    group_status = match.get("group_status") if isinstance(match.get("group_status"), dict) else {}
+    for quote in match.get("quotes", []) or []:
+        market = re.sub(r"[^a-z0-9]+", " ", str(quote.get("group_name") or "").lower()).strip()
+        if market != "both teams to score":
+            continue
+        if quote.get("phase") not in (None, "", "prematch"):
+            continue
+        if quote.get("suspended") is True or quote.get("stale") is True:
+            continue
+        group_id = str(quote.get("group_id") or "")
+        if group_id and isinstance(group_status.get(group_id), dict) and group_status[group_id].get("stale"):
+            continue
+        if str(quote.get("label") or "").strip().lower() not in {"yes", "tak"}:
+            continue
+        try:
+            odds = float(quote.get("odds_dec"))
+        except (TypeError, ValueError):
+            continue
+        if not 1.70 <= odds <= 2.50:
+            continue
+        candidates.append({
+            "odds": odds, "market": "Both Teams to Score — Yes",
+            "group_id": group_id, "sel_id": str(quote.get("sel_id") or ""),
+            "updated_at": quote.get("ts"),
+        })
+    if not candidates:
+        return None
+    if len({round(item["odds"], 3) for item in candidates}) != 1:
+        return None
+    if len({item["group_id"] for item in candidates}) != 1:
+        return None
+    return candidates[0]
+
+
+def moviodds_btts_candidates(state, now=None):
+    """Build unique, future-only Bet365 BTTS FT candidates."""
+    current = now or now_local()
+    candidates = []
+    for match in moviodds_prematch_board():
+        if match.get("in_play") is True:
+            continue
+        if str(match.get("sport") or "soccer").lower() not in {"soccer", "football"}:
+            continue
+        kickoff = kickoff_datetime({"kickoff_time": match.get("kickoff_utc")})
+        if kickoff is None or kickoff <= current:
+            continue
+        home, away = str(match.get("home") or "").strip(), str(match.get("away") or "").strip()
+        fixture_id = str(match.get("id") or "").strip()
+        if not home or not away or not fixture_id:
+            continue
+        league = format_fixture_competition(str(match.get("league") or "Liga nieznana"), home, away)
+        quote = extract_moviodds_btts_ft_quote(match)
+        if not quote:
+            continue
+        if same_fixture_pick_exists(
+            state, fixture_id, home, away, kickoff.date().isoformat(),
+            BTTS_FT_MARKET, competition=league,
+        ):
+            continue
+        links = match.get("links") if isinstance(match.get("links"), dict) else {}
+        match_url = links.get("prematch") or links.get("match") or ""
+        if not str(match_url).startswith("https://"):
+            match_url = ""
+        candidates.append({
+            "id": fixture_id, "home": home, "away": away, "league": league,
+            "kickoff": kickoff, "quote": quote, "url": match_url,
+            "competition_category": fixture_category_signature(home, away, league),
+        })
+    candidates.sort(key=lambda item: (item["kickoff"], item["home"], item["away"]))
+    print(f"MoviOdds/Bet365: kandydaci BTTS FT w kursie 1.70–2.50: {len(candidates)}", flush=True)
+    return candidates
+
+
 def match_detail(slug, pick=None):
     """
     Fetch match detail and search finished fixtures. The daily archive is
@@ -1811,6 +1930,17 @@ def match_detail(slug, pick=None):
     fixtures that fall outside the first 200 results.
     """
     live_detail = {}
+    if pick and pick.get("odds_source") == "Bet365 / MoviOdds":
+        try:
+            result = moviodds_finished_result(pick)
+            if result and str(result.get("status", "")).lower() == "finished":
+                if settlement_fixture_matches_pick(result, pick):
+                    return result
+                print(f"MoviOdds: wynik odrzucony — niezgodny mecz/kategoria {pick.get('key')}.", flush=True)
+            return {}
+        except Exception as exc:
+            print(f"MoviOdds result error {pick.get('id')}: {type(exc).__name__}: {exc}", flush=True)
+            return {}
     if slug:
         # BTTS FT settlement needs one fast, exact live lookup; the legacy
         # widget fallback and broad archive search must not hold up new picks.
@@ -3956,6 +4086,96 @@ def send_prematch_over_15_ht_picks(state):
 
 
 
+MAX_DAILY_BTTS_FT_PICKS = 3
+
+
+def send_prematch_bet365_btts_picks(state):
+    """Send up to three unique prematch BTTS FT picks daily from Bet365."""
+    candidates = moviodds_btts_candidates(state)
+    sent_by_day = {}
+    for pick in state.get("picks", []):
+        if pick.get("market") == BTTS_FT_MARKET and pick.get("delivery_status", "sent") == "sent":
+            day = str(pick.get("date") or "")
+            sent_by_day[day] = sent_by_day.get(day, 0) + 1
+
+    for candidate in candidates:
+        day = candidate["kickoff"].date().isoformat()
+        if sent_by_day.get(day, 0) >= MAX_DAILY_BTTS_FT_PICKS:
+            continue
+
+        # Refresh once before sending; never publish a stale or changed quote.
+        try:
+            refreshed = next(
+                (item for item in moviodds_prematch_board()
+                 if str(item.get("id") or "") == candidate["id"]
+                 and item.get("in_play") is not True),
+                None,
+            )
+            if not refreshed:
+                continue
+            fresh_quote = extract_moviodds_btts_ft_quote(refreshed)
+            fresh_kickoff = kickoff_datetime({"kickoff_time": refreshed.get("kickoff_utc")})
+            if (not fresh_quote or fresh_kickoff is None or fresh_kickoff <= now_local()
+                    or abs(fresh_quote["odds"] - candidate["quote"]["odds"]) > 0.005):
+                print(f"Bet365: kurs lub status zmienił się przed wysyłką — pomijam {candidate['home']} - {candidate['away']}.", flush=True)
+                continue
+        except Exception as exc:
+            print(f"Bet365 refresh error: {type(exc).__name__}: {exc}", flush=True)
+            return
+
+        pick = {
+            "key": f"{candidate['id']}:{BTTS_FT_MARKET}",
+            "id": candidate["id"], "slug": "",
+            "home": candidate["home"], "away": candidate["away"],
+            "league": candidate["league"],
+            "competition_category": candidate["competition_category"],
+            "date": day, "kickoff_time": candidate["kickoff"].isoformat(),
+            "market": BTTS_FT_MARKET, "stake": STAKE,
+            "odds": fresh_quote["odds"], "odds_source": "Bet365 / MoviOdds",
+            "odds_market": fresh_quote["market"], "odds_updated_at": fresh_quote.get("updated_at"),
+            "bet_url": candidate["url"], "settled": False, "delivery_status": "pending",
+        }
+        if same_fixture_pick_exists(
+            state, candidate["id"], candidate["home"], candidate["away"],
+            day, BTTS_FT_MARKET, competition=candidate["league"],
+        ):
+            continue
+        state.setdefault("picks", []).append(pick)
+        state.setdefault("duplicate_guard", []).append(pick)
+        save_state(state)
+        payout = calculate_bet_result(STAKE, fresh_quote["odds"])
+        message = (
+            f"🕒 GODZINA {candidate['kickoff'].strftime('%H:%M')} — CZAS POLSKI\n"
+            f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
+            f"⚽ {candidate['home']} – {candidate['away']}\n"
+            f"🏆 Liga: {candidate['league']}\n"
+            f"📈 Bet365: {fresh_quote['odds']:.2f}\n"
+            f"💵 Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
+            f"🔗 Mecz Bet365: {candidate['url'] or 'link niedostępny'}\n"
+            "Rozliczenie: wynik po 90 minutach; bez dogrywki i serii karnych."
+        )
+        try:
+            image_cursor = int(state.get("btts_image_cursor", 0)) % len(BTTS_IMAGE_POOL)
+            response = telegram_btts_ft(message, image_cursor)
+            state["btts_image_cursor"] = (image_cursor + 1) % len(BTTS_IMAGE_POOL)
+            result = response.get("result", []) if isinstance(response, dict) else []
+            if isinstance(result, list) and result:
+                pick["telegram_message_id"] = result[0].get("message_id")
+            elif isinstance(result, dict):
+                pick["telegram_message_id"] = result.get("message_id")
+            pick["delivery_status"] = "sent"
+            pick["sent_at"] = now_local().isoformat()
+            save_state(state)
+            sent_by_day[day] = sent_by_day.get(day, 0) + 1
+            print(f"WYSŁANO BTTS FT Bet365: {candidate['home']} - {candidate['away']} @ {fresh_quote['odds']:.2f}", flush=True)
+        except Exception as exc:
+            pick["delivery_status"] = "failed"
+            pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
+            save_state(state)
+            print(f"Telegram Bet365 BTTS error: {type(exc).__name__}: {exc}", flush=True)
+            return
+
+
 def send_manual_archive_resend(state):
     """Send one explicitly queued historical pick once, clearly marked as archive."""
     item = state.get("manual_archive_resend")
@@ -4008,11 +4228,11 @@ def main():
     settle_picks(state, allowed_markets={BTTS_FT_MARKET})
     retry_pending_settlement_notifications(state)
 
-    print(
-        "BEZPIECZNIK: stary skaner HT/Over wyłączony. "
-        "Nowe typy będą odblokowane dopiero po podłączeniu i teście źródła Bet365 BTTS FT.",
-        flush=True,
-    )
+    # Legacy HT/Over sender remains disabled; new tips use Bet365 prematch BTTS only.
+    try:
+        send_prematch_bet365_btts_picks(state)
+    except Exception as exc:
+        print(f"Bet365 BTTS FT scanner error: {type(exc).__name__}: {exc}", flush=True)
     try:
         send_monthly_reports(state)
     except Exception as exc:
