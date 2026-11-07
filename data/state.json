@@ -2408,7 +2408,7 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T20:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.76,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -2425,7 +2425,7 @@
         "home_scored_rate": 0.4,
         "away_scored_rate": 0.8,
         "home_conceded_rate": 0.6,
-        "away_conceded_rate": 1.0
+        "away_conceded_rate": 1
       },
       "settled": false,
       "delivery_status": "sent",
@@ -2442,7 +2442,7 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T21:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.9,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -2456,7 +2456,7 @@
         "away_lambda": 1.1,
         "home_sample": 5,
         "away_sample": 5,
-        "home_scored_rate": 1.0,
+        "home_scored_rate": 1,
         "away_scored_rate": 0.8,
         "home_conceded_rate": 0.4,
         "away_conceded_rate": 0.6
@@ -2476,7 +2476,7 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T21:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 2.22,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -2490,7 +2490,7 @@
         "away_lambda": 0.5,
         "home_sample": 5,
         "away_sample": 5,
-        "home_scored_rate": 1.0,
+        "home_scored_rate": 1,
         "away_scored_rate": 0.4,
         "home_conceded_rate": 0.6,
         "away_conceded_rate": 0.8
@@ -2510,7 +2510,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T06:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.61,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -2544,7 +2544,7 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T16:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.82,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -2561,7 +2561,7 @@
         "home_scored_rate": 0.8,
         "away_scored_rate": 0.6,
         "home_conceded_rate": 0.8,
-        "away_conceded_rate": 1.0
+        "away_conceded_rate": 1
       },
       "settled": true,
       "delivery_status": "sent",
@@ -2581,7 +2581,7 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T16:15:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.8,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -2596,9 +2596,9 @@
         "home_sample": 5,
         "away_sample": 5,
         "home_scored_rate": 0.6,
-        "away_scored_rate": 1.0,
-        "home_conceded_rate": 1.0,
-        "away_conceded_rate": 1.0
+        "away_scored_rate": 1,
+        "home_conceded_rate": 1,
+        "away_conceded_rate": 1
       },
       "settled": false,
       "delivery_status": "sent",
@@ -2615,7 +2615,7 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T18:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.75,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -2631,7 +2631,7 @@
         "away_sample": 5,
         "home_scored_rate": 0.4,
         "away_scored_rate": 0.8,
-        "home_conceded_rate": 1.0,
+        "home_conceded_rate": 1,
         "away_conceded_rate": 0.8
       },
       "settled": false,
@@ -2649,7 +2649,7 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T18:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.69,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -2683,13 +2683,13 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T21:00:00+01:00",
       "market": "OVER_15_HT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 2.2,
       "odds_source": "Superbet",
       "odds_market": "1 polowa liczba goli powyzej 1 5 goli w 1 polowie meczu 1 polowa liczba goli powyzej 1 5 goli w 1 polowie meczu powyzej 1 5",
       "odds_updated_at": null,
       "superbet_url": "https://superbet.pl/kursy/pilka-nozna/peterborough-united-vs-reading-15595415?t=offer-prematch-102&mdt=o",
-      "probability": 42.0,
+      "probability": 42,
       "iddaa_probability": 42,
       "iddaa_source_odds": 1.96,
       "probability_method": "iddaaorantahmin.com HT Over 1.5; model is secondary",
@@ -2703,13 +2703,11 @@
       },
       "iddaa_source": "https://www.iddaaorantahmin.com/en/soccer-odds-analysis/ht-over-1-5-goals-tips",
       "goal_line": 1.5,
-      "settled": true,
+      "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 303,
       "sent_at": "2026-11-07T17:43:43.712360+01:00",
-      "won": false,
-      "settled_score": "0-0",
-      "settled_at": "2026-11-07T17:45:59.648003+01:00"
+      "settlement_correction_required": true
     },
     {
       "key": "ado-den-haag-vs-sparta-rotterdam:OVER_15_HT",
@@ -2721,13 +2719,13 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T18:45:00+01:00",
       "market": "OVER_15_HT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 2.22,
       "odds_source": "Superbet",
       "odds_market": "1 polowa liczba goli powyzej 1 5 goli w 1 polowie meczu 1 polowa liczba goli powyzej 1 5 goli w 1 polowie meczu powyzej 1 5",
       "odds_updated_at": null,
       "superbet_url": "https://superbet.pl/kursy/pilka-nozna/ado-den-haag-vs-sparta-rotterdam-14438764?t=offer-prematch-102&mdt=o",
-      "probability": 40.0,
+      "probability": 40,
       "iddaa_probability": 40,
       "iddaa_source_odds": 2.02,
       "probability_method": "iddaaorantahmin.com HT Over 1.5; model is secondary",
@@ -3373,7 +3371,7 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T20:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.76,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -3390,7 +3388,7 @@
         "home_scored_rate": 0.4,
         "away_scored_rate": 0.8,
         "home_conceded_rate": 0.6,
-        "away_conceded_rate": 1.0
+        "away_conceded_rate": 1
       },
       "settled": false,
       "delivery_status": "sent",
@@ -3407,7 +3405,7 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T21:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.9,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -3421,7 +3419,7 @@
         "away_lambda": 1.1,
         "home_sample": 5,
         "away_sample": 5,
-        "home_scored_rate": 1.0,
+        "home_scored_rate": 1,
         "away_scored_rate": 0.8,
         "home_conceded_rate": 0.4,
         "away_conceded_rate": 0.6
@@ -3441,7 +3439,7 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T21:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 2.22,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -3455,7 +3453,7 @@
         "away_lambda": 0.5,
         "home_sample": 5,
         "away_sample": 5,
-        "home_scored_rate": 1.0,
+        "home_scored_rate": 1,
         "away_scored_rate": 0.4,
         "home_conceded_rate": 0.6,
         "away_conceded_rate": 0.8
@@ -3475,7 +3473,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T06:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.61,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -3509,7 +3507,7 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T16:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.82,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -3526,7 +3524,7 @@
         "home_scored_rate": 0.8,
         "away_scored_rate": 0.6,
         "home_conceded_rate": 0.8,
-        "away_conceded_rate": 1.0
+        "away_conceded_rate": 1
       },
       "settled": false,
       "delivery_status": "sent",
@@ -3543,7 +3541,7 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T16:15:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.8,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -3558,9 +3556,9 @@
         "home_sample": 5,
         "away_sample": 5,
         "home_scored_rate": 0.6,
-        "away_scored_rate": 1.0,
-        "home_conceded_rate": 1.0,
-        "away_conceded_rate": 1.0
+        "away_scored_rate": 1,
+        "home_conceded_rate": 1,
+        "away_conceded_rate": 1
       },
       "settled": false,
       "delivery_status": "sent",
@@ -3577,7 +3575,7 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T18:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.75,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -3593,7 +3591,7 @@
         "away_sample": 5,
         "home_scored_rate": 0.4,
         "away_scored_rate": 0.8,
-        "home_conceded_rate": 1.0,
+        "home_conceded_rate": 1,
         "away_conceded_rate": 0.8
       },
       "settled": false,
@@ -3611,7 +3609,7 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T18:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 50.0,
+      "stake": 50,
       "odds": 1.69,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -3645,13 +3643,13 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T21:00:00+01:00",
       "market": "OVER_15_HT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 2.2,
       "odds_source": "Superbet",
       "odds_market": "1 polowa liczba goli powyzej 1 5 goli w 1 polowie meczu 1 polowa liczba goli powyzej 1 5 goli w 1 polowie meczu powyzej 1 5",
       "odds_updated_at": null,
       "superbet_url": "https://superbet.pl/kursy/pilka-nozna/peterborough-united-vs-reading-15595415?t=offer-prematch-102&mdt=o",
-      "probability": 42.0,
+      "probability": 42,
       "iddaa_probability": 42,
       "iddaa_source_odds": 1.96,
       "probability_method": "iddaaorantahmin.com HT Over 1.5; model is secondary",
@@ -3680,13 +3678,13 @@
       "date": "2026-11-07",
       "kickoff_time": "2026-11-07T18:45:00+01:00",
       "market": "OVER_15_HT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 2.22,
       "odds_source": "Superbet",
       "odds_market": "1 polowa liczba goli powyzej 1 5 goli w 1 polowie meczu 1 polowa liczba goli powyzej 1 5 goli w 1 polowie meczu powyzej 1 5",
       "odds_updated_at": null,
       "superbet_url": "https://superbet.pl/kursy/pilka-nozna/ado-den-haag-vs-sparta-rotterdam-14438764?t=offer-prematch-102&mdt=o",
-      "probability": 40.0,
+      "probability": 40,
       "iddaa_probability": 40,
       "iddaa_source_odds": 2.02,
       "probability_method": "iddaaorantahmin.com HT Over 1.5; model is secondary",
@@ -3719,14 +3717,14 @@
       "scored_avg": 1.6,
       "conceded_avg": 1.6,
       "scored_rate": 0.8,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:montreal": {
       "sample": 5,
       "scored_avg": 0.4,
       "conceded_avg": 2.2,
       "scored_rate": 0.4,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:vancouver-whitecaps": {
       "sample": 5,
@@ -3738,13 +3736,13 @@
     "FT:2026-11-07:cincinnati": {
       "sample": 5,
       "scored_avg": 1.4,
-      "conceded_avg": 1.0,
+      "conceded_avg": 1,
       "scored_rate": 0.8,
       "conceded_rate": 0.6
     },
     "FT:2026-11-07:nashville": {
       "sample": 5,
-      "scored_avg": 2.0,
+      "scored_avg": 2,
       "conceded_avg": 0.6,
       "scored_rate": 0.8,
       "conceded_rate": 0.4
@@ -3760,7 +3758,7 @@
       "sample": 5,
       "scored_avg": 2.6,
       "conceded_avg": 1.6,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.6
     },
     "FT:2026-11-07:orlando-city": {
@@ -3768,27 +3766,27 @@
       "scored_avg": 2.2,
       "conceded_avg": 2.4,
       "scored_rate": 0.8,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:new-england-revolution": {
       "sample": 5,
-      "scored_avg": 2.0,
+      "scored_avg": 2,
       "conceded_avg": 1.4,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.8
     },
     "FT:2026-11-07:chicago-fire": {
       "sample": 5,
-      "scored_avg": 2.0,
-      "conceded_avg": 2.0,
+      "scored_avg": 2,
+      "conceded_avg": 2,
       "scored_rate": 0.8,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:columbus-crew": {
       "sample": 5,
       "scored_avg": 2.8,
       "conceded_avg": 0.6,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.4
     },
     "FT:2026-11-07:philadelphia-union": {
@@ -3800,16 +3798,16 @@
     },
     "FT:2026-11-07:toronto": {
       "sample": 5,
-      "scored_avg": 2.0,
+      "scored_avg": 2,
       "conceded_avg": 2.2,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.8
     },
     "FT:2026-11-07:argentinos-juniors": {
       "sample": 5,
       "scored_avg": 1.4,
       "conceded_avg": 0.6,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.6
     },
     "FT:2026-11-07:ca-huracan": {
@@ -3823,7 +3821,7 @@
       "sample": 5,
       "scored_avg": 1.8,
       "conceded_avg": 0.6,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.4
     },
     "FT:2026-11-07:defensa-y-justicia": {
@@ -3838,7 +3836,7 @@
       "scored_avg": 0.8,
       "conceded_avg": 2.2,
       "scored_rate": 0.6,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:reading": {
       "sample": 5,
@@ -3851,28 +3849,28 @@
       "sample": 5,
       "scored_avg": 1.8,
       "conceded_avg": 1.6,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.8
     },
     "FT:2026-11-07:rochdale": {
       "sample": 5,
       "scored_avg": 1.4,
-      "conceded_avg": 3.0,
+      "conceded_avg": 3,
       "scored_rate": 0.8,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:charlton-athletic": {
       "sample": 5,
       "scored_avg": 0.6,
       "conceded_avg": 2.2,
       "scored_rate": 0.4,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:sheffield-united": {
       "sample": 5,
       "scored_avg": 1.6,
       "conceded_avg": 1.2,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.6
     },
     "FT:2026-11-07:watford": {
@@ -3891,24 +3889,24 @@
     },
     "FT:2026-11-07:west-bromwich-albion": {
       "sample": 5,
-      "scored_avg": 2.0,
+      "scored_avg": 2,
       "conceded_avg": 1.2,
-      "scored_rate": 1.0,
-      "conceded_rate": 1.0
+      "scored_rate": 1,
+      "conceded_rate": 1
     },
     "FT:2026-11-07:millwall": {
       "sample": 5,
       "scored_avg": 1.4,
       "conceded_avg": 1.8,
       "scored_rate": 0.6,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:eastleigh": {
       "sample": 5,
       "scored_avg": 1.6,
       "conceded_avg": 1.8,
       "scored_rate": 0.6,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:shrewsbury-town": {
       "sample": 5,
@@ -3940,7 +3938,7 @@
     },
     "FT:2026-11-07:burnley": {
       "sample": 5,
-      "scored_avg": 1.0,
+      "scored_avg": 1,
       "conceded_avg": 1.8,
       "scored_rate": 0.8,
       "conceded_rate": 0.8
@@ -3950,7 +3948,7 @@
       "scored_avg": 0.8,
       "conceded_avg": 2.8,
       "scored_rate": 0.6,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:southampton": {
       "sample": 5,
@@ -3971,18 +3969,18 @@
       "scored_avg": 1.4,
       "conceded_avg": 2.6,
       "scored_rate": 0.6,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:boreham-wood": {
       "sample": 5,
-      "scored_avg": 3.0,
+      "scored_avg": 3,
       "conceded_avg": 1.2,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.6
     },
     "FT:2026-11-07:wigan-athletic": {
       "sample": 5,
-      "scored_avg": 1.0,
+      "scored_avg": 1,
       "conceded_avg": 1.8,
       "scored_rate": 0.6,
       "conceded_rate": 0.8
@@ -3990,9 +3988,9 @@
     "FT:2026-11-07:gillingham": {
       "sample": 5,
       "scored_avg": 1.8,
-      "conceded_avg": 2.0,
-      "scored_rate": 1.0,
-      "conceded_rate": 1.0
+      "conceded_avg": 2,
+      "scored_rate": 1,
+      "conceded_rate": 1
     },
     "FT:2026-11-07:barrow": {
       "sample": 5,
@@ -4018,13 +4016,13 @@
     "FT:2026-11-07:kidderminster-harriers": {
       "sample": 5,
       "scored_avg": 0.6,
-      "conceded_avg": 1.0,
+      "conceded_avg": 1,
       "scored_rate": 0.6,
       "conceded_rate": 0.6
     },
     "FT:2026-11-07:doncaster-rovers": {
       "sample": 5,
-      "scored_avg": 1.0,
+      "scored_avg": 1,
       "conceded_avg": 2.6,
       "scored_rate": 0.8,
       "conceded_rate": 0.8
@@ -4038,14 +4036,14 @@
     },
     "FT:2026-11-07:young-boys": {
       "sample": 5,
-      "scored_avg": 3.0,
+      "scored_avg": 3,
       "conceded_avg": 1.4,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.4
     },
     "FT:2026-11-07:bravo": {
       "sample": 5,
-      "scored_avg": 1.0,
+      "scored_avg": 1,
       "conceded_avg": 1.2,
       "scored_rate": 0.6,
       "conceded_rate": 0.8
@@ -4059,21 +4057,21 @@
     },
     "FT:2026-11-07:aberdeen": {
       "sample": 5,
-      "scored_avg": 1.0,
+      "scored_avg": 1,
       "conceded_avg": 1.4,
       "scored_rate": 0.4,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:hibernian": {
       "sample": 5,
-      "scored_avg": 1.0,
+      "scored_avg": 1,
       "conceded_avg": 1.4,
       "scored_rate": 0.8,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:altrincham": {
       "sample": 5,
-      "scored_avg": 2.0,
+      "scored_avg": 2,
       "conceded_avg": 1.4,
       "scored_rate": 0.6,
       "conceded_rate": 0.6
@@ -4081,50 +4079,50 @@
     "FT:2026-11-07:notts-county": {
       "sample": 5,
       "scored_avg": 1.2,
-      "conceded_avg": 1.0,
+      "conceded_avg": 1,
       "scored_rate": 0.8,
       "conceded_rate": 0.6
     },
     "FT:2026-11-07:den-bosch": {
       "sample": 5,
-      "scored_avg": 3.0,
+      "scored_avg": 3,
       "conceded_avg": 1.2,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.6
     },
     "FT:2026-11-07:jong-utrecht": {
       "sample": 5,
       "scored_avg": 1.6,
-      "conceded_avg": 3.0,
-      "scored_rate": 1.0,
-      "conceded_rate": 1.0
+      "conceded_avg": 3,
+      "scored_rate": 1,
+      "conceded_rate": 1
     },
     "FT:2026-11-07:cordoba": {
       "sample": 5,
       "scored_avg": 1.4,
       "conceded_avg": 1.6,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.6
     },
     "FT:2026-11-07:ceuta": {
       "sample": 5,
-      "scored_avg": 1.0,
-      "conceded_avg": 2.0,
+      "scored_avg": 1,
+      "conceded_avg": 2,
       "scored_rate": 0.8,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:st-mirren": {
       "sample": 5,
       "scored_avg": 0.8,
       "conceded_avg": 2.2,
       "scored_rate": 0.6,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:rangers": {
       "sample": 5,
       "scored_avg": 2.4,
-      "conceded_avg": 1.0,
-      "scored_rate": 1.0,
+      "conceded_avg": 1,
+      "scored_rate": 1,
       "conceded_rate": 0.6
     },
     "FT:2026-11-07:cadiz": {
@@ -4132,21 +4130,21 @@
       "scored_avg": 1.4,
       "conceded_avg": 1.4,
       "scored_rate": 0.6,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:real-oviedo": {
       "sample": 5,
       "scored_avg": 2.4,
-      "conceded_avg": 2.0,
-      "scored_rate": 1.0,
-      "conceded_rate": 1.0
+      "conceded_avg": 2,
+      "scored_rate": 1,
+      "conceded_rate": 1
     },
     "FT:2026-11-07:orgryte": {
       "sample": 5,
       "scored_avg": 1.6,
       "conceded_avg": 2.2,
       "scored_rate": 0.8,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:vasteras-sk": {
       "sample": 5,
@@ -4159,13 +4157,13 @@
       "sample": 5,
       "scored_avg": 1.6,
       "conceded_avg": 1.6,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.8
     },
     "FT:2026-11-07:sion": {
       "sample": 5,
-      "scored_avg": 1.0,
-      "conceded_avg": 1.0,
+      "scored_avg": 1,
+      "conceded_avg": 1,
       "scored_rate": 0.8,
       "conceded_rate": 0.6
     },
@@ -4174,7 +4172,7 @@
       "scored_avg": 0.6,
       "conceded_avg": 2.4,
       "scored_rate": 0.6,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:gais": {
       "sample": 5,
@@ -4187,7 +4185,7 @@
       "sample": 5,
       "scored_avg": 2.6,
       "conceded_avg": 0.4,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.4
     },
     "FT:2026-11-07:start": {
@@ -4199,21 +4197,21 @@
     },
     "FT:2026-11-07:granada": {
       "sample": 5,
-      "scored_avg": 2.0,
+      "scored_avg": 2,
       "conceded_avg": 0.2,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.2
     },
     "FT:2026-11-07:tenerife": {
       "sample": 5,
       "scored_avg": 1.4,
       "conceded_avg": 1.6,
-      "scored_rate": 1.0,
-      "conceded_rate": 1.0
+      "scored_rate": 1,
+      "conceded_rate": 1
     },
     "FT:2026-11-07:gornik-zabrze": {
       "sample": 5,
-      "scored_avg": 1.0,
+      "scored_avg": 1,
       "conceded_avg": 0.6,
       "scored_rate": 0.6,
       "conceded_rate": 0.6
@@ -4230,7 +4228,7 @@
       "scored_avg": 0.8,
       "conceded_avg": 2.6,
       "scored_rate": 0.4,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:albacete": {
       "sample": 5,
@@ -4244,14 +4242,14 @@
       "scored_avg": 1.4,
       "conceded_avg": 1.6,
       "scored_rate": 0.8,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "FT:2026-11-07:sparta-rotterdam": {
       "sample": 5,
       "scored_avg": 2.4,
       "conceded_avg": 2.2,
-      "scored_rate": 1.0,
-      "conceded_rate": 1.0
+      "scored_rate": 1,
+      "conceded_rate": 1
     },
     "2026-11-07:inter-miami": null,
     "2026-11-07:charlotte": null,
@@ -4274,16 +4272,16 @@
     "2026-11-07:peterborough-united": {
       "sample": 4,
       "scored_avg": 0.25,
-      "conceded_avg": 1.0,
+      "conceded_avg": 1,
       "scored_rate": 0.25,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "2026-11-07:reading": {
       "sample": 3,
-      "scored_avg": 0.0,
-      "conceded_avg": 0.0,
-      "scored_rate": 0.0,
-      "conceded_rate": 0.0
+      "scored_avg": 0,
+      "conceded_avg": 0,
+      "scored_rate": 0,
+      "conceded_rate": 0
     },
     "2026-11-07:bravo": null,
     "2026-11-07:maribor": null,
@@ -4298,7 +4296,7 @@
       "sample": 4,
       "scored_avg": 1.5,
       "conceded_avg": 0.25,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.25
     },
     "2026-11-07:ado-den-haag": {
@@ -4306,13 +4304,13 @@
       "scored_avg": 0.5,
       "conceded_avg": 1.25,
       "scored_rate": 0.25,
-      "conceded_rate": 1.0
+      "conceded_rate": 1
     },
     "2026-11-07:sparta-rotterdam": {
       "sample": 4,
       "scored_avg": 1.25,
       "conceded_avg": 1.25,
-      "scored_rate": 1.0,
+      "scored_rate": 1,
       "conceded_rate": 0.75
     },
     "2026-11-07:antwerp": {
