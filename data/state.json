@@ -2703,11 +2703,14 @@
       },
       "iddaa_source": "https://www.iddaaorantahmin.com/en/soccer-odds-analysis/ht-over-1-5-goals-tips",
       "goal_line": 1.5,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 303,
       "sent_at": "2026-11-07T17:43:43.712360+01:00",
-      "settlement_correction_required": true
+      "settlement_correction_required": true,
+      "won": true,
+      "settled_score": "0-3",
+      "settled_at": "2026-11-07T23:16:10.045309+01:00"
     },
     {
       "key": "ado-den-haag-vs-sparta-rotterdam:OVER_15_HT",
@@ -2739,10 +2742,13 @@
       },
       "iddaa_source": "https://www.iddaaorantahmin.com/en/soccer-odds-analysis/ht-over-1-5-goals-tips",
       "goal_line": 1.5,
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 305,
-      "sent_at": "2026-11-07T17:46:07.295990+01:00"
+      "sent_at": "2026-11-07T17:46:07.295990+01:00",
+      "won": false,
+      "settled_score": "1-0",
+      "settled_at": "2026-11-07T23:16:10.616740+01:00"
     }
   ],
   "reports_sent": [],
