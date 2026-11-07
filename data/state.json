@@ -2600,10 +2600,13 @@
         "home_conceded_rate": 1,
         "away_conceded_rate": 1
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 298,
-      "sent_at": "2026-11-07T15:58:15.699196+01:00"
+      "sent_at": "2026-11-07T15:58:15.699196+01:00",
+      "won": true,
+      "settled_score": "1-2",
+      "settled_at": "2026-11-07T23:17:19.051889+01:00"
     },
     {
       "key": "leganes-vs-albacete:BTTS_FT",
@@ -2668,10 +2671,13 @@
         "home_conceded_rate": 0.6,
         "away_conceded_rate": 0.6
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 301,
-      "sent_at": "2026-11-07T17:13:02.187589+01:00"
+      "sent_at": "2026-11-07T17:13:02.187589+01:00",
+      "won": true,
+      "settled_score": "6-7",
+      "settled_at": "2026-11-07T23:17:20.835195+01:00"
     },
     {
       "key": "peterborough-united-vs-reading:OVER_15_HT",
