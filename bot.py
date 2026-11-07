@@ -2556,6 +2556,7 @@ def update_existing_pick_minutes(state):
 BTTS_HT_MARKET = "BTTS_HT"
 BTTS_FT_MARKET = "BTTS_FT"
 MIN_BTTS_FT_ODDS = 1.60
+MAX_BTTS_FT_ODDS = 3.50
 MIN_HT_HISTORY = 5
 HISTORY_MATCHES = 5
 MIN_MODEL_PROBABILITY = 0.15
@@ -3231,7 +3232,7 @@ def send_prematch_btts_full_time_picks(state):
     scan_dates = [today_date, today_date + timedelta(days=1)]
     print(
         f"Limit BTTS FT: dziś {daily_sent_match_count(state, today)}/{MAX_DAILY_BTTS_FT_PICKS}; "
-        f"minimum kursu: {MIN_BTTS_FT_ODDS:.2f}. Skanuję dziś i jutro.",
+        f"zakres kursu: {MIN_BTTS_FT_ODDS:.2f}–{MAX_BTTS_FT_ODDS:.2f}. Skanuję dziś i jutro.",
         flush=True,
     )
     # Late-evening scans must include tomorrow: otherwise the bot sees an empty
@@ -3317,7 +3318,7 @@ def send_prematch_btts_full_time_picks(state):
             if not quote:
                 print(f"[{index}] Brak aktywnego kursu Superbet BTTS cały mecz: {home} - {away}", flush=True)
                 return None
-            if quote["odds"] < MIN_BTTS_FT_ODDS:
+            if not MIN_BTTS_FT_ODDS <= quote["odds"] <= MAX_BTTS_FT_ODDS:
                 print(f"[{index}] Kurs BTTS FT {quote['odds']:.2f} poniżej minimum {MIN_BTTS_FT_ODDS:.2f}: {home} - {away}; pomijam.", flush=True)
                 return None
             # Each worker owns a small cache to avoid concurrent mutation of
@@ -3387,7 +3388,7 @@ def send_prematch_btts_full_time_picks(state):
         if not final_quote:
             print(f"Brak aktualnego kursu BTTS FT dla {candidate['home']} - {candidate['away']}; pomijam.", flush=True)
             continue
-        if final_quote["odds"] < MIN_BTTS_FT_ODDS:
+        if not MIN_BTTS_FT_ODDS <= final_quote["odds"] <= MAX_BTTS_FT_ODDS:
             print(f"Końcowy kurs BTTS FT {final_quote['odds']:.2f} poniżej minimum {MIN_BTTS_FT_ODDS:.2f}: {candidate['home']} - {candidate['away']}; BLOKADA wysyłki.", flush=True)
             continue
         if abs(final_quote["odds"] - candidate["quote"]["odds"]) > 0.005:
