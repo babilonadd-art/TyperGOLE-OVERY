@@ -2541,7 +2541,7 @@ def update_existing_pick_minutes(state):
 BTTS_HT_MARKET = "BTTS_HT"  # legacy historical market; do not use for new tips
 BTTS_FT_MARKET = "BTTS_FT"  # legacy historical market; do not use for new tips
 OVER_15_HT_MARKET = "OVER_15_HT"
-MIN_OVER_15_HT_ODDS = 1.60
+MIN_OVER_15_HT_ODDS = 1.90
 MAX_OVER_15_HT_ODDS = 3.50
 MIN_IDDAA_HT_PERCENT = 40
 MIN_HT_HISTORY = 3
