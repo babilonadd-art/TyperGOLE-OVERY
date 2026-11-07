@@ -5768,6 +5768,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 290,
       "sent_at": "2026-11-07T13:25:40.827844+01:00"
+    },
+    {
+      "key": "watford-vs-middlesbrough:BTTS_FT",
+      "id": "watford-vs-middlesbrough",
+      "slug": "watford-vs-middlesbrough",
+      "home": "Watford",
+      "away": "Middlesbrough",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T16:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.66,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/watford-vs-middlesbrough-14438732?t=offer-prematch-102&mdt=o",
+      "probability": 64.7,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.6468624320259719,
+        "home_lambda": 1.2999999999999998,
+        "away_lambda": 2.2,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 0.8,
+        "away_scored_rate": 0.8,
+        "home_conceded_rate": 0.6,
+        "away_conceded_rate": 0.8
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 291,
+      "sent_at": "2026-11-07T13:27:22.404307+01:00"
     }
   ],
   "reports_sent": [],
@@ -9631,6 +9665,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 290,
       "sent_at": "2026-11-07T13:25:40.827844+01:00"
+    },
+    {
+      "key": "watford-vs-middlesbrough:BTTS_FT",
+      "id": "watford-vs-middlesbrough",
+      "slug": "watford-vs-middlesbrough",
+      "home": "Watford",
+      "away": "Middlesbrough",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T16:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.66,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/watford-vs-middlesbrough-14438732?t=offer-prematch-102&mdt=o",
+      "probability": 64.7,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.6468624320259719,
+        "home_lambda": 1.2999999999999998,
+        "away_lambda": 2.2,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 0.8,
+        "away_scored_rate": 0.8,
+        "home_conceded_rate": 0.6,
+        "away_conceded_rate": 0.8
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 291,
+      "sent_at": "2026-11-07T13:27:22.404307+01:00"
     }
   ],
   "team_history_cache": {
@@ -11321,5 +11389,5 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 3
+  "btts_image_cursor": 4
 }
