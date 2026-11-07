@@ -251,6 +251,24 @@ class DuplicateGuardRetryTests(unittest.TestCase):
             "2026-11-06", "BTTS_HT", slug="home-vs-away"
         ))
 
+    def test_pending_telegram_delivery_blocks_duplicate_to_prevent_double_send(self):
+        state = {
+            "duplicate_guard": [{
+                "id": "fixture-pending",
+                "key": "fixture-pending:OVER_15_HT",
+                "market": "OVER_15_HT",
+                "date": "2026-11-07",
+                "home": "Peterborough United",
+                "away": "Reading",
+                "slug": "peterborough-united-vs-reading",
+                "delivery_status": "pending",
+            }]
+        }
+        self.assertTrue(same_fixture_pick_exists(
+            state, "fixture-pending", "Peterborough United", "Reading",
+            "2026-11-07", "OVER_15_HT", slug="peterborough-united-vs-reading"
+        ))
+
     def test_successfully_sent_tip_still_blocks_duplicate(self):
         state = {
             "duplicate_guard": [{
