@@ -5700,6 +5700,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 288,
       "sent_at": "2026-11-07T09:28:36.179701+01:00"
+    },
+    {
+      "key": "cadiz-vs-real-oviedo:BTTS_FT",
+      "id": "cadiz-vs-real-oviedo",
+      "slug": "cadiz-vs-real-oviedo",
+      "home": "Cadiz",
+      "away": "Real Oviedo",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T16:15:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.75,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/cadiz-vs-real-oviedo-14453985?t=offer-prematch-102&mdt=o",
+      "probability": 69.5,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.6950715791719227,
+        "home_lambda": 1.7,
+        "away_lambda": 1.9,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 0.6,
+        "away_scored_rate": 1.0,
+        "home_conceded_rate": 1.0,
+        "away_conceded_rate": 1.0
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 289,
+      "sent_at": "2026-11-07T13:24:55.997112+01:00"
     }
   ],
   "reports_sent": [],
@@ -9495,14 +9529,1729 @@
       "delivery_status": "sent",
       "telegram_message_id": 288,
       "sent_at": "2026-11-07T09:28:36.179701+01:00"
+    },
+    {
+      "key": "cadiz-vs-real-oviedo:BTTS_FT",
+      "id": "cadiz-vs-real-oviedo",
+      "slug": "cadiz-vs-real-oviedo",
+      "home": "Cadiz",
+      "away": "Real Oviedo",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T16:15:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.75,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/cadiz-vs-real-oviedo-14453985?t=offer-prematch-102&mdt=o",
+      "probability": 69.5,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.6950715791719227,
+        "home_lambda": 1.7,
+        "away_lambda": 1.9,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 0.6,
+        "away_scored_rate": 1.0,
+        "home_conceded_rate": 1.0,
+        "away_conceded_rate": 1.0
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 289,
+      "sent_at": "2026-11-07T13:24:55.997112+01:00"
     }
   ],
-  "team_history_cache": {},
+  "team_history_cache": {
+    "FT:2026-11-07:avai": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:sao-bernardo": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:montreal": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.4,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:vancouver-whitecaps": {
+      "sample": 5,
+      "scored_avg": 2.2,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:cincinnati": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:nashville": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:inter-miami": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:charlotte": {
+      "sample": 5,
+      "scored_avg": 2.6,
+      "conceded_avg": 1.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:orlando-city": {
+      "sample": 5,
+      "scored_avg": 2.2,
+      "conceded_avg": 2.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:new-england-revolution": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:chicago-fire": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 2.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:columbus-crew": {
+      "sample": 5,
+      "scored_avg": 2.8,
+      "conceded_avg": 0.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:philadelphia-union": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:toronto": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 2.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:argentinos-juniors": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 0.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:ca-huracan": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:ca-boca-juniors": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 0.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:defensa-y-justicia": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:peterborough-united": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:reading": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:charlton-athletic": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.4,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:sheffield-united": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:watford": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:middlesbrough": {
+      "sample": 5,
+      "scored_avg": 2.6,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:west-bromwich-albion": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 1.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:millwall": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:eastleigh": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:shrewsbury-town": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:harrogate-town": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:fylde": {
+      "sample": 5,
+      "scored_avg": 2.6,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:cardiff-city": {
+      "sample": 5,
+      "scored_avg": 2.2,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:burnley": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:preston-north-end": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:southampton": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:boreham-wood": {
+      "sample": 5,
+      "scored_avg": 3.0,
+      "conceded_avg": 1.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:wigan-athletic": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:gillingham": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 2.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:barrow": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:birmingham-city": {
+      "sample": 5,
+      "scored_avg": 2.6,
+      "conceded_avg": 0.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:swansea-city": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:kidderminster-harriers": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:doncaster-rovers": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 2.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:crewe-alexandra": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 2.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:wimbledon": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 2.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:cheltenham-town": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:halifax-town": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 1.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:carlisle-united": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:salford-city": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 1.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:barnsley": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 2.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:aldershot-town": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:chesterfield": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:yeovil-town": {
+      "sample": 5,
+      "scored_avg": 3.0,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:huddersfield-town": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 0.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:exeter-city": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:newport-county": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:walsall": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:hornchurch": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 1.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:blackpool": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:luton-town": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 0.8,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:forest-green-rovers": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 2.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:accrington-stanley": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:wycombe-wanderers": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:bromley": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:rotherham-united": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 2.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:barnet": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:tranmere-rovers": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:york-city": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 2.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:northampton-town": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:koper": {
+      "sample": 5,
+      "scored_avg": 3.2,
+      "conceded_avg": 0.8,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:mura": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:oxford-united": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 0.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:stevenage": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:luzern": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:young-boys": {
+      "sample": 5,
+      "scored_avg": 3.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:bravo": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:maribor": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:aberdeen": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.4,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:hibernian": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:altrincham": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:notts-county": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:ross-county": {
+      "sample": 5,
+      "scored_avg": 3.8,
+      "conceded_avg": 0.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:peterhead": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:port-vale": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:scunthorpe-united": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:queen-s-park": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.4,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:partick-thistle": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 1.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:mansfield-town": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:macclesfield": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 1.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:den-bosch": {
+      "sample": 5,
+      "scored_avg": 3.0,
+      "conceded_avg": 1.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:jong-utrecht": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 3.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:cordoba": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:ceuta": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 2.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:st-mirren": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:rangers": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 1.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:hradec-kralove": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:sigma-olomouc": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:zlin": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:slovacko": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 2.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:skalica": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.4,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:zilina": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 1.8,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:kristiansund": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 2.8,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:valerenga": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 0.8,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:montrose": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:east-fife": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:clyde": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:the-spartans": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:cadiz": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:real-oviedo": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 2.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:orgryte": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:vasteras-sk": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:bradford-city": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.2
+    },
+    "FT:2026-11-07:marine": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:greenock-morton": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:stenhousemuir": {
+      "sample": 5,
+      "scored_avg": 0.2,
+      "conceded_avg": 2.0,
+      "scored_rate": 0.2,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:rot-weiss-essen": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:alemannia-aachen": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 2.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:vaduz": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:sion": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:porthmadog": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:llanuwchllyn": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 2.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:arbroath": {
+      "sample": 5,
+      "scored_avg": 0.2,
+      "conceded_avg": 2.4,
+      "scored_rate": 0.2,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:ayr-united": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:annan-athletic": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 3.0,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:kelty-hearts": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:degerfors": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 2.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:gais": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:rosenborg": {
+      "sample": 5,
+      "scored_avg": 2.6,
+      "conceded_avg": 0.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:start": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:granada": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 0.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.2
+    },
+    "FT:2026-11-07:tenerife": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:cagliari": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:frosinone": {
+      "sample": 5,
+      "scored_avg": 3.0,
+      "conceded_avg": 2.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:pisa": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:sudtirol": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:gorica": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:slaven-belupo": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:st-johnstone": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:dundee-fc": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:horsham": {
+      "sample": 5,
+      "scored_avg": 2.2,
+      "conceded_avg": 0.8,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:afc-totton": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:fortuna-sittard": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:telstar": {
+      "sample": 5,
+      "scored_avg": 2.2,
+      "conceded_avg": 2.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:gornik-zabrze": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:wieczysta-krakow": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:leganes": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.6,
+      "scored_rate": 0.4,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:albacete": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:ado-den-haag": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:sparta-rotterdam": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 2.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:brackley-town": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:chester": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:dundee-united": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 1.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:motherwell": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:torino-fc": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:lecce": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:juve-stabia": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:arezzo": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:warta-poznan": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:polonia-warszawa": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 0.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:trethomas-bluebirds": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 1.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:llantwit-major": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.8,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:istra-1961": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:rijeka": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:cesena": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:catanzaro": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 2.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:padova": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:empoli": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:alverca": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:casa-pia": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:pau": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 1.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:nantes": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:galatasaray": {
+      "sample": 5,
+      "scored_avg": 2.6,
+      "conceded_avg": 0.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:amedspor": {
+      "sample": 5,
+      "scored_avg": 2.6,
+      "conceded_avg": 1.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:chorley": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:hereford": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.4,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:south-shields": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 1.8,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:southport": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:merthyr-town": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:hebburn-town": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:bamber-bridge": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:bury-fc": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 2.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:parma": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:bologna": {
+      "sample": 5,
+      "scored_avg": 2.2,
+      "conceded_avg": 1.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:samsunspor": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 3.0,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:konyaspor": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.2,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-07:antwerp": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 2.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:lommel": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:fulham": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:newcastle": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:volos": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:kifisia": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 1.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:plymouth-argyle": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:alvechurch": {
+      "sample": 4,
+      "scored_avg": 2.75,
+      "conceded_avg": 1.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.75
+    },
+    "FT:2026-11-07:burton-albion": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:rushden-diamonds": {
+      "sample": 3,
+      "scored_avg": 2.3333333333333335,
+      "conceded_avg": 1.0,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:colchester-united": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:worcester": {
+      "sample": 3,
+      "scored_avg": 1.6666666666666667,
+      "conceded_avg": 0.6666666666666666,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6666666666666666
+    },
+    "FT:2026-11-07:salisbury": {
+      "sample": 5,
+      "scored_avg": 2.0,
+      "conceded_avg": 0.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-07:sholing": {
+      "sample": 3,
+      "scored_avg": 1.6666666666666667,
+      "conceded_avg": 0.3333333333333333,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.3333333333333333
+    },
+    "FT:2026-11-08:cuiaba": {
+      "sample": 5,
+      "scored_avg": 0.2,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.2,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:juventude": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 1.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:goias": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 0.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-08:ponte-preta": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:austin": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 2.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:portland-timbers": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:dallas": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:colorado-rapids": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:minnesota-united": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 1.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:san-jose-earthquakes": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:san-diego-fc": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 2.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:sporting-kansas-city": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:seattle-sounders": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 2.0,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:los-angeles-fc": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 1.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:vasco-da-gama": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:palmeiras": {
+      "sample": 5,
+      "scored_avg": 2.8,
+      "conceded_avg": 0.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-08:machida-zelvia": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 0.0,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.0
+    },
+    "FT:2026-11-08:sanfrecce-hiroshima": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.2
+    },
+    "FT:2026-11-08:vissel-kobe": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:urawa-red-diamonds": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:gamba-osaka": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:cerezo-osaka": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:instituto-cordoba": {
+      "sample": 5,
+      "scored_avg": 2.2,
+      "conceded_avg": 1.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:newell-s-old-boys": {
+      "sample": 5,
+      "scored_avg": 0.6,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.4,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:zhejiang-professional": {
+      "sample": 5,
+      "scored_avg": 2.2,
+      "conceded_avg": 2.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:henan-fc": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:dalian-yingbo": {
+      "sample": 5,
+      "scored_avg": 2.2,
+      "conceded_avg": 0.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:tianjin-jinmen-tiger": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 0.8,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-08:beijing-guoan": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 0.8,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-08:chongqing-tonglianglong": {
+      "sample": 5,
+      "scored_avg": 1.2,
+      "conceded_avg": 1.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:shanghai-shenhua": {
+      "sample": 5,
+      "scored_avg": 3.2,
+      "conceded_avg": 1.6,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:qingdao-west-coast": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 1.8,
+      "scored_rate": 0.6,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:shanghai-port": {
+      "sample": 5,
+      "scored_avg": 2.2,
+      "conceded_avg": 0.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.4
+    },
+    "FT:2026-11-08:liaoning-tieren": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 2.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:yunnan-yukun": {
+      "sample": 5,
+      "scored_avg": 1.6,
+      "conceded_avg": 3.0,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:wuhan-three-towns": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 2.8,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-08:shandong-taishan": {
+      "sample": 5,
+      "scored_avg": 3.0,
+      "conceded_avg": 1.4,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:chengdu-rongcheng": {
+      "sample": 5,
+      "scored_avg": 0.4,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.2,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:kups": {
+      "sample": 5,
+      "scored_avg": 1.0,
+      "conceded_avg": 1.2,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:inter-turku": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 1.8,
+      "scored_rate": 1.0,
+      "conceded_rate": 0.6
+    },
+    "FT:2026-11-08:crystal-palace": {
+      "sample": 5,
+      "scored_avg": 0.8,
+      "conceded_avg": 1.4,
+      "scored_rate": 0.6,
+      "conceded_rate": 0.8
+    },
+    "FT:2026-11-08:liverpool": {
+      "sample": 5,
+      "scored_avg": 1.8,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 0.8
+    }
+  },
   "last_manual_archive_resend": {
     "home": "Palmeiras - SP",
     "away": "Remo - PA",
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 1
+  "btts_image_cursor": 2
 }
