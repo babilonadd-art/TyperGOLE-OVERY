@@ -2594,15 +2594,15 @@ def iddaa_over_15_ht_predictions():
     predictions = []
     for cells in parser.rows:
         joined = " | ".join(cells)
-        date_match = re.search(r"\\b(20\\d{2}-\\d{2}-\\d{2})\\b", joined)
-        time_match = re.search(r"\\b([0-2]?\\d:[0-5]\\d)\\b", joined)
-        percent_match = re.search(r"\\b(\\d{1,2})\\s*%", joined)
+        date_match = re.search(r"\b(20\d{2}-\d{2}-\d{2})\b", joined)
+        time_match = re.search(r"\b([0-2]?\d:[0-5]\d)\b", joined)
+        percent_match = re.search(r"\b(\d{1,2})\s*%", joined)
         if not (date_match and time_match and percent_match):
             continue
-        match_cell = next((cell for cell in cells if re.search(r"\\s(?:-|vs)\\s", cell, re.I)), "")
+        match_cell = next((cell for cell in cells if re.search(r"\s(?:-|vs)\s", cell, re.I)), "")
         if not match_cell:
             continue
-        split = re.split(r"\\s+(?:-|vs)\\s+", match_cell, maxsplit=1, flags=re.I)
+        split = re.split(r"\s+(?:-|vs)\s+", match_cell, maxsplit=1, flags=re.I)
         if len(split) != 2:
             continue
         home, away = (part.strip() for part in split)
@@ -2610,7 +2610,7 @@ def iddaa_over_15_ht_predictions():
             continue
         odds = None
         for cell in reversed(cells):
-            if re.fullmatch(r"\\s*\\d+(?:[.,]\\d+)?\\s*", cell or ""):
+            if re.fullmatch(r"\s*\d+(?:[.,]\d+)?\s*", cell or ""):
                 try:
                     value = float(cell.replace(",", "."))
                     if 1.01 <= value <= 1000:
@@ -2670,13 +2670,13 @@ def extract_superbet_over_15_ht(event_detail):
     def norm(value):
         value = str(value or "").replace("ł", "l").replace("Ł", "L")
         value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
-        return re.sub(r"\\s+", " ", re.sub(r"[^a-z0-9]+", " ", value)).strip()
+        return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", value)).strip()
 
     market_keys = (
         "marketName", "market_name", "marketGroupName", "market_group_name",
         "marketTitle", "market_title", "market", "marketGroup", "market_group",
         "title", "groupName", "group_name", "period", "periodName",
-        "period_name", "phase", "phaseName", "phase_name", "info", "marketInfo",
+        "period_name", "phase", "phaseName", "phase_name", "info", "marketInfo", "line", "handicap", "total",
     )
     selection_keys = ("name", "selectionName", "selection_name", "oddName",
                       "outcomeName", "label", "displayName")
@@ -2716,11 +2716,11 @@ def extract_superbet_over_15_ht(event_detail):
         is_first_half = any(token in market for token in (
             "1 polowa", "pierwsza polowa", "first half", "1st half", "1 pol", "1h",
         ))
-        is_over_15 = bool(re.search(r"\\bover 1 5\\b", market)
-                          or re.search(r"\\b1 5 over\\b", market)
+        is_over_selection = selection in ("over", "over 1 5", "powyzej", "powyzej 1 5")
+        is_over_15 = bool(re.search(r"\bover 1 5\b", market)
+                          or re.search(r"\b1 5 over\b", market)
                           or "powyzej 1 5" in market
                           or ("over under 1 5" in market and is_over_selection))
-        is_over_selection = selection in ("over", "over 1 5", "powyzej", "powyzej 1 5")
         if not (is_first_half and is_over_15 and is_over_selection):
             continue
         values = []
