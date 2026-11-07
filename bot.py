@@ -483,12 +483,20 @@ def telegram_btts_ft(message, image_index=None):
                 files={"photo": (f"btts-{int(image_index):02d}.jpg", photo, "image/jpeg")},
                 timeout=45,
             )
+            if response.status_code == 429:
+                try:
+                    retry_after = response.json().get("parameters", {}).get("retry_after", 300)
+                except Exception:
+                    retry_after = 300
+                raise RuntimeError(f"Telegram rate limit 429; retry_after={retry_after}s")
             response.raise_for_status()
             result = response.json()
             if result.get("ok"):
                 return result
             print(f"Telegram sendPhoto error: {result}; fallback to text.", flush=True)
         except Exception as exc:
+            if "Telegram rate limit 429" in str(exc):
+                raise
             print(f"Telegram sendPhoto failed: {type(exc).__name__}: {exc}; fallback to text.", flush=True)
     return telegram(message)
 
@@ -3355,7 +3363,10 @@ def send_prematch_btts_full_time_picks(state):
         f"z {len(fixtures)} spotkań.",
         flush=True,
     )
-    candidates.sort(key=lambda item: item["estimate"]["probability"], reverse=True)
+    # Prioritize today's fixtures, then the strongest model probability.
+    # Deliver at most one pick per workflow run (cron runs every five minutes)
+    # to stay below Telegram group/channel flood limits.
+    candidates.sort(key=lambda item: (item["kickoff"].date(), -item["estimate"]["probability"]))
     for candidate in candidates:
         candidate_day = candidate["kickoff"].date().isoformat()
         day_count = daily_sent_match_count(state, candidate_day)
@@ -3441,11 +3452,15 @@ def send_prematch_btts_full_time_picks(state):
             pick["sent_at"] = now_local().isoformat()
             save_state(state)
             print(f"WYSŁANO BTTS FT: {candidate['home']} - {candidate['away']} @ {final_quote['odds']:.2f}, P={probability}%", flush=True)
+            break
         except Exception as exc:
             pick["delivery_status"] = "failed"
             pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
             save_state(state)
             print(f"Telegram BTTS FT nieudany: {type(exc).__name__}: {exc}", flush=True)
+            # Stop after any Telegram delivery error; do not flood the channel.
+            # The failed fixture remains retryable on the next scheduled scan.
+            break
 
 
 
