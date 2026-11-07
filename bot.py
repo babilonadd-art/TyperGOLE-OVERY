@@ -1884,11 +1884,11 @@ def extract_moviodds_btts_ft_quote(match):
     return candidates[0]
 
 
-def moviodds_btts_candidates(state, now=None):
+def moviodds_btts_candidates(state, now=None, board=None):
     """Build unique, future-only Bet365 BTTS FT candidates."""
     current = now or now_local()
     candidates = []
-    for match in moviodds_prematch_board():
+    for match in (board if board is not None else moviodds_prematch_board()):
         if match.get("in_play") is True:
             continue
         if str(match.get("sport") or "soccer").lower() not in {"soccer", "football"}:
@@ -4091,7 +4091,19 @@ MAX_DAILY_BTTS_FT_PICKS = 3
 
 def send_prematch_bet365_btts_picks(state):
     """Send up to three unique prematch BTTS FT picks daily from Bet365."""
-    candidates = moviodds_btts_candidates(state)
+    initial_board = moviodds_prematch_board()
+    candidates = moviodds_btts_candidates(state, board=initial_board)
+    # One fresh second read validates all candidates; avoid downloading the
+    # very large soccer board once per selected fixture.
+    try:
+        refresh_board = moviodds_prematch_board()
+    except Exception as exc:
+        print(f"Bet365 końcowy odczyt tablicy nieudany: {type(exc).__name__}: {exc}", flush=True)
+        return
+    refresh_by_id = {
+        str(item.get("id") or ""): item for item in refresh_board
+        if isinstance(item, dict)
+    }
     sent_by_day = {}
     for pick in state.get("picks", []):
         if pick.get("market") == BTTS_FT_MARKET and pick.get("delivery_status", "sent") == "sent":
@@ -4103,25 +4115,16 @@ def send_prematch_bet365_btts_picks(state):
         if sent_by_day.get(day, 0) >= MAX_DAILY_BTTS_FT_PICKS:
             continue
 
-        # Refresh once before sending; never publish a stale or changed quote.
-        try:
-            refreshed = next(
-                (item for item in moviodds_prematch_board()
-                 if str(item.get("id") or "") == candidate["id"]
-                 and item.get("in_play") is not True),
-                None,
-            )
-            if not refreshed:
-                continue
-            fresh_quote = extract_moviodds_btts_ft_quote(refreshed)
-            fresh_kickoff = kickoff_datetime({"kickoff_time": refreshed.get("kickoff_utc")})
-            if (not fresh_quote or fresh_kickoff is None or fresh_kickoff <= now_local()
-                    or abs(fresh_quote["odds"] - candidate["quote"]["odds"]) > 0.005):
-                print(f"Bet365: kurs lub status zmienił się przed wysyłką — pomijam {candidate['home']} - {candidate['away']}.", flush=True)
-                continue
-        except Exception as exc:
-            print(f"Bet365 refresh error: {type(exc).__name__}: {exc}", flush=True)
-            return
+        # Validate against the single fresh board read for this run.
+        refreshed = refresh_by_id.get(candidate["id"])
+        if not refreshed or refreshed.get("in_play") is True:
+            continue
+        fresh_quote = extract_moviodds_btts_ft_quote(refreshed)
+        fresh_kickoff = kickoff_datetime({"kickoff_time": refreshed.get("kickoff_utc")})
+        if (not fresh_quote or fresh_kickoff is None or fresh_kickoff <= now_local()
+                or abs(fresh_quote["odds"] - candidate["quote"]["odds"]) > 0.005):
+            print(f"Bet365: kurs lub status zmienił się przed wysyłką — pomijam {candidate['home']} - {candidate['away']}.", flush=True)
+            continue
 
         pick = {
             "key": f"{candidate['id']}:{BTTS_FT_MARKET}",
