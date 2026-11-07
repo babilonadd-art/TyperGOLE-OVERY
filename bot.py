@@ -2094,6 +2094,17 @@ def settlement_confirmation_ready(pick, score_text, now, confirmation_seconds=18
     return elapsed >= confirmation_seconds
 
 
+def kickoff_reached_for_settlement(pick, now=None):
+    """Fail closed: automated settlement is forbidden before a known kickoff."""
+    kickoff = kickoff_datetime(pick)
+    if kickoff is None:
+        return False
+    current = now or now_local()
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=TZ)
+    return current.astimezone(TZ) >= kickoff
+
+
 def settle_picks(state):
     # Non-BTTS live goal-line markets retain a 3-minute score confirmation.
     # BTTS first-half markets settle immediately on a confirmed HT score.
@@ -2146,6 +2157,17 @@ def settle_picks(state):
                 pick.pop("goal_pending_since", None)
                 save_state(state)
                 print(f"ROZLICZONO RĘCZNIE: {pick.get('key')} -> {result_text}", flush=True)
+                continue
+
+            # Never trust stale provider/archive scores before the scheduled kickoff.
+            # Missing kickoff is also blocked for automatic settlement (manual results remain available).
+            if not kickoff_reached_for_settlement(pick):
+                print(
+                    f"ROZLICZENIE ZABLOKOWANE — {pick.get('home')} - {pick.get('away')}: "
+                    f"mecz jeszcze się nie rozpoczął lub brak prawidłowej godziny startu "
+                    f"({pick.get('kickoff_time')}).",
+                    flush=True,
+                )
                 continue
 
             if not pick.get("slug"):
