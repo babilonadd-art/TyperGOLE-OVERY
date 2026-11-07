@@ -2563,10 +2563,13 @@
         "home_conceded_rate": 0.8,
         "away_conceded_rate": 1.0
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 297,
-      "sent_at": "2026-11-07T15:18:48.161214+01:00"
+      "sent_at": "2026-11-07T15:18:48.161214+01:00",
+      "won": true,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-07T17:12:52.643029+01:00"
     },
     {
       "key": "cadiz-vs-real-oviedo:BTTS_FT",
@@ -2635,6 +2638,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 299,
       "sent_at": "2026-11-07T16:31:38.292091+01:00"
+    },
+    {
+      "key": "altrincham-vs-notts-county:BTTS_FT",
+      "id": "altrincham-vs-notts-county",
+      "slug": "altrincham-vs-notts-county",
+      "home": "Altrincham",
+      "away": "Notts County",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T18:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.69,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/altrincham-vs-notts-county-15595437?t=offer-prematch-102&mdt=o",
+      "probability": 56.5,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.5651481094427755,
+        "home_lambda": 1.5,
+        "away_lambda": 1.2999999999999998,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 0.6,
+        "away_scored_rate": 0.8,
+        "home_conceded_rate": 0.6,
+        "away_conceded_rate": 0.6
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 301,
+      "sent_at": "2026-11-07T17:13:02.187589+01:00"
     }
   ],
   "reports_sent": [],
@@ -3490,6 +3527,40 @@
       "delivery_status": "sent",
       "telegram_message_id": 299,
       "sent_at": "2026-11-07T16:31:38.292091+01:00"
+    },
+    {
+      "key": "altrincham-vs-notts-county:BTTS_FT",
+      "id": "altrincham-vs-notts-county",
+      "slug": "altrincham-vs-notts-county",
+      "home": "Altrincham",
+      "away": "Notts County",
+      "league": "Liga nieznana",
+      "date": "2026-11-07",
+      "kickoff_time": "2026-11-07T18:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 50.0,
+      "odds": 1.69,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "superbet_url": "https://superbet.pl/kursy/pilka-nozna/altrincham-vs-notts-county-15595437?t=offer-prematch-102&mdt=o",
+      "probability": 56.5,
+      "probability_method": "Poisson FT scoring/conceding rates",
+      "model_inputs": {
+        "probability": 0.5651481094427755,
+        "home_lambda": 1.5,
+        "away_lambda": 1.2999999999999998,
+        "home_sample": 5,
+        "away_sample": 5,
+        "home_scored_rate": 0.6,
+        "away_scored_rate": 0.8,
+        "home_conceded_rate": 0.6,
+        "away_conceded_rate": 0.6
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "telegram_message_id": 301,
+      "sent_at": "2026-11-07T17:13:02.187589+01:00"
     }
   ],
   "team_history_cache": {
@@ -4024,6 +4095,20 @@
       "conceded_avg": 2.2,
       "scored_rate": 0.8,
       "conceded_rate": 0.8
+    },
+    "FT:2026-11-07:ado-den-haag": {
+      "sample": 5,
+      "scored_avg": 1.4,
+      "conceded_avg": 1.6,
+      "scored_rate": 0.8,
+      "conceded_rate": 1.0
+    },
+    "FT:2026-11-07:sparta-rotterdam": {
+      "sample": 5,
+      "scored_avg": 2.4,
+      "conceded_avg": 2.2,
+      "scored_rate": 1.0,
+      "conceded_rate": 1.0
     }
   },
   "last_manual_archive_resend": {
@@ -4032,5 +4117,5 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 7
+  "btts_image_cursor": 8
 }
