@@ -3255,17 +3255,71 @@ def send_prematch_btts_full_time_picks(state):
         if key.startswith(allowed_cache_prefixes)
     }
     history_cache = state["team_history_cache"]
-    # Fetch Superbet event details concurrently. A sequential 15-second timeout
-    # per fixture could exceed the GitHub Actions 8-minute job limit before
-    # the bot reaches the candidate selection and Telegram delivery stages.
-    matched_events = {}
+    # Cheap first pass: score fixtures from the local Open Matchday index.
+    # Superbet event details are expensive, so fetch them ONLY for the best
+    # history-ranked candidates instead of all 1,600+ fixtures.
+    open_matchday_data()
+    _team_history_index()
+    event_by_id = {
+        str(event.get("event_id")): event
+        for event in superbet_events
+        if event.get("event_id") not in (None, "")
+    }
+    history_estimates = {}
+    pre_candidates = []
+    rejected_duplicate = 0
+    rejected_history = 0
     for match in fixtures:
         home, away = teams(match)
-        event = find_superbet_event(
-            home, away, superbet_events, womens=fixture_is_womens(match)
-        )
-        if event and event.get("event_id"):
-            matched_events[str(event["event_id"])] = event
+        kickoff = kickoff_datetime(match)
+        slug = match.get("_bot_slug") or match_slug(match)
+        if not kickoff or not slug or "-vs-" not in slug:
+            continue
+        fixture_day = kickoff.date().isoformat()
+        identifier = match_identifier(match) or slug
+        if same_fixture_pick_exists(
+            state, identifier, home, away,
+            fixture_day, BTTS_FT_MARKET, slug=slug
+        ):
+            rejected_duplicate += 1
+            continue
+        event_id = str(match.get("id", "")).removeprefix("superbet:")
+        event = event_by_id.get(event_id)
+        if not event:
+            continue
+        home_slug, away_slug = slug.split("-vs-", 1)
+        local_history_cache = {}
+        hp = team_full_time_profile(home_slug, kickoff, "home", local_history_cache)
+        ap = team_full_time_profile(away_slug, kickoff, "away", local_history_cache)
+        estimate = full_time_btts_probability(hp, ap)
+        if not estimate or estimate["probability"] < MIN_MODEL_PROBABILITY:
+            rejected_history += 1
+            continue
+        history_estimates[event_id] = estimate
+        pre_candidates.append({
+            "match": match, "event": event, "event_id": event_id,
+            "home": home, "away": away, "slug": slug,
+            "id": identifier, "kickoff": kickoff,
+            "estimate": estimate,
+        })
+
+    # Keep the strongest model candidates first, prioritising today's matches.
+    # This is a shortlist, not a hard limit on the number of tips per day.
+    pre_candidates.sort(key=lambda item: (
+        item["kickoff"].date(), -item["estimate"]["probability"]
+    ))
+    DETAIL_SHORTLIST_SIZE = 60
+    shortlisted = pre_candidates[:DETAIL_SHORTLIST_SIZE]
+    print(
+        f"BTTS szybki filtr: terminarz={len(fixtures)}, "
+        f"po historii={len(pre_candidates)}, "
+        f"szczegóły Superbet do pobrania={len(shortlisted)}, "
+        f"duplikaty={rejected_duplicate}, brak historii/próg={rejected_history}.",
+        flush=True,
+    )
+    if not shortlisted:
+        print("BTTS: szybki filtr nie znalazł kandydatów z wystarczającą historią.", flush=True)
+        return
 
     event_details = {}
     def fetch_event_detail(event_id):
@@ -3273,63 +3327,49 @@ def send_prematch_btts_full_time_picks(state):
 
     with ThreadPoolExecutor(max_workers=20) as executor:
         futures = [
-            executor.submit(fetch_event_detail, event_id)
-            for event_id in matched_events
+            executor.submit(fetch_event_detail, item["event_id"])
+            for item in shortlisted
         ]
         for future in as_completed(futures):
             try:
                 event_id, detail = future.result()
                 event_details[str(event_id)] = detail
             except Exception as exc:
-                print(f"Superbet: błąd pobierania szczegółów wydarzenia: {type(exc).__name__}: {exc}", flush=True)
+                print(
+                    f"Superbet: błąd pobierania szczegółów shortlisty: "
+                    f"{type(exc).__name__}: {exc}",
+                    flush=True,
+                )
 
     print(
-        f"Superbet: pobrano szczegóły {len(event_details)}/{len(matched_events)} wydarzeń "
-        "równolegle (20 wątków).",
+        f"Superbet: pobrano szczegóły {len(event_details)}/{len(shortlisted)} "
+        "wybranych kandydatów (zamiast całej oferty).",
         flush=True,
     )
 
     def analyze_fixture(index_match):
-        index, match = index_match
-        home, away = teams(match)
-        kickoff = kickoff_datetime(match)
-        slug = match.get("_bot_slug") or match_slug(match)
-        if not kickoff or not slug or "-vs-" not in slug:
+        index, item = index_match
+        match = item["match"]
+        home, away = item["home"], item["away"]
+        kickoff, slug = item["kickoff"], item["slug"]
+        event = item["event"]
+        detail = event_details.get(item["event_id"])
+        if not detail:
+            print(f"[{index}] Brak szczegółów Superbet: {home} - {away}", flush=True)
             return None
-        fixture_day = kickoff.date().isoformat()
-        if same_fixture_pick_exists(
-            state, match_identifier(match) or slug, home, away,
-            fixture_day, BTTS_FT_MARKET, slug=slug
-        ):
-            return None
-        home_slug, away_slug = slug.split("-vs-", 1)
         try:
-            event = find_superbet_event(
-                home, away, superbet_events, womens=fixture_is_womens(match)
-            )
-            if not event:
-                print(f"[{index}] Brak jednoznacznego wydarzenia Superbet: {home} - {away}", flush=True)
-                return None
-            detail = event_details.get(str(event["event_id"]))
-            if not detail:
-                print(f"[{index}] Brak pobranych szczegółów Superbet: {home} - {away}", flush=True)
-                return None
             quote = extract_superbet_btts_full_time(detail)
             if not quote:
-                print(f"[{index}] Brak aktywnego kursu Superbet BTTS cały mecz: {home} - {away}", flush=True)
+                print(f"[{index}] Brak aktywnego kursu Superbet BTTS FT: {home} - {away}", flush=True)
                 return None
             if not MIN_BTTS_FT_ODDS <= quote["odds"] <= MAX_BTTS_FT_ODDS:
-                print(f"[{index}] Kurs BTTS FT {quote['odds']:.2f} poniżej minimum {MIN_BTTS_FT_ODDS:.2f}: {home} - {away}; pomijam.", flush=True)
+                print(
+                    f"[{index}] Kurs BTTS FT {quote['odds']:.2f} poza zakresem "
+                    f"{MIN_BTTS_FT_ODDS:.2f}–{MAX_BTTS_FT_ODDS:.2f}: {home} - {away}.",
+                    flush=True,
+                )
                 return None
-            # Each worker owns a small cache to avoid concurrent mutation of
-            # persistent state while the whole day's fixtures are evaluated.
-            local_history_cache = {}
-            hp = team_full_time_profile(home_slug, kickoff, "home", local_history_cache)
-            ap = team_full_time_profile(away_slug, kickoff, "away", local_history_cache)
-            estimate = full_time_btts_probability(hp, ap)
-            if not estimate or estimate["probability"] < MIN_MODEL_PROBABILITY:
-                print(f"[{index}] {home} - {away}: brak wystarczających danych lub P poniżej progu.", flush=True)
-                return None
+            estimate = history_estimates[item["event_id"]]
             league = (
                 extract_superbet_competition_name(event)
                 or first(match, "competition_name", "competition", "league_name", default="Liga nieznana")
@@ -3338,30 +3378,21 @@ def send_prematch_btts_full_time_picks(state):
                 league = first(league, "name", "title", default="Liga nieznana")
             return {
                 "match": match, "home": home, "away": away, "slug": slug,
-                "id": match_identifier(match) or slug, "kickoff": kickoff,
+                "id": item["id"], "kickoff": kickoff,
                 "league": str(league), "event": event, "quote": quote,
                 "estimate": estimate,
             }
         except Exception as exc:
-            print(f"[{index}] Analiza {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
+            print(f"[{index}] Analiza kursu {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
             return None
 
-    # Build both the CSV cache and its alias index BEFORE starting workers.
-    # Otherwise several first workers race to build the same 9k-row index.
-    open_matchday_data()
-    _team_history_index()
-    indexed_fixtures = list(enumerate(fixtures, 1))
-    print(
-        f"Ranking dnia: równoległa analiza {len(indexed_fixtures)} spotkań "
-        "z kursem i rynkiem BTTS FT.",
-        flush=True,
-    )
-    with ThreadPoolExecutor(max_workers=16) as executor:
-        analyzed = list(executor.map(analyze_fixture, indexed_fixtures))
+    indexed_fixtures = list(enumerate(shortlisted, 1))
+    analyzed = [analyze_fixture(item) for item in indexed_fixtures]
     candidates = [candidate for candidate in analyzed if candidate]
     print(
-        f"Ranking dnia zakończony: {len(candidates)} kandydatów spełnia kryteria "
-        f"z {len(fixtures)} spotkań.",
+        f"Ranking BTTS FT zakończony: {len(candidates)} kandydatów z aktywnym "
+        f"rynkiem i kursem 1.60–3.50; sprawdzono szczegółowo {len(shortlisted)} "
+        f"z {len(fixtures)} meczów.",
         flush=True,
     )
     # Prioritize today's fixtures, then the strongest model probability.
