@@ -381,7 +381,7 @@ def extract_team_logo_urls(event, home, away):
         "away": team_name_aliases(away),
     }
     found = {"home": None, "away": None}
-    image_keys = ("logo", "image", "crest", "badge", "emblem", "icon", "picture", "photo")
+    image_keys = ("logo", "crest", "badge", "emblem")
 
     def walk(node):
         if isinstance(node, dict):
@@ -493,8 +493,9 @@ def public_team_logo_url(team_name):
             if len(matches) == 1 or matches[0][0] != matches[1][0] or matches[0][1] == matches[1][1]:
                 return matches[0][1]
     except Exception as exc:
-        print(f"TheSportsDB herb {team_name}: {type(exc).__name__}; próba Wikipedia.", flush=True)
-    return wikipedia_team_logo_url(team_name)
+        print(f"TheSportsDB herb {team_name}: {type(exc).__name__}.", flush=True)
+    # Never use Wikipedia thumbnails: they may be historic photos, not club crests.
+    return None
 
 def telegram_btts_ft(message, home, away, home_logo=None, away_logo=None):
     """Send BTTS FT as a two-crest Telegram album when both images are available."""
