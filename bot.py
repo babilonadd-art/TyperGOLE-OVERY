@@ -28,7 +28,7 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
 STAKE = 10.0
 BET_TAX_RATE = 0.12
-# Maksymalnie 10 typów BTTS FT dziennie.
+# Maksymalnie 8 typów BTTS FT dziennie.
 
 def calculate_bet_result(stake, odds):
     """Calculate Polish 12% stake tax, payout and net profit."""
@@ -53,7 +53,7 @@ def now_local():
     return datetime.now(TZ)
 
 
-MAX_DAILY_BTTS_FT_PICKS = 10
+MAX_DAILY_BTTS_FT_PICKS = 8
 
 
 def daily_sent_match_count(state, day):
@@ -4105,7 +4105,7 @@ def send_prematch_over_15_ht_picks(state):
 
 
 
-MAX_DAILY_BTTS_FT_PICKS = 3
+MAX_DAILY_BTTS_FT_PICKS = 8
 
 
 def send_prematch_bet365_btts_picks(state):
@@ -4128,7 +4128,7 @@ def send_prematch_bet365_btts_picks(state):
     }
     sent_by_day = {}
     for pick in state.get("picks", []):
-        if pick.get("market") == BTTS_FT_MARKET and pick.get("delivery_status", "sent") == "sent":
+        if (pick.get("market") == BTTS_FT_MARKET and pick.get("delivery_status", "sent") == "sent"\n                and pick.get("counts_toward_daily_limit", True) is not False):
             day = str(pick.get("date") or "")
             sent_by_day[day] = sent_by_day.get(day, 0) + 1
 
