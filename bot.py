@@ -2726,16 +2726,8 @@ def _team_history_rows(team_slug, cutoff):
         for row in index["by_alias"].get(alias, ()):
             candidates[row["_identity"]] = row
 
-    # Exact aliases are indexed once and are the normal fast path. The old
-    # fallback scanned all 9k+ historical rows for EVERY team with fewer than
-    # HISTORY_MATCHES exact rows. On a 1,700-match slate that caused millions
-    # of fuzzy comparisons and made the workflow appear stuck. Only use the
-    # expensive fallback when aliases found absolutely nothing.
-    if not candidates:
-        for row in index["all_rows"]:
-            if (team_name_similarity(row["home"], target) >= 0.90
-                    or team_name_similarity(row["away"], target) >= 0.90):
-                candidates[row["_identity"]] = row
+    # Fast path only: never scan the complete 9k-row archive for an unmatched
+    # team. Provider aliases are indexed once; unknown names are skipped.
 
     usable = [
         row for row in candidates.values()
@@ -2746,6 +2738,20 @@ def _team_history_rows(team_slug, cutoff):
         {key: value for key, value in row.items() if not key.startswith("_")}
         for row in usable[:HISTORY_MATCHES]
     ]
+
+
+def _team_history_count_fast(team_slug, cutoff):
+    """Count indexed prior results for shortlist ranking without building profiles."""
+    if not team_slug:
+        return 0
+    target = normalized_team_name_from_slug(team_slug)
+    index = _team_history_index()
+    seen = set()
+    for alias in team_name_aliases(target):
+        for row in index["by_alias"].get(alias, ()):
+            if row["_kickoff"] < cutoff:
+                seen.add(row["_identity"])
+    return len(seen)
 
 
 def team_first_half_profile(team_slug, cutoff, venue, cache=None):
@@ -3265,7 +3271,6 @@ def send_prematch_btts_full_time_picks(state):
         for event in superbet_events
         if event.get("event_id") not in (None, "")
     }
-    history_estimates = {}
     pre_candidates = []
     rejected_duplicate = 0
     rejected_history = 0
@@ -3288,40 +3293,63 @@ def send_prematch_btts_full_time_picks(state):
         if not event:
             continue
         home_slug, away_slug = slug.split("-vs-", 1)
-        # Reuse the per-day persistent cache across every fixture. Creating a
-        # fresh dict here recalculated both teams' history for every match and
-        # made large Superbet slates unnecessarily slow.
-        local_history_cache = history_cache
-        hp = team_full_time_profile(home_slug, kickoff, "home", local_history_cache)
-        ap = team_full_time_profile(away_slug, kickoff, "away", local_history_cache)
-        estimate = full_time_btts_probability(hp, ap)
-        if not estimate or estimate["probability"] < MIN_MODEL_PROBABILITY:
+        # Cheap preselection only: count indexed history rows for each side.
+        # Do NOT calculate goal rates/probabilities for the entire fixture slate.
+        home_count = _team_history_count_fast(home_slug, kickoff)
+        away_count = _team_history_count_fast(away_slug, kickoff)
+        if home_count < MIN_HT_HISTORY or away_count < MIN_HT_HISTORY:
             rejected_history += 1
             continue
-        history_estimates[event_id] = estimate
         pre_candidates.append({
             "match": match, "event": event, "event_id": event_id,
             "home": home, "away": away, "slug": slug,
             "id": identifier, "kickoff": kickoff,
-            "estimate": estimate,
+            "home_history_count": home_count,
+            "away_history_count": away_count,
         })
 
     # Keep the strongest model candidates first, prioritising today's matches.
     # This is a shortlist, not a hard limit on the number of tips per day.
+    # Shortlist by usable history coverage first; only these fixtures receive
+    # the more expensive goal-rate and BTTS probability calculation.
     pre_candidates.sort(key=lambda item: (
-        item["kickoff"].date(), -item["estimate"]["probability"]
+        item["kickoff"].date(),
+        -min(item["home_history_count"], item["away_history_count"]),
+        -(item["home_history_count"] + item["away_history_count"]),
     ))
     DETAIL_SHORTLIST_SIZE = 120
     shortlisted = pre_candidates[:DETAIL_SHORTLIST_SIZE]
     print(
-        f"BTTS szybki filtr: terminarz={len(fixtures)}, "
-        f"po historii={len(pre_candidates)}, "
-        f"szczegóły Superbet do pobrania={len(shortlisted)}, "
-        f"duplikaty={rejected_duplicate}, brak historii/próg={rejected_history}.",
+        f"BTTS szybki wybór: terminarz={len(fixtures)}, "
+        f"z historią obu drużyn={len(pre_candidates)}, "
+        f"szczegółowa analiza maksymalnie={len(shortlisted)}, "
+        f"duplikaty={rejected_duplicate}, brak historii={rejected_history}.",
         flush=True,
     )
     if not shortlisted:
-        print("BTTS: szybki filtr nie znalazł kandydatów z wystarczającą historią.", flush=True)
+        print("BTTS: szybki wybór nie znalazł meczów z historią obu drużyn.", flush=True)
+        return
+
+    history_estimates = {}
+    scored_shortlist = []
+    for item in shortlisted:
+        home_slug, away_slug = item["slug"].split("-vs-", 1)
+        hp = team_full_time_profile(home_slug, item["kickoff"], "home", history_cache)
+        ap = team_full_time_profile(away_slug, item["kickoff"], "away", history_cache)
+        estimate = full_time_btts_probability(hp, ap)
+        if not estimate or estimate["probability"] < MIN_MODEL_PROBABILITY:
+            continue
+        history_estimates[item["event_id"]] = estimate
+        item["estimate"] = estimate
+        scored_shortlist.append(item)
+    shortlisted = scored_shortlist
+    print(
+        f"BTTS ranking: policzono prawdopodobieństwo dla {len(shortlisted)} "
+        f"wybranych meczów; próg={MIN_MODEL_PROBABILITY:.0%}.",
+        flush=True,
+    )
+    if not shortlisted:
+        print("BTTS: wybrana grupa nie spełnia minimalnego progu modelu.", flush=True)
         return
 
     event_details = {}
