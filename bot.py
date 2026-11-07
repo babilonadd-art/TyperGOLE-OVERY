@@ -1812,27 +1812,48 @@ def settlement_fixture_matches_pick(match, pick):
     return True
 
 def moviodds_get(path, params=None, timeout=90):
-    """Read the public MoviOdds API; retry temporary busy/rate-limit responses."""
-    last_response = None
-    for attempt in range(3):
-        response = requests.get(
-            f"{MOVIODDS_API}{path}", params=params or {},
-            headers={**HEADERS, "Accept-Encoding": "gzip"}, timeout=timeout,
-        )
-        last_response = response
-        if response.status_code not in {429, 502, 503, 504}:
-            response.raise_for_status()
-            payload = response.json()
-            if not isinstance(payload, dict):
-                raise RuntimeError(f"MoviOdds returned unexpected JSON for {path}")
-            return payload
-        if attempt < 2:
+    """Read MoviOdds with bounded retries for temporary HTTP and network failures."""
+    retryable_statuses = {429, 500, 502, 503, 504}
+    last_error = None
+    max_attempts = 5
+    for attempt in range(max_attempts):
+        response = None
+        try:
+            response = requests.get(
+                f"{MOVIODDS_API}{path}", params=params or {},
+                headers={**HEADERS, "Accept-Encoding": "gzip"}, timeout=timeout,
+            )
+            if response.status_code not in retryable_statuses:
+                response.raise_for_status()
+                payload = response.json()
+                if not isinstance(payload, dict):
+                    raise RuntimeError(f"MoviOdds returned unexpected JSON for {path}")
+                return payload
+            last_error = requests.HTTPError(
+                f"MoviOdds temporary HTTP {response.status_code} for {path}",
+                response=response,
+            )
+            retry_after = response.headers.get("Retry-After")
+        except (requests.Timeout, requests.ConnectionError) as exc:
+            last_error = exc
+            retry_after = None
+        if attempt < max_attempts - 1:
             try:
-                delay = int(response.headers.get("Retry-After", "5"))
+                requested_delay = float(retry_after) if retry_after else 0
             except (TypeError, ValueError):
-                delay = 5
-            time.sleep(max(2, min(delay, 15)))
-    last_response.raise_for_status()
+                requested_delay = 0
+            # Exponential backoff: 3, 6, 12, then 20 seconds (bounded).
+            delay = min(20, 3 * (2 ** attempt))
+            if requested_delay > 0:
+                delay = min(30, max(delay, requested_delay))
+            print(
+                f"MoviOdds: próba {attempt + 1}/{max_attempts} nieudana "
+                f"({type(last_error).__name__}); ponawiam za {delay}s.",
+                flush=True,
+            )
+            time.sleep(delay)
+    if last_error:
+        raise last_error
     raise RuntimeError(f"MoviOdds unavailable for {path}")
 
 
