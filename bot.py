@@ -382,21 +382,107 @@ def superbet_event_local_date(event):
     return kickoff.date() if kickoff else None
 
 
-BTTS_IMAGE_POOL = [
-    "https://images.unsplash.com/photo-1707370531796-90bbe5bfeb4a?auto=format&fit=crop&fm=jpg&q=85&w=1600",
-    "https://images.unsplash.com/photo-1769348193442-6d3b1655266d?auto=format&fit=crop&fm=jpg&q=85&w=1600",
-    "https://images.unsplash.com/photo-1771077508493-c79cd2634c3d?auto=format&fit=crop&fm=jpg&q=85&w=1600",
-    "https://images.unsplash.com/photo-1777304012210-a12b1188ab49?auto=format&fit=crop&fm=jpg&q=85&w=1600",
+# 50 unikalnych, generowanych lokalnie grafik piłkarskich. Bez herbów i oznaczeń klubowych.
+BTTS_IMAGE_POOL = tuple(range(50))
+BTTS_GRAPHIC_PALETTES = [
+    ((13, 27, 43), (31, 89, 110), (235, 238, 232)),
+    ((34, 25, 44), (105, 45, 72), (235, 235, 230)),
+    ((12, 42, 36), (36, 112, 82), (238, 238, 225)),
+    ((31, 35, 53), (76, 84, 128), (242, 239, 226)),
+    ((48, 31, 22), (133, 76, 42), (239, 235, 222)),
+    ((24, 37, 48), (57, 105, 130), (226, 232, 235)),
+    ((38, 38, 38), (94, 94, 94), (242, 242, 236)),
+    ((30, 43, 29), (83, 112, 57), (236, 237, 220)),
 ]
 
-def telegram_btts_ft(message, image_url=None):
-    """Send one BTTS pick with a rotating football action photo above the caption."""
+def make_btts_graphic(image_index):
+    """Create a distinct 16:9 football action illustration with a plain, unbranded shirt."""
+    from PIL import Image, ImageDraw
+    import random
+
+    rng = random.Random(int(image_index) + 731)
+    width, height = 1200, 675
+    dark, accent, light = BTTS_GRAPHIC_PALETTES[int(image_index) % len(BTTS_GRAPHIC_PALETTES)]
+    image = Image.new("RGB", (width, height))
+    pixels = image.load()
+    for y in range(height):
+        blend = y / height
+        color = tuple(int(dark[i] * (1 - blend) + accent[i] * blend) for i in range(3))
+        for x in range(width):
+            glow = max(0.0, 1.0 - (((x - 600) / 850) ** 2 + ((y - 260) / 650) ** 2))
+            pixels[x, y] = tuple(min(255, int(color[i] + glow * (12 if i == 0 else 15))) for i in range(3))
+
+    draw = ImageDraw.Draw(image, "RGBA")
+    # Stadium lights and distant crowd.
+    for row in range(3):
+        y = 95 + row * 34
+        for x in range(45, width, 95):
+            radius = rng.randint(3, 8)
+            draw.ellipse((x-radius, y-radius, x+radius, y+radius), fill=(255, 255, 225, rng.randint(80, 180)))
+    for _ in range(180):
+        x, y = rng.randint(0, width), rng.randint(190, 500)
+        r = rng.randint(2, 6)
+        draw.ellipse((x-r, y-r, x+r, y+r), fill=(235, 235, 225, rng.randint(12, 45)))
+
+    # Pitch at the bottom gives each graphic a football context.
+    draw.polygon([(0, 535), (1200, 485), (1200, 675), (0, 675)], fill=(12, 35, 34, 180))
+    draw.line((0, 565, 1200, 515), fill=(225, 235, 220, 75), width=3)
+    draw.arc((360, 495, 850, 840), 190, 350, fill=(230, 238, 225, 75), width=3)
+
+    # Player silhouette and kit: pose, body placement and kit color vary by image.
+    cx = rng.randint(520, 690)
+    lean = rng.randint(-65, 65)
+    head_y = rng.randint(155, 205)
+    skin = rng.choice([(104, 66, 48, 255), (171, 119, 87, 255), (205, 157, 119, 255), (76, 53, 43, 255)])
+    kit = rng.choice([(225, 226, 218, 255), (28, 31, 38, 255), (35, 67, 93, 255), (112, 42, 49, 255), (42, 91, 67, 255), (197, 190, 166, 255), (69, 73, 78, 255)])
+    # Legs and socks.
+    hip_y = 420
+    leg_spread = rng.randint(75, 145)
+    draw.line((cx-25, hip_y, cx-leg_spread, 570), fill=(20, 23, 27, 255), width=48)
+    draw.line((cx+25, hip_y, cx+leg_spread+rng.randint(-25, 30), 555), fill=(20, 23, 27, 255), width=48)
+    draw.line((cx-leg_spread, 555, cx-leg_spread-20, 625), fill=light+(255,), width=25)
+    draw.line((cx+leg_spread, 545, cx+leg_spread+15, 615), fill=light+(255,), width=25)
+    # Torso, shoulders and plain jersey.
+    torso = [(cx-82+lean//3, 260), (cx+72+lean//3, 255), (cx+60, 435), (cx-55, 440)]
+    draw.polygon(torso, fill=kit)
+    draw.ellipse((cx-105+lean//3, 250, cx-45+lean//3, 315), fill=kit)
+    draw.ellipse((cx+40+lean//3, 245, cx+105+lean//3, 312), fill=kit)
+    # Neck and head.
+    draw.rectangle((cx-23, head_y+45, cx+24, head_y+92), fill=skin)
+    draw.ellipse((cx-48, head_y-8, cx+48, head_y+88), fill=skin)
+    draw.pieslice((cx-50, head_y-15, cx+50, head_y+65), 180, 355, fill=(28, 25, 24, 255))
+    # Arms in a changing action pose.
+    left_end = (cx-rng.randint(125, 230), rng.randint(250, 390))
+    right_end = (cx+rng.randint(125, 230), rng.randint(225, 390))
+    draw.line((cx-78, 285, left_end[0], left_end[1]), fill=skin, width=34)
+    draw.line((cx+78, 282, right_end[0], right_end[1]), fill=skin, width=34)
+    for ex, ey in (left_end, right_end):
+        draw.ellipse((ex-18, ey-18, ex+18, ey+18), fill=skin)
+    # Football with classic monochrome panels.
+    bx = rng.randint(210, 990)
+    by = rng.randint(470, 610)
+    br = rng.randint(28, 42)
+    draw.ellipse((bx-br, by-br, bx+br, by+br), fill=(244, 244, 235, 255), outline=(25, 30, 32, 255), width=4)
+    draw.polygon([(bx, by-br//2), (bx+br//2, by-br//5), (bx+br//3, by+br//2), (bx-br//3, by+br//2), (bx-br//2, by-br//5)], fill=(30, 35, 38, 255))
+    # Subtle graphic framing.
+    draw.rectangle((24, 24, width-24, height-24), outline=(255, 255, 255, 45), width=2)
+    output = io.BytesIO()
+    image.save(output, format="JPEG", quality=88, optimize=True)
+    output.seek(0)
+    return output
+
+def telegram_btts_ft(message, image_index=None):
+    """Send a generated football graphic above the BTTS pick caption."""
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
     payload = {"chat_id": CHAT_ID, "caption": message}
-    if image_url:
-        payload["photo"] = image_url
+    if image_index is not None:
         try:
-            response = requests.post(url, data=payload, timeout=30)
+            photo = make_btts_graphic(image_index)
+            response = requests.post(
+                url, data=payload,
+                files={"photo": (f"btts-{int(image_index):02d}.jpg", photo, "image/jpeg")},
+                timeout=45,
+            )
             response.raise_for_status()
             result = response.json()
             if result.get("ok"):
