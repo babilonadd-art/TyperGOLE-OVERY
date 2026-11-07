@@ -396,78 +396,89 @@ BTTS_GRAPHIC_PALETTES = [
 ]
 
 def make_btts_graphic(image_index):
-    """Create a distinct 16:9 football action illustration with a plain, unbranded shirt."""
-    from PIL import Image, ImageDraw
+    """Create a premium, unbranded football-stadium graphic; no cartoon players."""
+    from PIL import Image, ImageDraw, ImageFilter
     import random
 
     rng = random.Random(int(image_index) + 731)
     width, height = 1200, 675
-    dark, accent, light = BTTS_GRAPHIC_PALETTES[int(image_index) % len(BTTS_GRAPHIC_PALETTES)]
-    image = Image.new("RGB", (width, height))
+    image = Image.new("RGB", (width, height), (7, 15, 25))
     pixels = image.load()
+
+    # Deep navy night sky with a restrained emerald stadium glow.
     for y in range(height):
-        blend = y / height
-        color = tuple(int(dark[i] * (1 - blend) + accent[i] * blend) for i in range(3))
+        t = y / height
+        base = (int(7 + 5*t), int(15 + 17*t), int(25 + 12*t))
         for x in range(width):
-            glow = max(0.0, 1.0 - (((x - 600) / 850) ** 2 + ((y - 260) / 650) ** 2))
-            pixels[x, y] = tuple(min(255, int(color[i] + glow * (12 if i == 0 else 15))) for i in range(3))
+            glow = max(0.0, 1.0 - (((x - rng.choice([180, 1020])) / 650) ** 2 + ((y - 150) / 330) ** 2))
+            pixels[x, y] = (
+                min(255, base[0] + int(glow * 10)),
+                min(255, base[1] + int(glow * 27)),
+                min(255, base[2] + int(glow * 22)),
+            )
 
     draw = ImageDraw.Draw(image, "RGBA")
-    # Stadium lights and distant crowd.
-    for row in range(3):
-        y = 95 + row * 34
-        for x in range(45, width, 95):
-            radius = rng.randint(3, 8)
-            draw.ellipse((x-radius, y-radius, x+radius, y+radius), fill=(255, 255, 225, rng.randint(80, 180)))
-    for _ in range(180):
-        x, y = rng.randint(0, width), rng.randint(190, 500)
-        r = rng.randint(2, 6)
-        draw.ellipse((x-r, y-r, x+r, y+r), fill=(235, 235, 225, rng.randint(12, 45)))
 
-    # Pitch at the bottom gives each graphic a football context.
-    draw.polygon([(0, 535), (1200, 485), (1200, 675), (0, 675)], fill=(12, 35, 34, 180))
-    draw.line((0, 565, 1200, 515), fill=(225, 235, 220, 75), width=3)
-    draw.arc((360, 495, 850, 840), 190, 350, fill=(230, 238, 225, 75), width=3)
+    # Stadium roofline and distant stands.
+    draw.polygon([(0, 175), (180, 105), (1020, 105), (1200, 175), (1200, 470), (0, 470)],
+                 fill=(5, 10, 18, 180))
+    draw.line([(0, 178), (180, 112), (1020, 112), (1200, 178)],
+              fill=(160, 190, 185, 75), width=5)
+    for row in range(8):
+        y = 225 + row * 25
+        for x in range(24, 1180, 19):
+            brightness = rng.randint(12, 58)
+            draw.ellipse((x, y, x+3, y+3), fill=(190, 210, 205, brightness))
 
-    # Player silhouette and kit: pose, body placement and kit color vary by image.
-    cx = rng.randint(520, 690)
-    lean = rng.randint(-65, 65)
-    head_y = rng.randint(155, 205)
-    skin = rng.choice([(104, 66, 48, 255), (171, 119, 87, 255), (205, 157, 119, 255), (76, 53, 43, 255)])
-    kit = rng.choice([(225, 226, 218, 255), (28, 31, 38, 255), (35, 67, 93, 255), (112, 42, 49, 255), (42, 91, 67, 255), (197, 190, 166, 255), (69, 73, 78, 255)])
-    # Legs and socks.
-    hip_y = 420
-    leg_spread = rng.randint(75, 145)
-    draw.line((cx-25, hip_y, cx-leg_spread, 570), fill=(20, 23, 27, 255), width=48)
-    draw.line((cx+25, hip_y, cx+leg_spread+rng.randint(-25, 30), 555), fill=(20, 23, 27, 255), width=48)
-    draw.line((cx-leg_spread, 555, cx-leg_spread-20, 625), fill=light+(255,), width=25)
-    draw.line((cx+leg_spread, 545, cx+leg_spread+15, 615), fill=light+(255,), width=25)
-    # Torso, shoulders and plain jersey.
-    torso = [(cx-82+lean//3, 260), (cx+72+lean//3, 255), (cx+60, 435), (cx-55, 440)]
-    draw.polygon(torso, fill=kit)
-    draw.ellipse((cx-105+lean//3, 250, cx-45+lean//3, 315), fill=kit)
-    draw.ellipse((cx+40+lean//3, 245, cx+105+lean//3, 312), fill=kit)
-    # Neck and head.
-    draw.rectangle((cx-23, head_y+45, cx+24, head_y+92), fill=skin)
-    draw.ellipse((cx-48, head_y-8, cx+48, head_y+88), fill=skin)
-    draw.pieslice((cx-50, head_y-15, cx+50, head_y+65), 180, 355, fill=(28, 25, 24, 255))
-    # Arms in a changing action pose.
-    left_end = (cx-rng.randint(125, 230), rng.randint(250, 390))
-    right_end = (cx+rng.randint(125, 230), rng.randint(225, 390))
-    draw.line((cx-78, 285, left_end[0], left_end[1]), fill=skin, width=34)
-    draw.line((cx+78, 282, right_end[0], right_end[1]), fill=skin, width=34)
-    for ex, ey in (left_end, right_end):
-        draw.ellipse((ex-18, ey-18, ex+18, ey+18), fill=skin)
-    # Football with classic monochrome panels.
-    bx = rng.randint(210, 990)
-    by = rng.randint(470, 610)
-    br = rng.randint(28, 42)
-    draw.ellipse((bx-br, by-br, bx+br, by+br), fill=(244, 244, 235, 255), outline=(25, 30, 32, 255), width=4)
-    draw.polygon([(bx, by-br//2), (bx+br//2, by-br//5), (bx+br//3, by+br//2), (bx-br//3, by+br//2), (bx-br//2, by-br//5)], fill=(30, 35, 38, 255))
-    # Subtle graphic framing.
-    draw.rectangle((24, 24, width-24, height-24), outline=(255, 255, 255, 45), width=2)
+    # Floodlight banks with soft bloom.
+    glow_layer = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(glow_layer, "RGBA")
+    for side in (70, 1130):
+        for i in range(5):
+            x = side + (i-2)*13
+            gd.ellipse((x-7, 115, x+7, 143), fill=(235, 247, 235, 210))
+    glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(24))
+    image = Image.alpha_composite(image.convert("RGBA"), glow_layer)
+    draw = ImageDraw.Draw(image, "RGBA")
+    
+    # Perspective pitch with clean white markings.
+    draw.polygon([(0, 470), (1200, 445), (1200, 675), (0, 675)], fill=(12, 48, 39, 255))
+    draw.polygon([(0, 520), (1200, 495), (1200, 675), (0, 675)], fill=(17, 67, 48, 120))
+    draw.line([(0, 510), (1200, 485)], fill=(225, 235, 225, 105), width=3)
+    draw.line([(600, 490), (600, 675)], fill=(225, 235, 225, 95), width=3)
+    draw.ellipse((420, 500, 780, 850), outline=(225, 235, 225, 95), width=3)
+
+    # Large premium football detail, varied placement and scale per image.
+    bx = rng.choice([260, 930, 600])
+    by = rng.randint(455, 555)
+    radius = rng.randint(72, 98)
+    ball_layer = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    bd = ImageDraw.Draw(ball_layer, "RGBA")
+    bd.ellipse((bx-radius+12, by-radius+18, bx+radius+12, by+radius+18),
+               fill=(0, 0, 0, 145))
+    ball_layer = ball_layer.filter(ImageFilter.GaussianBlur(18))
+    image = Image.alpha_composite(image, ball_layer)
+    draw = ImageDraw.Draw(image, "RGBA")
+    draw.ellipse((bx-radius, by-radius, bx+radius, by+radius),
+                 fill=(232, 236, 226, 255), outline=(255, 255, 255, 220), width=5)
+    # Minimal dark panel geometry, not a cartoon illustration.
+    panel = (22, 34, 37, 255)
+    draw.polygon([(bx, by-radius*0.48), (bx+radius*0.43, by-radius*0.16),
+                  (bx+radius*0.28, by+radius*0.38), (bx-radius*0.28, by+radius*0.38),
+                  (bx-radius*0.43, by-radius*0.16)], fill=panel)
+    draw.line([(bx, by-radius*0.48), (bx, by-radius)], fill=(30, 40, 40, 190), width=4)
+    draw.line([(bx+radius*0.43, by-radius*0.16), (bx+radius, by-radius*0.38)],
+              fill=(30, 40, 40, 190), width=4)
+    draw.line([(bx-radius*0.43, by-radius*0.16), (bx-radius, by-radius*0.38)],
+              fill=(30, 40, 40, 190), width=4)
+
+    # Premium restrained frame and accent line.
+    draw.rounded_rectangle((24, 24, width-24, height-24), radius=18,
+                           outline=(225, 238, 230, 70), width=2)
+    draw.line((48, 48, 250, 48), fill=(89, 205, 151, 210), width=5)
+
     output = io.BytesIO()
-    image.save(output, format="JPEG", quality=88, optimize=True)
+    image.convert("RGB").save(output, format="JPEG", quality=91, optimize=True)
     output.seek(0)
     return output
 
