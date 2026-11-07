@@ -174,7 +174,15 @@ def open_matchday_result_for_pick(pick):
         if not (direct or reverse):
             continue
         kickoff = open_matchday_kickoff(row)
-        if not kickoff or abs((kickoff.date() - expected_day).days) > 1:
+        if not kickoff or kickoff.astimezone(TZ).date() != expected_day:
+            continue
+        # Open Matchday CSV timestamps can differ by one hour due to its
+        # fixed CET convention, but must still identify the same kickoff.
+        try:
+            expected_kickoff = expected.astimezone(TZ)
+            if abs((kickoff.astimezone(TZ) - expected_kickoff).total_seconds()) > 3 * 60 * 60:
+                continue
+        except (TypeError, ValueError):
             continue
         fh, fa = as_int(row.get("ft_home")), as_int(row.get("ft_away"))
         if fh is None or fa is None:
@@ -1522,10 +1530,17 @@ def settlement_fixture_matches_pick(match, pick):
     actual = kickoff_datetime(match)
     if actual is None:
         return False
-    day_gap = abs((actual.date() - expected_day).days)
-    if day_gap > 1:
+    # Settlement must refer to this exact scheduled fixture, not another
+    # meeting between the same teams on the previous/next day.
+    if actual.astimezone(TZ).date() != expected_day:
         print(
-            f"Settlement guard: odrzucono rekord z innej daty ({actual.date()} != {expected_day})",
+            f"Settlement guard: odrzucono inną datę ({actual.astimezone(TZ).date()} != {expected_day})",
+            flush=True,
+        )
+        return False
+    if abs((actual - expected.astimezone(actual.tzinfo or TZ)).total_seconds()) > 3 * 60 * 60:
+        print(
+            f"Settlement guard: odrzucono inną godzinę ({actual} != {expected})",
             flush=True,
         )
         return False
@@ -1625,8 +1640,15 @@ def match_detail(slug, pick=None):
                         normalized_team_name(fh) == normalized_team_name(pick.get("away"))
                         and normalized_team_name(fa) == normalized_team_name(pick.get("home"))
                     ):
+                        if not settlement_fixture_matches_pick(fixture, pick):
+                            print(
+                                f"Harmonogram: odrzucam podobne drużyny z innej daty/godziny "
+                                f"({kickoff_datetime(fixture)}; oczekiwano {pick.get('kickoff_time')}).",
+                                flush=True,
+                            )
+                            continue
                         if confirmed_final_fixture(fixture):
-                            print("Harmonogram: potwierdzony zakończony mecz po nazwach drużyn", flush=True)
+                            print("Harmonogram: potwierdzony zakończony mecz po nazwach i dokładnym terminie", flush=True)
                             return fixture
                         print("Harmonogram: nazwy pasują, ale rekord nie jest potwierdzonym zakończonym meczem — pomijam.", flush=True)
             except Exception as exc:
