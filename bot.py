@@ -3508,22 +3508,9 @@ def send_prematch_over_15_ht_picks(state):
     if not fixtures:
         print("Brak przyszłych spotkań Over 1.5 HT w dzisiejszym terminarzu.", flush=True)
         return
-    history_cache = state.setdefault("team_history_cache", {})
-    allowed_cache_prefixes = tuple(
-        prefix
-        for day in scan_dates
-        for prefix in (day.isoformat() + ":", "FT:" + day.isoformat() + ":")
-    )
-    state["team_history_cache"] = {
-        key: value for key, value in history_cache.items()
-        if key.startswith(allowed_cache_prefixes)
-    }
-    history_cache = state["team_history_cache"]
-    # Cheap first pass: score fixtures from the local Open Matchday index.
-    # Superbet event details are expensive, so fetch them ONLY for the best
-    # history-ranked candidates instead of all 1,600+ fixtures.
+    # No historical team-form or head-to-head statistics are used for picks.
+    # Open Matchday is used only for the fixture list and scheduled kickoff.
     open_matchday_data()
-    _team_history_index()
     event_by_id = {
         str(event.get("event_id")): event
         for event in superbet_events
@@ -3553,67 +3540,40 @@ def send_prematch_over_15_ht_picks(state):
         iddaa = match_iddaa_ht_prediction(home, away, kickoff, iddaa_predictions)
         if not iddaa or iddaa["probability"] < MIN_IDDAA_HT_PERCENT:
             continue
-        home_slug, away_slug = slug.split("-vs-", 1)
-        # Cheap preselection only: count indexed history rows for each side.
-        # Do NOT calculate goal rates/probabilities for the entire fixture slate.
-        home_count = _team_history_count_fast(home_slug, kickoff)
-        away_count = _team_history_count_fast(away_slug, kickoff)
-        if home_count < MIN_HT_HISTORY or away_count < MIN_HT_HISTORY:
-            rejected_history += 1
-            continue
+        # Candidate ranking is based only on Iddaa's published percentage.
+        # No H2H, recent-form, team-history or Poisson calculations.
         pre_candidates.append({
             "match": match, "event": event, "event_id": event_id,
             "home": home, "away": away, "slug": slug,
             "id": identifier, "kickoff": kickoff,
-            "home_history_count": home_count,
-            "away_history_count": away_count,
             "iddaa": iddaa,
         })
 
-    # Keep the strongest model candidates first, prioritising today's matches.
-    # This is a shortlist, not a hard limit on the number of tips per day.
-    # Shortlist by usable history coverage first; only these fixtures receive
-    # the more expensive goal-rate and BTTS probability calculation.
     pre_candidates.sort(key=lambda item: (
         -item["iddaa"]["probability"],
-        -min(item["home_history_count"], item["away_history_count"]),
-        -(item["home_history_count"] + item["away_history_count"]),
         item["kickoff"],
     ))
     DETAIL_SHORTLIST_SIZE = 20
     shortlisted = pre_candidates[:DETAIL_SHORTLIST_SIZE]
     print(
-        f"BTTS / Over 1.5 HT szybki wybór: terminarz={len(fixtures)}, "
-        f"z historią obu drużyn={len(pre_candidates)}, "
+        f"Over 1.5 HT szybki wybór: terminarz={len(fixtures)}, "
+        f"spełnia próg Iddaa={len(pre_candidates)}, "
         f"szczegółowa analiza maksymalnie={len(shortlisted)}, "
-        f"duplikaty={rejected_duplicate}, brak historii={rejected_history}.",
+        f"duplikaty={rejected_duplicate}. Bez historii drużyn i H2H.",
         flush=True,
     )
     if not shortlisted:
-        print("BTTS: szybki wybór nie znalazł meczów z historią obu drużyn.", flush=True)
+        print("Over 1.5 HT: brak meczów spełniających próg Iddaa.", flush=True)
         return
 
-    history_estimates = {}
-    scored_shortlist = []
+    # The only probability used in selection and reporting is Iddaa's value.
     for item in shortlisted:
-        home_slug, away_slug = item["slug"].split("-vs-", 1)
-        hp = team_first_half_profile(home_slug, item["kickoff"], "home", history_cache)
-        ap = team_first_half_profile(away_slug, item["kickoff"], "away", history_cache)
-        estimate = first_half_over_15_probability(hp, ap)
-        if not estimate:
-            continue
-        history_estimates[item["event_id"]] = estimate
-        item["estimate"] = estimate
-        scored_shortlist.append(item)
-    shortlisted = scored_shortlist
-    print(
-        f"Over 1.5 HT ranking: policzono kontrolny model dla {len(shortlisted)} "
-        "wybranych meczów; procent główny pochodzi z iddaaorantahmin.",
-        flush=True,
-    )
-    if not shortlisted:
-        print("BTTS: wybrana grupa nie spełnia minimalnego progu modelu.", flush=True)
-        return
+        item["estimate"] = {
+            "probability": float(item["iddaa"]["probability"]) / 100.0,
+            "home_sample": 0,
+            "away_sample": 0,
+            "method": "Iddaa only; historical team statistics disabled",
+        }
 
     event_details = {}
     def fetch_event_detail(event_id):
@@ -3663,7 +3623,7 @@ def send_prematch_over_15_ht_picks(state):
                     flush=True,
                 )
                 return None
-            estimate = history_estimates[item["event_id"]]
+            estimate = item["estimate"]
             league = (
                 extract_superbet_competition_name(event)
                 or first(match, "competition_name", "competition", "league_name", default="Liga nieznana")
@@ -3721,7 +3681,7 @@ def send_prematch_over_15_ht_picks(state):
             continue
         estimate = candidate["estimate"]
         probability = float(candidate["iddaa"]["probability"])
-        model_probability = round(estimate["probability"] * 100, 1)
+        model_probability = probability
         bet_url = superbet_btts_full_time_url(
             candidate["event"]["url"], final_quote
         )
@@ -3743,7 +3703,7 @@ def send_prematch_over_15_ht_picks(state):
             "odds_market": final_quote["market"],
             "odds_updated_at": final_quote.get("updated_at"),
             "superbet_url": bet_url,
-            "probability": float(candidate["iddaa"]["probability"]), "iddaa_probability": candidate["iddaa"]["probability"], "iddaa_source_odds": candidate["iddaa"].get("source_odds"), "probability_method": "iddaaorantahmin.com HT Over 1.5; model is secondary",
+            "probability": float(candidate["iddaa"]["probability"]), "iddaa_probability": candidate["iddaa"]["probability"], "iddaa_source_odds": candidate["iddaa"].get("source_odds"), "probability_method": "Iddaa HT Over 1.5 only; no team-history or H2H statistics",
             "model_inputs": estimate, "iddaa_source": "https://www.iddaaorantahmin.com/en/soccer-odds-analysis/ht-over-1-5-goals-tips", "goal_line": 1.5, "settled": False,
             "delivery_status": "pending",
         }
@@ -3760,10 +3720,8 @@ def send_prematch_over_15_ht_picks(state):
                 f"🏆 Liga: {candidate['league']}\n"
                 f"📈 Kurs Superbet: {final_quote['odds']:.2f}\n"
                 f"📊 Procent iddaaorantahmin: {probability:.0f}%\n"
-                f"📉 Model kontrolny HT: {model_probability:.1f}%\n"
-                f"📚 Próba HT: {estimate['home_sample']} / {estimate['away_sample']} meczów\n"
                 f"Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
-                f"Model kontrolny: gole zdobywane i tracone w 1. połowie\n"
+                f"Selekcja: procent Iddaa + kurs Superbet; bez statystyk historii drużyn\n"
                 f"👉 OTWÓRZ OVER 1.5 HT W SUPERBET: {bet_url}\n"
                 f"Dane meczowe: Open Matchday — https://github.com/oladeeayo/open-matchday"
             )
