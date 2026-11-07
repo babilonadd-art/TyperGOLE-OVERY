@@ -25,7 +25,7 @@ MOVIODDS_API = "https://moviodds.com"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
-STAKE = 50.0
+STAKE = 10.0
 BET_TAX_RATE = 0.12
 # Maksymalnie 10 typów BTTS FT dziennie.
 
@@ -61,7 +61,7 @@ def daily_sent_match_count(state, day):
     for pick in state.get("picks", []):
         if pick.get("date") != day or pick.get("delivery_status", "sent") != "sent":
             continue
-        if pick.get("market") != BTTS_FT_MARKET or pick.get("counts_toward_daily_limit") is False:
+        if pick.get("market") != OVER_15_HT_MARKET or pick.get("counts_toward_daily_limit") is False:
             continue
         fixture_id = pick.get("id") or pick.get("slug") or pick.get("key")
         if fixture_id:
@@ -2160,7 +2160,7 @@ def settle_picks(state):
 
             # BTTS markets settle from their own confirmed period score.
             # It has no live-entry baseline score; requiring one would block every settlement.
-            if pick.get("market") not in (BTTS_HT_MARKET, BTTS_FT_MARKET):
+            if pick.get("market") not in (BTTS_HT_MARKET, BTTS_FT_MARKET, OVER_15_HT_MARKET):
                 baseline_home = as_int(pick.get("score_home"))
                 baseline_away = as_int(pick.get("score_away"))
                 if baseline_home is None or baseline_away is None:
@@ -2205,7 +2205,7 @@ def settle_picks(state):
             target_score = None
             period_complete = False
 
-            if pick["market"] in ("HT", BTTS_HT_MARKET):
+            if pick["market"] in ("HT", BTTS_HT_MARKET, OVER_15_HT_MARKET):
                 ht_home, ht_away = extract_half_time_score(match)
                 phase_values = []
                 for phase_key in (
@@ -2333,7 +2333,7 @@ def settle_picks(state):
             # BTTS 1H settles at HT; BTTS FT waits for the confirmed final score.
             # score/period. The extra 180-second debounce is only for live
             # goal-line markets and must not delay a completed first half.
-            if (pick.get("market") not in (BTTS_HT_MARKET, BTTS_FT_MARKET)
+            if (pick.get("market") not in (BTTS_HT_MARKET, BTTS_FT_MARKET, OVER_15_HT_MARKET)
                     and not settlement_confirmation_ready(pick, target_score, now, confirmation_seconds)):
                 save_state(state)
                 print(
@@ -2538,13 +2538,245 @@ def update_existing_pick_minutes(state):
 # ---------------------------------------------------------------------------
 # PRE-MATCH BTTS FIRST-HALF AND FULL-TIME STRATEGIES
 # ---------------------------------------------------------------------------
-BTTS_HT_MARKET = "BTTS_HT"
-BTTS_FT_MARKET = "BTTS_FT"
-MIN_BTTS_FT_ODDS = 1.60
-MAX_BTTS_FT_ODDS = 3.50
+BTTS_HT_MARKET = "BTTS_HT"  # legacy historical market; do not use for new tips
+BTTS_FT_MARKET = "BTTS_FT"  # legacy historical market; do not use for new tips
+OVER_15_HT_MARKET = "OVER_15_HT"
+MIN_OVER_15_HT_ODDS = 1.60
+MAX_OVER_15_HT_ODDS = 3.50
+MIN_IDDAA_HT_PERCENT = 40
 MIN_HT_HISTORY = 3
 HISTORY_MATCHES = 5
 MIN_MODEL_PROBABILITY = 0.08
+
+class IddaaHTTableParser(HTMLParser):
+    """Read the visible match rows from iddaaorantahmin's HT Over 1.5 page."""
+    def __init__(self):
+        super().__init__()
+        self.rows = []
+        self.in_row = False
+        self.in_cell = False
+        self.current_row = []
+        self.current_cell = []
+
+    def handle_starttag(self, tag, attrs):
+        tag = tag.lower()
+        if tag == "tr":
+            self.in_row = True
+            self.current_row = []
+        elif tag in ("td", "th") and self.in_row:
+            self.in_cell = True
+            self.current_cell = []
+
+    def handle_data(self, data):
+        if self.in_cell:
+            self.current_cell.append(data)
+
+    def handle_endtag(self, tag):
+        tag = tag.lower()
+        if tag in ("td", "th") and self.in_cell:
+            self.current_row.append(" ".join(" ".join(self.current_cell).split()))
+            self.current_cell = []
+            self.in_cell = False
+        elif tag == "tr" and self.in_row:
+            if self.current_row:
+                self.rows.append(self.current_row)
+            self.current_row = []
+            self.in_row = False
+
+
+def iddaa_over_15_ht_predictions():
+    """Fetch today's first-half Over 1.5 percentages from the public Iddaa page."""
+    url = "https://www.iddaaorantahmin.com/en/soccer-odds-analysis/ht-over-1-5-goals-tips"
+    response = requests.get(url, headers={**HEADERS, "Accept": "text/html"}, timeout=35)
+    response.raise_for_status()
+    parser = IddaaHTTableParser()
+    parser.feed(response.text)
+    predictions = []
+    for cells in parser.rows:
+        joined = " | ".join(cells)
+        date_match = re.search(r"\\b(20\\d{2}-\\d{2}-\\d{2})\\b", joined)
+        time_match = re.search(r"\\b([0-2]?\\d:[0-5]\\d)\\b", joined)
+        percent_match = re.search(r"\\b(\\d{1,2})\\s*%", joined)
+        if not (date_match and time_match and percent_match):
+            continue
+        match_cell = next((cell for cell in cells if re.search(r"\\s(?:-|vs)\\s", cell, re.I)), "")
+        if not match_cell:
+            continue
+        split = re.split(r"\\s+(?:-|vs)\\s+", match_cell, maxsplit=1, flags=re.I)
+        if len(split) != 2:
+            continue
+        home, away = (part.strip() for part in split)
+        if not home or not away:
+            continue
+        odds = None
+        for cell in reversed(cells):
+            if re.fullmatch(r"\\s*\\d+(?:[.,]\\d+)?\\s*", cell or ""):
+                try:
+                    value = float(cell.replace(",", "."))
+                    if 1.01 <= value <= 1000:
+                        odds = value
+                        break
+                except ValueError:
+                    pass
+        try:
+            # The page declares GMT+03:00; convert its kickoff to Warsaw time.
+            source_kickoff = datetime.strptime(
+                date_match.group(1) + " " + time_match.group(1), "%Y-%m-%d %H:%M"
+            ).replace(tzinfo=ZoneInfo("Europe/Istanbul"))
+            kickoff = source_kickoff.astimezone(TZ)
+        except (TypeError, ValueError):
+            continue
+        predictions.append({
+            "home": home, "away": away, "kickoff": kickoff,
+            "date": kickoff.date().isoformat(),
+            "probability": int(percent_match.group(1)),
+            "source_odds": odds, "source": "iddaaorantahmin.com",
+        })
+    print(f"IddaaOranTahmin Over 1.5 HT: pobrano {len(predictions)} wierszy z procentami.", flush=True)
+    return predictions
+
+
+def match_iddaa_ht_prediction(home, away, kickoff, predictions):
+    """Match a website row to the exact fixture, date and approximate kickoff."""
+    matches = []
+    for item in predictions:
+        if item["date"] != kickoff.date().isoformat():
+            continue
+        direct = min(
+            team_name_similarity(home, item["home"]),
+            team_name_similarity(away, item["away"]),
+        )
+        reverse = min(
+            team_name_similarity(home, item["away"]),
+            team_name_similarity(away, item["home"]),
+        )
+        similarity = max(direct, reverse)
+        if similarity < 0.78:
+            continue
+        time_gap = abs((item["kickoff"] - kickoff).total_seconds()) / 60
+        if time_gap > 240:
+            continue
+        matches.append((similarity, -time_gap, item))
+    if not matches:
+        return None
+    matches.sort(key=lambda value: (value[0], value[1]), reverse=True)
+    if len(matches) > 1 and matches[0][:2] == matches[1][:2]:
+        return None
+    return matches[0][2]
+
+
+def extract_superbet_over_15_ht(event_detail):
+    """Return one verified active Superbet Over 1.5 goals first-half quote."""
+    def norm(value):
+        value = str(value or "").replace("ł", "l").replace("Ł", "L")
+        value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
+        return re.sub(r"\\s+", " ", re.sub(r"[^a-z0-9]+", " ", value)).strip()
+
+    market_keys = (
+        "marketName", "market_name", "marketGroupName", "market_group_name",
+        "marketTitle", "market_title", "market", "marketGroup", "market_group",
+        "title", "groupName", "group_name", "period", "periodName",
+        "period_name", "phase", "phaseName", "phase_name", "info", "marketInfo",
+    )
+    selection_keys = ("name", "selectionName", "selection_name", "oddName",
+                      "outcomeName", "label", "displayName")
+    price_keys = ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
+    rows = []
+
+    def walk(node, inherited=""):
+        if isinstance(node, list):
+            for child in node:
+                walk(child, inherited)
+            return
+        if not isinstance(node, dict):
+            return
+        labels = [str(node.get(key)) for key in market_keys
+                  if node.get(key) not in (None, "") and not isinstance(node.get(key), (dict, list))]
+        context = " ".join(part for part in (inherited, " ".join(labels)) if part)
+        if any(node.get(key) not in (None, "") for key in price_keys) and any(
+            node.get(key) not in (None, "") for key in selection_keys
+        ):
+            row = dict(node)
+            row["_context"] = context
+            rows.append(row)
+        for value in node.values():
+            if isinstance(value, (dict, list)):
+                walk(value, context)
+
+    walk(event_detail)
+    candidates = []
+    for row in rows:
+        status = str(first(row, "status", "oddStatus", "state", default="")).lower()
+        if status not in ("active", "opened", "open", "1", "true"):
+            continue
+        selection = norm(first(row, *selection_keys, default=""))
+        market = norm(row.get("_context", "") + " " + " ".join(
+            str(row.get(key, "")) for key in market_keys if row.get(key) not in (None, "")
+        ) + " " + selection)
+        is_first_half = any(token in market for token in (
+            "1 polowa", "pierwsza polowa", "first half", "1st half", "1 pol", "1h",
+        ))
+        is_over_15 = bool(re.search(r"\\bover 1 5\\b", market)
+                          or re.search(r"\\b1 5 over\\b", market)
+                          or "powyzej 1 5" in market)
+        is_over_selection = selection in ("over", "over 1 5", "powyzej", "powyzej 1 5")
+        if not (is_first_half and is_over_15 and is_over_selection):
+            continue
+        values = []
+        for key in price_keys:
+            raw = row.get(key)
+            if raw in (None, ""):
+                continue
+            try:
+                value = float(str(raw).replace(",", "."))
+            except (TypeError, ValueError):
+                values = []
+                break
+            if not 1.01 <= value <= 1000:
+                values = []
+                break
+            values.append(value)
+        if not values or max(values) - min(values) > 0.005:
+            continue
+        candidates.append({
+            "odds": values[0], "market": market, "selection": "Over 1.5",
+            "market_group_id": first(row, "marketGroupId", "market_group_id", "groupId", "group_id"),
+            "source": "Superbet",
+            "updated_at": first(row.get("extra", {}), "feedPlatformTimestamp", "feedOriginTimestamp"),
+        })
+    grouped = {}
+    for item in candidates:
+        key = str(item.get("market_group_id") or item["market"])
+        grouped.setdefault(key, set()).add(round(item["odds"], 3))
+    valid = [(key, prices) for key, prices in grouped.items() if len(prices) == 1]
+    if len(valid) != 1:
+        print("Superbet Over 1.5 HT: brak jednoznacznego aktywnego kursu; "
+              + json.dumps([{"market": x["market"], "odds": x["odds"]} for x in candidates[:8]],
+                           ensure_ascii=False), flush=True)
+        return None
+    key, prices = valid[0]
+    chosen_odds = next(iter(prices))
+    return next(item for item in candidates
+                if str(item.get("market_group_id") or item["market"]) == key
+                and round(item["odds"], 3) == chosen_odds)
+
+
+def first_half_over_15_probability(home_profile, away_profile):
+    """Poisson estimate for at least two first-half goals in total."""
+    if not home_profile or not away_profile:
+        return None
+    home_lambda = max(0.01, (home_profile["scored_avg"] + away_profile["conceded_avg"]) / 2)
+    away_lambda = max(0.01, (away_profile["scored_avg"] + home_profile["conceded_avg"]) / 2)
+    total_lambda = home_lambda + away_lambda
+    probability = 1 - math.exp(-total_lambda) * (1 + total_lambda)
+    sample_factor = min(home_profile["sample"], away_profile["sample"]) / HISTORY_MATCHES
+    probability = probability * sample_factor + 0.30 * (1 - sample_factor)
+    return {
+        "probability": max(0.0, min(0.95, probability)),
+        "home_lambda": home_lambda, "away_lambda": away_lambda,
+        "total_lambda": total_lambda,
+        "home_sample": home_profile["sample"], "away_sample": away_profile["sample"],
+    }
 
 
 def kickoff_datetime(match):
@@ -3217,22 +3449,27 @@ def extract_superbet_btts_full_time(event_detail):
     return None
 
 
-def send_prematch_btts_full_time_picks(state):
+def send_prematch_over_15_ht_picks(state):
     today_date = now_local().date()
     today = today_date.isoformat()
     # New picks are restricted strictly to the current Warsaw-local calendar day.
     scan_dates = [today_date]
     print(
-        f"Limit BTTS FT: dziś {daily_sent_match_count(state, today)}/{MAX_DAILY_BTTS_FT_PICKS}; "
-        f"zakres kursu: {MIN_BTTS_FT_ODDS:.2f}–{MAX_BTTS_FT_ODDS:.2f}. Skanuję wyłącznie dzisiaj.",
+        f"Limit Over 1.5 HT: dziś {daily_sent_match_count(state, today)}/{MAX_DAILY_BTTS_FT_PICKS}; "
+        f"zakres kursu: {MIN_OVER_15_HT_ODDS:.2f}–{MAX_OVER_15_HT_ODDS:.2f}. Skanuję wyłącznie dzisiaj.",
         flush=True,
     )
+    try:
+        iddaa_predictions = iddaa_over_15_ht_predictions()
+    except Exception as exc:
+        print(f"IddaaOranTahmin niedostępne — nie wysyłam typów bez procentów: {type(exc).__name__}: {exc}", flush=True)
+        return
     superbet_events = []
     for scan_day in scan_dates:
         superbet_events.extend(superbet_prematch_event_links(scan_day))
     fixtures = scheduled_fixtures_today(superbet_events, scan_dates)
     if not fixtures:
-        print("Brak przyszłych spotkań BTTS FT w dzisiejszym terminarzu.", flush=True)
+        print("Brak przyszłych spotkań Over 1.5 HT w dzisiejszym terminarzu.", flush=True)
         return
     history_cache = state.setdefault("team_history_cache", {})
     allowed_cache_prefixes = tuple(
@@ -3268,13 +3505,16 @@ def send_prematch_btts_full_time_picks(state):
         identifier = match_identifier(match) or slug
         if same_fixture_pick_exists(
             state, identifier, home, away,
-            fixture_day, BTTS_FT_MARKET, slug=slug
+            fixture_day, OVER_15_HT_MARKET, slug=slug
         ):
             rejected_duplicate += 1
             continue
         event_id = str(match.get("id", "")).removeprefix("superbet:")
         event = event_by_id.get(event_id)
         if not event:
+            continue
+        iddaa = match_iddaa_ht_prediction(home, away, kickoff, iddaa_predictions)
+        if not iddaa or iddaa["probability"] < MIN_IDDAA_HT_PERCENT:
             continue
         home_slug, away_slug = slug.split("-vs-", 1)
         # Cheap preselection only: count indexed history rows for each side.
@@ -3290,6 +3530,7 @@ def send_prematch_btts_full_time_picks(state):
             "id": identifier, "kickoff": kickoff,
             "home_history_count": home_count,
             "away_history_count": away_count,
+            "iddaa": iddaa,
         })
 
     # Keep the strongest model candidates first, prioritising today's matches.
@@ -3297,6 +3538,7 @@ def send_prematch_btts_full_time_picks(state):
     # Shortlist by usable history coverage first; only these fixtures receive
     # the more expensive goal-rate and BTTS probability calculation.
     pre_candidates.sort(key=lambda item: (
+        -item["iddaa"]["probability"],
         -min(item["home_history_count"], item["away_history_count"]),
         -(item["home_history_count"] + item["away_history_count"]),
         item["kickoff"],
@@ -3318,17 +3560,17 @@ def send_prematch_btts_full_time_picks(state):
     scored_shortlist = []
     for item in shortlisted:
         home_slug, away_slug = item["slug"].split("-vs-", 1)
-        hp = team_full_time_profile(home_slug, item["kickoff"], "home", history_cache)
-        ap = team_full_time_profile(away_slug, item["kickoff"], "away", history_cache)
-        estimate = full_time_btts_probability(hp, ap)
-        if not estimate or estimate["probability"] < MIN_MODEL_PROBABILITY:
+        hp = team_first_half_profile(home_slug, item["kickoff"], "home", history_cache)
+        ap = team_first_half_profile(away_slug, item["kickoff"], "away", history_cache)
+        estimate = first_half_over_15_probability(hp, ap)
+        if not estimate:
             continue
         history_estimates[item["event_id"]] = estimate
         item["estimate"] = estimate
         scored_shortlist.append(item)
     shortlisted = scored_shortlist
     print(
-        f"BTTS ranking: policzono prawdopodobieństwo dla {len(shortlisted)} "
+        f"Over 1.5 HT ranking: policzono prawdopodobieństwo dla {len(shortlisted)} "
         f"wybranych meczów; próg={MIN_MODEL_PROBABILITY:.0%}.",
         flush=True,
     )
@@ -3373,14 +3615,14 @@ def send_prematch_btts_full_time_picks(state):
             print(f"[{index}] Brak szczegółów Superbet: {home} - {away}", flush=True)
             return None
         try:
-            quote = extract_superbet_btts_full_time(detail)
+            quote = extract_superbet_over_15_ht(detail)
             if not quote:
-                print(f"[{index}] Brak aktywnego kursu Superbet BTTS FT: {home} - {away}", flush=True)
+                print(f"[{index}] Brak aktywnego kursu Superbet Over 1.5 HT: {home} - {away}", flush=True)
                 return None
-            if not MIN_BTTS_FT_ODDS <= quote["odds"] <= MAX_BTTS_FT_ODDS:
+            if not MIN_OVER_15_HT_ODDS <= quote["odds"] <= MAX_OVER_15_HT_ODDS:
                 print(
-                    f"[{index}] Kurs BTTS FT {quote['odds']:.2f} poza zakresem "
-                    f"{MIN_BTTS_FT_ODDS:.2f}–{MAX_BTTS_FT_ODDS:.2f}: {home} - {away}.",
+                    f"[{index}] Kurs Over 1.5 HT {quote['odds']:.2f} poza zakresem "
+                    f"{MIN_OVER_15_HT_ODDS:.2f}–{MAX_OVER_15_HT_ODDS:.2f}: {home} - {away}.",
                     flush=True,
                 )
                 return None
@@ -3405,7 +3647,7 @@ def send_prematch_btts_full_time_picks(state):
     analyzed = [analyze_fixture(item) for item in indexed_fixtures]
     candidates = [candidate for candidate in analyzed if candidate]
     print(
-        f"Ranking BTTS FT zakończony: {len(candidates)} kandydatów z aktywnym "
+        f"Ranking Over 1.5 HT zakończony: {len(candidates)} kandydatów z aktywnym "
         f"rynkiem i kursem 1.60–3.50; sprawdzono szczegółowo {len(shortlisted)} "
         f"z {len(fixtures)} meczów.",
         flush=True,
@@ -3413,13 +3655,13 @@ def send_prematch_btts_full_time_picks(state):
     # Prioritize today's fixtures, then the strongest model probability.
     # Deliver at most one pick per workflow run (cron runs every five minutes)
     # to stay below Telegram group/channel flood limits.
-    candidates.sort(key=lambda item: (item["kickoff"].date(), -item["estimate"]["probability"]))
+    candidates.sort(key=lambda item: (item["kickoff"].date(), -item["iddaa"]["probability"], -item["estimate"]["probability"]))
     for candidate in candidates:
         candidate_day = candidate["kickoff"].date().isoformat()
         day_count = daily_sent_match_count(state, candidate_day)
         if day_count >= MAX_DAILY_BTTS_FT_PICKS:
             print(
-                f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {candidate_day}; "
+                f"Limit {MAX_DAILY_BTTS_FT_PICKS} Over 1.5 HT osiągnięty dla {candidate_day}; "
                 f"pomijam {candidate['home']} - {candidate['away']}.",
                 flush=True,
             )
@@ -3427,44 +3669,45 @@ def send_prematch_btts_full_time_picks(state):
         # Last-moment independent price refresh; never reuse a stale or guessed quote.
         try:
             final_detail = superbet_event_detail(candidate["event"]["event_id"])
-            final_quote = extract_superbet_btts_full_time(final_detail)
+            final_quote = extract_superbet_over_15_ht(final_detail)
         except Exception as exc:
             print(f"Końcowa kontrola Superbet nieudana: {type(exc).__name__}: {exc}", flush=True)
             continue
         if not final_quote:
-            print(f"Brak aktualnego kursu BTTS FT dla {candidate['home']} - {candidate['away']}; pomijam.", flush=True)
+            print(f"Brak aktualnego kursu Over 1.5 HT dla {candidate['home']} - {candidate['away']}; pomijam.", flush=True)
             continue
-        if not MIN_BTTS_FT_ODDS <= final_quote["odds"] <= MAX_BTTS_FT_ODDS:
-            print(f"Końcowy kurs BTTS FT {final_quote['odds']:.2f} poniżej minimum {MIN_BTTS_FT_ODDS:.2f}: {candidate['home']} - {candidate['away']}; BLOKADA wysyłki.", flush=True)
+        if not MIN_OVER_15_HT_ODDS <= final_quote["odds"] <= MAX_OVER_15_HT_ODDS:
+            print(f"Końcowy kurs Over 1.5 HT {final_quote['odds']:.2f} poniżej minimum {MIN_OVER_15_HT_ODDS:.2f}: {candidate['home']} - {candidate['away']}; BLOKADA wysyłki.", flush=True)
             continue
         if abs(final_quote["odds"] - candidate["quote"]["odds"]) > 0.005:
-            print(f"Kurs BTTS FT zmienił się dla {candidate['home']} - {candidate['away']}; pomijam i sprawdzę ponownie.", flush=True)
+            print(f"Kurs Over 1.5 HT zmienił się dla {candidate['home']} - {candidate['away']}; pomijam i sprawdzę ponownie.", flush=True)
             continue
         estimate = candidate["estimate"]
-        probability = round(estimate["probability"] * 100, 1)
+        probability = float(candidate["iddaa"]["probability"])
+        model_probability = round(estimate["probability"] * 100, 1)
         bet_url = superbet_btts_full_time_url(
             candidate["event"]["url"], final_quote
         )
         if not bet_url:
             print(
                 f"Pomijam {candidate['home']} - {candidate['away']}: "
-                "brak potwierdzonego linku do grupy BTTS FT w Superbet.",
+                "brak potwierdzonego linku do grupy Over 1.5 HT w Superbet.",
                 flush=True,
             )
             continue
         pick = {
-            "key": f"{candidate['id']}:{BTTS_FT_MARKET}",
+            "key": f"{candidate['id']}:{OVER_15_HT_MARKET}",
             "id": candidate["id"], "slug": candidate["slug"],
             "home": candidate["home"], "away": candidate["away"],
             "league": candidate["league"], "date": candidate_day,
             "kickoff_time": candidate["kickoff"].isoformat(),
-            "market": BTTS_FT_MARKET, "stake": STAKE,
+            "market": OVER_15_HT_MARKET, "stake": STAKE,
             "odds": final_quote["odds"], "odds_source": "Superbet",
             "odds_market": final_quote["market"],
             "odds_updated_at": final_quote.get("updated_at"),
             "superbet_url": bet_url,
-            "probability": probability, "probability_method": "Poisson FT scoring/conceding rates",
-            "model_inputs": estimate, "settled": False,
+            "probability": float(candidate["iddaa"]["probability"]), "iddaa_probability": candidate["iddaa"]["probability"], "iddaa_source_odds": candidate["iddaa"].get("source_odds"), "probability_method": "iddaaorantahmin.com HT Over 1.5; model is secondary",
+            "model_inputs": estimate, "iddaa_source": "https://www.iddaaorantahmin.com/en/soccer-odds-analysis/ht-over-1-5-goals-tips", "goal_line": 1.5, "settled": False,
             "delivery_status": "pending",
         }
         state.setdefault("picks", []).append(pick)
@@ -3475,15 +3718,16 @@ def send_prematch_btts_full_time_picks(state):
             kickoff_text = candidate["kickoff"].strftime("%H:%M")
             message = (
                 f"🕒 START GODZINA {kickoff_text} CZASU POLSKIEGO\n"
-                f"🎯 BTTS CAŁY MECZ — TAK\n"
+                f"🎯 OVER 1.5 GOLA W 1. POŁOWIE (HT)\n"
                 f"⚽ {candidate['home']} – {candidate['away']}\n"
                 f"🏆 Liga: {candidate['league']}\n"
                 f"📈 Kurs Superbet: {final_quote['odds']:.2f}\n"
-                f"📊 Szacowane prawdopodobieństwo: {probability:.1f}%\n"
-                f"📚 Próba: {estimate['home_sample']} meczów gospodarzy / {estimate['away_sample']} gości\n"
+                f"📊 Procent iddaaorantahmin: {probability:.0f}%\n"
+                f"📉 Model kontrolny HT: {model_probability:.1f}%\n"
+                f"📚 Próba HT: {estimate['home_sample']} / {estimate['away_sample']} meczów\n"
                 f"Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
                 f"Model: gole w całym meczu — zdobywane i tracone\n"
-                f"👉 OTWÓRZ BTTS CAŁY MECZ W SUPERBET: {bet_url}\n"
+                f"👉 OTWÓRZ OVER 1.5 HT W SUPERBET: {bet_url}\n"
                 f"Dane meczowe: Open Matchday — https://github.com/oladeeayo/open-matchday"
             )
             image_cursor = int(state.get("btts_image_cursor", 0)) % len(BTTS_IMAGE_POOL)
@@ -3498,13 +3742,13 @@ def send_prematch_btts_full_time_picks(state):
             pick["delivery_status"] = "sent"
             pick["sent_at"] = now_local().isoformat()
             save_state(state)
-            print(f"WYSŁANO BTTS FT: {candidate['home']} - {candidate['away']} @ {final_quote['odds']:.2f}, P={probability}%", flush=True)
+            print(f"WYSŁANO Over 1.5 HT: {candidate['home']} - {candidate['away']} @ {final_quote['odds']:.2f}, P={probability}%", flush=True)
             break
         except Exception as exc:
             pick["delivery_status"] = "failed"
             pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
             save_state(state)
-            print(f"Telegram BTTS FT nieudany: {type(exc).__name__}: {exc}", flush=True)
+            print(f"Telegram Over 1.5 HT nieudany: {type(exc).__name__}: {exc}", flush=True)
             # Stop after any Telegram delivery error; do not flood the channel.
             # The failed fixture remains retryable on the next scheduled scan.
             break
@@ -3545,7 +3789,7 @@ def send_manual_archive_resend(state):
     print(f"WYSŁANO ARCHIWALNY TEST: {home} - {away}; message_id={message_id}", flush=True)
 
 def main():
-    print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS FT ONLY START {now_local().isoformat()} ===", flush=True)
+    print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS GROUP — OVER 1.5 HT START {now_local().isoformat()} ===", flush=True)
     print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
     state = load_state()
     try:
@@ -3563,19 +3807,19 @@ def main():
     retry_pending_settlement_notifications(state)
 
     today = now_local().date().isoformat()
-    # Nowe typy wysyłamy wyłącznie na BTTS cały mecz (FT).
+    # Nowe typy grupy BTTS to wyłącznie Over 1.5 gola w pierwszej połowie (HT).
     sent_matches = daily_sent_match_count(state, today)
     print(f"Spotkania BTTS FT wysłane dzisiaj: {sent_matches}", flush=True)
     try:
-        send_prematch_btts_full_time_picks(state)
+        send_prematch_over_15_ht_picks(state)
     except Exception as exc:
-        print(f"BŁĄD SKANOWANIA BTTS FT: {type(exc).__name__}: {exc}", flush=True)
+        print(f"BŁĄD SKANOWANIA OVER 1.5 HT: {type(exc).__name__}: {exc}", flush=True)
     try:
         send_monthly_reports(state)
     except Exception as exc:
         print(f"Monthly report error: {type(exc).__name__}: {exc}", flush=True)
     save_state(state)
-    print("=== TyperGOLE-OVERY PRE-MATCH BTTS FT ONLY END ===", flush=True)
+    print("=== TyperGOLE-OVERY PRE-MATCH BTTS GROUP — OVER 1.5 HT END ===", flush=True)
 
 
 if __name__ == "__main__":
