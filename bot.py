@@ -4128,7 +4128,8 @@ def send_prematch_bet365_btts_picks(state):
     }
     sent_by_day = {}
     for pick in state.get("picks", []):
-        if (pick.get("market") == BTTS_FT_MARKET and pick.get("delivery_status", "sent") == "sent"\n                and pick.get("counts_toward_daily_limit", True) is not False):
+        if (pick.get("market") == BTTS_FT_MARKET and pick.get("delivery_status", "sent") == "sent"
+                and pick.get("counts_toward_daily_limit", True) is not False):
             day = str(pick.get("date") or "")
             sent_by_day[day] = sent_by_day.get(day, 0) + 1
 
