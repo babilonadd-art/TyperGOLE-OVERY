@@ -374,155 +374,29 @@ def superbet_event_local_date(event):
     return kickoff.date() if kickoff else None
 
 
-def extract_team_logo_urls(event, home, away):
-    """Find team crest URLs in Superbet event metadata when supplied."""
-    wanted = {
-        "home": team_name_aliases(home),
-        "away": team_name_aliases(away),
-    }
-    found = {"home": None, "away": None}
-    image_keys = ("logo", "crest", "badge", "emblem")
+BTTS_IMAGE_POOL = [
+    "https://images.unsplash.com/photo-1707370531796-90bbe5bfeb4a?auto=format&fit=crop&fm=jpg&q=85&w=1600",
+    "https://images.unsplash.com/photo-1769348193442-6d3b1655266d?auto=format&fit=crop&fm=jpg&q=85&w=1600",
+    "https://images.unsplash.com/photo-1771077508493-c79cd2634c3d?auto=format&fit=crop&fm=jpg&q=85&w=1600",
+    "https://images.unsplash.com/photo-1777304012210-a12b1188ab49?auto=format&fit=crop&fm=jpg&q=85&w=1600",
+]
 
-    def walk(node):
-        if isinstance(node, dict):
-            # Superbet payload versions use different participant/team schemas.
-            name = first(
-                node, "team_name", "teamName", "participant_name", "participantName",
-                "competitor_name", "competitorName", "name", "title", "label",
-            )
-            if name:
-                aliases = team_name_aliases(str(name))
-                for side in ("home", "away"):
-                    if found[side] or not (aliases & wanted[side]):
-                        continue
-                    for key, value in node.items():
-                        if isinstance(value, str) and any(tag in key.lower() for tag in image_keys):
-                            if value.startswith("https://"):
-                                found[side] = value
-                                break
-            # Also support explicit home/away logo fields at fixture/event level.
-            for side in ("home", "away"):
-                if found[side]:
-                    continue
-                for key, value in node.items():
-                    key_lower = key.lower()
-                    if side in key_lower and any(tag in key_lower for tag in image_keys):
-                        if isinstance(value, str) and value.startswith("https://"):
-                            found[side] = value
-                            break
-            for value in node.values():
-                if isinstance(value, (dict, list)):
-                    walk(value)
-        elif isinstance(node, list):
-            for value in node:
-                walk(value)
-
-    walk(event)
-    return found
-
-
-def wikipedia_team_logo_url(team_name):
-    """Use the free Wikipedia page-image API as a no-key crest fallback."""
-    if not team_name:
-        return None
-    try:
-        response = requests.get(
-            "https://en.wikipedia.org/w/api.php",
-            params={
-                "action": "query", "generator": "search",
-                "gsrsearch": f'"{team_name}" football club',
-                "gsrnamespace": 0, "gsrlimit": 8,
-                "prop": "pageimages", "piprop": "thumbnail",
-                "pithumbsize": 400, "format": "json",
-            },
-            headers={**HEADERS, "User-Agent": "TyperGOLE-OVERY/1.0 (club crest lookup)"},
-            timeout=10,
-        )
-        response.raise_for_status()
-        pages = (response.json().get("query") or {}).get("pages") or {}
-        wanted = team_name_aliases(team_name)
-        matches = []
-        for page in pages.values():
-            title = re.sub(r"\\s*\\([^)]*\\)$", "", str(page.get("title") or ""))
-            thumbnail = (page.get("thumbnail") or {}).get("source")
-            if not thumbnail or not str(thumbnail).startswith("https://"):
-                continue
-            similarity = max(
-                (team_name_similarity(alias, title) for alias in wanted),
-                default=0.0,
-            )
-            # Accept only a strong club-name match; never substitute a generic sport image.
-            if similarity >= 0.72:
-                matches.append((similarity, thumbnail))
-        if not matches:
-            return None
-        matches.sort(reverse=True)
-        if len(matches) > 1 and matches[0][0] == matches[1][0] and matches[0][1] != matches[1][1]:
-            return None
-        return matches[0][1]
-    except Exception as exc:
-        print(f"Wikipedia herb {team_name}: {type(exc).__name__}.", flush=True)
-        return None
-
-
-def public_team_logo_url(team_name):
-    """Look up a club crest using free public directories, without an API key."""
-    if not team_name:
-        return None
-    try:
-        response = requests.get(
-            "https://www.thesportsdb.com/api/v1/json/3/searchteams.php",
-            params={"t": team_name},
-            headers=HEADERS,
-            timeout=8,
-        )
-        response.raise_for_status()
-        payload = response.json()
-        teams_found = payload.get("teams") or []
-        matches = []
-        for team in teams_found:
-            if not isinstance(team, dict):
-                continue
-            official_name = str(team.get("strTeam") or "")
-            badge = team.get("strTeamBadge")
-            similarity = team_name_similarity(team_name, official_name)
-            if badge and str(badge).startswith("https://") and similarity >= 0.93:
-                matches.append((similarity, badge))
-        if matches:
-            matches.sort(reverse=True)
-            if len(matches) == 1 or matches[0][0] != matches[1][0] or matches[0][1] == matches[1][1]:
-                return matches[0][1]
-    except Exception as exc:
-        print(f"TheSportsDB herb {team_name}: {type(exc).__name__}.", flush=True)
-    # Never use Wikipedia thumbnails: they may be historic photos, not club crests.
-    return None
-
-def telegram_btts_ft(message, home, away, home_logo=None, away_logo=None):
-    """Send BTTS FT as a two-crest Telegram album when both images are available."""
-    if not (home_logo and away_logo):
-        return telegram(message)
-    if len(message) > 900:
-        return telegram(message)
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMediaGroup"
-    media = [
-        {
-            "type": "photo", "media": home_logo,
-            "caption": f"🏠 {home}\n{message}",
-        },
-        {
-            "type": "photo", "media": away_logo,
-            "caption": f"🛡️ {away}",
-        },
-    ]
-    response = requests.post(
-        url, json={"chat_id": CHAT_ID, "media": media}, timeout=25
-    )
-    response.raise_for_status()
-    result = response.json()
-    if not result.get("ok"):
-        raise RuntimeError(f"Telegram media group error: {result}")
-    return result
-
+def telegram_btts_ft(message, image_url=None):
+    """Send one BTTS pick with a rotating football action photo above the caption."""
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
+    payload = {"chat_id": CHAT_ID, "caption": message}
+    if image_url:
+        payload["photo"] = image_url
+        try:
+            response = requests.post(url, data=payload, timeout=30)
+            response.raise_for_status()
+            result = response.json()
+            if result.get("ok"):
+                return result
+            print(f"Telegram sendPhoto error: {result}; fallback to text.", flush=True)
+        except Exception as exc:
+            print(f"Telegram sendPhoto failed: {type(exc).__name__}: {exc}; fallback to text.", flush=True)
+    return telegram(message)
 
 def superbet_prematch_event_links(target_date=None):
     """Get pre-match football event links for one Warsaw-local calendar date."""
@@ -584,11 +458,9 @@ def superbet_prematch_event_links(target_date=None):
                 slug = f"{slug_part(home)}-vs-{slug_part(away)}-{event_id}"
                 full_url = f"https://superbet.pl/kursy/pilka-nozna/{slug}"
             kickoff = superbet_event_kickoff(event)
-            logos = extract_team_logo_urls(event, home, away)
             found[full_url] = {
                 "url": full_url, "text": name, "event_id": event_id,
                 "home": home, "away": away,
-                "home_logo": logos["home"], "away_logo": logos["away"],
                 "time": kickoff.isoformat() if kickoff else None,
             }
         print(
@@ -3423,12 +3295,10 @@ def send_prematch_btts_full_time_picks(state):
                 f"👉 OTWÓRZ BTTS CAŁY MECZ W SUPERBET: {bet_url}\n"
                 f"Dane meczowe: Open Matchday — https://github.com/oladeeayo/open-matchday"
             )
-            home_logo = candidate["event"].get("home_logo") or public_team_logo_url(candidate["home"])
-            away_logo = candidate["event"].get("away_logo") or public_team_logo_url(candidate["away"])
-            response = telegram_btts_ft(
-                message, candidate["home"], candidate["away"],
-                home_logo, away_logo,
-            )
+            image_cursor = int(state.get("btts_image_cursor", 0)) % len(BTTS_IMAGE_POOL)
+            image_url = BTTS_IMAGE_POOL[image_cursor]
+            response = telegram_btts_ft(message, image_url)
+            state["btts_image_cursor"] = (image_cursor + 1) % len(BTTS_IMAGE_POOL)
             telegram_result = response.get("result", []) if isinstance(response, dict) else []
             if isinstance(telegram_result, list) and telegram_result:
                 pick["telegram_message_id"] = telegram_result[0].get("message_id")
@@ -3461,9 +3331,10 @@ def send_manual_archive_resend(state):
         f"🏁 Wynik końcowy: {item.get('result', 'brak')}\n"
         "To wyłącznie test wysyłki i herbów — nie jest aktualnym typem."
     )
-    home_logo = public_team_logo_url(home)
-    away_logo = public_team_logo_url(away)
-    response = telegram_btts_ft(message, home, away, home_logo, away_logo)
+    image_cursor = int(state.get("btts_image_cursor", 0)) % len(BTTS_IMAGE_POOL)
+    response = telegram_btts_ft(message, BTTS_IMAGE_POOL[image_cursor])
+    state["btts_image_cursor"] = (image_cursor + 1) % len(BTTS_IMAGE_POOL)
+    save_state(state)
     result = response.get("result", []) if isinstance(response, dict) else []
     message_id = None
     if isinstance(result, list) and result:
