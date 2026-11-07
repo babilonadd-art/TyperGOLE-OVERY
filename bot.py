@@ -4109,7 +4109,7 @@ MAX_DAILY_BTTS_FT_PICKS = 8
 
 
 def send_prematch_bet365_btts_picks(state):
-    """Send up to three unique prematch BTTS FT picks daily from Bet365."""
+    """Send up to eight unique prematch BTTS FT picks daily from Bet365."""
     initial_board = moviodds_prematch_board()
     today = now_local().date()
     candidates = [c for c in moviodds_btts_candidates(state, now=now_local(), board=initial_board)
@@ -4174,7 +4174,8 @@ def send_prematch_bet365_btts_picks(state):
         save_state(state)
         payout = calculate_bet_result(STAKE, fresh_quote["odds"])
         message = (
-            f"🕒 GODZINA {candidate['kickoff'].strftime('%H:%M')} — CZAS POLSKI\n"
+            f"📅 DATA: {candidate['kickoff'].strftime('%d.%m.%Y')}\n"
+            f"🕒 GODZINA: {candidate['kickoff'].strftime('%H:%M')} — CZAS POLSKI\n"
             f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
             f"⚽ {candidate['home']} – {candidate['away']}\n"
             f"🏆 Liga: {candidate['league']}\n"
