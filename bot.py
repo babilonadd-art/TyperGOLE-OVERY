@@ -2569,6 +2569,53 @@ def kickoff_datetime(match):
         return None
 
 
+def extract_superbet_competition_name(event):
+    """Return the actual competition/league name from Superbet event metadata."""
+    preferred = (
+        "competition_name", "competitionName", "league_name", "leagueName",
+        "tournament_name", "tournamentName", "championship_name",
+        "championshipName", "competition", "tournament", "league",
+    )
+    generic = ("name", "title", "display_name", "displayName", "label")
+
+    def read_name(value):
+        if isinstance(value, str):
+            value = value.strip()
+            return value if value else None
+        if isinstance(value, dict):
+            for key in generic:
+                item = value.get(key)
+                if isinstance(item, str) and item.strip():
+                    return item.strip()
+        return None
+
+    if not isinstance(event, dict):
+        return None
+    for key in preferred:
+        name = read_name(event.get(key))
+        if name:
+            return name
+
+    # Competition data can be nested under fixture/category metadata.
+    queue = [event]
+    seen = set()
+    while queue:
+        node = queue.pop(0)
+        if not isinstance(node, dict) or id(node) in seen:
+            continue
+        seen.add(id(node))
+        for key in preferred:
+            if key in node:
+                name = read_name(node.get(key))
+                if name:
+                    return name
+        for value in node.values():
+            if isinstance(value, dict):
+                queue.append(value)
+            elif isinstance(value, list):
+                queue.extend(item for item in value if isinstance(item, dict))
+    return None
+
 def scheduled_fixtures_today(superbet_events=None, target_dates=None):
     """Build the BTTS fixture slate exclusively from Superbet's date-scoped event feed."""
     local_now = now_local()
@@ -2604,7 +2651,7 @@ def scheduled_fixtures_today(superbet_events=None, target_dates=None):
             "id": f"superbet:{event_id}", "slug": slug,
             "_bot_slug": slug, "home": home, "away": away,
             "time": kickoff.isoformat(), "date": kickoff.date().isoformat(),
-            "competition_name": event.get("competition_name") or "Liga z oferty Superbet",
+            "competition_name": extract_superbet_competition_name(event) or "Liga nieznana",
             "_bot_kickoff": kickoff.isoformat(), "_source": "Superbet",
         })
 
@@ -3271,7 +3318,10 @@ def send_prematch_btts_full_time_picks(state):
             if not estimate or estimate["probability"] < MIN_MODEL_PROBABILITY:
                 print(f"[{index}] {home} - {away}: brak wystarczających danych lub P poniżej progu.", flush=True)
                 return None
-            league = first(match, "competition_name", "competition", "league_name", default="Liga nieznana")
+            league = (
+                extract_superbet_competition_name(event)
+                or first(match, "competition_name", "competition", "league_name", default="Liga nieznana")
+            )
             if isinstance(league, dict):
                 league = first(league, "name", "title", default="Liga nieznana")
             return {
