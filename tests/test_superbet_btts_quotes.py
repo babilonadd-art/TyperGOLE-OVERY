@@ -90,5 +90,49 @@ class SuperbetFullTimeBttsQuoteTests(unittest.TestCase):
         self.assertIsNone(extract_superbet_btts_full_time(payload))
 
 
+    def test_over_15_ht_selects_only_aggregate_match_goals_not_team_totals_corners_or_cards(self):
+        from bot import extract_superbet_over_15_ht
+
+        payload = {
+            "markets": [
+                {
+                    "marketName": "1. połowa Liczba goli",
+                    "marketGroupId": 501,
+                    "outcomes": [
+                        {"name": "Powyżej 1.5", "price": "2.20", "status": "active"},
+                        {"name": "Poniżej 1.5", "price": "1.60", "status": "active"},
+                    ],
+                },
+                {
+                    "marketName": "1. połowa St Mirren Liczba goli",
+                    "marketGroupId": 502,
+                    "outcomes": [
+                        {"name": "Powyżej 1.5", "price": "3.00", "status": "active"},
+                    ],
+                },
+                {
+                    "marketName": "1. połowa St Mirren Liczba rzutów rożnych",
+                    "marketGroupId": 503,
+                    "outcomes": [
+                        {"name": "Powyżej 1.5", "price": "1.92", "status": "active"},
+                    ],
+                },
+                {
+                    "marketName": "1. połowa Liczba kartek",
+                    "marketGroupId": 504,
+                    "outcomes": [
+                        {"name": "Powyżej 1.5", "price": "2.30", "status": "active"},
+                    ],
+                },
+            ]
+        }
+
+        quote = extract_superbet_over_15_ht(payload)
+        self.assertIsNotNone(quote)
+        self.assertEqual(quote["odds"], 2.20)
+        self.assertEqual(quote["market_group_id"], 501)
+
+
+
 if __name__ == "__main__":
     unittest.main()
