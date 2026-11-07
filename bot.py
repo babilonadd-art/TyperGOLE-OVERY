@@ -2555,7 +2555,7 @@ def update_existing_pick_minutes(state):
 # ---------------------------------------------------------------------------
 BTTS_HT_MARKET = "BTTS_HT"
 BTTS_FT_MARKET = "BTTS_FT"
-MIN_BTTS_FT_ODDS = 1.65
+MIN_BTTS_FT_ODDS = 1.60
 MIN_HT_HISTORY = 5
 HISTORY_MATCHES = 5
 MIN_MODEL_PROBABILITY = 0.15
