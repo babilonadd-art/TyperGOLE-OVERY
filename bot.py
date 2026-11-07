@@ -197,12 +197,12 @@ def open_matchday_result_for_pick(pick):
     return None
 
 
-def api_get(path, params=None):
+def api_get(path, params=None, timeout=20):
     response = requests.get(
         f"{API}/{path.lstrip('/')}",
         params=params,
         headers=HEADERS,
-        timeout=20,
+        timeout=timeout,
     )
     response.raise_for_status()
     payload = response.json()
@@ -1640,9 +1640,17 @@ def match_detail(slug, pick=None):
     """
     live_detail = {}
     if slug:
-        for endpoint in ("/api/v1/match/", "/api/widget/match/"):
+        # BTTS FT settlement needs one fast, exact live lookup; the legacy
+        # widget fallback and broad archive search must not hold up new picks.
+        endpoints = ("/api/v1/match/",) if pick and pick.get("market") == BTTS_FT_MARKET else (
+            "/api/v1/match/", "/api/widget/match/"
+        )
+        for endpoint in endpoints:
             try:
-                detail = unwrap_match(api_get(endpoint, {"sport": "football", "slug": slug}))
+                detail = unwrap_match(api_get(
+                    endpoint, {"sport": "football", "slug": slug},
+                    timeout=8 if pick and pick.get("market") == BTTS_FT_MARKET else 20,
+                ))
                 if detail and first(detail, "home", "away", "status", "home_score", "score") is not None:
                     if pick and not settlement_fixture_matches_pick(detail, pick):
                         dh, da = teams(detail)
