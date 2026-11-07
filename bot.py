@@ -7,6 +7,7 @@ import json
 import math
 import os
 import re
+import time
 import unicodedata
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -1804,17 +1805,29 @@ def settlement_fixture_matches_pick(match, pick):
         return False
     return True
 
-def moviodds_get(path, params=None, timeout=60):
-    """Read the public MoviOdds API; no API key or paid account required."""
-    response = requests.get(
-        f"{MOVIODDS_API}{path}", params=params or {},
-        headers={**HEADERS, "Accept-Encoding": "gzip"}, timeout=timeout,
-    )
-    response.raise_for_status()
-    payload = response.json()
-    if not isinstance(payload, dict):
-        raise RuntimeError(f"MoviOdds returned unexpected JSON for {path}")
-    return payload
+def moviodds_get(path, params=None, timeout=90):
+    """Read the public MoviOdds API; retry temporary busy/rate-limit responses."""
+    last_response = None
+    for attempt in range(3):
+        response = requests.get(
+            f"{MOVIODDS_API}{path}", params=params or {},
+            headers={**HEADERS, "Accept-Encoding": "gzip"}, timeout=timeout,
+        )
+        last_response = response
+        if response.status_code not in {429, 502, 503, 504}:
+            response.raise_for_status()
+            payload = response.json()
+            if not isinstance(payload, dict):
+                raise RuntimeError(f"MoviOdds returned unexpected JSON for {path}")
+            return payload
+        if attempt < 2:
+            try:
+                delay = int(response.headers.get("Retry-After", "5"))
+            except (TypeError, ValueError):
+                delay = 5
+            time.sleep(max(2, min(delay, 15)))
+    last_response.raise_for_status()
+    raise RuntimeError(f"MoviOdds unavailable for {path}")
 
 
 def moviodds_finished_result(pick):
