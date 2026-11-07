@@ -2721,7 +2721,19 @@ def extract_superbet_over_15_ht(event_detail):
                           or re.search(r"\b1 5 over\b", market)
                           or "powyzej 1 5" in market
                           or ("over under 1 5" in market and is_over_selection))
-        if not (is_first_half and is_over_15 and is_over_selection):
+
+        # Accept only the match's aggregate first-half goals market.
+        # Team totals, corners and cards share the same Superbet event payload.
+        is_match_total_goals = bool(
+            re.search(
+                r"(?:^|\s)(?:1 polowa|pierwsza polowa|first half|1st half)\s+"
+                r"(?:liczba|suma)\s+goli(?:\s|$)",
+                market,
+            )
+            or re.search(r"(?:^|\s)(?:first half|1st half)\s+total goals(?:\s|$)", market)
+            or re.search(r"(?:^|\s)total goals first half(?:\s|$)", market)
+        )
+        if not (is_first_half and is_over_15 and is_over_selection and is_match_total_goals):
             continue
         values = []
         for key in price_keys:
