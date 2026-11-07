@@ -169,6 +169,11 @@ def open_matchday_result_for_pick(pick):
         return None
     for row in open_matchday_data()["results"]:
         home, away = str(row.get("home") or ""), str(row.get("away") or "")
+        if not fixture_categories_compatible(
+            home, away, row.get("_league", ""),
+            pick.get("home"), pick.get("away"), pick.get("league") or pick.get("competition") or "",
+        ):
+            continue
         direct = team_name_similarity(home, pick.get("home")) >= 0.88 and team_name_similarity(away, pick.get("away")) >= 0.88
         reverse = team_name_similarity(home, pick.get("away")) >= 0.88 and team_name_similarity(away, pick.get("home")) >= 0.88
         if not (direct or reverse):
@@ -243,15 +248,22 @@ def moviodds_live_matches():
 
 
 def normalized_team_name(value):
-    """Normalize provider variants while preserving women/youth identity."""
+    """Normalize names without erasing women's or U16-U23 identity."""
     raw = str(value or "").strip()
-    is_womens = bool(re.search(r"\(\s*k\s*\)|\b(?:women|woman|w|feminino|femenino)\b", raw, re.I))
-    raw = re.sub(r"\(\s*k\s*\)", " ", raw, flags=re.I)
-    raw = re.sub(r"\bu[\s-]?20\b", " youth ", raw, flags=re.I)
+    is_womens = is_womens_team_name(raw) if "is_womens_team_name" in globals() else bool(
+        re.search(r"\(\s*[kw]\s*\)|\b(?:women|woman|female|feminine|femenil|feminino|femenino)\b", raw, re.I)
+    )
+    age_groups = sorted(set(re.findall(
+        r"\b(?:u\s*[- ]?\s*(1[6-9]|2[0-3])|under\s*(1[6-9]|2[0-3]))\b",
+        raw, re.I
+    )))
+    raw = re.sub(r"\(\s*[kw]\s*\)", " ", raw, flags=re.I)
+    raw = re.sub(r"\b(?:u\s*[- ]?\s*(1[6-9]|2[0-3])|under\s*(1[6-9]|2[0-3]))\b", " ", raw, flags=re.I)
     value = unicodedata.normalize("NFKD", raw).encode("ascii", "ignore").decode().lower()
     tokens = re.findall(r"[a-z0-9]+", value)
-    ignored = {"fc", "cf", "sc", "afc", "club", "the", "football", "women", "woman", "w", "feminino", "femenino"}
+    ignored = {"fc", "cf", "sc", "afc", "club", "the", "football", "women", "woman", "female", "feminine", "femenil", "w", "k", "feminino", "femenino"}
     tokens = [token for token in tokens if token not in ignored]
+    tokens.extend(f"u{age}" for age in age_groups)
     if is_womens:
         tokens.append("women")
     return " ".join(tokens)
@@ -635,6 +647,64 @@ def fixture_is_womens(match):
     ) for value in markers):
         return True
     return None
+
+
+def fixture_competition_label(value):
+    """Extract a competition label without guessing from unrelated payload text."""
+    if isinstance(value, str):
+        return value.strip()
+    if not isinstance(value, dict):
+        return ""
+    for key in (
+        "competition_name", "competitionName", "league_name", "leagueName",
+        "tournament_name", "tournamentName", "championship_name",
+        "championshipName", "competition", "tournament", "league",
+    ):
+        item = value.get(key)
+        if isinstance(item, str) and item.strip():
+            return item.strip()
+        if isinstance(item, dict):
+            name = first(item, "name", "title", "short_name", "display_name", default="")
+            if name:
+                return str(name).strip()
+    return ""
+
+
+def fixture_category_signature(home="", away="", competition=""):
+    """Return a strict gender + age-group identity for a fixture."""
+    values = [str(home or ""), str(away or ""), str(competition or "")]
+    youth_groups = set()
+    youth_pattern = re.compile(
+        r"\b(?:u\s*[- ]?\s*(1[6-9]|2[0-3])|under\s*(1[6-9]|2[0-3]))\b",
+        re.I,
+    )
+    for value in values:
+        for match in youth_pattern.finditer(value):
+            youth_groups.add(next(group for group in match.groups() if group))
+    if len(youth_groups) > 1:
+        age_group = "ambiguous"
+    elif youth_groups:
+        age_group = f"U{next(iter(youth_groups))}"
+    else:
+        age_group = "SENIOR"
+
+    women = any(is_womens_team_name(value) or re.search(
+        r"\b(?:women|woman|female|feminine|femenil|feminino|femenino|ladies|kobiet|kobieca)\b",
+        value, re.I
+    ) for value in values)
+    return {
+        "gender": "WOMEN" if women else "MEN",
+        "age_group": age_group,
+    }
+
+
+def fixture_categories_compatible(home_a, away_a, competition_a, home_b, away_b, competition_b):
+    """Fail closed if the women's/senior/youth category differs or is ambiguous."""
+    left = fixture_category_signature(home_a, away_a, competition_a)
+    right = fixture_category_signature(home_b, away_b, competition_b)
+    if "ambiguous" in (left["age_group"], right["age_group"]):
+        return False
+    return left == right
 
 
 def find_superbet_event(home, away, events, womens=None):
@@ -1510,7 +1580,7 @@ def match_stats_look_promising(match, market):
     )
     return signals >= 1, m, signals
 
-def same_fixture_pick_exists(state, identifier, home, away, match_date, market, slug=None):
+def same_fixture_pick_exists(state, identifier, home, away, match_date, market, slug=None, competition=None):
     """
     Idempotency guard: a fixture + market is one pick, regardless of odds changes
     or small differences in provider IDs. Removing a Telegram message does not
@@ -1528,6 +1598,13 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market, 
         if old.get("delivery_status", "sent") not in {"sent", "pending"}:
             continue
         if old.get("market") != market:
+            continue
+        # Never collapse senior, youth, women's and men's fixtures into one.
+        old_competition = old.get("league") or old.get("competition") or ""
+        if not fixture_categories_compatible(
+            old.get("home"), old.get("away"), old_competition,
+            home, away, competition,
+        ):
             continue
 
         old_id = str(old.get("id") or "").strip().lower()
@@ -1597,6 +1674,19 @@ def settlement_fixture_matches_pick(match, pick):
     if not isinstance(match, dict) or not isinstance(pick, dict):
         return False
     home, away = teams(match)
+    result_competition = fixture_competition_label(match)
+    pick_competition = pick.get("league") or pick.get("competition") or ""
+    if not fixture_categories_compatible(
+        home, away, result_competition,
+        pick.get("home"), pick.get("away"), pick_competition,
+    ):
+        print(
+            f"Settlement guard: niezgodna kategoria rozgrywek "
+            f"{fixture_category_signature(home, away, result_competition)} != "
+            f"{fixture_category_signature(pick.get('home'), pick.get('away'), pick_competition)}",
+            flush=True,
+        )
+        return False
     direct = team_name_similarity(home, pick.get("home")) >= 0.86 and team_name_similarity(away, pick.get("away")) >= 0.86
     reverse = team_name_similarity(home, pick.get("away")) >= 0.86 and team_name_similarity(away, pick.get("home")) >= 0.86
     if not (direct or reverse):
@@ -2192,6 +2282,19 @@ def settle_picks(state):
                     continue
             # Never settle against a different fixture returned by an archive/search endpoint.
             fixture_home, fixture_away = teams(match)
+            fixture_competition = fixture_competition_label(match)
+            pick_competition = pick.get("league") or pick.get("competition") or ""
+            if not fixture_categories_compatible(
+                fixture_home, fixture_away, fixture_competition,
+                pick.get("home"), pick.get("away"), pick_competition,
+            ):
+                print(
+                    f"ROZLICZENIE ZABLOKOWANE — inna kategoria: "
+                    f"{fixture_category_signature(fixture_home, fixture_away, fixture_competition)} "
+                    f"vs {fixture_category_signature(pick.get('home'), pick.get('away'), pick_competition)}.",
+                    flush=True,
+                )
+                continue
             direct_match = (
                 team_name_similarity(fixture_home, pick.get("home")) >= 0.86
                 and team_name_similarity(fixture_away, pick.get("away")) >= 0.86
@@ -3526,15 +3629,22 @@ def send_prematch_over_15_ht_picks(state):
             continue
         fixture_day = kickoff.date().isoformat()
         identifier = match_identifier(match) or slug
-        if same_fixture_pick_exists(
-            state, identifier, home, away,
-            fixture_day, OVER_15_HT_MARKET, slug=slug
-        ):
-            rejected_duplicate += 1
-            continue
         event_id = str(match.get("id", "")).removeprefix("superbet:")
         event = event_by_id.get(event_id)
         if not event:
+            continue
+        league_for_identity = (
+            extract_superbet_competition_name(event)
+            or first(match, "competition_name", "competition", "league_name", default="")
+        )
+        if isinstance(league_for_identity, dict):
+            league_for_identity = first(league_for_identity, "name", "title", default="")
+        if same_fixture_pick_exists(
+            state, identifier, home, away,
+            fixture_day, OVER_15_HT_MARKET, slug=slug,
+            competition=str(league_for_identity or ""),
+        ):
+            rejected_duplicate += 1
             continue
         iddaa = match_iddaa_ht_prediction(home, away, kickoff, iddaa_predictions)
         if not iddaa or iddaa["probability"] < MIN_IDDAA_HT_PERCENT:
@@ -3694,7 +3804,11 @@ def send_prematch_over_15_ht_picks(state):
             "key": f"{candidate['id']}:{OVER_15_HT_MARKET}",
             "id": candidate["id"], "slug": candidate["slug"],
             "home": candidate["home"], "away": candidate["away"],
-            "league": candidate["league"], "date": candidate_day,
+            "league": candidate["league"],
+            "competition_category": fixture_category_signature(
+                candidate["home"], candidate["away"], candidate["league"]
+            ),
+            "date": candidate_day,
             "kickoff_time": candidate["kickoff"].isoformat(),
             "market": OVER_15_HT_MARKET, "stake": STAKE,
             "odds": final_quote["odds"], "odds_source": "Superbet",
