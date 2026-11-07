@@ -3288,7 +3288,10 @@ def send_prematch_btts_full_time_picks(state):
         if not event:
             continue
         home_slug, away_slug = slug.split("-vs-", 1)
-        local_history_cache = {}
+        # Reuse the per-day persistent cache across every fixture. Creating a
+        # fresh dict here recalculated both teams' history for every match and
+        # made large Superbet slates unnecessarily slow.
+        local_history_cache = history_cache
         hp = team_full_time_profile(home_slug, kickoff, "home", local_history_cache)
         ap = team_full_time_profile(away_slug, kickoff, "away", local_history_cache)
         estimate = full_time_btts_probability(hp, ap)
