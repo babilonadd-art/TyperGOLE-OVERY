@@ -3547,7 +3547,7 @@ def send_prematch_over_15_ht_picks(state):
     DETAIL_SHORTLIST_SIZE = 20
     shortlisted = pre_candidates[:DETAIL_SHORTLIST_SIZE]
     print(
-        f"BTTS szybki wybór: terminarz={len(fixtures)}, "
+        f"BTTS / Over 1.5 HT szybki wybór: terminarz={len(fixtures)}, "
         f"z historią obu drużyn={len(pre_candidates)}, "
         f"szczegółowa analiza maksymalnie={len(shortlisted)}, "
         f"duplikaty={rejected_duplicate}, brak historii={rejected_history}.",
@@ -3571,8 +3571,8 @@ def send_prematch_over_15_ht_picks(state):
         scored_shortlist.append(item)
     shortlisted = scored_shortlist
     print(
-        f"Over 1.5 HT ranking: policzono prawdopodobieństwo dla {len(shortlisted)} "
-        f"wybranych meczów; próg={MIN_MODEL_PROBABILITY:.0%}.",
+        f"Over 1.5 HT ranking: policzono kontrolny model dla {len(shortlisted)} "
+        "wybranych meczów; procent główny pochodzi z iddaaorantahmin.",
         flush=True,
     )
     if not shortlisted:
@@ -3727,7 +3727,7 @@ def send_prematch_over_15_ht_picks(state):
                 f"📉 Model kontrolny HT: {model_probability:.1f}%\n"
                 f"📚 Próba HT: {estimate['home_sample']} / {estimate['away_sample']} meczów\n"
                 f"Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
-                f"Model: gole w całym meczu — zdobywane i tracone\n"
+                f"Model kontrolny: gole zdobywane i tracone w 1. połowie\n"
                 f"👉 OTWÓRZ OVER 1.5 HT W SUPERBET: {bet_url}\n"
                 f"Dane meczowe: Open Matchday — https://github.com/oladeeayo/open-matchday"
             )
@@ -3810,7 +3810,7 @@ def main():
     today = now_local().date().isoformat()
     # Nowe typy grupy BTTS to wyłącznie Over 1.5 gola w pierwszej połowie (HT).
     sent_matches = daily_sent_match_count(state, today)
-    print(f"Spotkania BTTS FT wysłane dzisiaj: {sent_matches}", flush=True)
+    print(f"Spotkania Over 1.5 HT wysłane dzisiaj: {sent_matches}", flush=True)
     try:
         send_prematch_over_15_ht_picks(state)
     except Exception as exc:
