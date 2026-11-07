@@ -2718,7 +2718,8 @@ def extract_superbet_over_15_ht(event_detail):
         ))
         is_over_15 = bool(re.search(r"\\bover 1 5\\b", market)
                           or re.search(r"\\b1 5 over\\b", market)
-                          or "powyzej 1 5" in market)
+                          or "powyzej 1 5" in market
+                          or ("over under 1 5" in market and is_over_selection))
         is_over_selection = selection in ("over", "over 1 5", "powyzej", "powyzej 1 5")
         if not (is_first_half and is_over_15 and is_over_selection):
             continue
@@ -3637,7 +3638,7 @@ def send_prematch_over_15_ht_picks(state):
                 "match": match, "home": home, "away": away, "slug": slug,
                 "id": item["id"], "kickoff": kickoff,
                 "league": str(league), "event": event, "quote": quote,
-                "estimate": estimate,
+                "estimate": estimate, "iddaa": item["iddaa"],
             }
         except Exception as exc:
             print(f"[{index}] Analiza kursu {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
