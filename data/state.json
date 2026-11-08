@@ -3278,10 +3278,13 @@
       "odds_market": "Both Teams to Score — Yes",
       "odds_updated_at": "2026-11-08T00:42:53.336274525Z",
       "bet_url": "https://www.bet365.com/#/AC/B1/C1/D8/E202816368/F3/",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 366,
-      "sent_at": "2026-11-08T09:08:20.740929+01:00"
+      "sent_at": "2026-11-08T09:08:20.740929+01:00",
+      "won": false,
+      "settled_score": "2-0",
+      "settled_at": "2026-11-08T15:14:19.049232+01:00"
     },
     {
       "key": "202805120:BTTS_FT",
@@ -3356,10 +3359,13 @@
       "odds_market": "Both Teams to Score — Yes",
       "odds_updated_at": "2026-11-08T05:08:38.854280845Z",
       "bet_url": "https://www.bet365.com/#/AC/B1/C1/D8/E204007126/F3/",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 369,
-      "sent_at": "2026-11-08T09:08:25.118622+01:00"
+      "sent_at": "2026-11-08T09:08:25.118622+01:00",
+      "won": true,
+      "settled_score": "1-2",
+      "settled_at": "2026-11-08T15:14:19.857810+01:00"
     },
     {
       "key": "204007077:BTTS_FT",
@@ -3381,10 +3387,13 @@
       "odds_market": "Both Teams to Score — Yes",
       "odds_updated_at": "2026-11-06T21:00:39.303363017Z",
       "bet_url": "https://www.bet365.com/#/AC/B1/C1/D8/E204007077/F3/",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 370,
-      "sent_at": "2026-11-08T09:08:28.247700+01:00"
+      "sent_at": "2026-11-08T09:08:28.247700+01:00",
+      "won": true,
+      "settled_score": "4-1",
+      "settled_at": "2026-11-08T15:14:20.401300+01:00"
     },
     {
       "key": "204007074:BTTS_FT",
