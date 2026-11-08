@@ -4486,7 +4486,7 @@ def send_prematch_superbet_btts_picks(state):
         save_state(state)
         payout = calculate_bet_result(STAKE, final_quote["odds"])
         message = (
-            f"𝗧𝗬𝗣 𝗡𝗥. {pick_number}\n"
+            f"🔴 𝗧𝗬𝗣 𝗡𝗥. {pick_number}\n\n"
             f"📅 DATA: {candidate['kickoff'].strftime('%d.%m.%Y')}\n"
             f"🕒 GODZINA: {candidate['kickoff'].strftime('%H:%M')} — CZAS POLSKI\n"
             f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
