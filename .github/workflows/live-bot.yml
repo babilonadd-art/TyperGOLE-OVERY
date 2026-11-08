@@ -8,6 +8,7 @@ on:
       - "bot.py"
       - "tests/**"
       - ".github/workflows/live-bot.yml"
+      - "data/state.json"
   workflow_dispatch:
   schedule:
     # Przesunięcie o 2 minuty ogranicza opóźnienia w godzinach dużego obciążenia GitHub Actions.
