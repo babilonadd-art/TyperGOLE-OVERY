@@ -644,14 +644,14 @@ def update_existing_btts_superbet_links(state):
                 stake = float(pick.get("stake", STAKE) or STAKE)
                 payout = calculate_bet_result(stake, odds)
                 caption = (
-                    f"📅 DATA: {kickoff.strftime('%d.%m.%Y')}\\n"
-                    f"🕒 GODZINA: {kickoff.strftime('%H:%M')} — CZAS POLSKI\\n"
-                    f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\\n"
-                    f"⚽ {pick.get('home')} – {pick.get('away')}\\n"
-                    f"🏆 Liga: {pick.get('league') or 'Liga nieznana'}\\n"
-                    f"📈 Superbet: {odds:.2f}\\n"
-                    f"💵 Stawka: {stake:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\\n"
-                    f"🔗 Mecz Superbet: {new_url}\\n"
+                    f"📅 DATA: {kickoff.strftime('%d.%m.%Y')}\n"
+                    f"🕒 GODZINA: {kickoff.strftime('%H:%M')} — CZAS POLSKI\n"
+                    f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
+                    f"⚽ {pick.get('home')} – {pick.get('away')}\n"
+                    f"🏆 Liga: {pick.get('league') or 'Liga nieznana'}\n"
+                    f"📈 Superbet: {odds:.2f}\n"
+                    f"💵 Stawka: {stake:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
+                    f"🔗 Mecz Superbet: {new_url}\n"
                     "Rozliczenie: wynik po 90 minutach; bez dogrywki i serii karnych."
                 )
                 response = requests.post(
