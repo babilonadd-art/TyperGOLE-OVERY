@@ -2074,14 +2074,22 @@ def match_detail(slug, pick=None):
     if pick and pick.get("odds_source") == "Bet365 / MoviOdds":
         try:
             result = moviodds_finished_result(pick)
-            if result and str(result.get("status", "")).lower() == "finished":
+            # Accept provider final-state variants (FT/ended/completed), but
+            # require a complete score and exact fixture match before settlement.
+            if result and confirmed_final_fixture(result):
                 if settlement_fixture_matches_pick(result, pick):
                     return result
                 print(f"MoviOdds: wynik odrzucony — niezgodny mecz/kategoria {pick.get('key')}.", flush=True)
-            return {}
+            else:
+                print(
+                    f"MoviOdds: brak potwierdzonego FT dla {pick.get('key')}; "
+                    "sprawdzam dalej Open Matchday/live detail zamiast kończyć próbę.",
+                    flush=True,
+                )
         except Exception as exc:
-            print(f"MoviOdds result error {pick.get('id')}: {type(exc).__name__}: {exc}", flush=True)
-            return {}
+            print(f"MoviOdds result error {pick.get('id')}: {type(exc).__name__}: {exc}; próbuję źródła zapasowego.", flush=True)
+        # Do not return here: use the same exact-match Open Matchday fallback
+        # below so one temporarily missing provider result cannot block settlement.
     if slug:
         # BTTS FT settlement needs one fast, exact live lookup; the legacy
         # widget fallback and broad archive search must not hold up new picks.
