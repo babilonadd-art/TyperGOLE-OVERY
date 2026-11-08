@@ -666,7 +666,6 @@ def update_existing_btts_superbet_links(state):
                 if not result.get("ok"):
                     raise RuntimeError(f"Telegram editMessageCaption error: {result}")
                 pick["bet_url"] = new_url
-                pick["odds_source"] = "Superbet"
                 pick["link_updated_at"] = now_local().isoformat()
                 pick["link_update_status"] = "updated"
                 pick["link_caption_version"] = 2
