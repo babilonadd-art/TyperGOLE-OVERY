@@ -4361,7 +4361,7 @@ def main():
     settle_picks(state, allowed_markets={BTTS_FT_MARKET})
     retry_pending_settlement_notifications(state)
 
-    # Upgrade links in already-sent future BTTS picks without reposting them.\n    try:\n        update_existing_btts_superbet_links(state)\n    except Exception as exc:\n        print(f"Superbet link updater error: {type(exc).__name__}: {exc}", flush=True)\n\n    # Active BTTS FT scanner uses Superbet for fixtures, odds and event links.
+    # Existing sent picks are left unchanged; new BTTS FT picks use Superbet links.
     try:
         send_prematch_superbet_btts_picks(state)
     except Exception as exc:
