@@ -1,0 +1,66 @@
+name: SportScore settlement source probe
+
+on:
+  push:
+    paths:
+      - ".github/workflows/sportscore-probe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Test SportScore football results endpoints (read-only)
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          python - <<'PY'
+          from datetime import datetime, timezone
+          import requests
+
+          day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+          headers = {
+              "User-Agent": "TyperGOLE-OVERY/1.0 (read-only settlement source test)",
+              "Accept": "application/json",
+          }
+          endpoints = [
+              ("daily fixtures/results", "https://sportscore.com/api/v1/fixtures/", {
+                  "sport": "football", "date": day, "status": "finished", "limit": 200,
+                  "src": "TyperGOLE-OVERY"
+              }),
+              ("live/recent matches", "https://sportscore.com/api/widget/matches/", {
+                  "sport": "football", "limit": 50, "src": "TyperGOLE-OVERY"
+              }),
+          ]
+          successes = 0
+          for label, url, params in endpoints:
+              print(f"TEST: {label}")
+              try:
+                  response = requests.get(url, params=params, headers=headers, timeout=20)
+                  print(f"HTTP: {response.status_code}")
+                  print(f"URL: {response.url}")
+                  print(f"CONTENT-TYPE: {response.headers.get('content-type', '')}")
+                  print(f"BODY-SAMPLE: {response.text[:500].replace(chr(10), ' ')}")
+                  if response.ok:
+                      payload = response.json()
+                      print(f"JSON_TYPE: {type(payload).__name__}")
+                      if isinstance(payload, dict):
+                          print(f"TOP_LEVEL_KEYS: {list(payload.keys())}")
+                          matches = payload.get("matches") or payload.get("data") or payload.get("fixtures") or []
+                          print(f"MATCH_COUNT: {len(matches) if isinstance(matches, list) else 'not-list'}")
+                          if isinstance(matches, list) and matches:
+                              print(f"FIRST_MATCH: {str(matches[0])[:1200]}")
+                      successes += 1
+                  else:
+                      print("JSON: not checked (HTTP error)")
+              except Exception as exc:
+                  print(f"ERROR: {type(exc).__name__}: {exc}")
+              print("---")
+          print(f"SPORTSCORE_PROBE_RESULT: {successes}/{len(endpoints)} endpoints reachable")
+          if successes == 0:
+              raise SystemExit("SportScore unavailable from GitHub Actions runner")
+          PY
