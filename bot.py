@@ -54,8 +54,9 @@ def now_local():
     return datetime.now(TZ)
 
 
-# No daily pick cap: scan and send every qualified BTTS FT fixture for today.
-MAX_DAILY_BTTS_FT_PICKS = None
+# Limit 8 typów BTTS FT na każdy dzień kalendarzowy (Europe/Warsaw).
+# Licznik resetuje się automatycznie po zmianie daty; historia pozostaje zachowana.
+MAX_DAILY_BTTS_FT_PICKS = 8
 
 
 def daily_sent_match_count(state, day):
@@ -4460,6 +4461,24 @@ def send_prematch_superbet_btts_picks(state):
             continue
         if same_fixture_pick_exists(state, candidate["id"], candidate["home"], candidate["away"], day_key, BTTS_FT_MARKET, competition=candidate["league"]):
             continue
+        # A separate day header is sent once, immediately before the first
+        # actual pick of this Warsaw-local date. The persisted date key prevents
+        # duplicates across the five-minute scheduled workflow runs.
+        headers_sent = state.setdefault("daily_headers_sent", [])
+        if day_key not in headers_sent:
+            header = f"📅 𝗧𝗬𝗣𝗬 𝗡𝗔 𝗗𝗭𝗜𝗘𝗡 {today.strftime('%d.%m.%Y')}\n⚽ BTTS TAK — CAŁY MECZ (FT)"
+            try:
+                header_result = telegram(header)
+                header_message = header_result.get("result", {}) if isinstance(header_result, dict) else {}
+                if isinstance(header_message, list):
+                    header_message = header_message[0] if header_message else {}
+                headers_sent.append(day_key)
+                state.setdefault("daily_header_messages", {})[day_key] = header_message.get("message_id")
+                save_state(state)
+                print(f"WYSŁANO NAGŁÓWEK DNIA {day_key}; message_id={header_message.get('message_id')}", flush=True)
+            except Exception as exc:
+                print(f"Nie udało się wysłać nagłówka dnia {day_key}: {type(exc).__name__}: {exc}; wstrzymuję typy do kolejnego skanu.", flush=True)
+                return
         pick = {"key": f"{candidate['id']}:{BTTS_FT_MARKET}", "id": candidate["id"], "slug": "", "home": candidate["home"], "away": candidate["away"], "league": candidate["league"], "competition_category": candidate["competition_category"], "date": day_key, "kickoff_time": candidate["kickoff"].isoformat(), "market": BTTS_FT_MARKET, "stake": STAKE, "odds": float(final_quote["odds"]), "odds_source": "Superbet", "odds_market": final_quote["market"], "odds_updated_at": final_quote.get("updated_at"), "bet_url": candidate["url"], "settled": False, "delivery_status": "pending"}
         state.setdefault("picks", []).append(pick)
         state.setdefault("duplicate_guard", []).append(pick)
