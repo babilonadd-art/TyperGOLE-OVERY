@@ -22,6 +22,7 @@ API = "https://sportscore.com"  # legacy fallback for older pick types
 OPEN_MATCHDAY_ZIP = "https://github.com/oladeeayo/open-matchday/archive/refs/heads/master.zip"
 OPEN_MATCHDAY_SEASON = "2627"
 _OPEN_MATCHDAY_CACHE = None
+_SPORTSCORE_SETTLEMENT_CACHE = {}
 MOVIODDS_API = "https://moviodds.com"
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
@@ -2120,13 +2121,16 @@ def sportscore_result_for_pick(pick):
     candidates = {}
     for day in sorted(query_days):
         try:
-            payload = api_get(
-                "/api/v1/fixtures/",
-                {"sport": "football", "date": day.isoformat(),
-                 "status": "finished", "limit": 200},
-                timeout=15,
-            )
-            for fixture in extract_matches(payload):
+            cache_key = ("date", day.isoformat())
+            if cache_key not in _SPORTSCORE_SETTLEMENT_CACHE:
+                payload = api_get(
+                    "/api/v1/fixtures/",
+                    {"sport": "football", "date": day.isoformat(),
+                     "status": "finished", "limit": 200},
+                    timeout=15,
+                )
+                _SPORTSCORE_SETTLEMENT_CACHE[cache_key] = extract_matches(payload)
+            for fixture in _SPORTSCORE_SETTLEMENT_CACHE[cache_key]:
                 if not isinstance(fixture, dict):
                     continue
                 if not settlement_fixture_matches_pick(fixture, pick):
@@ -2153,12 +2157,15 @@ def sportscore_result_for_pick(pick):
             if not team_slug:
                 continue
             try:
-                payload = api_get(
-                    "/api/v1/team/",
-                    {"sport": "football", "slug": team_slug, "limit": 50},
-                    timeout=15,
-                )
-                for fixture in extract_matches(payload):
+                cache_key = ("team", team_slug)
+                if cache_key not in _SPORTSCORE_SETTLEMENT_CACHE:
+                    payload = api_get(
+                        "/api/v1/team/",
+                        {"sport": "football", "slug": team_slug, "limit": 50},
+                        timeout=15,
+                    )
+                    _SPORTSCORE_SETTLEMENT_CACHE[cache_key] = extract_matches(payload)
+                for fixture in _SPORTSCORE_SETTLEMENT_CACHE[cache_key]:
                     if not isinstance(fixture, dict):
                         continue
                     if not settlement_fixture_matches_pick(fixture, pick):
