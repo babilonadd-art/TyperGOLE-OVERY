@@ -2110,18 +2110,23 @@ def match_detail(slug, pick=None):
                 print(f"Match detail {endpoint} niedostępny dla {slug}: {type(exc).__name__}: {exc}", flush=True)
 
     if pick and pick.get("market") == BTTS_FT_MARKET:
-        # BTTS FT can be settled from the exact live fixture as soon as both
-        # teams score. Do not spend minutes querying broad historical archives.
-        if live_detail:
-            print("BTTS FT: używam szczegółów dokładnie dopasowanego meczu LIVE/FT; pomijam archiwalne zapytania.", flush=True)
-            return live_detail
+        # A non-final live detail must not block the finished-results archive.
+        # Prefer a completed Open Matchday result; only fall back to live detail
+        # when the archive has not published the final score yet.
         result = open_matchday_result_for_pick(pick)
         if result:
             print(f"Open Matchday: wynik FT {result['home']} - {result['away']} {result['home_score']}-{result['away_score']}", flush=True)
             return result
+        if live_detail:
+            print(
+                f"BTTS FT: mecz {pick.get('home')} - {pick.get('away')} nadal bez potwierdzonego FT; "
+                "zostawiam nierozliczony i ponowię sprawdzenie.",
+                flush=True,
+            )
+            return live_detail
         print(
-            f"BTTS FT: brak wyniku CSV dla {pick.get('home')} - {pick.get('away')}; "
-            "pomijam kosztowne zapytania archiwalne i przechodzę dalej.",
+            f"BTTS FT: brak potwierdzonego wyniku FT dla {pick.get('home')} - {pick.get('away')}; "
+            "ponowię sprawdzenie przy następnym skanie.",
             flush=True,
         )
         return {}
