@@ -4479,12 +4479,14 @@ def send_prematch_superbet_btts_picks(state):
             except Exception as exc:
                 print(f"Nie udało się wysłać nagłówka dnia {day_key}: {type(exc).__name__}: {exc}; wstrzymuję typy do kolejnego skanu.", flush=True)
                 return
-        pick = {"key": f"{candidate['id']}:{BTTS_FT_MARKET}", "id": candidate["id"], "slug": "", "home": candidate["home"], "away": candidate["away"], "league": candidate["league"], "competition_category": candidate["competition_category"], "date": day_key, "kickoff_time": candidate["kickoff"].isoformat(), "market": BTTS_FT_MARKET, "stake": STAKE, "odds": float(final_quote["odds"]), "odds_source": "Superbet", "odds_market": final_quote["market"], "odds_updated_at": final_quote.get("updated_at"), "bet_url": candidate["url"], "settled": False, "delivery_status": "pending"}
+        pick_number = sent_by_day.get(day_key, 0) + 1
+        pick = {"key": f"{candidate['id']}:{BTTS_FT_MARKET}", "id": candidate["id"], "slug": "", "home": candidate["home"], "away": candidate["away"], "league": candidate["league"], "competition_category": candidate["competition_category"], "date": day_key, "kickoff_time": candidate["kickoff"].isoformat(), "market": BTTS_FT_MARKET, "stake": STAKE, "odds": float(final_quote["odds"]), "odds_source": "Superbet", "odds_market": final_quote["market"], "odds_updated_at": final_quote.get("updated_at"), "bet_url": candidate["url"], "settled": False, "delivery_status": "pending", "pick_number": pick_number}
         state.setdefault("picks", []).append(pick)
         state.setdefault("duplicate_guard", []).append(pick)
         save_state(state)
         payout = calculate_bet_result(STAKE, final_quote["odds"])
         message = (
+            f"𝗧𝗬𝗣 𝗡𝗥. {pick_number}\n"
             f"📅 DATA: {candidate['kickoff'].strftime('%d.%m.%Y')}\n"
             f"🕒 GODZINA: {candidate['kickoff'].strftime('%H:%M')} — CZAS POLSKI\n"
             f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
@@ -4508,7 +4510,7 @@ def send_prematch_superbet_btts_picks(state):
             pick["sent_at"] = now_local().isoformat()
             save_state(state)
             sent_by_day[day_key] = sent_by_day.get(day_key, 0) + 1
-            print(f"WYSŁANO BTTS FT Superbet: {candidate['home']} - {candidate['away']} @ {final_quote['odds']:.2f}", flush=True)
+            print(f"WYSŁANO BTTS FT Superbet TYP NR. {pick_number}: {candidate['home']} - {candidate['away']} @ {final_quote['odds']:.2f}", flush=True)
         except Exception as exc:
             pick["delivery_status"] = "failed"
             pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
