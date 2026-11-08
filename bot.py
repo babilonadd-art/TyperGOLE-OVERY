@@ -159,49 +159,86 @@ def open_matchday_fixture(row):
 
 
 def open_matchday_result_for_pick(pick):
-    """Find a completed result only when team orientation and match date agree."""
+    """Find a completed result by both teams, allowing timezone/date drift in public CSV."""
     try:
         expected = datetime.fromisoformat(
             str(pick.get("kickoff_time") or pick.get("date")).replace("Z", "+00:00")
         )
         if expected.tzinfo is None:
             expected = expected.replace(tzinfo=TZ)
-        expected_day = expected.astimezone(TZ).date()
+        expected = expected.astimezone(TZ)
     except (TypeError, ValueError):
         return None
+
+    candidates = []
     for row in open_matchday_data()["results"]:
-        home, away = str(row.get("home") or ""), str(row.get("away") or "")
+        home = str(row.get("home") or "").strip()
+        away = str(row.get("away") or "").strip()
+        if not home or not away:
+            continue
         if not fixture_categories_compatible(
             home, away, row.get("_league", ""),
-            pick.get("home"), pick.get("away"), pick.get("league") or pick.get("competition") or "",
+            pick.get("home"), pick.get("away"),
+            pick.get("league") or pick.get("competition") or "",
         ):
             continue
-        direct = team_name_similarity(home, pick.get("home")) >= 0.88 and team_name_similarity(away, pick.get("away")) >= 0.88
-        reverse = team_name_similarity(home, pick.get("away")) >= 0.88 and team_name_similarity(away, pick.get("home")) >= 0.88
+
+        direct = (
+            team_name_similarity(home, pick.get("home")) >= 0.88
+            and team_name_similarity(away, pick.get("away")) >= 0.88
+        )
+        reverse = (
+            team_name_similarity(home, pick.get("away")) >= 0.88
+            and team_name_similarity(away, pick.get("home")) >= 0.88
+        )
         if not (direct or reverse):
             continue
+
         kickoff = open_matchday_kickoff(row)
-        if not kickoff or kickoff.astimezone(TZ).date() != expected_day:
+        if not kickoff:
             continue
-        # Open Matchday CSV timestamps can differ by one hour due to its
-        # fixed CET convention, but must still identify the same kickoff.
-        try:
-            expected_kickoff = expected.astimezone(TZ)
-            if abs((kickoff.astimezone(TZ) - expected_kickoff).total_seconds()) > 3 * 60 * 60:
-                continue
-        except (TypeError, ValueError):
+        kickoff = kickoff.astimezone(TZ)
+
+        # Public football feeds sometimes store the UTC match date while the
+        # pick stores Warsaw-local date. Accept an adjacent calendar date only
+        # when both teams match and the kickoff is still close to the pick.
+        if abs((kickoff.date() - expected.date()).days) > 1:
             continue
+        time_delta = abs((kickoff - expected).total_seconds())
+        if time_delta > 8 * 60 * 60:
+            continue
+
         fh, fa = as_int(row.get("ft_home")), as_int(row.get("ft_away"))
         if fh is None or fa is None:
             continue
-        return {
-            "home": home, "away": away, "time": kickoff.isoformat(), "status": "finished",
-            "home_score": fh, "away_score": fa, "ft_home": fh, "ft_away": fa,
-            "ht_home": as_int(row.get("ht_home")), "ht_away": as_int(row.get("ht_away")),
-            "half_time_score": {"home": as_int(row.get("ht_home")), "away": as_int(row.get("ht_away"))},
-            "competition_name": row.get("_league", "Liga nieznana"), "_source": "Open Matchday",
-        }
-    return None
+        candidates.append((time_delta, {
+            "home": home, "away": away, "time": kickoff.isoformat(),
+            "status": "finished", "home_score": fh, "away_score": fa,
+            "ft_home": fh, "ft_away": fa,
+            "ht_home": as_int(row.get("ht_home")),
+            "ht_away": as_int(row.get("ht_away")),
+            "half_time_score": {
+                "home": as_int(row.get("ht_home")),
+                "away": as_int(row.get("ht_away")),
+            },
+            "competition_name": row.get("_league", "Liga nieznana"),
+            "_source": "Open Matchday",
+        }))
+
+    if not candidates:
+        return None
+
+    candidates.sort(key=lambda item: item[0])
+    # If the two closest records are effectively tied, fail closed rather than
+    # risk settling against a different meeting of the same clubs.
+    if len(candidates) > 1 and candidates[1][0] - candidates[0][0] < 30 * 60:
+        print(
+            f"Open Matchday: niejednoznaczne wyniki dla {pick.get('home')} - "
+            f"{pick.get('away')}; nie rozliczam automatycznie.",
+            flush=True,
+        )
+        return None
+    return candidates[0][1]
 
 
 def api_get(path, params=None, timeout=20):
