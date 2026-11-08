@@ -594,6 +594,90 @@ def superbet_prematch_event_links(target_date=None):
 
 
 
+
+def update_existing_btts_superbet_links(state):
+    """Replace Bet365 links in already-sent, upcoming BTTS FT Telegram photo captions."""
+    now = now_local()
+    pending = []
+    for pick in state.get("picks", []):
+        if pick.get("market") != BTTS_FT_MARKET:
+            continue
+        if pick.get("delivery_status", "sent") != "sent" or pick.get("settled"):
+            continue
+        if not pick.get("telegram_message_id") or "superbet.pl/" in str(pick.get("bet_url") or ""):
+            continue
+        kickoff = kickoff_datetime(pick)
+        if not kickoff or kickoff <= now:
+            continue
+        day = str(pick.get("date") or kickoff.date().isoformat())
+        pending.append((day, pick))
+
+    if not pending:
+        print("Superbet link updater: brak przyszłych typów do poprawienia.", flush=True)
+        return
+
+    by_day = {}
+    for day, pick in pending:
+        by_day.setdefault(day, []).append(pick)
+
+    updated = 0
+    for day, day_picks in sorted(by_day.items()):
+        events = superbet_prematch_event_links(target_date=day)
+        for pick in day_picks:
+            matches = []
+            for event in events:
+                home_score = team_name_similarity(pick.get("home", ""), event.get("home", ""))
+                away_score = team_name_similarity(pick.get("away", ""), event.get("away", ""))
+                if home_score >= 0.84 and away_score >= 0.84:
+                    url = superbet_btts_full_time_url(event.get("url"))
+                    if url and url.startswith("https://superbet.pl/kursy/pilka-nozna/"):
+                        matches.append((min(home_score, away_score), url))
+            matches.sort(key=lambda item: item[0], reverse=True)
+            if not matches or (len(matches) > 1 and matches[0][0] - matches[1][0] < 0.04):
+                print(f"Superbet link updater: brak jednoznacznego meczu dla {pick.get('home')} - {pick.get('away')} ({day}); pomijam.", flush=True)
+                continue
+            new_url = matches[0][1]
+            try:
+                kickoff = kickoff_datetime(pick)
+                kickoff = kickoff.astimezone(TZ) if kickoff.tzinfo else kickoff.replace(tzinfo=TZ)
+                odds = float(pick.get("odds"))
+                stake = float(pick.get("stake", STAKE) or STAKE)
+                payout = calculate_bet_result(stake, odds)
+                caption = (
+                    f"📅 DATA: {kickoff.strftime('%d.%m.%Y')}\\n"
+                    f"🕒 GODZINA: {kickoff.strftime('%H:%M')} — CZAS POLSKI\\n"
+                    f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\\n"
+                    f"⚽ {pick.get('home')} – {pick.get('away')}\\n"
+                    f"🏆 Liga: {pick.get('league') or 'Liga nieznana'}\\n"
+                    f"📈 Superbet: {odds:.2f}\\n"
+                    f"💵 Stawka: {stake:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\\n"
+                    f"🔗 Mecz Superbet: {new_url}\\n"
+                    "Rozliczenie: wynik po 90 minutach; bez dogrywki i serii karnych."
+                )
+                response = requests.post(
+                    f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/editMessageCaption",
+                    json={"chat_id": CHAT_ID, "message_id": int(pick["telegram_message_id"]), "caption": caption},
+                    timeout=25,
+                )
+                response.raise_for_status()
+                result = response.json()
+                if not result.get("ok"):
+                    raise RuntimeError(f"Telegram editMessageCaption error: {result}")
+                pick["bet_url"] = new_url
+                pick["odds_source"] = "Superbet"
+                pick["link_updated_at"] = now_local().isoformat()
+                pick["link_update_status"] = "updated"
+                save_state(state)
+                updated += 1
+                print(f"ZAKTUALIZOWANO LINK SUPERBET: {pick.get('home')} - {pick.get('away')} (wiadomość {pick.get('telegram_message_id')})", flush=True)
+            except Exception as exc:
+                pick["link_update_status"] = "failed"
+                pick["link_update_error"] = f"{type(exc).__name__}: {exc}"
+                save_state(state)
+                print(f"Superbet link updater: edycja nieudana dla {pick.get('home')} - {pick.get('away')}: {type(exc).__name__}: {exc}", flush=True)
+    print(f"Superbet link updater: zaktualizowano {updated}/{len(pending)} przyszłych wiadomości.", flush=True)
+
+
 def log_superbet_diagnostic(record):
     """Print and persist a structured Superbet audit record for this workflow run."""
     line = json.dumps(record, ensure_ascii=False, default=str)
@@ -4275,7 +4359,7 @@ def main():
     settle_picks(state, allowed_markets={BTTS_FT_MARKET})
     retry_pending_settlement_notifications(state)
 
-    # Active BTTS FT scanner uses Superbet for fixtures, odds and event links.
+    # Upgrade links in already-sent future BTTS picks without reposting them.\n    try:\n        update_existing_btts_superbet_links(state)\n    except Exception as exc:\n        print(f"Superbet link updater error: {type(exc).__name__}: {exc}", flush=True)\n\n    # Active BTTS FT scanner uses Superbet for fixtures, odds and event links.
     try:
         send_prematch_superbet_btts_picks(state)
     except Exception as exc:
