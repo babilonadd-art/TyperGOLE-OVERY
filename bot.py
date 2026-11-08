@@ -604,7 +604,9 @@ def update_existing_btts_superbet_links(state):
             continue
         if pick.get("delivery_status", "sent") != "sent" or pick.get("settled"):
             continue
-        if not pick.get("telegram_message_id") or "superbet.pl/" in str(pick.get("bet_url") or ""):
+        if not pick.get("telegram_message_id"):
+            continue
+        if "superbet.pl/" in str(pick.get("bet_url") or "") and pick.get("link_caption_version") == 2:
             continue
         kickoff = kickoff_datetime(pick)
         if not kickoff or kickoff <= now:
@@ -667,6 +669,7 @@ def update_existing_btts_superbet_links(state):
                 pick["odds_source"] = "Superbet"
                 pick["link_updated_at"] = now_local().isoformat()
                 pick["link_update_status"] = "updated"
+                pick["link_caption_version"] = 2
                 save_state(state)
                 updated += 1
                 print(f"ZAKTUALIZOWANO LINK SUPERBET: {pick.get('home')} - {pick.get('away')} (wiadomość {pick.get('telegram_message_id')})", flush=True)
