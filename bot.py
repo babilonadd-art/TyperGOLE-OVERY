@@ -53,7 +53,8 @@ def now_local():
     return datetime.now(TZ)
 
 
-MAX_DAILY_BTTS_FT_PICKS = 8
+# No daily pick cap: scan and send every qualified BTTS FT fixture for today.
+MAX_DAILY_BTTS_FT_PICKS = None
 
 
 def daily_sent_match_count(state, day):
@@ -4130,7 +4131,7 @@ MAX_DAILY_BTTS_FT_PICKS = 8
 
 
 def send_prematch_bet365_btts_picks(state):
-    """Send up to eight unique prematch BTTS FT picks daily from Bet365."""
+    """Send all unique qualified prematch BTTS FT picks for today from Bet365."""
     initial_board = moviodds_prematch_board()
     today = now_local().date()
     candidates = [c for c in moviodds_btts_candidates(state, now=now_local(), board=initial_board)
@@ -4159,10 +4160,6 @@ def send_prematch_bet365_btts_picks(state):
         day = candidate["kickoff"].date().isoformat()
         if day != today_key:
             continue
-        if sent_by_day.get(today_key, 0) >= MAX_DAILY_BTTS_FT_PICKS:
-            print(f"Limit {MAX_DAILY_BTTS_FT_PICKS} typów na dziś osiągnięty — koniec wysyłki.", flush=True)
-            break
-
         # Validate against the single fresh board read for this run.
         refreshed = refresh_by_id.get(candidate["id"])
         if not refreshed or refreshed.get("in_play") is True:
