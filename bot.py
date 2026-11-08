@@ -4130,84 +4130,77 @@ def send_prematch_over_15_ht_picks(state):
 MAX_DAILY_BTTS_FT_PICKS = 8
 
 
-def send_prematch_bet365_btts_picks(state):
-    """Send up to 8 unique qualified prematch BTTS FT picks for today from Bet365."""
-    initial_board = moviodds_prematch_board()
+def send_prematch_superbet_btts_picks(state):
+    """Send prematch BTTS FT picks using Superbet fixtures, odds and event links."""
     today = now_local().date()
-    candidates = [c for c in moviodds_btts_candidates(state, now=now_local(), board=initial_board)
-                  if c["kickoff"].date() == today]
-    print(f"Bet365: po filtrze daty {today.isoformat()} pozostało {len(candidates)} meczów na dziś.", flush=True)
-    # One fresh second read validates all candidates; avoid downloading the
-    # very large soccer board once per selected fixture.
-    try:
-        refresh_board = moviodds_prematch_board()
-    except Exception as exc:
-        print(f"Bet365 końcowy odczyt tablicy nieudany: {type(exc).__name__}: {exc}", flush=True)
+    events = superbet_prematch_event_links(target_date=today)
+    if not events:
+        print(f"Superbet BTTS FT: brak wydarzeń na {today.isoformat()}; bez fallbacku do innego bukmachera.", flush=True)
         return
-    refresh_by_id = {
-        str(item.get("id") or ""): item for item in refresh_board
-        if isinstance(item, dict)
-    }
+    fixtures = scheduled_fixtures_today(events, [today])
+    event_by_id = {str(e.get("event_id")): e for e in events if e.get("event_id")}
+    candidates = []
+    for fixture in fixtures:
+        event_id = str(fixture.get("id", "")).replace("superbet:", "", 1)
+        event = event_by_id.get(event_id)
+        if not event:
+            continue
+        try:
+            detail = superbet_event_detail(event_id)
+            quote = extract_superbet_btts_full_time(detail)
+        except Exception as exc:
+            print(f"Superbet BTTS FT: błąd kursu {fixture['home']} - {fixture['away']}: {type(exc).__name__}: {exc}", flush=True)
+            continue
+        if not quote or not 1.70 <= float(quote["odds"]) <= 2.50:
+            continue
+        kickoff = kickoff_datetime({"kickoff_time": fixture.get("_bot_kickoff")})
+        if not kickoff or kickoff <= now_local() or kickoff.date() != today:
+            continue
+        league = format_fixture_competition(str(fixture.get("competition_name") or "Liga nieznana"), fixture["home"], fixture["away"])
+        if same_fixture_pick_exists(state, fixture["id"], fixture["home"], fixture["away"], today.isoformat(), BTTS_FT_MARKET, competition=league):
+            continue
+        bet_url = superbet_btts_full_time_url(event.get("url"), quote)
+        if not bet_url or not bet_url.startswith("https://superbet.pl/"):
+            print(f"Superbet BTTS FT: brak linku do meczu {fixture['home']} - {fixture['away']}; pomijam.", flush=True)
+            continue
+        candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "url": bet_url, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
+    candidates.sort(key=lambda x: (x["kickoff"], x["home"], x["away"]))
+    print(f"Superbet BTTS FT: {len(candidates)} kandydatów z aktywnym rynkiem BTTS TAK, kurs 1.70–2.50.", flush=True)
     sent_by_day = {}
-    for pick in state.get("picks", []):
-        if (pick.get("market") == BTTS_FT_MARKET and pick.get("delivery_status", "sent") == "sent"
-                and pick.get("counts_toward_daily_limit", True) is not False):
-            day = str(pick.get("date") or "")
+    for old in state.get("picks", []):
+        if old.get("market") == BTTS_FT_MARKET and old.get("delivery_status", "sent") == "sent" and old.get("counts_toward_daily_limit", True) is not False:
+            day = str(old.get("date") or "")
             sent_by_day[day] = sent_by_day.get(day, 0) + 1
-
-    today_key = today.isoformat()
+    day_key = today.isoformat()
     for candidate in candidates:
-        day = candidate["kickoff"].date().isoformat()
-        if day != today_key:
-            continue
-        if sent_by_day.get(day, 0) >= MAX_DAILY_BTTS_FT_PICKS:
-            print(
-                f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {day}; "
-                "pomijam kolejne mecze.",
-                flush=True,
-            )
+        if sent_by_day.get(day_key, 0) >= MAX_DAILY_BTTS_FT_PICKS:
+            print(f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {day_key}.", flush=True)
             break
-        # Validate against the single fresh board read for this run.
-        refreshed = refresh_by_id.get(candidate["id"])
-        if not refreshed or refreshed.get("in_play") is True:
+        try:
+            final_detail = superbet_event_detail(candidate["event_id"])
+            final_quote = extract_superbet_btts_full_time(final_detail)
+        except Exception as exc:
+            print(f"Końcowa kontrola Superbet nieudana: {type(exc).__name__}: {exc}", flush=True)
             continue
-        fresh_quote = extract_moviodds_btts_ft_quote(refreshed)
-        fresh_kickoff = kickoff_datetime({"kickoff_time": refreshed.get("kickoff_utc")})
-        if (not fresh_quote or fresh_kickoff is None or fresh_kickoff <= now_local()
-                or abs(fresh_quote["odds"] - candidate["quote"]["odds"]) > 0.005):
-            print(f"Bet365: kurs lub status zmienił się przed wysyłką — pomijam {candidate['home']} - {candidate['away']}.", flush=True)
+        if not final_quote or not 1.70 <= float(final_quote["odds"]) <= 2.50 or abs(float(final_quote["odds"]) - float(candidate["quote"]["odds"])) > 0.005:
+            print(f"Superbet: kurs/rynek zmienił się przed wysyłką — pomijam {candidate['home']} - {candidate['away']}.", flush=True)
             continue
-
-        pick = {
-            "key": f"{candidate['id']}:{BTTS_FT_MARKET}",
-            "id": candidate["id"], "slug": "",
-            "home": candidate["home"], "away": candidate["away"],
-            "league": candidate["league"],
-            "competition_category": candidate["competition_category"],
-            "date": day, "kickoff_time": candidate["kickoff"].isoformat(),
-            "market": BTTS_FT_MARKET, "stake": STAKE,
-            "odds": fresh_quote["odds"], "odds_source": "Bet365 / MoviOdds",
-            "odds_market": fresh_quote["market"], "odds_updated_at": fresh_quote.get("updated_at"),
-            "bet_url": candidate["url"], "settled": False, "delivery_status": "pending",
-        }
-        if same_fixture_pick_exists(
-            state, candidate["id"], candidate["home"], candidate["away"],
-            day, BTTS_FT_MARKET, competition=candidate["league"],
-        ):
+        if same_fixture_pick_exists(state, candidate["id"], candidate["home"], candidate["away"], day_key, BTTS_FT_MARKET, competition=candidate["league"]):
             continue
+        pick = {"key": f"{candidate['id']}:{BTTS_FT_MARKET}", "id": candidate["id"], "slug": "", "home": candidate["home"], "away": candidate["away"], "league": candidate["league"], "competition_category": candidate["competition_category"], "date": day_key, "kickoff_time": candidate["kickoff"].isoformat(), "market": BTTS_FT_MARKET, "stake": STAKE, "odds": float(final_quote["odds"]), "odds_source": "Superbet", "odds_market": final_quote["market"], "odds_updated_at": final_quote.get("updated_at"), "bet_url": candidate["url"], "settled": False, "delivery_status": "pending"}
         state.setdefault("picks", []).append(pick)
         state.setdefault("duplicate_guard", []).append(pick)
         save_state(state)
-        payout = calculate_bet_result(STAKE, fresh_quote["odds"])
+        payout = calculate_bet_result(STAKE, final_quote["odds"])
         message = (
             f"📅 DATA: {candidate['kickoff'].strftime('%d.%m.%Y')}\n"
             f"🕒 GODZINA: {candidate['kickoff'].strftime('%H:%M')} — CZAS POLSKI\n"
             f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
             f"⚽ {candidate['home']} – {candidate['away']}\n"
             f"🏆 Liga: {candidate['league']}\n"
-            f"📈 Bet365: {fresh_quote['odds']:.2f}\n"
+            f"📈 Superbet: {final_quote['odds']:.2f}\n"
             f"💵 Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
-            f"🔗 Mecz Bet365: {candidate['url'] or 'link niedostępny'}\n"
+            f"🔗 Mecz Superbet: {candidate['url']}\n"
             "Rozliczenie: wynik po 90 minutach; bez dogrywki i serii karnych."
         )
         try:
@@ -4222,15 +4215,14 @@ def send_prematch_bet365_btts_picks(state):
             pick["delivery_status"] = "sent"
             pick["sent_at"] = now_local().isoformat()
             save_state(state)
-            sent_by_day[day] = sent_by_day.get(day, 0) + 1
-            print(f"WYSŁANO BTTS FT Bet365: {candidate['home']} - {candidate['away']} @ {fresh_quote['odds']:.2f}", flush=True)
+            sent_by_day[day_key] = sent_by_day.get(day_key, 0) + 1
+            print(f"WYSŁANO BTTS FT Superbet: {candidate['home']} - {candidate['away']} @ {final_quote['odds']:.2f}", flush=True)
         except Exception as exc:
             pick["delivery_status"] = "failed"
             pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
             save_state(state)
-            print(f"Telegram Bet365 BTTS error: {type(exc).__name__}: {exc}", flush=True)
+            print(f"Telegram Superbet BTTS FT error: {type(exc).__name__}: {exc}", flush=True)
             return
-
 
 def send_manual_archive_resend(state):
     """Send one explicitly queued historical pick once, clearly marked as archive."""
@@ -4279,16 +4271,15 @@ def main():
         save_state(state)
     print(f"Historia typów: {len(state['picks'])}; nierozliczone: {sum(1 for p in state['picks'] if not p.get('settled'))}", flush=True)
 
-    # New bot is FT BTTS only. Legacy HT/Over picks are not auto-settled
-    # or sent by this workflow while the Bet365 prematch feed is being wired.
+    # New bot is FT BTTS only. Historical BTTS picks remain available for settlement.
     settle_picks(state, allowed_markets={BTTS_FT_MARKET})
     retry_pending_settlement_notifications(state)
 
-    # Legacy HT/Over sender remains disabled; new tips use Bet365 prematch BTTS only.
+    # Active BTTS FT scanner uses Superbet for fixtures, odds and event links.
     try:
-        send_prematch_bet365_btts_picks(state)
+        send_prematch_superbet_btts_picks(state)
     except Exception as exc:
-        print(f"Bet365 BTTS FT scanner error: {type(exc).__name__}: {exc}", flush=True)
+        print(f"Superbet BTTS FT scanner error: {type(exc).__name__}: {exc}", flush=True)
     try:
         send_monthly_reports(state)
     except Exception as exc:
