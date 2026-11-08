@@ -2101,6 +2101,87 @@ def moviodds_btts_candidates(state, now=None, board=None):
     return candidates
 
 
+def sportscore_result_for_pick(pick):
+    """Find one exact, confirmed finished fixture in SportScore's results archive."""
+    if not isinstance(pick, dict) or pick_local_date(pick) != now_local().date():
+        return None
+
+    kickoff = kickoff_datetime(pick)
+    if kickoff is None:
+        return None
+
+    local_day = pick_local_date(pick)
+    query_days = {
+        local_day - timedelta(days=1),
+        local_day,
+        local_day + timedelta(days=1),
+        kickoff.astimezone(timezone.utc).date(),
+    }
+    candidates = {}
+    for day in sorted(query_days):
+        try:
+            payload = api_get(
+                "/api/v1/fixtures/",
+                {"sport": "football", "date": day.isoformat(),
+                 "status": "finished", "limit": 200},
+                timeout=15,
+            )
+            for fixture in extract_matches(payload):
+                if not isinstance(fixture, dict):
+                    continue
+                if not settlement_fixture_matches_pick(fixture, pick):
+                    continue
+                if not confirmed_final_fixture(fixture):
+                    continue
+                identity = match_identifier(fixture) or (
+                    f"{teams(fixture)[0]}:{teams(fixture)[1]}:{kickoff_datetime(fixture)}"
+                )
+                candidates[str(identity)] = fixture
+        except Exception as exc:
+            print(f"SportScore archive {day}: {type(exc).__name__}: {exc}", flush=True)
+
+    # The daily archive is capped; query each team schedule if it did not
+    # return an exact, unique fixture. The same date/team/final checks apply.
+    if not candidates:
+        def slugify(value):
+            value = unicodedata.normalize("NFKD", str(value or "")).encode(
+                "ascii", "ignore"
+            ).decode().lower()
+            return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", value)).strip("-")
+
+        for team_slug in dict.fromkeys((slugify(pick.get("home")), slugify(pick.get("away")))):
+            if not team_slug:
+                continue
+            try:
+                payload = api_get(
+                    "/api/v1/team/",
+                    {"sport": "football", "slug": team_slug, "limit": 50},
+                    timeout=15,
+                )
+                for fixture in extract_matches(payload):
+                    if not isinstance(fixture, dict):
+                        continue
+                    if not settlement_fixture_matches_pick(fixture, pick):
+                        continue
+                    if not confirmed_final_fixture(fixture):
+                        continue
+                    identity = match_identifier(fixture) or (
+                        f"{teams(fixture)[0]}:{teams(fixture)[1]}:{kickoff_datetime(fixture)}"
+                    )
+                    candidates[str(identity)] = fixture
+            except Exception as exc:
+                print(f"SportScore team archive {team_slug}: {type(exc).__name__}: {exc}", flush=True)
+
+    if len(candidates) == 1:
+        fixture = next(iter(candidates.values()))
+        home, away = teams(fixture)
+        print(f"SportScore: dokładny, zakończony mecz {home} - {away}; weryfikuję wynik po 90 minutach.", flush=True)
+        return fixture
+    if len(candidates) > 1:
+        print(f"SportScore: kilka pasujących rekordów dla {pick.get('home')} - {pick.get('away')}; nie rozliczam automatycznie.", flush=True)
+    return None
+
+
 def match_detail(slug, pick=None):
     """
     Fetch match detail and search finished fixtures. The daily archive is
@@ -2155,12 +2236,16 @@ def match_detail(slug, pick=None):
                 print(f"Match detail {endpoint} niedostępny dla {slug}: {type(exc).__name__}: {exc}", flush=True)
 
     if pick and pick.get("market") == BTTS_FT_MARKET:
-        # A non-final live detail must not block the finished-results archive.
-        # Prefer a completed Open Matchday result; only fall back to live detail
-        # when the archive has not published the final score yet.
+        # Primary source: SportScore. This path is strictly limited to today's
+        # Warsaw-local fixtures; settle_picks also enforces the same date.
+        result = sportscore_result_for_pick(pick)
+        if result:
+            return result
+
+        # Fallback: Open Matchday, only when SportScore has no unique exact FT.
         result = open_matchday_result_for_pick(pick)
         if result:
-            print(f"Open Matchday: wynik FT {result['home']} - {result['away']} {result['home_score']}-{result['away_score']}", flush=True)
+            print(f"Open Matchday fallback: wynik FT {result['home']} - {result['away']} {result['home_score']}-{result['away_score']}", flush=True)
             return result
         if live_detail:
             print(
