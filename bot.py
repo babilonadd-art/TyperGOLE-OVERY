@@ -572,6 +572,10 @@ def superbet_prematch_event_links(target_date=None):
                 "url": full_url, "text": name, "event_id": event_id,
                 "home": home, "away": away,
                 "time": kickoff.isoformat() if kickoff else None,
+                # Preserve competition metadata from the original Superbet event.
+                # It was previously discarded here, causing every later pick to
+                # fall back to "Liga nieznana".
+                "competition_name": extract_superbet_competition_name(event) or "",
             }
         print(
             f"Superbet API: {len(api_events)} rekordów pobranych; "
@@ -4245,7 +4249,15 @@ def send_prematch_superbet_btts_picks(state):
         kickoff = kickoff_datetime({"kickoff_time": fixture.get("_bot_kickoff")})
         if not kickoff or kickoff <= now_local() or kickoff.date() != today:
             continue
-        league = format_fixture_competition(str(fixture.get("competition_name") or "Liga nieznana"), fixture["home"], fixture["away"])
+        # Prefer league metadata from the detailed event payload, then the
+        # preserved listing metadata. Never stringify an arbitrary dict.
+        league_source = (
+            extract_superbet_competition_name(detail)
+            or extract_superbet_competition_name(event)
+            or fixture.get("competition_name")
+            or ""
+        )
+        league = format_fixture_competition(str(league_source), fixture["home"], fixture["away"])
         if same_fixture_pick_exists(state, fixture["id"], fixture["home"], fixture["away"], today.isoformat(), BTTS_FT_MARKET, competition=league):
             continue
         bet_url = superbet_btts_full_time_url(event.get("url"), quote)
