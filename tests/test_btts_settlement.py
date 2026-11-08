@@ -2,10 +2,20 @@ import unittest
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from bot import btts_first_half_won, kickoff_reached_for_settlement
+from bot import btts_first_half_won, kickoff_reached_for_settlement, pick_local_date
 
 
 class BttsFirstHalfSettlementTests(unittest.TestCase):
+    def test_pick_local_date_uses_warsaw_kickoff_date(self):
+        pick = {"kickoff_time": "2026-11-08T00:30:00+01:00", "date": "2026-11-07"}
+        self.assertEqual(str(pick_local_date(pick)), "2026-11-08")
+
+    def test_pick_local_date_falls_back_to_date_field(self):
+        self.assertEqual(str(pick_local_date({"date": "2026-11-08"})), "2026-11-08")
+
+    def test_pick_without_any_date_is_not_eligible(self):
+        self.assertIsNone(pick_local_date({}))
+
     def test_future_kickoff_cannot_be_settled(self):
         pick = {"kickoff_time": "2026-11-07T21:00:00+01:00"}
         now = datetime.fromisoformat("2026-11-07T17:45:00+01:00")
