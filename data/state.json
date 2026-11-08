@@ -3534,11 +3534,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/alhama-cf-k-vs-athletic-bilbao-b-k-15612262?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 383,
       "sent_at": "2026-11-08T16:22:24.508803+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "3-1",
+      "settled_at": "2026-11-08T23:14:47.753920+01:00"
     },
     {
       "key": "superbet:15612291:BTTS_FT",
@@ -3560,11 +3563,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": "1794148534430959769",
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/badalona-vs-cfj-mollerussa-15612291?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 384,
       "sent_at": "2026-11-08T16:22:26.717089+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "2-1",
+      "settled_at": "2026-11-08T23:14:48.653617+01:00"
     },
     {
       "key": "superbet:15612307:BTTS_FT",
@@ -3612,11 +3618,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/ca-vianes-vs-calahorra-15612285?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 386,
       "sent_at": "2026-11-08T16:22:31.278987+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "1-3",
+      "settled_at": "2026-11-08T23:14:50.654544+01:00"
     },
     {
       "key": "superbet:15612460:BTTS_FT",
@@ -3638,11 +3647,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/cd-barquereno-vs-tropezon-15612460?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 387,
       "sent_at": "2026-11-08T16:22:32.833839+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "1-3",
+      "settled_at": "2026-11-08T23:14:51.536769+01:00"
     },
     {
       "key": "superbet:15612447:BTTS_FT",
@@ -3664,11 +3676,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/cd-boiro-vs-arenteiro-15612447?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 388,
       "sent_at": "2026-11-08T16:22:34.273309+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": false,
+      "settled_score": "3-0",
+      "settled_at": "2026-11-08T23:14:52.439209+01:00"
     },
     {
       "key": "superbet:14438759:BTTS_FT",
@@ -3690,11 +3705,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/vicenza-vs-cremonese-14438759?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 389,
       "sent_at": "2026-11-08T18:53:53.836494+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "1-4",
+      "settled_at": "2026-11-08T23:14:53.317337+01:00"
     },
     {
       "key": "superbet:15612670:BTTS_FT",
@@ -3742,11 +3760,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/aucas-vs-independiente-del-valle-15612788?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 391,
       "sent_at": "2026-11-08T18:53:59.781903+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "2-4",
+      "settled_at": "2026-11-08T23:14:55.380233+01:00"
     },
     {
       "key": "superbet:14438767:BTTS_FT",
@@ -3794,11 +3815,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/cd-provincial-ovalle-vs-santiago-morning-15612867?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 393,
       "sent_at": "2026-11-08T18:54:03.130451+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "2-1",
+      "settled_at": "2026-11-08T23:14:57.428446+01:00"
     },
     {
       "key": "superbet:15439049:BTTS_FT",
@@ -3820,11 +3844,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/olympiacos-vs-paok-saloniki-15439049?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 394,
       "sent_at": "2026-11-08T18:54:04.645016+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-08T23:14:58.301377+01:00"
     },
     {
       "key": "superbet:15612691:BTTS_FT",
@@ -3872,11 +3899,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/lech-poznan-vs-zagebie-lubin-14438715?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 396,
       "sent_at": "2026-11-08T18:54:07.716687+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "2-2",
+      "settled_at": "2026-11-08T23:15:00.380717+01:00"
     },
     {
       "key": "superbet:15672930:BTTS_FT",
@@ -3898,10 +3928,13 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/aragua-vs-yaracuyanos-15672930?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 397,
-      "sent_at": "2026-11-08T18:55:22.273244+01:00"
+      "sent_at": "2026-11-08T18:55:22.273244+01:00",
+      "won": true,
+      "settled_score": "5-4",
+      "settled_at": "2026-11-08T23:15:01.503766+01:00"
     },
     {
       "key": "superbet:15213856:BTTS_FT",
@@ -3923,10 +3956,13 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/real-murcia-vs-algeciras-15213856?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 398,
-      "sent_at": "2026-11-08T18:55:25.009080+01:00"
+      "sent_at": "2026-11-08T18:55:25.009080+01:00",
+      "won": true,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-08T23:15:02.546987+01:00"
     },
     {
       "key": "superbet:14652250:BTTS_FT",
@@ -3948,10 +3984,13 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/cerro-porteno-vs-deportivo-recoleta-14652250?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 399,
-      "sent_at": "2026-11-08T18:55:27.219650+01:00"
+      "sent_at": "2026-11-08T18:55:27.219650+01:00",
+      "won": true,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-08T23:15:03.588351+01:00"
     },
     {
       "key": "superbet:15612778:BTTS_FT",
@@ -3998,10 +4037,13 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/juventud-antoniana-vs-cipolletti-15754734?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 401,
-      "sent_at": "2026-11-08T18:55:31.304567+01:00"
+      "sent_at": "2026-11-08T18:55:31.304567+01:00",
+      "won": false,
+      "settled_score": "0-1",
+      "settled_at": "2026-11-08T23:15:08.106999+01:00"
     },
     {
       "key": "superbet:15612866:BTTS_FT",
@@ -4048,10 +4090,13 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/marcilio-dias-vs-figueirense-15781885?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 403,
-      "sent_at": "2026-11-08T18:55:35.539913+01:00"
+      "sent_at": "2026-11-08T18:55:35.539913+01:00",
+      "won": false,
+      "settled_score": "1-0",
+      "settled_at": "2026-11-08T23:15:11.750185+01:00"
     },
     {
       "key": "superbet:15612775:BTTS_FT",
@@ -4073,10 +4118,13 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/montego-bay-united-vs-molynes-united-15612775?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 404,
-      "sent_at": "2026-11-08T18:55:36.864029+01:00"
+      "sent_at": "2026-11-08T18:55:36.864029+01:00",
+      "won": true,
+      "settled_score": "2-2",
+      "settled_at": "2026-11-08T23:15:13.591702+01:00"
     }
   ],
   "reports_sent": [],
