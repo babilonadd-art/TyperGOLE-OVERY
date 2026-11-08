@@ -1902,11 +1902,15 @@ def settlement_fixture_matches_pick(match, pick):
         return False
     return True
 
-def moviodds_get(path, params=None, timeout=90):
-    """Read MoviOdds with bounded retries for temporary HTTP and network failures."""
+def moviodds_get(path, params=None, timeout=90, max_attempts=5):
+    """Read MoviOdds with bounded retries for temporary HTTP and network failures.
+
+    Settlement lookups pass a smaller timeout/retry budget so one slow fixture
+    cannot hold up the entire batch of pending picks.
+    """
     retryable_statuses = {429, 500, 502, 503, 504}
     last_error = None
-    max_attempts = 5
+    max_attempts = max(1, int(max_attempts))
     for attempt in range(max_attempts):
         response = None
         try:
@@ -1953,7 +1957,13 @@ def moviodds_finished_result(pick):
     fixture_id = str(pick.get("id") or "").strip()
     if not fixture_id:
         return {}
-    payload = moviodds_get("/results", {"sport": "soccer", "fi": fixture_id}, timeout=20)
+    # Keep each settlement lookup bounded: 2 attempts × 8s plus short backoff.
+    # The scheduled workflow runs every 5 minutes, so long retries across several
+    # pending fixtures previously made settlement appear frozen.
+    payload = moviodds_get(
+        "/results", {"sport": "soccer", "fi": fixture_id},
+        timeout=8, max_attempts=2,
+    )
     rows = payload.get("results", [])
     if isinstance(rows, dict):
         rows = [rows]
