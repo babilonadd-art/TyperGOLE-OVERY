@@ -4131,7 +4131,7 @@ MAX_DAILY_BTTS_FT_PICKS = 8
 
 
 def send_prematch_bet365_btts_picks(state):
-    """Send all unique qualified prematch BTTS FT picks for today from Bet365."""
+    """Send up to 8 unique qualified prematch BTTS FT picks for today from Bet365."""
     initial_board = moviodds_prematch_board()
     today = now_local().date()
     candidates = [c for c in moviodds_btts_candidates(state, now=now_local(), board=initial_board)
@@ -4160,6 +4160,13 @@ def send_prematch_bet365_btts_picks(state):
         day = candidate["kickoff"].date().isoformat()
         if day != today_key:
             continue
+        if sent_by_day.get(day, 0) >= MAX_DAILY_BTTS_FT_PICKS:
+            print(
+                f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {day}; "
+                "pomijam kolejne mecze.",
+                flush=True,
+            )
+            break
         # Validate against the single fresh board read for this run.
         refreshed = refresh_by_id.get(candidate["id"])
         if not refreshed or refreshed.get("in_play") is True:
