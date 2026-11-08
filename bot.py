@@ -3547,7 +3547,7 @@ def scheduled_fixtures_today(superbet_events=None, target_dates=None):
             "id": f"superbet:{event_id}", "slug": slug,
             "_bot_slug": slug, "home": home, "away": away,
             "time": kickoff.isoformat(), "date": kickoff.date().isoformat(),
-            "competition_name": extract_superbet_competition_name(event) or "Liga nieznana",
+            "competition_name": extract_superbet_competition_name(event) or "",
             "_bot_kickoff": kickoff.isoformat(), "_source": "Superbet",
         })
 
@@ -4430,7 +4430,24 @@ def send_prematch_superbet_btts_picks(state):
             or fixture.get("competition_name")
             or ""
         )
-        league = format_fixture_competition(str(league_source), fixture["home"], fixture["away"])
+        # Never publish a pick with a fabricated/unknown league label. Superbet
+        # sometimes omits competition metadata in its listing; try the detail
+        # payload first, then fail closed if neither payload identifies it.
+        if not isinstance(league_source, str) or not league_source.strip():
+            print(
+                f"Superbet BTTS FT: brak nazwy ligi w metadanych wydarzenia "
+                f"({fixture['home']} - {fixture['away']}); pomijam typ zamiast wysyłać 'Liga nieznana'.",
+                flush=True,
+            )
+            continue
+        league = format_fixture_competition(league_source.strip(), fixture["home"], fixture["away"])
+        if not league or league.strip().lower() in {"liga nieznana", "unknown league", "unknown"}:
+            print(
+                f"Superbet BTTS FT: nieprawidłowa nazwa ligi dla "
+                f"{fixture['home']} - {fixture['away']}; pomijam typ.",
+                flush=True,
+            )
+            continue
         if same_fixture_pick_exists(state, fixture["id"], fixture["home"], fixture["away"], today.isoformat(), BTTS_FT_MARKET, competition=league):
             continue
         bet_url = superbet_btts_full_time_url(event.get("url"), quote)
