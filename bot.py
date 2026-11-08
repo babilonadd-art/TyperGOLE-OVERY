@@ -2592,6 +2592,20 @@ def settlement_confirmation_ready(pick, score_text, now, confirmation_seconds=18
     return elapsed >= confirmation_seconds
 
 
+def pick_local_date(pick):
+    """Return the fixture's Warsaw-local calendar date, preferring its kickoff."""
+    raw_kickoff = pick.get("kickoff_time")
+    if raw_kickoff:
+        kickoff = kickoff_datetime({"kickoff_time": raw_kickoff})
+        if kickoff is not None:
+            return kickoff.date()
+    raw_date = str(pick.get("date") or "").strip()
+    try:
+        return datetime.fromisoformat(raw_date[:10]).date()
+    except (TypeError, ValueError):
+        return None
+
+
 def kickoff_reached_for_settlement(pick, now=None):
     """Fail closed: automated settlement is forbidden before a known kickoff."""
     kickoff = kickoff_datetime(pick)
@@ -2609,8 +2623,14 @@ def settle_picks(state, allowed_markets=None):
     confirmation_seconds = 180
 
     allowed_markets = set(allowed_markets) if allowed_markets is not None else None
+    settlement_day = now_local().date()
     for pick in state["picks"]:
         if allowed_markets is not None and pick.get("market") not in allowed_markets:
+            continue
+        # Only settle fixtures scheduled for today's Warsaw-local date.
+        # Older pending records are intentionally left untouched.
+        fixture_day = pick_local_date(pick)
+        if fixture_day != settlement_day:
             continue
         if pick.get("delivery_status", "sent") != "sent":
             continue
