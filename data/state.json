@@ -3244,7 +3244,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T12:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.7272727272727273,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
@@ -3256,7 +3256,8 @@
       "sent_at": "2026-11-08T09:08:19.162979+01:00",
       "won": true,
       "settled_score": "2-1",
-      "settled_at": "2026-11-08T14:59:02.954059+01:00"
+      "settled_at": "2026-11-08T14:59:02.954059+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "202816368:BTTS_FT",
@@ -3272,8 +3273,8 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T13:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
-      "odds": 2.0,
+      "stake": 10,
+      "odds": 2,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
       "odds_updated_at": "2026-11-08T00:42:53.336274525Z",
@@ -3284,7 +3285,8 @@
       "sent_at": "2026-11-08T09:08:20.740929+01:00",
       "won": false,
       "settled_score": "2-0",
-      "settled_at": "2026-11-08T15:14:19.049232+01:00"
+      "settled_at": "2026-11-08T15:14:19.049232+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "202805120:BTTS_FT",
@@ -3300,7 +3302,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T13:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.9090909090909092,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
@@ -3312,7 +3314,8 @@
       "sent_at": "2026-11-08T09:08:22.353049+01:00",
       "won": true,
       "settled_score": "3-2",
-      "settled_at": "2026-11-08T14:59:03.816317+01:00"
+      "settled_at": "2026-11-08T14:59:03.816317+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "203840797:BTTS_FT",
@@ -3328,7 +3331,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T13:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.75,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
@@ -3340,7 +3343,8 @@
       "sent_at": "2026-11-08T09:08:23.948980+01:00",
       "won": true,
       "settled_score": "3-3",
-      "settled_at": "2026-11-08T15:53:45.383167+01:00"
+      "settled_at": "2026-11-08T15:53:45.383167+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "204007126:BTTS_FT",
@@ -3356,7 +3360,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T13:15:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.7272727272727273,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
@@ -3368,7 +3372,8 @@
       "sent_at": "2026-11-08T09:08:25.118622+01:00",
       "won": true,
       "settled_score": "1-2",
-      "settled_at": "2026-11-08T15:14:19.857810+01:00"
+      "settled_at": "2026-11-08T15:14:19.857810+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "204007077:BTTS_FT",
@@ -3384,7 +3389,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T13:15:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.7272727272727273,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
@@ -3396,7 +3401,8 @@
       "sent_at": "2026-11-08T09:08:28.247700+01:00",
       "won": true,
       "settled_score": "4-1",
-      "settled_at": "2026-11-08T15:14:20.401300+01:00"
+      "settled_at": "2026-11-08T15:14:20.401300+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "204007074:BTTS_FT",
@@ -3412,7 +3418,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T13:15:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.8333333333333335,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
@@ -3424,7 +3430,8 @@
       "sent_at": "2026-11-08T09:08:29.885429+01:00",
       "won": true,
       "settled_score": "2-1",
-      "settled_at": "2026-11-08T15:53:46.322799+01:00"
+      "settled_at": "2026-11-08T15:53:46.322799+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "204136099:BTTS_FT",
@@ -3440,7 +3447,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T13:15:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.8333333333333335,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
@@ -3452,7 +3459,8 @@
       "sent_at": "2026-11-08T09:08:30.987317+01:00",
       "won": true,
       "settled_score": "1-1",
-      "settled_at": "2026-11-08T15:53:47.289185+01:00"
+      "settled_at": "2026-11-08T15:53:47.289185+01:00",
+      "counts_toward_daily_limit": false
     }
   ],
   "reports_sent": [],
@@ -5575,7 +5583,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T12:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.7272727272727273,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
@@ -5600,8 +5608,8 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T13:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
-      "odds": 2.0,
+      "stake": 10,
+      "odds": 2,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
       "odds_updated_at": "2026-11-08T00:42:53.336274525Z",
@@ -5625,7 +5633,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T13:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.9090909090909092,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
@@ -5650,7 +5658,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T13:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.75,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
@@ -5675,7 +5683,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T13:15:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.7272727272727273,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
@@ -5700,7 +5708,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T13:15:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.7272727272727273,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
@@ -5725,7 +5733,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T13:15:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.8333333333333335,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
@@ -5750,7 +5758,7 @@
       "date": "2026-11-08",
       "kickoff_time": "2026-11-08T13:15:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.8333333333333335,
       "odds_source": "Bet365 / MoviOdds",
       "odds_market": "Both Teams to Score — Yes",
