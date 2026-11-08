@@ -2607,10 +2607,13 @@ def settle_picks(state, allowed_markets=None):
                 )
                 continue
 
-            if not pick.get("slug"):
+            # Prematch Superbet BTTS picks intentionally have no Open Matchday slug.
+            # match_detail() can still settle them from the exact Open Matchday
+            # finished-results CSV by team names, competition and kickoff date.
+            if not pick.get("slug") and pick.get("market") != BTTS_FT_MARKET:
                 print(f"ROZLICZENIE OCZEKUJE: brak slug dla {pick.get('key')}", flush=True)
                 continue
-            match = match_detail(pick["slug"], pick)
+            match = match_detail(pick.get("slug", ""), pick)
             if not match:
                 print(
                     f"ROZLICZENIE OCZEKUJE: brak wyniku w plikach wynikowych Open Matchday dla "
