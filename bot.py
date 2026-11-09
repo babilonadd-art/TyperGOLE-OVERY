@@ -29,7 +29,7 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
 STAKE = 10.0
 BET_TAX_RATE = 0.12
-# Maksymalnie 8 typów BTTS FT dziennie.
+# Maksymalnie 10 typów BTTS FT dziennie.
 
 def calculate_bet_result(stake, odds):
     """Calculate Polish 12% stake tax, payout and net profit."""
@@ -56,7 +56,7 @@ def now_local():
 
 # Limit 8 typów BTTS FT na każdy dzień kalendarzowy (Europe/Warsaw).
 # Licznik resetuje się automatycznie po zmianie daty; historia pozostaje zachowana.
-MAX_DAILY_BTTS_FT_PICKS = 8
+MAX_DAILY_BTTS_FT_PICKS = 10
 
 
 def daily_sent_match_count(state, day):
@@ -4531,7 +4531,9 @@ def send_prematch_superbet_btts_picks(state):
             sent_by_day[day] = sent_by_day.get(day, 0) + 1
     day_key = today.isoformat()
     for candidate in candidates:
-        # BTTS FT: no daily cap; keep sent_by_day only for continuous numbering.
+        if sent_by_day.get(day_key, 0) >= MAX_DAILY_BTTS_FT_PICKS:
+            print(f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {day_key}; kończę wysyłkę.", flush=True)
+            break
         try:
             final_detail = superbet_event_detail(candidate["event_id"])
             final_quote = extract_superbet_btts_full_time(final_detail)
