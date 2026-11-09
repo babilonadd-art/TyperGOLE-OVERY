@@ -1872,24 +1872,32 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market, 
 
 
 def telegram(message, reply_to_message_id=None):
-    """Send a Telegram message, optionally as a reply to the original pick."""
+    """Send Telegram messages; a requested reply must never fall back to a new post."""
     if not TELEGRAM_TOKEN or not CHAT_ID:
         raise RuntimeError("Missing GitHub Secrets: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID")
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": CHAT_ID,
-        "text": message,
-        "disable_web_page_preview": True,
-    }
-    if reply_to_message_id:
-        payload["reply_to_message_id"] = int(reply_to_message_id)
-        payload["allow_sending_without_reply"] = True
+    payload = {"chat_id": CHAT_ID, "text": message, "disable_web_page_preview": True}
+    if reply_to_message_id is not None:
+        try:
+            reply_id = int(reply_to_message_id)
+        except (TypeError, ValueError):
+            raise RuntimeError("Brak prawidłowego ID oryginalnego typu; wynik nie zostanie wysłany osobno.")
+        if reply_id <= 0:
+            raise RuntimeError("Nieprawidłowe ID oryginalnego typu; wynik nie zostanie wysłany osobno.")
+        payload["reply_to_message_id"] = reply_id
     response = requests.post(url, json=payload, timeout=20)
     response.raise_for_status()
     result = response.json()
     if not result.get("ok"):
         raise RuntimeError(f"Telegram API error: {result}")
     return result
+
+
+def telegram_reply(message, reply_to_message_id):
+    """Send settlement only as a reply to the corresponding pick."""
+    if reply_to_message_id in (None, ""):
+        raise RuntimeError("Brak ID wiadomości typu; wynik nie zostanie opublikowany osobno.")
+    return telegram(message, reply_to_message_id=reply_to_message_id)
 
 
 # Settlement lookup supports both live detail and the finished-fixture archive.
@@ -2773,7 +2781,7 @@ def settle_picks(state, allowed_markets=None):
                     f"Wynik: {score_text} | Gole: {goals_text}"
                     f"{winnings_text}{yield_text}"
                 )
-                telegram(
+                telegram_reply(
                     settlement_message,
                     reply_to_message_id=pick.get("telegram_message_id"),
                 )
@@ -3042,10 +3050,10 @@ def settle_picks(state, allowed_markets=None):
                 f"Wynik: {score_text} | Gole: {goals_text}"
                 f"{winnings_text}{yield_text}"
             )
-            telegram(
-                settlement_message,
-                reply_to_message_id=pick.get("telegram_message_id"),
-            )
+            telegram_reply(
+                    settlement_message,
+                    reply_to_message_id=pick.get("telegram_message_id"),
+                )
             pick["settled"] = True
             pick["won"] = won
             pick["settled_score"] = score_text
@@ -3108,10 +3116,10 @@ def retry_pending_settlement_notifications(state):
             message += f"\nKurs: {odds:.2f}"
         message += financial_text
         try:
-            response = telegram(
-                message,
-                reply_to_message_id=pick.get("telegram_message_id"),
-            )
+            response = telegram_reply(
+                    message,
+                    reply_to_message_id=pick.get("telegram_message_id"),
+                )
             telegram_message = response.get("result", {}) if isinstance(response, dict) else {}
             pick["settlement_notification_retry"] = False
             pick["settlement_notification_retry_sent"] = True
