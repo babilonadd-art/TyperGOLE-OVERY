@@ -4609,19 +4609,18 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
     away_all = summarize(team_rows, away)
     home_venue = summarize(team_rows, home, "home")
     away_venue = summarize(team_rows, away, "away")
-    if min(home_all["played"], away_all["played"]) < 5:
+    if min(home_all["played"], away_all["played"]) < 4:
         return None
-    if min(home_venue["played"], away_venue["played"]) < 3:
+    if min(home_venue["played"], away_venue["played"]) < 2:
         return None
 
-    # Core gates: season BTTS >=60%, recent BTTS in at least 3/5,
-    # and venue-specific BTTS >=50%. Recent form remains a quality filter,
-    # but 3/5 avoids rejecting nearly all fixtures on a busy matchday.
-    if min(home_all["btts"], away_all["btts"]) < 0.60:
+    # Core gates (relaxed): season BTTS >=50%, recent BTTS in at least 2/5,
+    # and venue-specific BTTS >=33%. Keep minimum samples to avoid tiny samples.
+    if min(home_all["btts"], away_all["btts"]) < 0.50:
         return None
-    if min(home_all["last5"], away_all["last5"]) < 3:
+    if min(home_all["last5"], away_all["last5"]) < 2:
         return None
-    if min(home_venue["btts"], away_venue["btts"]) < 0.50:
+    if min(home_venue["btts"], away_venue["btts"]) < (1 / 3):
         return None
 
     # Competition preference list. White-listed leagues receive a modest boost;
