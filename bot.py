@@ -4463,8 +4463,8 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
             continue
         row_league = str(row.get("_league") or "").strip().casefold()
         if row_league and row_league not in {"unknown", "liga nieznana"}:
-            # The candidate's competition is not passed separately here;
-            # matching both teams is the safe way to infer their current league.
+            # Collect both clubs' current-season match rows; the competition
+            # filter below narrows these to the candidate's league.
             if (team_name_similarity(row.get("home"), home) >= 0.88
                     or team_name_similarity(row.get("away"), home) >= 0.88
                     or team_name_similarity(row.get("home"), away) >= 0.88
@@ -4472,14 +4472,20 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
                 league_rows.append(row)
     requested_league = str(league or "").strip().casefold()
     if requested_league:
-        same_competition = [
-            row for row in league_rows
-            if requested_league in str(row.get("_league") or "").casefold()
-            or str(row.get("_league") or "").casefold() in requested_league
-        ]
+        requested_key = re.sub(r"[^a-z0-9]+", "", requested_league)
+        same_competition = []
+        for row in league_rows:
+            row_league = str(row.get("_league") or "").casefold()
+            row_folder = str(row.get("_folder") or "").casefold()
+            row_key = re.sub(r"[^a-z0-9]+", "", row_league + " " + row_folder)
+            if (requested_league in row_league or row_league in requested_league
+                    or (requested_key and requested_key in row_key)):
+                same_competition.append(row)
     else:
         same_competition = []
-    team_rows = same_competition or league_rows
+    team_rows = same_competition if requested_league else league_rows
+    if not team_rows:
+        return None
 
     def matches_team(row, team, side):
         return team_name_similarity(row.get(side), team) >= 0.88
@@ -4720,8 +4726,8 @@ def send_prematch_superbet_btts_picks(state):
             f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
             f"⚽ {candidate['home']} – {candidate['away']}\n"
             + (f"🏆 Liga: {candidate['league']}\n" if candidate.get("league") else "")
-            + (f"📊 BTTS sezon: {candidate['analysis']['metrics']['home_btts']:.0%}/{candidate['analysis']['metrics']['away_btts']:.0%}; dom/wyjazd: {candidate['analysis']['metrics']['home_venue_btts']:.0%}/{candidate['analysis']['metrics']['away_venue_btts']:.0%}\\n" if all(key in candidate["analysis"].get("metrics", {}) for key in ("home_btts", "away_btts", "home_venue_btts", "away_venue_btts")) else "📊 Brak wystarczających statystyk.\\n")
-            + (f"🔥 Forma BTTS 5 meczów: {candidate['analysis']['metrics']['home_recent_btts']}/5 – {candidate['analysis']['metrics']['away_recent_btts']}/5; CS: {candidate['analysis']['metrics']['home_clean_sheets']:.0%}/{candidate['analysis']['metrics']['away_clean_sheets']:.0%}; FTS: {candidate['analysis']['metrics']['home_failed_to_score']:.0%}/{candidate['analysis']['metrics']['away_failed_to_score']:.0%}\\n" if "home_recent_btts" in candidate["analysis"].get("metrics", {}) else "")
+            + (f"📊 BTTS sezon: {candidate['analysis']['metrics']['home_btts']:.0%}/{candidate['analysis']['metrics']['away_btts']:.0%}; dom/wyjazd: {candidate['analysis']['metrics']['home_venue_btts']:.0%}/{candidate['analysis']['metrics']['away_venue_btts']:.0%}\n" if all(key in candidate["analysis"].get("metrics", {}) for key in ("home_btts", "away_btts", "home_venue_btts", "away_venue_btts")) else "📊 Brak wystarczających statystyk.\n")
+            + (f"🔥 Forma BTTS 5 meczów: {candidate['analysis']['metrics']['home_recent_btts']}/5 – {candidate['analysis']['metrics']['away_recent_btts']}/5; CS: {candidate['analysis']['metrics']['home_clean_sheets']:.0%}/{candidate['analysis']['metrics']['away_clean_sheets']:.0%}; FTS: {candidate['analysis']['metrics']['home_failed_to_score']:.0%}/{candidate['analysis']['metrics']['away_failed_to_score']:.0%}\n" if "home_recent_btts" in candidate["analysis"].get("metrics", {}) else "")
             + f"📈 Superbet: {final_quote['odds']:.2f}\n"
             f"💵 Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
             f"🔗 Mecz Superbet: {candidate['url']}\n"
