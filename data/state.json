@@ -2808,10 +2808,13 @@
       "odds_market": "Both Teams to Score — Yes",
       "odds_updated_at": "2026-11-03T14:09:04.839830735Z",
       "bet_url": "https://www.bet365.com/#/AC/B1/C1/D8/E203190481/F3/",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 318,
-      "sent_at": "2026-11-07T23:24:09.164700+01:00"
+      "sent_at": "2026-11-07T23:24:09.164700+01:00",
+      "won": true,
+      "settled_score": "1-2",
+      "settled_at": "2026-11-09T04:40:00.880192+01:00"
     },
     {
       "key": "202804392:BTTS_FT",
@@ -4181,11 +4184,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/cd-fas-vs-fuerte-san-francisco-15627113?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 5,
       "telegram_message_id": 433,
-      "sent_at": "2026-11-09T00:11:47.353009+01:00"
+      "sent_at": "2026-11-09T00:11:47.353009+01:00",
+      "won": true,
+      "settled_score": "2-2",
+      "settled_at": "2026-11-09T04:40:02.288611+01:00"
     },
     {
       "key": "superbet:15763797:BTTS_FT",
@@ -4207,11 +4213,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/piratas-veracruz-vs-cancun-fc-15763797?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 6,
       "telegram_message_id": 434,
-      "sent_at": "2026-11-09T00:11:49.742970+01:00"
+      "sent_at": "2026-11-09T00:11:49.742970+01:00",
+      "won": true,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-09T04:40:02.740529+01:00"
     },
     {
       "key": "superbet:15766469:BTTS_FT",
@@ -4233,11 +4242,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/cd-marathon-vs-atletico-choloma-15766469?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 7,
       "telegram_message_id": 435,
-      "sent_at": "2026-11-09T00:11:52.021224+01:00"
+      "sent_at": "2026-11-09T00:11:52.021224+01:00",
+      "won": false,
+      "settled_score": "2-0",
+      "settled_at": "2026-11-09T04:40:03.181406+01:00"
     },
     {
       "key": "superbet:15568669:BTTS_FT",
@@ -4259,11 +4271,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/universitario-de-deportes-vs-ucv-moquegua-15568669?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 8,
       "telegram_message_id": 436,
-      "sent_at": "2026-11-09T00:11:53.693110+01:00"
+      "sent_at": "2026-11-09T00:11:53.693110+01:00",
+      "won": true,
+      "settled_score": "2-2",
+      "settled_at": "2026-11-09T04:40:03.692799+01:00"
     }
   ],
   "reports_sent": [],
