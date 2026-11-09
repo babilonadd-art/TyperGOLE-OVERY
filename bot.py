@@ -3073,8 +3073,6 @@ def retry_pending_settlement_notifications(state):
                 flush=True,
             )
             continue
-        if False:
-            continue
         score = str(pick.get("settled_score") or "brak")
         try:
             odds = float(pick.get("odds"))
