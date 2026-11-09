@@ -288,3 +288,62 @@ class DuplicateGuardRetryTests(unittest.TestCase):
             state, "fixture-4", "Home FC", "Away FC",
             "2026-11-06", "BTTS_HT", slug="home-vs-away"
         ))
+
+
+class BTTSFTDailyNumberingTests(unittest.TestCase):
+    def test_only_counts_picks_actually_sent_on_the_warsaw_day(self):
+        state = {
+            "picks": [
+                {
+                    "market": bot.BTTS_FT_MARKET,
+                    "date": "2026-11-10",
+                    "sent_at": "2026-11-07T23:24:10+01:00",
+                    "delivery_status": "sent",
+                },
+                {
+                    "market": bot.BTTS_FT_MARKET,
+                    "date": "2026-11-10",
+                    "sent_at": "2026-11-10T00:16:45+01:00",
+                    "delivery_status": "sent",
+                    "pick_number": 4,
+                },
+                {
+                    "market": "BTTS_HT",
+                    "date": "2026-11-10",
+                    "sent_at": "2026-11-10T00:20:00+01:00",
+                    "delivery_status": "sent",
+                    "pick_number": 1,
+                },
+            ]
+        }
+        sent = bot.btts_ft_sent_picks_on_day(state, "2026-11-10")
+        self.assertEqual(len(sent), 1)
+        self.assertEqual(sent[0]["pick_number"], 4)
+
+    def test_old_future_fixture_pick_does_not_count_on_kickoff_day(self):
+        state = {
+            "picks": [{
+                "market": bot.BTTS_FT_MARKET,
+                "date": "2026-11-10",
+                "sent_at": "2026-11-07T23:24:10+01:00",
+                "delivery_status": "sent",
+            }]
+        }
+        self.assertEqual(bot.btts_ft_sent_picks_on_day(state, "2026-11-10"), [])
+
+    def test_rebuilt_caption_uses_corrected_number_and_preserves_odds(self):
+        pick = {
+            "home": "Home FC",
+            "away": "Away FC",
+            "league": "Test League",
+            "kickoff_time": "2026-11-10T18:00:00+01:00",
+            "market": bot.BTTS_FT_MARKET,
+            "stake": 50,
+            "odds": 2.17,
+            "bet_url": "https://superbet.pl/test",
+            "analysis": {"metrics": {}},
+        }
+        message = bot.format_btts_ft_pick_message(pick, 1)
+        self.assertIn("𝗧𝗬𝗣 𝗡𝗥. 1", message)
+        self.assertIn("Superbet: 2.17", message)
+        self.assertIn("BTTS TAK — CAŁY MECZ (FT", message)
