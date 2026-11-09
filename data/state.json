@@ -5162,7 +5162,7 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 4,
+      "pick_number": 1,
       "telegram_message_id": 492,
       "sent_at": "2026-11-10T00:16:45.025074+01:00"
     }
