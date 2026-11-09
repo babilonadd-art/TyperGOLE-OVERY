@@ -5046,6 +5046,32 @@
       "pick_number": 9,
       "telegram_message_id": 476,
       "sent_at": "2026-11-09T17:00:55.165496+01:00"
+    },
+    {
+      "key": "superbet:15595577:BTTS_FT",
+      "id": "superbet:15595577",
+      "slug": "",
+      "home": "Javor",
+      "away": "TSC",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-09",
+      "kickoff_time": "2026-11-09T18:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.7,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/javor-vs-tsc-15595577?t=offer-prematch-102&mdt=o",
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 10,
+      "telegram_message_id": 477,
+      "sent_at": "2026-11-09T17:34:43.295662+01:00"
     }
   ],
   "reports_sent": [],
@@ -8809,6 +8835,32 @@
       "pick_number": 9,
       "telegram_message_id": 476,
       "sent_at": "2026-11-09T17:00:55.165496+01:00"
+    },
+    {
+      "key": "superbet:15595577:BTTS_FT",
+      "id": "superbet:15595577",
+      "slug": "",
+      "home": "Javor",
+      "away": "TSC",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-09",
+      "kickoff_time": "2026-11-09T18:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.7,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/javor-vs-tsc-15595577?t=offer-prematch-102&mdt=o",
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 10,
+      "telegram_message_id": 477,
+      "sent_at": "2026-11-09T17:34:43.295662+01:00"
     }
   ],
   "team_history_cache": {
@@ -9441,7 +9493,7 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 18,
+  "btts_image_cursor": 19,
   "daily_headers_sent": [
     "2026-11-09"
   ],
