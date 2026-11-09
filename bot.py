@@ -4435,7 +4435,7 @@ def send_prematch_over_15_ht_picks(state):
 MAX_DAILY_BTTS_FT_PICKS = 10
 
 
-def btts_recent_form_analysis(home, away, kickoff):
+def btts_recent_form_analysis(home, away, kickoff, league=""):
     """Score a prematch BTTS fixture from current-season Open Matchday results."""
     data = open_matchday_data()
     try:
@@ -4457,12 +4457,6 @@ def btts_recent_form_analysis(home, away, kickoff):
 
     # Keep the sample within the same competition whenever its name is known.
     # This avoids mixing league and cup records for the same club.
-    fixture_rows = [
-        row for row in data.get("results", [])
-        if valid_result(row)
-        and team_name_similarity(row.get("home"), home) >= 0.88
-        or False
-    ]
     league_rows = []
     for row in data.get("results", []):
         if not valid_result(row):
@@ -4476,7 +4470,16 @@ def btts_recent_form_analysis(home, away, kickoff):
                     or team_name_similarity(row.get("home"), away) >= 0.88
                     or team_name_similarity(row.get("away"), away) >= 0.88):
                 league_rows.append(row)
-    team_rows = league_rows or [row for row in data.get("results", []) if valid_result(row)]
+    requested_league = str(league or "").strip().casefold()
+    if requested_league:
+        same_competition = [
+            row for row in league_rows
+            if requested_league in str(row.get("_league") or "").casefold()
+            or str(row.get("_league") or "").casefold() in requested_league
+        ]
+    else:
+        same_competition = []
+    team_rows = same_competition or league_rows
 
     def matches_team(row, team, side):
         return team_name_similarity(row.get(side), team) >= 0.88
@@ -4538,8 +4541,10 @@ def btts_recent_form_analysis(home, away, kickoff):
 
     # Competition preference list. White-listed leagues receive a modest boost;
     # the requested low-scoring competitions are rejected.
-    league_name = ""
+    league_name = str(league or "").strip()
     for row in team_rows:
+        if league_name:
+            break
         if (team_name_similarity(row.get("home"), home) >= 0.88
                 or team_name_similarity(row.get("away"), home) >= 0.88):
             league_name = str(row.get("_league") or "")
@@ -4649,7 +4654,7 @@ def send_prematch_superbet_btts_picks(state):
         if not bet_url or not bet_url.startswith("https://superbet.pl/"):
             print(f"Superbet BTTS FT: brak linku do meczu {fixture['home']} - {fixture['away']}; pomijam.", flush=True)
             continue
-        analysis = btts_recent_form_analysis(fixture["home"], fixture["away"], kickoff)
+        analysis = btts_recent_form_analysis(fixture["home"], fixture["away"], kickoff, league)
         if not analysis:
             continue
         candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "url": bet_url, "analysis": analysis, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
