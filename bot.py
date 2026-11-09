@@ -4521,7 +4521,7 @@ def send_prematch_superbet_btts_picks(state):
             f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
             f"⚽ {candidate['home']} – {candidate['away']}\n"
             + (f"🏆 Liga: {candidate['league']}\n" if candidate.get("league") else "")
-            + f"📊 BTTS ostatnie mecze: {candidate['analysis']['metrics']['home_btts']:.0%}/{candidate['analysis']['metrics']['away_btts']:.0%}; dom/wyjazd: {candidate['analysis']['metrics']['home_venue_btts']:.0%}/{candidate['analysis']['metrics']['away_venue_btts']:.0%}\n"
+            + (f"📊 BTTS ostatnie mecze: {candidate['analysis']['metrics']['home_btts']:.0%}/{candidate['analysis']['metrics']['away_btts']:.0%}; dom/wyjazd: {candidate['analysis']['metrics']['home_venue_btts']:.0%}/{candidate['analysis']['metrics']['away_venue_btts']:.0%}\n" if all(key in candidate["analysis"].get("metrics", {}) for key in ("home_btts", "away_btts", "home_venue_btts", "away_venue_btts")) else "📊 Bez historii drużyn — tryb testowy.\n")
             + f"📈 Superbet: {final_quote['odds']:.2f}\n"
             f"💵 Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
             f"🔗 Mecz Superbet: {candidate['url']}\n"
