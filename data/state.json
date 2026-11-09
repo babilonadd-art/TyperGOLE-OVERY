@@ -4653,12 +4653,15 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/botosani-vs-otelul-galati-14438702?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 5,
       "telegram_message_id": 461,
       "sent_at": "2026-11-09T15:58:30.375613+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-09T21:18:50.387151+01:00"
     },
     {
       "key": "superbet:15612793:BTTS_FT",
@@ -4680,12 +4683,15 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/mushuc-runa-vs-delfin-15612793?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 6,
       "telegram_message_id": 462,
       "sent_at": "2026-11-09T15:58:32.391237+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "2-1",
+      "settled_at": "2026-11-09T21:18:50.954096+01:00"
     },
     {
       "key": "superbet:15402621:BTTS_FT",
