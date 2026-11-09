@@ -5165,6 +5165,60 @@
       "pick_number": 1,
       "telegram_message_id": 492,
       "sent_at": "2026-11-10T00:16:45.025074+01:00"
+    },
+    {
+      "key": "superbet:15641602:BTTS_FT",
+      "id": "superbet:15641602",
+      "slug": "",
+      "home": "Oxford United",
+      "away": "Cheltenham Town",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T20:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.74,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/oxford-united-vs-cheltenham-town-15641602?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.747824074074074,
+        "metrics": {
+          "home_btts": 0.5925925925925926,
+          "away_btts": 0.75,
+          "home_venue_btts": 0.6428571428571429,
+          "away_venue_btts": 0.8571428571428571,
+          "home_clean_sheets": 0.2962962962962963,
+          "away_clean_sheets": 0.125,
+          "home_failed_to_score": 0.2222222222222222,
+          "away_failed_to_score": 0.125,
+          "home_avg_goals": 2.925925925925926,
+          "away_avg_goals": 3.375,
+          "home_recent_btts": 2,
+          "away_recent_btts": 3,
+          "league": "EFL League One",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 27,
+          "away": 16,
+          "home_venue": 14,
+          "away_venue": 7
+        },
+        "method": "open_matchday_current_season_btts_form_venue",
+        "league_folder": "ENG_3_LEAGUE-ONE"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 2,
+      "telegram_message_id": 493,
+      "sent_at": "2026-11-10T00:57:46.809983+01:00"
     }
   ],
   "reports_sent": [],
@@ -9008,6 +9062,60 @@
       "pick_number": 4,
       "telegram_message_id": 492,
       "sent_at": "2026-11-10T00:16:45.025074+01:00"
+    },
+    {
+      "key": "superbet:15641602:BTTS_FT",
+      "id": "superbet:15641602",
+      "slug": "",
+      "home": "Oxford United",
+      "away": "Cheltenham Town",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T20:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.74,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/oxford-united-vs-cheltenham-town-15641602?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.747824074074074,
+        "metrics": {
+          "home_btts": 0.5925925925925926,
+          "away_btts": 0.75,
+          "home_venue_btts": 0.6428571428571429,
+          "away_venue_btts": 0.8571428571428571,
+          "home_clean_sheets": 0.2962962962962963,
+          "away_clean_sheets": 0.125,
+          "home_failed_to_score": 0.2222222222222222,
+          "away_failed_to_score": 0.125,
+          "home_avg_goals": 2.925925925925926,
+          "away_avg_goals": 3.375,
+          "home_recent_btts": 2,
+          "away_recent_btts": 3,
+          "league": "EFL League One",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 27,
+          "away": 16,
+          "home_venue": 14,
+          "away_venue": 7
+        },
+        "method": "open_matchday_current_season_btts_form_venue",
+        "league_folder": "ENG_3_LEAGUE-ONE"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 2,
+      "telegram_message_id": 493,
+      "sent_at": "2026-11-10T00:57:46.809983+01:00"
     }
   ],
   "team_history_cache": {
@@ -9640,7 +9748,7 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 20,
+  "btts_image_cursor": 21,
   "daily_headers_sent": [
     "2026-11-09",
     "2026-11-10"
