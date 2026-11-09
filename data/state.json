@@ -4883,11 +4883,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/deportivo-de-a-coruna-k-vs-valencia-k-15627233?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 2,
       "telegram_message_id": 469,
-      "sent_at": "2026-11-09T17:00:39.116619+01:00"
+      "sent_at": "2026-11-09T17:00:39.116619+01:00",
+      "won": false,
+      "settled_score": "0-2",
+      "settled_at": "2026-11-09T23:40:39.398835+01:00"
     },
     {
       "key": "superbet:14652264:BTTS_FT",
@@ -4967,11 +4970,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/independiente-yumbo-vs-union-magdalena-15703446?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 5,
       "telegram_message_id": 472,
-      "sent_at": "2026-11-09T17:00:47.415762+01:00"
+      "sent_at": "2026-11-09T17:00:47.415762+01:00",
+      "won": false,
+      "settled_score": "0-0",
+      "settled_at": "2026-11-09T23:40:40.046522+01:00"
     },
     {
       "key": "superbet:15612792:BTTS_FT",
@@ -4993,11 +4999,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/tecnico-universitario-vs-manta-15612792?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 6,
       "telegram_message_id": 473,
-      "sent_at": "2026-11-09T17:00:49.854336+01:00"
+      "sent_at": "2026-11-09T17:00:49.854336+01:00",
+      "won": true,
+      "settled_score": "1-2",
+      "settled_at": "2026-11-09T23:40:40.608882+01:00"
     },
     {
       "key": "superbet:15766449:BTTS_FT",
