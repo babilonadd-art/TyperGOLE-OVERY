@@ -4422,32 +4422,28 @@ def send_prematch_superbet_btts_picks(state):
         kickoff = kickoff_datetime({"kickoff_time": fixture.get("_bot_kickoff")})
         if not kickoff or kickoff <= now_local() or kickoff.date() != today:
             continue
-        # Prefer league metadata from the detailed event payload, then the
-        # preserved listing metadata. Never stringify an arbitrary dict.
+        # Use league metadata when Superbet provides it. If it is missing,
+        # keep the pick: the league line will simply be omitted from Telegram.
         league_source = (
             extract_superbet_competition_name(detail)
             or extract_superbet_competition_name(event)
             or fixture.get("competition_name")
             or ""
         )
-        # Never publish a pick with a fabricated/unknown league label. Superbet
-        # sometimes omits competition metadata in its listing; try the detail
-        # payload first, then fail closed if neither payload identifies it.
-        if not isinstance(league_source, str) or not league_source.strip():
+        if isinstance(league_source, str) and league_source.strip():
+            league = format_fixture_competition(league_source.strip(), fixture["home"], fixture["away"])
+            if league and league.strip().lower() not in {"liga nieznana", "unknown league", "unknown"}:
+                league = league.strip()
+            else:
+                league = ""
+        else:
+            league = ""
+        if not league:
             print(
-                f"Superbet BTTS FT: brak nazwy ligi w metadanych wydarzenia "
-                f"({fixture['home']} - {fixture['away']}); pomijam typ zamiast wysyłać 'Liga nieznana'.",
+                f"Superbet BTTS FT: brak nazwy ligi dla {fixture['home']} - {fixture['away']}; "
+                f"typ może zostać wysłany bez wiersza ligi.",
                 flush=True,
             )
-            continue
-        league = format_fixture_competition(league_source.strip(), fixture["home"], fixture["away"])
-        if not league or league.strip().lower() in {"liga nieznana", "unknown league", "unknown"}:
-            print(
-                f"Superbet BTTS FT: nieprawidłowa nazwa ligi dla "
-                f"{fixture['home']} - {fixture['away']}; pomijam typ.",
-                flush=True,
-            )
-            continue
         if same_fixture_pick_exists(state, fixture["id"], fixture["home"], fixture["away"], today.isoformat(), BTTS_FT_MARKET, competition=league):
             continue
         bet_url = superbet_btts_full_time_url(event.get("url"), quote)
@@ -4508,8 +4504,8 @@ def send_prematch_superbet_btts_picks(state):
             f"🕒 GODZINA: {candidate['kickoff'].strftime('%H:%M')} — CZAS POLSKI\n"
             f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
             f"⚽ {candidate['home']} – {candidate['away']}\n"
-            f"🏆 Liga: {candidate['league']}\n"
-            f"📈 Superbet: {final_quote['odds']:.2f}\n"
+            + (f"🏆 Liga: {candidate['league']}\n" if candidate.get("league") else "")
+            + f"📈 Superbet: {final_quote['odds']:.2f}\n"
             f"💵 Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
             f"🔗 Mecz Superbet: {candidate['url']}\n"
             "Rozliczenie: wynik po 90 minutach; bez dogrywki i serii karnych."
