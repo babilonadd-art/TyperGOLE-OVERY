@@ -4533,7 +4533,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T16:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 2.15,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -4543,7 +4543,8 @@
       "delivery_status": "sent",
       "pick_number": 1,
       "telegram_message_id": 457,
-      "sent_at": "2026-11-09T15:58:21.999306+01:00"
+      "sent_at": "2026-11-09T15:58:21.999306+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "superbet:15627189:BTTS_FT",
@@ -4559,7 +4560,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T17:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.8,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -4569,7 +4570,8 @@
       "delivery_status": "sent",
       "pick_number": 2,
       "telegram_message_id": 458,
-      "sent_at": "2026-11-09T15:58:24.218087+01:00"
+      "sent_at": "2026-11-09T15:58:24.218087+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "superbet:15675866:BTTS_FT",
@@ -4585,7 +4587,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T17:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.9,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -4595,7 +4597,8 @@
       "delivery_status": "sent",
       "pick_number": 3,
       "telegram_message_id": 459,
-      "sent_at": "2026-11-09T15:58:25.771941+01:00"
+      "sent_at": "2026-11-09T15:58:25.771941+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "superbet:15627207:BTTS_FT",
@@ -4611,7 +4614,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T19:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.92,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -4621,7 +4624,8 @@
       "delivery_status": "sent",
       "pick_number": 4,
       "telegram_message_id": 460,
-      "sent_at": "2026-11-09T15:58:28.053506+01:00"
+      "sent_at": "2026-11-09T15:58:28.053506+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "superbet:14438702:BTTS_FT",
@@ -4637,7 +4641,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T19:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.73,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -4647,7 +4651,8 @@
       "delivery_status": "sent",
       "pick_number": 5,
       "telegram_message_id": 461,
-      "sent_at": "2026-11-09T15:58:30.375613+01:00"
+      "sent_at": "2026-11-09T15:58:30.375613+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "superbet:15612793:BTTS_FT",
@@ -4663,7 +4668,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T19:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 2.07,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -4673,7 +4678,8 @@
       "delivery_status": "sent",
       "pick_number": 6,
       "telegram_message_id": 462,
-      "sent_at": "2026-11-09T15:58:32.391237+01:00"
+      "sent_at": "2026-11-09T15:58:32.391237+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "superbet:15402621:BTTS_FT",
@@ -4689,7 +4695,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T20:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.85,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -4699,7 +4705,8 @@
       "delivery_status": "sent",
       "pick_number": 7,
       "telegram_message_id": 463,
-      "sent_at": "2026-11-09T15:58:34.093009+01:00"
+      "sent_at": "2026-11-09T15:58:34.093009+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "superbet:15815342:BTTS_FT",
@@ -4715,7 +4722,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T20:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.82,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -4725,7 +4732,8 @@
       "delivery_status": "sent",
       "pick_number": 8,
       "telegram_message_id": 464,
-      "sent_at": "2026-11-09T15:58:35.623289+01:00"
+      "sent_at": "2026-11-09T15:58:35.623289+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "superbet:14652263:BTTS_FT",
@@ -4741,7 +4749,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T23:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.85,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -4751,7 +4759,8 @@
       "delivery_status": "sent",
       "pick_number": 9,
       "telegram_message_id": 466,
-      "sent_at": "2026-11-09T16:17:36.932866+01:00"
+      "sent_at": "2026-11-09T16:17:36.932866+01:00",
+      "counts_toward_daily_limit": false
     },
     {
       "key": "superbet:14453992:BTTS_FT",
@@ -4767,7 +4776,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T20:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.92,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -4777,7 +4786,8 @@
       "delivery_status": "sent",
       "pick_number": 10,
       "telegram_message_id": 467,
-      "sent_at": "2026-11-09T16:17:39.008415+01:00"
+      "sent_at": "2026-11-09T16:17:39.008415+01:00",
+      "counts_toward_daily_limit": false
     }
   ],
   "reports_sent": [],
@@ -8038,7 +8048,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T16:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 2.15,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -8064,7 +8074,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T17:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.8,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -8090,7 +8100,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T17:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.9,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -8116,7 +8126,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T19:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.92,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -8142,7 +8152,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T19:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.73,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -8168,7 +8178,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T19:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 2.07,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -8194,7 +8204,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T20:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.85,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -8220,7 +8230,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T20:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.82,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -8246,7 +8256,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T23:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.85,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -8272,7 +8282,7 @@
       "date": "2026-11-09",
       "kickoff_time": "2026-11-09T20:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.92,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
