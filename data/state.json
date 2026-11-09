@@ -4509,12 +4509,15 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/wadi-degla-vs-kahraba-ismailia-15672954?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 8,
       "telegram_message_id": 452,
       "sent_at": "2026-11-09T08:56:04.498162+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": false,
+      "settled_score": "0-0",
+      "settled_at": "2026-11-09T16:17:07.278963+01:00"
     },
     {
       "key": "superbet:15627169:BTTS_FT",
@@ -4723,6 +4726,58 @@
       "pick_number": 8,
       "telegram_message_id": 464,
       "sent_at": "2026-11-09T15:58:35.623289+01:00"
+    },
+    {
+      "key": "superbet:14652263:BTTS_FT",
+      "id": "superbet:14652263",
+      "slug": "",
+      "home": "Sportivo Luqueno",
+      "away": "CS 2 de Mayo",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-09",
+      "kickoff_time": "2026-11-09T23:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.85,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/sportivo-luqueno-vs-cs-2-de-mayo-14652263?t=offer-prematch-102&mdt=o",
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 9,
+      "telegram_message_id": 466,
+      "sent_at": "2026-11-09T16:17:36.932866+01:00"
+    },
+    {
+      "key": "superbet:14453992:BTTS_FT",
+      "id": "superbet:14453992",
+      "slug": "",
+      "home": "Sabadell",
+      "away": "Real Sociedad B",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-09",
+      "kickoff_time": "2026-11-09T20:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.92,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/sabadell-vs-real-sociedad-b-14453992?t=offer-prematch-102&mdt=o",
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 10,
+      "telegram_message_id": 467,
+      "sent_at": "2026-11-09T16:17:39.008415+01:00"
     }
   ],
   "reports_sent": [],
@@ -8176,6 +8231,58 @@
       "pick_number": 8,
       "telegram_message_id": 464,
       "sent_at": "2026-11-09T15:58:35.623289+01:00"
+    },
+    {
+      "key": "superbet:14652263:BTTS_FT",
+      "id": "superbet:14652263",
+      "slug": "",
+      "home": "Sportivo Luqueno",
+      "away": "CS 2 de Mayo",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-09",
+      "kickoff_time": "2026-11-09T23:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.85,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/sportivo-luqueno-vs-cs-2-de-mayo-14652263?t=offer-prematch-102&mdt=o",
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 9,
+      "telegram_message_id": 466,
+      "sent_at": "2026-11-09T16:17:36.932866+01:00"
+    },
+    {
+      "key": "superbet:14453992:BTTS_FT",
+      "id": "superbet:14453992",
+      "slug": "",
+      "home": "Sabadell",
+      "away": "Real Sociedad B",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-09",
+      "kickoff_time": "2026-11-09T20:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.92,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/sabadell-vs-real-sociedad-b-14453992?t=offer-prematch-102&mdt=o",
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 10,
+      "telegram_message_id": 467,
+      "sent_at": "2026-11-09T16:17:39.008415+01:00"
     }
   ],
   "team_history_cache": {
@@ -8808,7 +8915,7 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 7,
+  "btts_image_cursor": 9,
   "daily_headers_sent": [
     "2026-11-09"
   ],
