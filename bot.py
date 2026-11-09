@@ -3061,7 +3061,14 @@ def settle_picks(state, allowed_markets=None):
 
 def retry_pending_settlement_notifications(state):
     """Retry explicitly queued settlement notices and record Telegram's message ID."""
-    for pick in state.get("picks", []):
+    for pick in sorted(
+        state.get("picks", []),
+        key=lambda item: (
+            str(item.get("date") or ""),
+            int(item.get("pick_number") or 999999),
+            str(item.get("kickoff_time") or ""),
+        ),
+    ):
         if not pick.get("settlement_notification_retry"):
             continue
         if not pick.get("settled") or pick.get("market") != BTTS_FT_MARKET:
