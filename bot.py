@@ -4397,73 +4397,16 @@ MAX_DAILY_BTTS_FT_PICKS = 10
 
 
 def btts_recent_form_analysis(home, away, kickoff):
-    """Conservative BTTS screen using recent Open Matchday full-time results."""
-    try:
-        results = open_matchday_data().get("results", [])
-    except Exception as exc:
-        print(f"BTTS analiza: brak danych Open Matchday ({type(exc).__name__}: {exc}); odrzucam mecz.", flush=True)
-        return None
-
-    def team_matches(team, venue=None):
-        rows = []
-        for row in results:
-            rh, ra = str(row.get("home") or "").strip(), str(row.get("away") or "").strip()
-            if not rh or not ra:
-                continue
-            sh, sa = team_name_similarity(team, rh), team_name_similarity(team, ra)
-            if venue == "home" and sh < 0.88:
-                continue
-            if venue == "away" and sa < 0.88:
-                continue
-            if venue is None and max(sh, sa) < 0.88:
-                continue
-            fh, fa = as_int(row.get("ft_home")), as_int(row.get("ft_away"))
-            played = open_matchday_kickoff(row)
-            if fh is None or fa is None or not played or played >= kickoff:
-                continue
-            if venue == "home":
-                scored, conceded = fh, fa
-            elif venue == "away":
-                scored, conceded = fa, fh
-            elif sh >= 0.88:
-                scored, conceded = fh, fa
-            else:
-                scored, conceded = fa, fh
-            rows.append({"date": played, "btts": fh > 0 and fa > 0,
-                         "scored": scored > 0, "conceded": conceded > 0})
-        rows.sort(key=lambda x: x["date"], reverse=True)
-        return rows
-
-    h, a = team_matches(home)[:8], team_matches(away)[:8]
-    hs, aw = team_matches(home, "home")[:6], team_matches(away, "away")[:6]
-    if min(len(h), len(a)) < 3 or min(len(hs), len(aw)) < 2:
-        print(f"BTTS analiza: za mało historii {home} ({len(h)}/{len(hs)}), {away} ({len(a)}/{len(aw)}); odrzucam.", flush=True)
-        return None
-    rate = lambda rows, key: sum(1 for x in rows if x[key]) / len(rows)
-    m = {
-        "home_btts": rate(h, "btts"), "away_btts": rate(a, "btts"),
-        "home_scored": rate(h, "scored"), "away_scored": rate(a, "scored"),
-        "home_conceded": rate(h, "conceded"), "away_conceded": rate(a, "conceded"),
-        "home_venue_btts": rate(hs, "btts"), "away_venue_btts": rate(aw, "btts"),
-        "home_venue_scored": rate(hs, "scored"), "away_venue_scored": rate(aw, "scored"),
+    """Experimental BTTS mode: do not use team history, form or H2H."""
+    # Testujemy samodzielny screening rynku: aktywny rynek BTTS FT,
+    # kurs w zakresie 1.70–2.50 oraz końcowa kontrola kursu przed wysyłką.
+    # Historia Open Matchday nie może blokować kandydatów ani wpływać na ranking.
+    return {
+        "score": 0.5,
+        "metrics": {},
+        "samples": {"home": 0, "away": 0, "home_venue": 0, "away_venue": 0},
+        "method": "no_team_history_experimental",
     }
-    # Łagodniejszy filtr: szukamy więcej kandydatów, ale nadal wymagamy
-    # podstawowych sygnałów BTTS w ostatnich meczach i na danym stadionie.
-    passed = (
-        m["home_btts"] >= 0.375 and m["away_btts"] >= 0.375
-        and m["home_scored"] >= 0.625 and m["away_scored"] >= 0.625
-        and m["home_conceded"] >= 0.375 and m["away_conceded"] >= 0.375
-        and m["home_venue_scored"] >= 0.50 and m["away_venue_scored"] >= 0.50
-        and m["home_venue_btts"] >= 0.25 and m["away_venue_btts"] >= 0.25
-    )
-    if not passed:
-        print(f"BTTS analiza: odrzucony {home} - {away}; BTTS forma {m['home_btts']:.0%}/{m['away_btts']:.0%}, strzelają {m['home_scored']:.0%}/{m['away_scored']:.0%}, dom/wyjazd BTTS {m['home_venue_btts']:.0%}/{m['away_venue_btts']:.0%}.", flush=True)
-        return None
-    score = (0.25*m["home_btts"] + 0.25*m["away_btts"]
-             + 0.15*m["home_scored"] + 0.15*m["away_scored"]
-             + 0.10*m["home_venue_btts"] + 0.10*m["away_venue_btts"])
-    return {"score": score, "metrics": m, "samples": {
-        "home": len(h), "away": len(a), "home_venue": len(hs), "away_venue": len(aw)}}
 
 
 def send_prematch_superbet_btts_picks(state):
