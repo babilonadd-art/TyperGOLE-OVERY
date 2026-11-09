@@ -197,6 +197,7 @@ class BTTSFirstHalfSettlementTests(unittest.TestCase):
                 "kickoff_time": "2026-11-06T10:00:00+00:00",
                 "market": "BTTS_HT",
                 "delivery_status": "sent",
+                "telegram_message_id": 12345,
                 "settled": False,
                 "odds": 2.10,
                 "stake": 50.0,
