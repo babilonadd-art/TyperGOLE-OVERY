@@ -2717,7 +2717,14 @@ def settle_picks(state, allowed_markets=None):
 
     allowed_markets = set(allowed_markets) if allowed_markets is not None else None
     settlement_day = now_local().date()
-    for pick in state["picks"]:
+    for pick in sorted(
+        state["picks"],
+        key=lambda item: (
+            str(item.get("date") or ""),
+            int(item.get("pick_number") or 999999),
+            str(item.get("kickoff_time") or ""),
+        ),
+    ):
         if allowed_markets is not None and pick.get("market") not in allowed_markets:
             continue
         # Only settle fixtures scheduled for today's Warsaw-local date.
@@ -2728,6 +2735,13 @@ def settle_picks(state, allowed_markets=None):
         if pick.get("delivery_status", "sent") != "sent":
             continue
         if pick.get("settled"):
+            continue
+        if not pick.get("telegram_message_id"):
+            print(
+                f"ROZLICZENIE WSTRZYMANE — {pick.get('home')} - {pick.get('away')}: "
+                "brak telegram_message_id; nie wysyłam wyniku jako osobnej wiadomości.",
+                flush=True,
+            )
             continue
         try:
             manual = pick.get("manual_result")
@@ -2753,8 +2767,9 @@ def settle_picks(state, allowed_markets=None):
                 else:
                     winnings_text = f"\nSTRATA: {-stake:.2f} zł" if not won else ""
                 yield_text = ""
+                pick_label = f"TYP NR. {pick['pick_number']}\n" if pick.get("pick_number") else ""
                 settlement_message = (
-                    f"{result_text}\n{pick['home']} - {pick['away']}\n"
+                    f"{pick_label}{result_text}\n{pick['home']} - {pick['away']}\n"
                     f"Wynik: {score_text} | Gole: {goals_text}"
                     f"{winnings_text}{yield_text}"
                 )
@@ -3021,8 +3036,9 @@ def settle_picks(state, allowed_markets=None):
             else:
                 winnings_text = f"\nSTRATA: {-stake:.2f} zł" if not won else ""
             yield_text = ""
+            pick_label = f"TYP NR. {pick['pick_number']}\n" if pick.get("pick_number") else ""
             settlement_message = (
-                f"{result_text}\n{pick['home']} - {pick['away']}\n"
+                f"{pick_label}{result_text}\n{pick['home']} - {pick['away']}\n"
                 f"Wynik: {score_text} | Gole: {goals_text}"
                 f"{winnings_text}{yield_text}"
             )
@@ -3050,6 +3066,15 @@ def retry_pending_settlement_notifications(state):
             continue
         if not pick.get("settled") or pick.get("market") != BTTS_FT_MARKET:
             continue
+        if not pick.get("telegram_message_id"):
+            print(
+                f"PONOWIENIE ROZLICZENIA WSTRZYMANE — {pick.get('home')} - {pick.get('away')}: "
+                "brak telegram_message_id; nie wysyłam osobnej wiadomości.",
+                flush=True,
+            )
+            continue
+        if False:
+            continue
         score = str(pick.get("settled_score") or "brak")
         try:
             odds = float(pick.get("odds"))
@@ -3068,9 +3093,10 @@ def retry_pending_settlement_notifications(state):
             )
         else:
             financial_text = f"\nSTRATA: {-stake:.2f} zł" if not won else ""
+        pick_label = f"TYP NR. {pick['pick_number']}\n" if pick.get("pick_number") else ""
         message = (
             f"🔁 PONOWIONE ROZLICZENIE — BTTS CAŁY MECZ\n"
-            f"{result_text}\n{pick.get('home')} - {pick.get('away')}\n"
+            f"{pick_label}{result_text}\n{pick.get('home')} - {pick.get('away')}\n"
             f"Wynik: {score}"
         )
         if odds is not None:
