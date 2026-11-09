@@ -4788,6 +4788,30 @@
       "telegram_message_id": 467,
       "sent_at": "2026-11-09T16:17:39.008415+01:00",
       "counts_toward_daily_limit": false
+    },
+    {
+      "key": "superbet:15402623:BTTS_FT",
+      "id": "superbet:15402623",
+      "slug": "",
+      "home": "Pineto",
+      "away": "Vis Pesaro",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-09",
+      "kickoff_time": "2026-11-09T20:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.77,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/pineto-vs-vis-pesaro-15402623?t=offer-prematch-102&mdt=o",
+      "settled": false,
+      "delivery_status": "pending",
+      "pick_number": 1
     }
   ],
   "reports_sent": [],
@@ -8293,6 +8317,30 @@
       "pick_number": 10,
       "telegram_message_id": 467,
       "sent_at": "2026-11-09T16:17:39.008415+01:00"
+    },
+    {
+      "key": "superbet:15402623:BTTS_FT",
+      "id": "superbet:15402623",
+      "slug": "",
+      "home": "Pineto",
+      "away": "Vis Pesaro",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-09",
+      "kickoff_time": "2026-11-09T20:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.77,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/pineto-vs-vis-pesaro-15402623?t=offer-prematch-102&mdt=o",
+      "settled": false,
+      "delivery_status": "pending",
+      "pick_number": 1
     }
   ],
   "team_history_cache": {
