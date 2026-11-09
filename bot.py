@@ -4614,12 +4614,12 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
     if min(home_venue["played"], away_venue["played"]) < 3:
         return None
 
-    # Core gates: season BTTS >=60%, recent BTTS in at least 4/5,
-    # and venue-specific BTTS >=50%. The remaining indicators rank rather
-    # than automatically reject a fixture, preventing an over-tight filter.
+    # Core gates: season BTTS >=60%, recent BTTS in at least 3/5,
+    # and venue-specific BTTS >=50%. Recent form remains a quality filter,
+    # but 3/5 avoids rejecting nearly all fixtures on a busy matchday.
     if min(home_all["btts"], away_all["btts"]) < 0.60:
         return None
-    if min(home_all["last5"], away_all["last5"]) < 4:
+    if min(home_all["last5"], away_all["last5"]) < 3:
         return None
     if min(home_venue["btts"], away_venue["btts"]) < 0.50:
         return None
