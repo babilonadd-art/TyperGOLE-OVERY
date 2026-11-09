@@ -547,6 +547,85 @@ def telegram_btts_ft(message, image_index=None):
             print(f"Grafika piłkarska niedostępna — wysyłam typ bez zdjęcia: {exc}", flush=True)
     return telegram(message)
 
+
+def telegram_edit_btts_pick(message, message_id):
+    """Edit the original BTTS post when correcting its daily pick number."""
+    if not TELEGRAM_TOKEN or not CHAT_ID or not message_id:
+        raise RuntimeError("Brak danych do edycji oryginalnego typu BTTS.")
+    base = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/"
+    common = {"chat_id": CHAT_ID, "message_id": int(message_id)}
+    caption_response = requests.post(
+        base + "editMessageCaption",
+        json={**common, "caption": message},
+        timeout=20,
+    )
+    try:
+        caption_response.raise_for_status()
+        payload = caption_response.json()
+        if payload.get("ok"):
+            return payload
+        caption_error = payload
+    except Exception as exc:
+        caption_error = exc
+    # Text-only fallback is needed when the original post was sent without a photo.
+    text_response = requests.post(
+        base + "editMessageText",
+        json={**common, "text": message, "disable_web_page_preview": True},
+        timeout=20,
+    )
+    text_response.raise_for_status()
+    payload = text_response.json()
+    if not payload.get("ok"):
+        raise RuntimeError(f"Telegram edit failed: caption={caption_error}; text={payload}")
+    return payload
+
+
+def format_btts_ft_pick_message(pick, pick_number):
+    """Rebuild a BTTS FT Telegram caption with a corrected pick number."""
+    kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
+    analysis = pick.get("analysis") or {}
+    metrics = analysis.get("metrics") or {}
+    odds = float(pick.get("odds") or 0)
+    payout = calculate_bet_result(float(pick.get("stake") or STAKE), odds)
+    home, away = pick.get("home") or "Gospodarze", pick.get("away") or "Goście"
+    league = pick.get("league") or ""
+    message = (
+        f"𝗧𝗬𝗣 𝗡𝗥. {pick_number}\n\n"
+        f"📅 DATA: {kickoff.strftime('%d.%m.%Y')}\n"
+        f"🕒 GODZINA: {kickoff.strftime('%H:%M')} — CZAS POLSKI\n"
+        f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
+        f"⚽ {home} – {away}\n"
+        + (f"🏆 Liga: {league}\n" if league else "")
+        + (f"📊 BTTS sezon: {metrics['home_btts']:.0%}/{metrics['away_btts']:.0%}; dom/wyjazd: {metrics['home_venue_btts']:.0%}/{metrics['away_venue_btts']:.0%}\n" if all(key in metrics for key in ("home_btts", "away_btts", "home_venue_btts", "away_venue_btts")) else "📊 Brak wystarczających statystyk.\n")
+        + (f"🔥 Forma BTTS 5 meczów: {metrics['home_recent_btts']}/5 – {metrics['away_recent_btts']}/5; CS: {metrics['home_clean_sheets']:.0%}/{metrics['away_clean_sheets']:.0%}; FTS: {metrics['home_failed_to_score']:.0%}/{metrics['away_failed_to_score']:.0%}\n" if "home_recent_btts" in metrics else "")
+        + f"📈 Superbet: {odds:.2f}\n"
+        f"💵 Stawka: {float(pick.get('stake') or STAKE):.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
+        f"🔗 Mecz Superbet: {pick.get('bet_url') or ''}\n"
+        "Rozliczenie: wynik po 90 minutach; bez dogrywki i serii karnych."
+    )
+    return message
+
+
+def btts_ft_sent_picks_on_day(state, day):
+    """Return BTTS FT picks actually delivered on the given Warsaw-local date."""
+    sent = []
+    for pick in state.get("picks", []):
+        if pick.get("market") != BTTS_FT_MARKET or pick.get("delivery_status") != "sent":
+            continue
+        sent_at = pick.get("sent_at")
+        if not sent_at:
+            continue
+        try:
+            stamp = datetime.fromisoformat(str(sent_at).replace("Z", "+00:00"))
+            if stamp.tzinfo is None:
+                stamp = stamp.replace(tzinfo=TZ)
+            if stamp.astimezone(TZ).date().isoformat() == str(day):
+                sent.append(pick)
+        except (TypeError, ValueError):
+            continue
+    sent.sort(key=lambda item: str(item.get("sent_at") or ""))
+    return sent
+
 def superbet_prematch_event_links(target_date=None):
     """Get pre-match football event links for one Warsaw-local calendar date."""
     found = {}
@@ -4676,15 +4755,31 @@ def send_prematch_superbet_btts_picks(state):
         candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "url": bet_url, "analysis": analysis, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
     candidates.sort(key=lambda x: (-x["analysis"]["score"], x["kickoff"], x["home"], x["away"]))
     print(f"Superbet BTTS FT: {len(candidates)} kandydatów po kontroli historii BTTS i aktywnego kursu 1.70–2.50.", flush=True)
-    sent_by_day = {}
-    for old in state.get("picks", []):
-        if old.get("market") == BTTS_FT_MARKET and old.get("delivery_status", "sent") == "sent" and old.get("counts_toward_daily_limit", True) is not False:
-            day = str(old.get("date") or "")
-            sent_by_day[day] = sent_by_day.get(day, 0) + 1
     day_key = today.isoformat()
+    sent_today = btts_ft_sent_picks_on_day(state, day_key)
+    # Older scheduled tips may have been posted days before their kickoff date.
+    # They must not consume today's cap or today's numbering.
+    for corrected_number, old_pick in enumerate(sent_today, 1):
+        old_number = old_pick.get("pick_number")
+        if old_number != corrected_number:
+            message_id = old_pick.get("telegram_message_id")
+            if message_id:
+                try:
+                    telegram_edit_btts_pick(
+                        format_btts_ft_pick_message(old_pick, corrected_number),
+                        message_id,
+                    )
+                    old_pick["pick_number"] = corrected_number
+                    save_state(state)
+                    print(f"Skorygowano numer BTTS FT: {old_pick.get('home')} - {old_pick.get('away')} → TYP NR. {corrected_number}.", flush=True)
+                except Exception as exc:
+                    print(f"Nie udało się poprawić numeru starej wiadomości BTTS FT: {type(exc).__name__}: {exc}", flush=True)
+    sent_today = btts_ft_sent_picks_on_day(state, day_key)
+    sent_count = len(sent_today)
+    next_number = max((int(p.get("pick_number") or 0) for p in sent_today), default=0) + 1
     for candidate in candidates:
-        if sent_by_day.get(day_key, 0) >= MAX_DAILY_BTTS_FT_PICKS:
-            print(f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {day_key}; kończę wysyłkę.", flush=True)
+        if sent_count >= MAX_DAILY_BTTS_FT_PICKS:
+            print(f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla dnia wysyłki {day_key}; kończę wysyłkę.", flush=True)
             break
         try:
             final_detail = superbet_event_detail(candidate["event_id"])
@@ -4715,26 +4810,13 @@ def send_prematch_superbet_btts_picks(state):
             except Exception as exc:
                 print(f"Nie udało się wysłać nagłówka dnia {day_key}: {type(exc).__name__}: {exc}; wstrzymuję typy do kolejnego skanu.", flush=True)
                 return
-        pick_number = sent_by_day.get(day_key, 0) + 1
+        pick_number = next_number
         pick = {"key": f"{candidate['id']}:{BTTS_FT_MARKET}", "id": candidate["id"], "slug": "", "home": candidate["home"], "away": candidate["away"], "league": candidate["league"], "competition_category": candidate["competition_category"], "date": day_key, "kickoff_time": candidate["kickoff"].isoformat(), "market": BTTS_FT_MARKET, "stake": STAKE, "odds": float(final_quote["odds"]), "odds_source": "Superbet", "odds_market": final_quote["market"], "odds_updated_at": final_quote.get("updated_at"), "bet_url": candidate["url"], "analysis": candidate["analysis"], "settled": False, "delivery_status": "pending", "pick_number": pick_number}
         state.setdefault("picks", []).append(pick)
         state.setdefault("duplicate_guard", []).append(pick)
         save_state(state)
         payout = calculate_bet_result(STAKE, final_quote["odds"])
-        message = (
-            f"𝗧𝗬𝗣 𝗡𝗥. {pick_number}\n\n"
-            f"📅 DATA: {candidate['kickoff'].strftime('%d.%m.%Y')}\n"
-            f"🕒 GODZINA: {candidate['kickoff'].strftime('%H:%M')} — CZAS POLSKI\n"
-            f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
-            f"⚽ {candidate['home']} – {candidate['away']}\n"
-            + (f"🏆 Liga: {candidate['league']}\n" if candidate.get("league") else "")
-            + (f"📊 BTTS sezon: {candidate['analysis']['metrics']['home_btts']:.0%}/{candidate['analysis']['metrics']['away_btts']:.0%}; dom/wyjazd: {candidate['analysis']['metrics']['home_venue_btts']:.0%}/{candidate['analysis']['metrics']['away_venue_btts']:.0%}\n" if all(key in candidate["analysis"].get("metrics", {}) for key in ("home_btts", "away_btts", "home_venue_btts", "away_venue_btts")) else "📊 Brak wystarczających statystyk.\n")
-            + (f"🔥 Forma BTTS 5 meczów: {candidate['analysis']['metrics']['home_recent_btts']}/5 – {candidate['analysis']['metrics']['away_recent_btts']}/5; CS: {candidate['analysis']['metrics']['home_clean_sheets']:.0%}/{candidate['analysis']['metrics']['away_clean_sheets']:.0%}; FTS: {candidate['analysis']['metrics']['home_failed_to_score']:.0%}/{candidate['analysis']['metrics']['away_failed_to_score']:.0%}\n" if "home_recent_btts" in candidate["analysis"].get("metrics", {}) else "")
-            + f"📈 Superbet: {final_quote['odds']:.2f}\n"
-            f"💵 Stawka: {STAKE:.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
-            f"🔗 Mecz Superbet: {candidate['url']}\n"
-            "Rozliczenie: wynik po 90 minutach; bez dogrywki i serii karnych."
-        )
+        message = format_btts_ft_pick_message(pick, pick_number)
         try:
             image_cursor = int(state.get("btts_image_cursor", 0)) % len(BTTS_IMAGE_POOL)
             response = telegram_btts_ft(message, image_cursor)
@@ -4747,7 +4829,8 @@ def send_prematch_superbet_btts_picks(state):
             pick["delivery_status"] = "sent"
             pick["sent_at"] = now_local().isoformat()
             save_state(state)
-            sent_by_day[day_key] = sent_by_day.get(day_key, 0) + 1
+            sent_count += 1
+            next_number += 1
             print(f"WYSŁANO BTTS FT Superbet TYP NR. {pick_number}: {candidate['home']} - {candidate['away']} @ {final_quote['odds']:.2f}", flush=True)
         except Exception as exc:
             pick["delivery_status"] = "failed"
