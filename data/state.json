@@ -5111,6 +5111,60 @@
       "pick_number": 10,
       "telegram_message_id": 477,
       "sent_at": "2026-11-09T17:34:43.295662+01:00"
+    },
+    {
+      "key": "superbet:15612685:BTTS_FT",
+      "id": "superbet:15612685",
+      "slug": "",
+      "home": "FC Midtjylland (K)",
+      "away": "Odense Q (K)",
+      "league": "",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T19:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 2.17,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/fc-midtjylland-k-vs-odense-q-k-15612685?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.703218954248366,
+        "metrics": {
+          "home_btts": 0.8235294117647058,
+          "away_btts": 0.6428571428571429,
+          "home_venue_btts": 0.7777777777777778,
+          "away_venue_btts": 0.5714285714285714,
+          "home_clean_sheets": 0.11764705882352941,
+          "away_clean_sheets": 0.14285714285714285,
+          "home_failed_to_score": 0.058823529411764705,
+          "away_failed_to_score": 0.2857142857142857,
+          "home_avg_goals": 3.2941176470588234,
+          "away_avg_goals": 2.5,
+          "home_recent_btts": 4,
+          "away_recent_btts": 4,
+          "league": "Danish Superliga",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 17,
+          "away": 14,
+          "home_venue": 9,
+          "away_venue": 7
+        },
+        "method": "open_matchday_current_season_btts_form_venue",
+        "league_folder": "DEN_1_SUPERLIGA"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 4,
+      "telegram_message_id": 492,
+      "sent_at": "2026-11-10T00:16:45.025074+01:00"
     }
   ],
   "reports_sent": [],
@@ -8900,6 +8954,60 @@
       "pick_number": 10,
       "telegram_message_id": 477,
       "sent_at": "2026-11-09T17:34:43.295662+01:00"
+    },
+    {
+      "key": "superbet:15612685:BTTS_FT",
+      "id": "superbet:15612685",
+      "slug": "",
+      "home": "FC Midtjylland (K)",
+      "away": "Odense Q (K)",
+      "league": "",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T19:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 2.17,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/fc-midtjylland-k-vs-odense-q-k-15612685?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.703218954248366,
+        "metrics": {
+          "home_btts": 0.8235294117647058,
+          "away_btts": 0.6428571428571429,
+          "home_venue_btts": 0.7777777777777778,
+          "away_venue_btts": 0.5714285714285714,
+          "home_clean_sheets": 0.11764705882352941,
+          "away_clean_sheets": 0.14285714285714285,
+          "home_failed_to_score": 0.058823529411764705,
+          "away_failed_to_score": 0.2857142857142857,
+          "home_avg_goals": 3.2941176470588234,
+          "away_avg_goals": 2.5,
+          "home_recent_btts": 4,
+          "away_recent_btts": 4,
+          "league": "Danish Superliga",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 17,
+          "away": 14,
+          "home_venue": 9,
+          "away_venue": 7
+        },
+        "method": "open_matchday_current_season_btts_form_venue",
+        "league_folder": "DEN_1_SUPERLIGA"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 4,
+      "telegram_message_id": 492,
+      "sent_at": "2026-11-10T00:16:45.025074+01:00"
     }
   ],
   "team_history_cache": {
@@ -9532,11 +9640,13 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 19,
+  "btts_image_cursor": 20,
   "daily_headers_sent": [
-    "2026-11-09"
+    "2026-11-09",
+    "2026-11-10"
   ],
   "daily_header_messages": {
-    "2026-11-09": 431
+    "2026-11-09": 431,
+    "2026-11-10": 491
   }
 }
