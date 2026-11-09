@@ -4539,12 +4539,15 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/fc-fratria-varna-vs-sportist-svoge-15627169?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 1,
       "telegram_message_id": 457,
       "sent_at": "2026-11-09T15:58:21.999306+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "6-2",
+      "settled_at": "2026-11-09T18:33:08.375245+01:00"
     },
     {
       "key": "superbet:15627189:BTTS_FT",
