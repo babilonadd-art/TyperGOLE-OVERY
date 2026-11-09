@@ -4393,7 +4393,7 @@ def send_prematch_over_15_ht_picks(state):
 
 
 
-MAX_DAILY_BTTS_FT_PICKS = 8
+MAX_DAILY_BTTS_FT_PICKS = 10
 
 
 def btts_recent_form_analysis(home, away, kickoff):
@@ -4436,7 +4436,7 @@ def btts_recent_form_analysis(home, away, kickoff):
 
     h, a = team_matches(home)[:8], team_matches(away)[:8]
     hs, aw = team_matches(home, "home")[:6], team_matches(away, "away")[:6]
-    if min(len(h), len(a)) < 5 or min(len(hs), len(aw)) < 3:
+    if min(len(h), len(a)) < 3 or min(len(hs), len(aw)) < 2:
         print(f"BTTS analiza: za mało historii {home} ({len(h)}/{len(hs)}), {away} ({len(a)}/{len(aw)}); odrzucam.", flush=True)
         return None
     rate = lambda rows, key: sum(1 for x in rows if x[key]) / len(rows)
@@ -4447,12 +4447,14 @@ def btts_recent_form_analysis(home, away, kickoff):
         "home_venue_btts": rate(hs, "btts"), "away_venue_btts": rate(aw, "btts"),
         "home_venue_scored": rate(hs, "scored"), "away_venue_scored": rate(aw, "scored"),
     }
+    # Łagodniejszy filtr: szukamy więcej kandydatów, ale nadal wymagamy
+    # podstawowych sygnałów BTTS w ostatnich meczach i na danym stadionie.
     passed = (
-        m["home_btts"] >= 0.50 and m["away_btts"] >= 0.50
-        and m["home_scored"] >= 0.75 and m["away_scored"] >= 0.75
-        and m["home_conceded"] >= 0.50 and m["away_conceded"] >= 0.50
-        and m["home_venue_scored"] >= 0.67 and m["away_venue_scored"] >= 0.67
-        and m["home_venue_btts"] >= 0.33 and m["away_venue_btts"] >= 0.33
+        m["home_btts"] >= 0.375 and m["away_btts"] >= 0.375
+        and m["home_scored"] >= 0.625 and m["away_scored"] >= 0.625
+        and m["home_conceded"] >= 0.375 and m["away_conceded"] >= 0.375
+        and m["home_venue_scored"] >= 0.50 and m["away_venue_scored"] >= 0.50
+        and m["home_venue_btts"] >= 0.25 and m["away_venue_btts"] >= 0.25
     )
     if not passed:
         print(f"BTTS analiza: odrzucony {home} - {away}; BTTS forma {m['home_btts']:.0%}/{m['away_btts']:.0%}, strzelają {m['home_scored']:.0%}/{m['away_scored']:.0%}, dom/wyjazd BTTS {m['home_venue_btts']:.0%}/{m['away_venue_btts']:.0%}.", flush=True)
