@@ -4569,12 +4569,15 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/iberia-1999-vs-fc-gagra-15627189?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 2,
       "telegram_message_id": 458,
       "sent_at": "2026-11-09T15:58:24.218087+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": false,
+      "settled_score": "1-0",
+      "settled_at": "2026-11-09T19:23:12.773296+01:00"
     },
     {
       "key": "superbet:15675866:BTTS_FT",
