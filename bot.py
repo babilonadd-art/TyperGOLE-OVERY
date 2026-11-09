@@ -4565,7 +4565,7 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
     blacklist = ("segunda division", "la liga 2", "super league greece",
                  "greek super league", "morocco", "botola", "argentina",
                  "primera division argentina")
-    if league_folder.startswith(("GRE_", "MAR_", "ARG_")) or any(term in league_key for term in blacklist):
+    if league_folder.startswith(("GRE_", "MAR_", "ARG_", "ESP_2_")) or any(term in league_key for term in blacklist):
         return None
     whitelist = ("eredivisie", "eerste divisie", "bundesliga", "2. bundesliga",
                  "iceland", "norway", "eliteserien", "sweden", "allsvenskan",
@@ -4601,6 +4601,8 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
         + 0.10 * (int(home_all["failed_to_score"] < 0.20) + int(away_all["failed_to_score"] < 0.20)) / 2
         + 0.15 * (int(home_all["avg_goals"] > 2.5) + int(away_all["avg_goals"] > 2.5)) / 2
         + league_bonus
+        + (0.04 if min(home_all["btts"], away_all["btts"]) >= 0.65 else 0.0)
+        + (0.04 if min(home_all["avg_goals"], away_all["avg_goals"]) > 3.0 else 0.0)
     )
     return {
         "score": min(score, 1.0),
