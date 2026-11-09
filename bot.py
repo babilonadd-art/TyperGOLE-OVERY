@@ -4531,9 +4531,7 @@ def send_prematch_superbet_btts_picks(state):
             sent_by_day[day] = sent_by_day.get(day, 0) + 1
     day_key = today.isoformat()
     for candidate in candidates:
-        if sent_by_day.get(day_key, 0) >= MAX_DAILY_BTTS_FT_PICKS:
-            print(f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {day_key}.", flush=True)
-            break
+        # BTTS FT: no daily cap; keep sent_by_day only for continuous numbering.
         try:
             final_detail = superbet_event_detail(candidate["event_id"])
             final_quote = extract_superbet_btts_full_time(final_detail)
