@@ -5435,6 +5435,174 @@
       "pick_number": 6,
       "telegram_message_id": 497,
       "sent_at": "2026-11-10T01:35:06.870324+01:00"
+    },
+    {
+      "key": "superbet:15641660:BTTS_FT",
+      "id": "superbet:15641660",
+      "slug": "",
+      "home": "Inter Mediolan (K)",
+      "away": "Manchester City (K)",
+      "league": "UEFA Champions League (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T21:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.67,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/inter-mediolan-k-vs-manchester-city-k-15641660?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.6098076923076923,
+        "metrics": {
+          "home_btts": 0.5,
+          "away_btts": 0.5384615384615384,
+          "home_venue_btts": 0.5,
+          "away_venue_btts": 0.8,
+          "home_clean_sheets": 0.5,
+          "away_clean_sheets": 0.23076923076923078,
+          "home_failed_to_score": 0.0,
+          "away_failed_to_score": 0.23076923076923078,
+          "home_avg_goals": 3.5,
+          "away_avg_goals": 2.8461538461538463,
+          "home_recent_btts": 2,
+          "away_recent_btts": 3,
+          "home_scored_rate": 1.0,
+          "away_scored_rate": 0.7692307692307693,
+          "league": "UEFA Champions League",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 4,
+          "away": 13,
+          "home_venue": 2,
+          "away_venue": 5
+        },
+        "method": "open_matchday_strict_btts_ft_form_venue_v2",
+        "league_folder": "UEFA_1_CHAMPIONS-LEAGUE"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 7,
+      "telegram_message_id": 498,
+      "sent_at": "2026-11-10T09:41:36.014484+01:00"
+    },
+    {
+      "key": "superbet:15641649:BTTS_FT",
+      "id": "superbet:15641649",
+      "slug": "",
+      "home": "Redcar Athletic FC",
+      "away": "Bamber Bridge",
+      "league": "Série B",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T20:45:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.62,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/redcar-athletic-fc-vs-bamber-bridge-15641649?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.6085984848484849,
+        "metrics": {
+          "home_btts": 0.6166666666666667,
+          "away_btts": 0.5454545454545454,
+          "home_venue_btts": 0.6333333333333333,
+          "away_venue_btts": 0.6,
+          "home_clean_sheets": 0.26666666666666666,
+          "away_clean_sheets": 0.18181818181818182,
+          "home_failed_to_score": 0.21666666666666667,
+          "away_failed_to_score": 0.36363636363636365,
+          "home_avg_goals": 2.75,
+          "away_avg_goals": 3.1818181818181817,
+          "home_recent_btts": 5,
+          "away_recent_btts": 2,
+          "home_scored_rate": 0.7833333333333333,
+          "away_scored_rate": 0.6363636363636364,
+          "league": "Série B",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 60,
+          "away": 11,
+          "home_venue": 30,
+          "away_venue": 5
+        },
+        "method": "open_matchday_strict_btts_ft_form_venue_v2",
+        "league_folder": "BRA_2_SERIE-B"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 8,
+      "telegram_message_id": 499,
+      "sent_at": "2026-11-10T09:41:38.151022+01:00"
+    },
+    {
+      "key": "superbet:15641659:BTTS_FT",
+      "id": "superbet:15641659",
+      "slug": "",
+      "home": "AS Roma (K)",
+      "away": "Servette (K)",
+      "league": "Serie A (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T21:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.65,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/as-roma-k-vs-servette-k-15641659?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.545,
+        "metrics": {
+          "home_btts": 0.5333333333333333,
+          "away_btts": 0.4666666666666667,
+          "home_venue_btts": 0.5,
+          "away_venue_btts": 0.5,
+          "home_clean_sheets": 0.4666666666666667,
+          "away_clean_sheets": 0.3333333333333333,
+          "home_failed_to_score": 0.06666666666666667,
+          "away_failed_to_score": 0.26666666666666666,
+          "home_avg_goals": 3.933333333333333,
+          "away_avg_goals": 2.933333333333333,
+          "home_recent_btts": 4,
+          "away_recent_btts": 2,
+          "home_scored_rate": 0.9333333333333333,
+          "away_scored_rate": 0.7333333333333333,
+          "league": "Serie A",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 15,
+          "away": 15,
+          "home_venue": 8,
+          "away_venue": 8
+        },
+        "method": "open_matchday_strict_btts_ft_form_venue_v2",
+        "league_folder": "ITA_1_SERIE-A"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 9,
+      "telegram_message_id": 500,
+      "sent_at": "2026-11-10T09:41:40.275581+01:00"
     }
   ],
   "reports_sent": [],
@@ -9548,6 +9716,174 @@
       "pick_number": 6,
       "telegram_message_id": 497,
       "sent_at": "2026-11-10T01:35:06.870324+01:00"
+    },
+    {
+      "key": "superbet:15641660:BTTS_FT",
+      "id": "superbet:15641660",
+      "slug": "",
+      "home": "Inter Mediolan (K)",
+      "away": "Manchester City (K)",
+      "league": "UEFA Champions League (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T21:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.67,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/inter-mediolan-k-vs-manchester-city-k-15641660?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.6098076923076923,
+        "metrics": {
+          "home_btts": 0.5,
+          "away_btts": 0.5384615384615384,
+          "home_venue_btts": 0.5,
+          "away_venue_btts": 0.8,
+          "home_clean_sheets": 0.5,
+          "away_clean_sheets": 0.23076923076923078,
+          "home_failed_to_score": 0.0,
+          "away_failed_to_score": 0.23076923076923078,
+          "home_avg_goals": 3.5,
+          "away_avg_goals": 2.8461538461538463,
+          "home_recent_btts": 2,
+          "away_recent_btts": 3,
+          "home_scored_rate": 1.0,
+          "away_scored_rate": 0.7692307692307693,
+          "league": "UEFA Champions League",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 4,
+          "away": 13,
+          "home_venue": 2,
+          "away_venue": 5
+        },
+        "method": "open_matchday_strict_btts_ft_form_venue_v2",
+        "league_folder": "UEFA_1_CHAMPIONS-LEAGUE"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 7,
+      "telegram_message_id": 498,
+      "sent_at": "2026-11-10T09:41:36.014484+01:00"
+    },
+    {
+      "key": "superbet:15641649:BTTS_FT",
+      "id": "superbet:15641649",
+      "slug": "",
+      "home": "Redcar Athletic FC",
+      "away": "Bamber Bridge",
+      "league": "Série B",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T20:45:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.62,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/redcar-athletic-fc-vs-bamber-bridge-15641649?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.6085984848484849,
+        "metrics": {
+          "home_btts": 0.6166666666666667,
+          "away_btts": 0.5454545454545454,
+          "home_venue_btts": 0.6333333333333333,
+          "away_venue_btts": 0.6,
+          "home_clean_sheets": 0.26666666666666666,
+          "away_clean_sheets": 0.18181818181818182,
+          "home_failed_to_score": 0.21666666666666667,
+          "away_failed_to_score": 0.36363636363636365,
+          "home_avg_goals": 2.75,
+          "away_avg_goals": 3.1818181818181817,
+          "home_recent_btts": 5,
+          "away_recent_btts": 2,
+          "home_scored_rate": 0.7833333333333333,
+          "away_scored_rate": 0.6363636363636364,
+          "league": "Série B",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 60,
+          "away": 11,
+          "home_venue": 30,
+          "away_venue": 5
+        },
+        "method": "open_matchday_strict_btts_ft_form_venue_v2",
+        "league_folder": "BRA_2_SERIE-B"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 8,
+      "telegram_message_id": 499,
+      "sent_at": "2026-11-10T09:41:38.151022+01:00"
+    },
+    {
+      "key": "superbet:15641659:BTTS_FT",
+      "id": "superbet:15641659",
+      "slug": "",
+      "home": "AS Roma (K)",
+      "away": "Servette (K)",
+      "league": "Serie A (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T21:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.65,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/as-roma-k-vs-servette-k-15641659?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.545,
+        "metrics": {
+          "home_btts": 0.5333333333333333,
+          "away_btts": 0.4666666666666667,
+          "home_venue_btts": 0.5,
+          "away_venue_btts": 0.5,
+          "home_clean_sheets": 0.4666666666666667,
+          "away_clean_sheets": 0.3333333333333333,
+          "home_failed_to_score": 0.06666666666666667,
+          "away_failed_to_score": 0.26666666666666666,
+          "home_avg_goals": 3.933333333333333,
+          "away_avg_goals": 2.933333333333333,
+          "home_recent_btts": 4,
+          "away_recent_btts": 2,
+          "home_scored_rate": 0.9333333333333333,
+          "away_scored_rate": 0.7333333333333333,
+          "league": "Serie A",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 15,
+          "away": 15,
+          "home_venue": 8,
+          "away_venue": 8
+        },
+        "method": "open_matchday_strict_btts_ft_form_venue_v2",
+        "league_folder": "ITA_1_SERIE-A"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 9,
+      "telegram_message_id": 500,
+      "sent_at": "2026-11-10T09:41:40.275581+01:00"
     }
   ],
   "team_history_cache": {
@@ -10180,7 +10516,7 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 25,
+  "btts_image_cursor": 28,
   "daily_headers_sent": [
     "2026-11-09",
     "2026-11-10"
