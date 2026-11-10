@@ -4891,7 +4891,7 @@ def log_superbet_market_diagnostics(event_detail, fixture, max_rows=100):
 
 
 def btts_prematch_odds_gate(over25_quote, btts_quote):
-    """Require exact FT Over 2.5 <1.85 and standalone FT BTTS YES <=1.90."""
+    """Require exact FT Over 2.5 <1.85 and standalone FT BTTS YES 1.60-1.90."""
     if not isinstance(over25_quote, dict) or not isinstance(btts_quote, dict):
         return False
     try:
@@ -4903,7 +4903,7 @@ def btts_prematch_odds_gate(over25_quote, btts_quote):
     return (
         abs(over_line - 2.5) <= 0.001
         and 1.0 < over_odds < 1.85
-        and 1.0 < btts_odds <= 1.90
+        and 1.60 <= btts_odds <= 1.90
     )
 
 
@@ -4952,7 +4952,7 @@ def send_prematch_superbet_btts_picks(state):
             btts_price = (quote or {}).get("odds")
             print(
                 f"Superbet BTTS FT: odrzucam {fixture['home']} - {fixture['away']} — "
-                f"wymagany FT Over 2.5 <1.85 i BTTS Tak <=1.90 "
+                f"wymagany FT Over 2.5 <1.85 i BTTS Tak 1.60-1.90 "
                 f"(Over 2.5={over_price}, BTTS={btts_price}).",
                 flush=True,
             )
@@ -5001,7 +5001,7 @@ def send_prematch_superbet_btts_picks(state):
             )
         candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "over25_quote": over25_quote, "url": bet_url, "analysis": analysis, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
     candidates.sort(key=lambda x: (-x["analysis"]["score"], x["kickoff"], x["home"], x["away"]))
-    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po filtrze kursowym FT: Over 2.5 <1.85, BTTS Tak <=1.90 oraz kontroli historii.", flush=True)
+    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po filtrze kursowym FT: Over 2.5 <1.85, BTTS Tak 1.60-1.90 oraz kontroli historii.", flush=True)
     day_key = today.isoformat()
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     # Older scheduled tips may have been posted days before their kickoff date.
