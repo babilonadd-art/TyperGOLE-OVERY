@@ -4622,24 +4622,22 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
     if min(home_venue["played"], away_venue["played"]) < 2:
         return None
 
-    # Obie drużyny muszą regularnie uczestniczyć w BTTS: minimum 60%
-    # w próbie sezonowej oraz co najmniej 3/5 w ostatnich pięciu meczach.
-    if min(home_all["btts"], away_all["btts"]) < 0.60:
+    # Umiarkowane kryteria BTTS FT: wymagamy regularności, ale nie odrzucamy
+    # spotkań przez pojedyncze słabsze wyniki w ostatnich kolejkach.
+    if min(home_all["btts"], away_all["btts"]) < 0.55:
         return None
-    if min(home_all["last5"], away_all["last5"]) < 3:
+    if min(home_all["last5"], away_all["last5"]) < 2:
         return None
 
-    # Kontrola miejsca rozgrywania: domowy BTTS gospodarzy i wyjazdowy
-    # BTTS gości minimum 50%. Obie ekipy muszą też regularnie strzelać.
-    if min(home_venue["btts"], away_venue["btts"]) < 0.50:
+    # Uwzględniamy miejsce rozgrywania i zdolność obu ekip do zdobywania goli.
+    if min(home_venue["btts"], away_venue["btts"]) < 0.45:
         return None
-    if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.70:
+    if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.60:
         return None
-    # Drużyna nie może zbyt często kończyć bez gola ani mieć bardzo niskiej
-    # łącznej produkcji bramkowej w dotychczasowych meczach.
+    # Nadal odrzucamy zespoły, które zbyt często nie strzelają gola.
     if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.30:
         return None
-    if min(home_all["avg_goals"], away_all["avg_goals"]) < 2.20:
+    if min(home_all["avg_goals"], away_all["avg_goals"]) < 2.00:
         return None
 
     # Competition preference list. White-listed leagues receive a modest boost;
