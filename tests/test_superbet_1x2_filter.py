@@ -1,6 +1,6 @@
 import unittest
 
-from bot import extract_superbet_1x2_full_time
+from bot import extract_superbet_1x2_full_time, btts_prematch_odds_gate
 
 
 class SuperbetFullTime1X2Tests(unittest.TestCase):
@@ -55,6 +55,39 @@ class SuperbetFullTime1X2Tests(unittest.TestCase):
         quote = extract_superbet_1x2_full_time(payload)
         self.assertIsNotNone(quote)
         self.assertGreater(quote["home"], 10.0)
+
+
+    def test_prematch_gate_accepts_over_25_below_185_and_btts_at_190(self):
+        self.assertTrue(btts_prematch_odds_gate(
+            {"line": 2.5, "odds": 1.84},
+            {"odds": 1.90},
+        ))
+
+    def test_prematch_gate_rejects_over_25_at_185_or_higher(self):
+        self.assertFalse(btts_prematch_odds_gate(
+            {"line": 2.5, "odds": 1.85},
+            {"odds": 1.80},
+        ))
+
+    def test_prematch_gate_rejects_btts_above_190(self):
+        self.assertFalse(btts_prematch_odds_gate(
+            {"line": 2.5, "odds": 1.70},
+            {"odds": 1.91},
+        ))
+
+    def test_prematch_gate_requires_exact_over_25_line(self):
+        self.assertFalse(btts_prematch_odds_gate(
+            {"line": 3.5, "odds": 1.50},
+            {"odds": 1.80},
+        ))
+
+    def test_prematch_gate_rejects_missing_or_invalid_quotes(self):
+        self.assertFalse(btts_prematch_odds_gate(None, {"odds": 1.80}))
+        self.assertFalse(btts_prematch_odds_gate(
+            {"line": 2.5, "odds": "not-a-price"},
+            {"odds": 1.80},
+        ))
+
 
 
 if __name__ == "__main__":
