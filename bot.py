@@ -4604,6 +4604,7 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
             "btts": sum(x["btts"] for x in selected) / len(selected),
             "clean_sheets": sum(x["clean_sheet"] for x in selected) / len(selected),
             "failed_to_score": sum(x["failed_to_score"] for x in selected) / len(selected),
+            "scored_rate": sum(x["goals_for"] > 0 for x in selected) / len(selected),
             "avg_goals": sum(x["total_goals"] for x in selected) / len(selected),
             "last5": sum(x["btts"] for x in selected[-5:]),
         }
@@ -4612,17 +4613,33 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
     away_all = summarize(team_rows, away)
     home_venue = summarize(team_rows, home, "home")
     away_venue = summarize(team_rows, away, "away")
-    # Luźniejszy filtr BTTS FT: minimum 1 rozegrany mecz każdej drużyny.
-    # Próbka dom/wyjazd jest liczona do oceny, ale nie blokuje już typu.
-    if min(home_all["played"], away_all["played"]) < 1:
+
+    # Twarda kontrola jakości BTTS FT. Brak próbki lub danych dom/wyjazd
+    # oznacza odrzucenie, a nie obniżenie poprzeczki. Wczesnosezonowe
+    # i amatorskie mecze z niepewną historią nie mogą przejść na jednym wyniku.
+    if min(home_all["played"], away_all["played"]) < 5:
+        return None
+    if min(home_venue["played"], away_venue["played"]) < 2:
         return None
 
-    # Sezonowy BTTS minimum 30% dla obu ekip i przynajmniej 1 BTTS
-    # w ostatnich 5 spotkaniach każdej drużyny. Statystyka venue jest
-    # sygnałem do rankingu, a nie twardym warunkiem odrzucenia.
-    if min(home_all["btts"], away_all["btts"]) < 0.30:
+    # Obie drużyny muszą regularnie uczestniczyć w BTTS: minimum 60%
+    # w próbie sezonowej oraz co najmniej 3/5 w ostatnich pięciu meczach.
+    if min(home_all["btts"], away_all["btts"]) < 0.60:
         return None
-    if min(home_all["last5"], away_all["last5"]) < 1:
+    if min(home_all["last5"], away_all["last5"]) < 3:
+        return None
+
+    # Kontrola miejsca rozgrywania: domowy BTTS gospodarzy i wyjazdowy
+    # BTTS gości minimum 50%. Obie ekipy muszą też regularnie strzelać.
+    if min(home_venue["btts"], away_venue["btts"]) < 0.50:
+        return None
+    if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.70:
+        return None
+    # Drużyna nie może zbyt często kończyć bez gola ani mieć bardzo niskiej
+    # łącznej produkcji bramkowej w dotychczasowych meczach.
+    if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.30:
+        return None
+    if min(home_all["avg_goals"], away_all["avg_goals"]) < 2.20:
         return None
 
     # Competition preference list. White-listed leagues receive a modest boost;
@@ -4669,6 +4686,8 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
         "away_avg_goals": away_all["avg_goals"],
         "home_recent_btts": home_all["last5"],
         "away_recent_btts": away_all["last5"],
+        "home_scored_rate": home_all["scored_rate"],
+        "away_scored_rate": away_all["scored_rate"],
         "league": league_name,
         "xg_available": False,
         "lineups_available": False,
@@ -4691,7 +4710,7 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
             "home": home_all["played"], "away": away_all["played"],
             "home_venue": home_venue["played"], "away_venue": away_venue["played"],
         },
-        "method": "open_matchday_current_season_btts_form_venue",
+        "method": "open_matchday_strict_btts_ft_form_venue_v2",
         "league_folder": league_folder,
     }
 
