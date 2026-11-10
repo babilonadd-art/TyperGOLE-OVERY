@@ -5217,11 +5217,14 @@
         "method": "open_matchday_current_season_btts_form_venue",
         "league_folder": "ENG_3_LEAGUE-ONE"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 2,
       "telegram_message_id": 493,
-      "sent_at": "2026-11-10T00:57:46.809983+01:00"
+      "sent_at": "2026-11-10T00:57:46.809983+01:00",
+      "won": false,
+      "settled_score": "4-0",
+      "settled_at": "2026-11-10T21:51:24.317814+01:00"
     },
     {
       "key": "superbet:15751528:BTTS_FT",
