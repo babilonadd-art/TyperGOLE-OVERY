@@ -596,8 +596,8 @@ def format_btts_ft_pick_message(pick, pick_number):
         f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
         f"⚽ {home} – {away}\n"
         + (f"🏆 Liga: {league}\n" if league else "")
-        + (f"📊 BTTS sezon: {metrics['home_btts']:.0%}/{metrics['away_btts']:.0%}; dom/wyjazd: {metrics['home_venue_btts']:.0%}/{metrics['away_venue_btts']:.0%}\n" if all(key in metrics for key in ("home_btts", "away_btts", "home_venue_btts", "away_venue_btts")) else "📊 Brak wystarczających statystyk.\n")
-        + (f"🔥 Forma BTTS 5 meczów: {metrics['home_recent_btts']}/5 – {metrics['away_recent_btts']}/5; CS: {metrics['home_clean_sheets']:.0%}/{metrics['away_clean_sheets']:.0%}; FTS: {metrics['home_failed_to_score']:.0%}/{metrics['away_failed_to_score']:.0%}\n" if "home_recent_btts" in metrics else "")
+        + (f"📊 BTTS sezon: gospodarz {metrics['home_btts']:.0%} ({round(metrics['home_btts'] * metrics['home_btts_played'])}/{metrics['home_btts_played']}); gość {metrics['away_btts']:.0%} ({round(metrics['away_btts'] * metrics['away_btts_played'])}/{metrics['away_btts_played']})\n🏟️ Dom/wyjazd: gospodarz {metrics['home_venue_btts']:.0%} ({round(metrics['home_venue_btts'] * metrics['home_venue_played'])}/{metrics['home_venue_played']}); gość {metrics['away_venue_btts']:.0%} ({round(metrics['away_venue_btts'] * metrics['away_venue_played'])}/{metrics['away_venue_played']})\n" if all(key in metrics for key in ("home_btts", "away_btts", "home_venue_btts", "away_venue_btts", "home_btts_played", "away_btts_played", "home_venue_played", "away_venue_played")) else "📊 Brak wystarczających statystyk.\n")
+        + (f"🔥 Ostatnie mecze: gospodarz {metrics['home_recent_btts']}/{metrics['home_recent_played']} BTTS; gość {metrics['away_recent_btts']}/{metrics['away_recent_played']} BTTS\n" if all(key in metrics for key in ("home_recent_btts", "away_recent_btts", "home_recent_played", "away_recent_played")) else "")
         + f"📈 Superbet: {odds:.2f}\n"
         f"💵 Stawka: {float(pick.get('stake') or STAKE):.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
         f"🔗 Mecz Superbet: {pick.get('bet_url') or ''}\n"
@@ -4692,6 +4692,8 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
             "scored_rate": sum(x["goals_for"] > 0 for x in selected) / len(selected),
             "avg_goals": sum(x["total_goals"] for x in selected) / len(selected),
             "last5": sum(x["btts"] for x in last5),
+            "last5_played": len(last5),
+            "btts_count": sum(x["btts"] for x in selected),
             "last5_clean_sheets": sum(x["clean_sheet"] for x in last5),
             "last3_btts_streak": len(last3) == 3 and all(
                 x["goals_for"] > 0 and x["goals_against"] > 0 for x in last3
@@ -4774,6 +4776,12 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
         "home_btts": home_all["btts"],
         "away_btts": away_all["btts"],
         "home_venue_btts": home_venue["btts"],
+        "home_btts_played": home_all["played"],
+        "away_btts_played": away_all["played"],
+        "home_venue_played": home_venue["played"],
+        "away_venue_played": away_venue["played"],
+        "home_recent_played": home_all["last5_played"],
+        "away_recent_played": away_all["last5_played"],
         "away_venue_btts": away_venue["btts"],
         "home_clean_sheets": home_all["clean_sheets"],
         "away_clean_sheets": away_all["clean_sheets"],
