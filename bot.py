@@ -4889,6 +4889,24 @@ def log_superbet_market_diagnostics(event_detail, fixture, max_rows=100):
 
 
 
+
+def btts_prematch_odds_gate(over25_quote, btts_quote):
+    """Require exact FT Over 2.5 <1.85 and standalone FT BTTS YES <=1.90."""
+    if not isinstance(over25_quote, dict) or not isinstance(btts_quote, dict):
+        return False
+    try:
+        over_line = float(over25_quote.get("line"))
+        over_odds = float(over25_quote.get("odds"))
+        btts_odds = float(btts_quote.get("odds"))
+    except (TypeError, ValueError):
+        return False
+    return (
+        abs(over_line - 2.5) <= 0.001
+        and 1.01 < over_odds < 1.85
+        and 1.01 < btts_odds <= 1.90
+    )
+
+
 def send_prematch_superbet_btts_picks(state):
     """Send prematch BTTS FT picks using Superbet fixtures, odds and event links."""
     today = now_local().date()
@@ -4925,10 +4943,19 @@ def send_prematch_superbet_btts_picks(state):
                 )
                 continue
             quote = extract_superbet_btts_full_time(detail)
+            over25_quote = extract_superbet_live_over_odds(detail, "FT", 2.5)
         except Exception as exc:
             print(f"Superbet BTTS FT: błąd kursu {fixture['home']} - {fixture['away']}: {type(exc).__name__}: {exc}", flush=True)
             continue
-        if not quote or not 1.60 <= float(quote["odds"]) <= 2.80:
+        if not quote or not btts_prematch_odds_gate(over25_quote, quote):
+            over_price = (over25_quote or {}).get("odds")
+            btts_price = (quote or {}).get("odds")
+            print(
+                f"Superbet BTTS FT: odrzucam {fixture['home']} - {fixture['away']} — "
+                f"wymagany FT Over 2.5 <1.85 i BTTS Tak <=1.90 "
+                f"(Over 2.5={over_price}, BTTS={btts_price}).",
+                flush=True,
+            )
             continue
         kickoff = kickoff_datetime({"kickoff_time": fixture.get("_bot_kickoff")})
         if not kickoff or kickoff <= now_local() or kickoff.date() != today:
@@ -4972,9 +4999,9 @@ def send_prematch_superbet_btts_picks(state):
             league = format_fixture_competition(
                 inferred_league or "Liga nieznana", fixture["home"], fixture["away"]
             )
-        candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "url": bet_url, "analysis": analysis, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
+        candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "over25_quote": over25_quote, "url": bet_url, "analysis": analysis, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
     candidates.sort(key=lambda x: (-x["analysis"]["score"], x["kickoff"], x["home"], x["away"]))
-    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po poluzowanych filtrach historii BTTS i aktywnym kursie 1.60–2.80.", flush=True)
+    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po filtrze kursowym FT: Over 2.5 <1.85, BTTS Tak <=1.90 oraz kontroli historii.", flush=True)
     day_key = today.isoformat()
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     # Older scheduled tips may have been posted days before their kickoff date.
@@ -5005,12 +5032,14 @@ def send_prematch_superbet_btts_picks(state):
             final_detail = superbet_event_detail(candidate["event_id"])
             final_1x2 = extract_superbet_1x2_full_time(final_detail)
             final_quote = extract_superbet_btts_full_time(final_detail)
+            final_over25_quote = extract_superbet_live_over_odds(final_detail, "FT", 2.5)
         except Exception as exc:
             print(f"Końcowa kontrola Superbet nieudana: {type(exc).__name__}: {exc}", flush=True)
             continue
         if ((final_1x2 and (final_1x2["home"] > 15.00 or final_1x2["away"] > 15.00))
-                or not final_quote or not 1.60 <= float(final_quote["odds"]) <= 2.80
-                or abs(float(final_quote["odds"]) - float(candidate["quote"]["odds"])) > 0.005):
+                or not final_quote or not btts_prematch_odds_gate(final_over25_quote, final_quote)
+                or abs(float(final_quote["odds"]) - float(candidate["quote"]["odds"])) > 0.005
+                or abs(float(final_over25_quote["odds"]) - float(candidate["over25_quote"]["odds"])) > 0.005):
             print(f"Superbet: kurs/rynek zmienił się przed wysyłką — pomijam {candidate['home']} - {candidate['away']}.", flush=True)
             continue
         if same_fixture_pick_exists(state, candidate["id"], candidate["home"], candidate["away"], day_key, BTTS_FT_MARKET, competition=candidate["league"]):
