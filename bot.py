@@ -1986,10 +1986,29 @@ def telegram(message, reply_to_message_id=None):
 
 
 def telegram_reply(message, reply_to_message_id):
-    """Send settlement only as a reply to the corresponding pick."""
+    """Deliver a settlement; if Telegram rejects the reply reference, post it plainly."""
     if reply_to_message_id in (None, ""):
-        raise RuntimeError("Brak ID wiadomości typu; wynik nie zostanie opublikowany osobno.")
-    return telegram(message, reply_to_message_id=reply_to_message_id)
+        raise RuntimeError("Brak ID wiadomości typu; nie można bezpiecznie powiązać rozliczenia.")
+    try:
+        return telegram(message, reply_to_message_id=reply_to_message_id)
+    except requests.HTTPError as exc:
+        response = getattr(exc, "response", None)
+        # Telegram returns HTTP 400 when the referenced post is no longer
+        # replyable (for example, it was deleted or belongs to another chat).
+        # Do not lose the settlement: retry once as a clearly labelled channel
+        # message. Other HTTP/network errors still propagate and remain pending.
+        if response is None or response.status_code != 400:
+            raise
+        try:
+            detail = response.json()
+        except Exception:
+            detail = getattr(response, "text", str(exc))
+        print(
+            f"Telegram odrzucił odpowiedź do wiadomości {reply_to_message_id} "
+            f"(HTTP 400: {detail}); wysyłam rozliczenie jako osobny post.",
+            flush=True,
+        )
+        return telegram("📊 ROZLICZENIE BTTS FT\n" + message)
 
 
 # Settlement lookup supports both live detail and the finished-fixture archive.
