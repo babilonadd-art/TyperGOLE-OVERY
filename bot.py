@@ -2846,10 +2846,11 @@ def settle_picks(state, allowed_markets=None):
     ):
         if allowed_markets is not None and pick.get("market") not in allowed_markets:
             continue
-        # Only settle fixtures scheduled for today's Warsaw-local date.
-        # Older pending records are intentionally left untouched.
+        # BTTS FT picks must remain eligible for reconciliation after midnight:
+        # a missed result lookup must not leave yesterday's wager pending forever.
+        # Other legacy markets retain the original same-day settlement boundary.
         fixture_day = pick_local_date(pick)
-        if fixture_day != settlement_day:
+        if fixture_day != settlement_day and pick.get("market") != BTTS_FT_MARKET:
             continue
         if pick.get("delivery_status", "sent") != "sent":
             continue
