@@ -4713,6 +4713,79 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
     }
 
 
+
+def log_superbet_market_diagnostics(event_detail, fixture, max_rows=100):
+    """Log real Superbet market/selection labels and prices; never log credentials."""
+    market_keys = (
+        "marketName", "market_name", "marketGroupName", "market_group_name",
+        "marketTitle", "market_title", "market", "marketGroup", "market_group",
+        "title", "groupName", "group_name",
+    )
+    group_keys = (
+        "marketGroupId", "market_group_id", "marketGroupID",
+        "groupId", "group_id", "marketId", "market_id",
+    )
+    selection_keys = (
+        "name", "selectionName", "selection_name", "oddName",
+        "outcomeName", "label", "displayName",
+    )
+    price_keys = ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
+
+    def label(value):
+        if isinstance(value, dict):
+            for key in ("name", "title", "label", "description", "displayName"):
+                if value.get(key) not in (None, ""):
+                    return str(value[key]).strip()
+            return ""
+        return str(value).strip() if value not in (None, "") else ""
+
+    rows = []
+    def walk(node, inherited_market="", inherited_group=None):
+        if isinstance(node, list):
+            for child in node:
+                walk(child, inherited_market, inherited_group)
+            return
+        if not isinstance(node, dict):
+            return
+        local_market = " ".join(
+            label(node.get(key)) for key in market_keys if node.get(key) not in (None, "")
+        ).strip()
+        market = local_market or inherited_market
+        group_id = next((node.get(key) for key in group_keys
+                         if node.get(key) not in (None, "")), inherited_group)
+        selection = next((label(node.get(key)) for key in selection_keys
+                          if node.get(key) not in (None, "")), "")
+        metadata = node.get("metadata")
+        if not selection and isinstance(metadata, dict):
+            selection = label(metadata.get("name") or metadata.get("label"))
+        price = next((node.get(key) for key in price_keys
+                      if node.get(key) not in (None, "")), None)
+        if selection and price is not None:
+            rows.append({
+                "market": market[:180],
+                "market_group_id": group_id,
+                "selection": selection[:100],
+                "metadata_name": label(metadata.get("name")) if isinstance(metadata, dict) else "",
+                "price": str(price)[:30],
+                "status": str(first(node, "status", "oddStatus", "state", default=""))[:40],
+            })
+        for value in node.values():
+            if isinstance(value, (dict, list)):
+                walk(value, market, group_id)
+
+    walk(event_detail)
+    diagnostic = {
+        "event": f"{fixture.get('home', '')} - {fixture.get('away', '')}",
+        "event_id": str(fixture.get("id", "")).replace("superbet:", "", 1),
+        "market_rows_count": len(rows),
+        "markets": rows[:max_rows],
+        "truncated": len(rows) > max_rows,
+    }
+    print("SUPERBET MARKET DIAGNOSTIC: " +
+          json.dumps(diagnostic, ensure_ascii=False, default=str)[:12000], flush=True)
+
+
+
 def send_prematch_superbet_btts_picks(state):
     """Send prematch BTTS FT picks using Superbet fixtures, odds and event links."""
     today = now_local().date()
@@ -4723,6 +4796,7 @@ def send_prematch_superbet_btts_picks(state):
     fixtures = scheduled_fixtures_today(events, [today])
     event_by_id = {str(e.get("event_id")): e for e in events if e.get("event_id")}
     candidates = []
+    diagnostic_events_logged = 0
     for fixture in fixtures:
         event_id = str(fixture.get("id", "")).replace("superbet:", "", 1)
         event = event_by_id.get(event_id)
@@ -4730,6 +4804,12 @@ def send_prematch_superbet_btts_picks(state):
             continue
         try:
             detail = superbet_event_detail(event_id)
+            # Temporary read-only diagnostic: capture actual Polish Superbet
+            # market names, group IDs, selections, prices and statuses.
+            # It does not change pick eligibility or Telegram delivery.
+            if diagnostic_events_logged < 8:
+                log_superbet_market_diagnostics(detail, fixture)
+                diagnostic_events_logged += 1
             quote = extract_superbet_btts_full_time(detail)
         except Exception as exc:
             print(f"Superbet BTTS FT: błąd kursu {fixture['home']} - {fixture['away']}: {type(exc).__name__}: {exc}", flush=True)
