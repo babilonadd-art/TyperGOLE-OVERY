@@ -4680,7 +4680,10 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
         selected.sort(key=lambda item: item["date"])
         if not selected:
             return {"played": 0, "btts": 0.0, "clean_sheets": 0.0,
-                    "failed_to_score": 0.0, "avg_goals": 0.0, "last5": 0}
+                    "failed_to_score": 0.0, "avg_goals": 0.0, "last5": 0,
+                    "last5_clean_sheets": 0, "last3_btts_streak": False}
+        last5 = selected[-5:]
+        last3 = selected[-3:]
         return {
             "played": len(selected),
             "btts": sum(x["btts"] for x in selected) / len(selected),
@@ -4688,7 +4691,11 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
             "failed_to_score": sum(x["failed_to_score"] for x in selected) / len(selected),
             "scored_rate": sum(x["goals_for"] > 0 for x in selected) / len(selected),
             "avg_goals": sum(x["total_goals"] for x in selected) / len(selected),
-            "last5": sum(x["btts"] for x in selected[-5:]),
+            "last5": sum(x["btts"] for x in last5),
+            "last5_clean_sheets": sum(x["clean_sheet"] for x in last5),
+            "last3_btts_streak": len(last3) == 3 and all(
+                x["goals_for"] > 0 and x["goals_against"] > 0 for x in last3
+            ),
         }
 
     home_all = summarize(team_rows, home)
@@ -4701,7 +4708,17 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
     # i amatorskie mecze z niepewną historią nie mogą przejść na jednym wyniku.
     if min(home_all["played"], away_all["played"]) < 3:
         return None
-    if min(home_venue["played"], away_venue["played"]) < 1:
+    if min(home_venue["played"], away_venue["played"]) < 3:
+        return None
+
+    # Trend momentum: trzy ostatnie mecze gospodarza u siebie i gościa
+    # na wyjeździe muszą zawierać gola strzelonego i straconego.
+    if not home_venue["last3_btts_streak"] or not away_venue["last3_btts_streak"]:
+        return None
+
+    # Odrzucamy defensywnych dominatorów: maksymalnie jedno czyste konto
+    # w pięciu ostatnich meczach każdej drużyny.
+    if home_all["last5_clean_sheets"] > 1 or away_all["last5_clean_sheets"] > 1:
         return None
 
     # Umiarkowane kryteria BTTS FT: wymagamy regularności, ale nie odrzucamy
@@ -4766,6 +4783,10 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
         "away_avg_goals": away_all["avg_goals"],
         "home_recent_btts": home_all["last5"],
         "away_recent_btts": away_all["last5"],
+        "home_last5_clean_sheets": home_all["last5_clean_sheets"],
+        "away_last5_clean_sheets": away_all["last5_clean_sheets"],
+        "home_last3_venue_btts_streak": home_venue["last3_btts_streak"],
+        "away_last3_venue_btts_streak": away_venue["last3_btts_streak"],
         "home_scored_rate": home_all["scored_rate"],
         "away_scored_rate": away_all["scored_rate"],
         "league": league_name,
@@ -4790,7 +4811,7 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
             "home": home_all["played"], "away": away_all["played"],
             "home_venue": home_venue["played"], "away_venue": away_venue["played"],
         },
-        "method": "open_matchday_strict_btts_ft_form_venue_v2",
+        "method": "open_matchday_btts_ft_last3_venue_last5_cs_v3",
         "league_folder": league_folder,
     }
 
