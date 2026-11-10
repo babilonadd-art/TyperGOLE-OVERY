@@ -12,7 +12,7 @@ Przedmeczowy Telegram bot dla rynku **BTTS — obie drużyny strzelą gola w ca�
 - Tylko BTTS cały mecz — TAK. Bez BTTS 1. połowy i bez innych rynków.
 - Maksymalnie 10 typów dziennie.
 - Minimalny kurs Superbet: 1.65.
-- Model prawdopodobieństwa wykorzystuje ostatnie zakończone mecze obu drużyn i gole zdobywane oraz tracone w całym meczu. Brak wystarczających danych lub niejednoznaczny kurs oznacza pominięcie spotkania.
+- Statystyki BTTS są liczone z bezpłatnych plików CSV Open Matchday (bez klucza API i opłat): osobno sezon/rozgrywki, mecze gospodarza u siebie, gościa na wyjeździe oraz ostatnie 5 spotkań. Wiadomość Telegram pokazuje procent razem z liczbą trafień i próbą (np. 70% = 7/10). - Model prawdopodobieństwa wykorzystuje gole zdobywane i tracone w całym meczu. Brak wystarczających danych lub niejednoznaczny kurs oznacza pominięcie spotkania.
 - Procent w wiadomości jest estymacją modelu, nie gwarancją trafienia.
 
 ## Rozliczanie
