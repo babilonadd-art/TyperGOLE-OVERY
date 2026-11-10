@@ -5160,11 +5160,14 @@
         "method": "open_matchday_current_season_btts_form_venue",
         "league_folder": "DEN_1_SUPERLIGA"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 1,
       "telegram_message_id": 492,
-      "sent_at": "2026-11-10T00:16:45.025074+01:00"
+      "sent_at": "2026-11-10T00:16:45.025074+01:00",
+      "won": false,
+      "settled_score": "2-0",
+      "settled_at": "2026-11-10T21:08:46.000117+01:00"
     },
     {
       "key": "superbet:15641602:BTTS_FT",
@@ -5322,11 +5325,14 @@
         "method": "open_matchday_current_season_btts_form_venue",
         "league_folder": "ESP_CUP_COPA-DEL-REY"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 4,
       "telegram_message_id": 495,
-      "sent_at": "2026-11-10T01:35:03.174371+01:00"
+      "sent_at": "2026-11-10T01:35:03.174371+01:00",
+      "won": true,
+      "settled_score": "1-6",
+      "settled_at": "2026-11-10T21:08:49.175077+01:00"
     },
     {
       "key": "superbet:15641653:BTTS_FT",
