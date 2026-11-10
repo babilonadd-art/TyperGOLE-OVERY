@@ -4739,40 +4739,36 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
     home_venue = summarize(team_rows, home, "home")
     away_venue = summarize(team_rows, away, "away")
 
-    # Twarda kontrola jakości BTTS FT. Brak próbki lub danych dom/wyjazd
-    # oznacza odrzucenie. Po lekkim poluzowaniu dopuszczamy próbkę od 2 spotkań,
-    # ale nadal wymagamy potwierdzenia z ostatnich meczów dom/wyjazd.
-    if min(home_all["played"], away_all["played"]) < 2:
+    # Mocno poluzowany filtr BTTS FT: wystarczy po jednym meczu w próbce
+    # ogólnej i dom/wyjazd. Ma to zwiększyć pulę spotkań, nie blokując lig
+    # tylko dlatego, że sezon dopiero się rozkręca.
+    if min(home_all["played"], away_all["played"]) < 1:
         return None
-    if min(home_venue["played"], away_venue["played"]) < 2:
-        return None
-
-    # Trend momentum: w 3 ostatnich meczach gospodarza u siebie i gościa
-    # na wyjeździe przynajmniej 2 muszą zawierać gola obu drużyn.
-    if min(home_venue["last3_btts_count"], away_venue["last3_btts_count"]) < 2:
+    if min(home_venue["played"], away_venue["played"]) < 1:
         return None
 
-    # Odrzucamy defensywnych dominatorów: maksymalnie 2 czyste konta
-    # w pięciu ostatnich meczach każdej drużyny.
-    if home_all["last5_clean_sheets"] > 2 or away_all["last5_clean_sheets"] > 2:
+    # Wystarczy jeden mecz BTTS w ostatnich trzech występach na danym terenie.
+    if min(home_venue["last3_btts_count"], away_venue["last3_btts_count"]) < 1:
         return None
 
-    # Umiarkowane kryteria BTTS FT: wymagamy regularności, ale nie odrzucamy
-    # spotkań przez pojedyncze słabsze wyniki w ostatnich kolejkach.
-    if min(home_all["btts"], away_all["btts"]) < 0.40:
+    # Odrzucamy tylko drużyny z bardzo częstymi czystymi kontami.
+    if home_all["last5_clean_sheets"] > 3 or away_all["last5_clean_sheets"] > 3:
+        return None
+
+    # Łagodniejsza regularność: BTTS w co najmniej 30% dostępnych spotkań
+    # i minimum jeden BTTS w ostatnich pięciu meczach każdej ekipy.
+    if min(home_all["btts"], away_all["btts"]) < 0.30:
         return None
     if min(home_all["last5"], away_all["last5"]) < 1:
         return None
 
-    # Uwzględniamy miejsce rozgrywania i zdolność obu ekip do zdobywania goli.
-    if min(home_venue["btts"], away_venue["btts"]) < 0.25:
+    # Dopuszczamy słabsze statystyki dom/wyjazd, ale obie ekipy muszą
+    # przynajmniej czasami strzelać gole i nie mogą być skrajnie defensywne.
+    if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.34:
         return None
-    if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.50:
+    if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.70:
         return None
-    # Luźniejszy filtr: dopuszczamy słabszą skuteczność, ale nie drużyny bez goli.
-    if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.55:
-        return None
-    if min(home_all["avg_goals"], away_all["avg_goals"]) < 1.40:
+    if min(home_all["avg_goals"], away_all["avg_goals"]) < 1.00:
         return None
 
     # Competition preference list. White-listed leagues receive a modest boost;
@@ -4930,7 +4926,7 @@ def log_superbet_market_diagnostics(event_detail, fixture, max_rows=100):
 
 
 def btts_prematch_odds_gate(btts_quote):
-    """Require only standalone FT BTTS YES odds in the 1.55-2.05 range."""
+    """Require standalone FT BTTS YES odds in the 1.55-2.40 range."""
     if not isinstance(btts_quote, dict):
         return False
     try:
@@ -5032,7 +5028,7 @@ def send_prematch_superbet_btts_picks(state):
             )
         candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "url": bet_url, "analysis": analysis, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
     candidates.sort(key=lambda x: (-x["analysis"]["score"], x["kickoff"], x["home"], x["away"]))
-    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po filtrze wyłącznie BTTS Tak FT 1.55-2.40 oraz kontroli historii.", flush=True)
+    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po poluzowanym filtrze BTTS Tak FT 1.55-2.40 i skróconej historii.", flush=True)
     day_key = today.isoformat()
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     # Older scheduled tips may have been posted days before their kickoff date.
