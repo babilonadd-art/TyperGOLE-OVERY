@@ -5219,6 +5219,222 @@
       "pick_number": 2,
       "telegram_message_id": 493,
       "sent_at": "2026-11-10T00:57:46.809983+01:00"
+    },
+    {
+      "key": "superbet:15751528:BTTS_FT",
+      "id": "superbet:15751528",
+      "slug": "",
+      "home": "Mijas-Las Lagunas",
+      "away": "Real Jaen",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T20:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.8,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/mijas-las-lagunas-vs-real-jaen-15751528?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.6075,
+        "metrics": {
+          "home_btts": 1.0,
+          "away_btts": 0.5,
+          "home_venue_btts": 0.0,
+          "away_venue_btts": 0.0,
+          "home_clean_sheets": 0.0,
+          "away_clean_sheets": 0.5,
+          "home_failed_to_score": 0.0,
+          "away_failed_to_score": 0.0,
+          "home_avg_goals": 4.0,
+          "away_avg_goals": 3.0,
+          "home_recent_btts": 1,
+          "away_recent_btts": 1,
+          "league": "KNVB Beker",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 1,
+          "away": 2,
+          "home_venue": 0,
+          "away_venue": 1
+        },
+        "method": "open_matchday_current_season_btts_form_venue",
+        "league_folder": "NED_CUP_KNVB-BEKER"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 3,
+      "telegram_message_id": 494,
+      "sent_at": "2026-11-10T01:35:01.412145+01:00"
+    },
+    {
+      "key": "superbet:15811765:BTTS_FT",
+      "id": "superbet:15811765",
+      "slug": "",
+      "home": "CD Anaitasuna",
+      "away": "Alaves",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T19:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 2.37,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/cd-anaitasuna-vs-alaves-15811765?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.5429166666666666,
+        "metrics": {
+          "home_btts": 0.6666666666666666,
+          "away_btts": 0.5833333333333334,
+          "home_venue_btts": 0.0,
+          "away_venue_btts": 0.6666666666666666,
+          "home_clean_sheets": 0.3333333333333333,
+          "away_clean_sheets": 0.3333333333333333,
+          "home_failed_to_score": 0.0,
+          "away_failed_to_score": 0.25,
+          "home_avg_goals": 5.333333333333333,
+          "away_avg_goals": 2.6666666666666665,
+          "home_recent_btts": 2,
+          "away_recent_btts": 4,
+          "league": "Copa del Rey",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 3,
+          "away": 12,
+          "home_venue": 1,
+          "away_venue": 6
+        },
+        "method": "open_matchday_current_season_btts_form_venue",
+        "league_folder": "ESP_CUP_COPA-DEL-REY"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 4,
+      "telegram_message_id": 495,
+      "sent_at": "2026-11-10T01:35:03.174371+01:00"
+    },
+    {
+      "key": "superbet:15641653:BTTS_FT",
+      "id": "superbet:15641653",
+      "slug": "",
+      "home": "Curzon Ashton",
+      "away": "Ilkeston Town",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T20:45:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.76,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/curzon-ashton-vs-ilkeston-town-15641653?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.4379545454545455,
+        "metrics": {
+          "home_btts": 0.3,
+          "away_btts": 0.36363636363636365,
+          "home_venue_btts": 0.4,
+          "away_venue_btts": 0.8,
+          "home_clean_sheets": 0.6,
+          "away_clean_sheets": 0.18181818181818182,
+          "home_failed_to_score": 0.1,
+          "away_failed_to_score": 0.45454545454545453,
+          "home_avg_goals": 2.5,
+          "away_avg_goals": 3.272727272727273,
+          "home_recent_btts": 1,
+          "away_recent_btts": 2,
+          "league": "Northern Premier League",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 10,
+          "away": 11,
+          "home_venue": 5,
+          "away_venue": 5
+        },
+        "method": "open_matchday_current_season_btts_form_venue",
+        "league_folder": "ENG_7_NORTHERN-PREMIER-LEAGUE"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 5,
+      "telegram_message_id": 496,
+      "sent_at": "2026-11-10T01:35:04.979119+01:00"
+    },
+    {
+      "key": "superbet:15683657:BTTS_FT",
+      "id": "superbet:15683657",
+      "slug": "",
+      "home": "UE Tavernes",
+      "away": "Valencia",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T21:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 2.3,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/ue-tavernes-vs-valencia-15683657?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.32916666666666666,
+        "metrics": {
+          "home_btts": 0.5,
+          "away_btts": 0.3333333333333333,
+          "home_venue_btts": 0.0,
+          "away_venue_btts": 0.4,
+          "home_clean_sheets": 0.0,
+          "away_clean_sheets": 0.3333333333333333,
+          "home_failed_to_score": 0.5,
+          "away_failed_to_score": 0.5,
+          "home_avg_goals": 4.0,
+          "away_avg_goals": 2.3333333333333335,
+          "home_recent_btts": 1,
+          "away_recent_btts": 2,
+          "league": "Swiss Cup",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 2,
+          "away": 12,
+          "home_venue": 1,
+          "away_venue": 5
+        },
+        "method": "open_matchday_current_season_btts_form_venue",
+        "league_folder": "SUI_CUP_SWISS-CUP"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 6,
+      "telegram_message_id": 497,
+      "sent_at": "2026-11-10T01:35:06.870324+01:00"
     }
   ],
   "reports_sent": [],
@@ -9116,6 +9332,222 @@
       "pick_number": 2,
       "telegram_message_id": 493,
       "sent_at": "2026-11-10T00:57:46.809983+01:00"
+    },
+    {
+      "key": "superbet:15751528:BTTS_FT",
+      "id": "superbet:15751528",
+      "slug": "",
+      "home": "Mijas-Las Lagunas",
+      "away": "Real Jaen",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T20:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.8,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/mijas-las-lagunas-vs-real-jaen-15751528?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.6075,
+        "metrics": {
+          "home_btts": 1.0,
+          "away_btts": 0.5,
+          "home_venue_btts": 0.0,
+          "away_venue_btts": 0.0,
+          "home_clean_sheets": 0.0,
+          "away_clean_sheets": 0.5,
+          "home_failed_to_score": 0.0,
+          "away_failed_to_score": 0.0,
+          "home_avg_goals": 4.0,
+          "away_avg_goals": 3.0,
+          "home_recent_btts": 1,
+          "away_recent_btts": 1,
+          "league": "KNVB Beker",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 1,
+          "away": 2,
+          "home_venue": 0,
+          "away_venue": 1
+        },
+        "method": "open_matchday_current_season_btts_form_venue",
+        "league_folder": "NED_CUP_KNVB-BEKER"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 3,
+      "telegram_message_id": 494,
+      "sent_at": "2026-11-10T01:35:01.412145+01:00"
+    },
+    {
+      "key": "superbet:15811765:BTTS_FT",
+      "id": "superbet:15811765",
+      "slug": "",
+      "home": "CD Anaitasuna",
+      "away": "Alaves",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T19:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 2.37,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/cd-anaitasuna-vs-alaves-15811765?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.5429166666666666,
+        "metrics": {
+          "home_btts": 0.6666666666666666,
+          "away_btts": 0.5833333333333334,
+          "home_venue_btts": 0.0,
+          "away_venue_btts": 0.6666666666666666,
+          "home_clean_sheets": 0.3333333333333333,
+          "away_clean_sheets": 0.3333333333333333,
+          "home_failed_to_score": 0.0,
+          "away_failed_to_score": 0.25,
+          "home_avg_goals": 5.333333333333333,
+          "away_avg_goals": 2.6666666666666665,
+          "home_recent_btts": 2,
+          "away_recent_btts": 4,
+          "league": "Copa del Rey",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 3,
+          "away": 12,
+          "home_venue": 1,
+          "away_venue": 6
+        },
+        "method": "open_matchday_current_season_btts_form_venue",
+        "league_folder": "ESP_CUP_COPA-DEL-REY"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 4,
+      "telegram_message_id": 495,
+      "sent_at": "2026-11-10T01:35:03.174371+01:00"
+    },
+    {
+      "key": "superbet:15641653:BTTS_FT",
+      "id": "superbet:15641653",
+      "slug": "",
+      "home": "Curzon Ashton",
+      "away": "Ilkeston Town",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T20:45:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.76,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/curzon-ashton-vs-ilkeston-town-15641653?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.4379545454545455,
+        "metrics": {
+          "home_btts": 0.3,
+          "away_btts": 0.36363636363636365,
+          "home_venue_btts": 0.4,
+          "away_venue_btts": 0.8,
+          "home_clean_sheets": 0.6,
+          "away_clean_sheets": 0.18181818181818182,
+          "home_failed_to_score": 0.1,
+          "away_failed_to_score": 0.45454545454545453,
+          "home_avg_goals": 2.5,
+          "away_avg_goals": 3.272727272727273,
+          "home_recent_btts": 1,
+          "away_recent_btts": 2,
+          "league": "Northern Premier League",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 10,
+          "away": 11,
+          "home_venue": 5,
+          "away_venue": 5
+        },
+        "method": "open_matchday_current_season_btts_form_venue",
+        "league_folder": "ENG_7_NORTHERN-PREMIER-LEAGUE"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 5,
+      "telegram_message_id": 496,
+      "sent_at": "2026-11-10T01:35:04.979119+01:00"
+    },
+    {
+      "key": "superbet:15683657:BTTS_FT",
+      "id": "superbet:15683657",
+      "slug": "",
+      "home": "UE Tavernes",
+      "away": "Valencia",
+      "league": "",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T21:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 2.3,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/ue-tavernes-vs-valencia-15683657?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.32916666666666666,
+        "metrics": {
+          "home_btts": 0.5,
+          "away_btts": 0.3333333333333333,
+          "home_venue_btts": 0.0,
+          "away_venue_btts": 0.4,
+          "home_clean_sheets": 0.0,
+          "away_clean_sheets": 0.3333333333333333,
+          "home_failed_to_score": 0.5,
+          "away_failed_to_score": 0.5,
+          "home_avg_goals": 4.0,
+          "away_avg_goals": 2.3333333333333335,
+          "home_recent_btts": 1,
+          "away_recent_btts": 2,
+          "league": "Swiss Cup",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 2,
+          "away": 12,
+          "home_venue": 1,
+          "away_venue": 5
+        },
+        "method": "open_matchday_current_season_btts_form_venue",
+        "league_folder": "SUI_CUP_SWISS-CUP"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 6,
+      "telegram_message_id": 497,
+      "sent_at": "2026-11-10T01:35:06.870324+01:00"
     }
   ],
   "team_history_cache": {
@@ -9748,7 +10180,7 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 21,
+  "btts_image_cursor": 25,
   "daily_headers_sent": [
     "2026-11-09",
     "2026-11-10"
