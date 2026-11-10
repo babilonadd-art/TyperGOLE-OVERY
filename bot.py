@@ -4694,7 +4694,7 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
         if not selected:
             return {"played": 0, "btts": 0.0, "clean_sheets": 0.0,
                     "failed_to_score": 0.0, "avg_goals": 0.0, "last5": 0,
-                    "last5_clean_sheets": 0, "last3_btts_streak": False}
+                    "last5_clean_sheets": 0, "last3_btts_count": 0, "last3_btts_streak": False}
         last5 = selected[-5:]
         last3 = selected[-3:]
         return {
@@ -4708,6 +4708,7 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
             "last5_played": len(last5),
             "btts_count": sum(x["btts"] for x in selected),
             "last5_clean_sheets": sum(x["clean_sheet"] for x in last5),
+            "last3_btts_count": sum(x["btts"] for x in last3),
             "last3_btts_streak": len(last3) == 3 and all(
                 x["goals_for"] > 0 and x["goals_against"] > 0 for x in last3
             ),
@@ -4721,37 +4722,37 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
     # Twarda kontrola jakości BTTS FT. Brak próbki lub danych dom/wyjazd
     # oznacza odrzucenie, a nie obniżenie poprzeczki. Wczesnosezonowe
     # i amatorskie mecze z niepewną historią nie mogą przejść na jednym wyniku.
-    if min(home_all["played"], away_all["played"]) < 3:
+    if min(home_all["played"], away_all["played"]) < 2:
         return None
-    if min(home_venue["played"], away_venue["played"]) < 3:
+    if min(home_venue["played"], away_venue["played"]) < 2:
         return None
 
     # Trend momentum: trzy ostatnie mecze gospodarza u siebie i gościa
     # na wyjeździe muszą zawierać gola strzelonego i straconego.
-    if not home_venue["last3_btts_streak"] or not away_venue["last3_btts_streak"]:
+    if min(home_venue["last3_btts_count"], away_venue["last3_btts_count"]) < 2:
         return None
 
     # Odrzucamy defensywnych dominatorów: maksymalnie jedno czyste konto
     # w pięciu ostatnich meczach każdej drużyny.
-    if home_all["last5_clean_sheets"] > 1 or away_all["last5_clean_sheets"] > 1:
+    if home_all["last5_clean_sheets"] > 2 or away_all["last5_clean_sheets"] > 2:
         return None
 
     # Umiarkowane kryteria BTTS FT: wymagamy regularności, ale nie odrzucamy
     # spotkań przez pojedyncze słabsze wyniki w ostatnich kolejkach.
-    if min(home_all["btts"], away_all["btts"]) < 0.45:
+    if min(home_all["btts"], away_all["btts"]) < 0.40:
         return None
     if min(home_all["last5"], away_all["last5"]) < 1:
         return None
 
     # Uwzględniamy miejsce rozgrywania i zdolność obu ekip do zdobywania goli.
-    if min(home_venue["btts"], away_venue["btts"]) < 0.30:
+    if min(home_venue["btts"], away_venue["btts"]) < 0.25:
         return None
     if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.50:
         return None
     # Luźniejszy filtr: dopuszczamy słabszą skuteczność, ale nie drużyny bez goli.
-    if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.50:
+    if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.55:
         return None
-    if min(home_all["avg_goals"], away_all["avg_goals"]) < 1.50:
+    if min(home_all["avg_goals"], away_all["avg_goals"]) < 1.40:
         return None
 
     # Competition preference list. White-listed leagues receive a modest boost;
@@ -4771,11 +4772,6 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
         if team_name_similarity(row.get("home"), home) >= 0.88
         or team_name_similarity(row.get("away"), home) >= 0.88
     ), "")
-    blacklist = ("segunda division", "la liga 2", "super league greece",
-                 "greek super league", "morocco", "botola", "argentina",
-                 "primera division argentina")
-    if league_folder.startswith(("GRE_", "MAR_", "ARG_", "ESP_2_")) or any(term in league_key for term in blacklist):
-        return None
     whitelist = ("eredivisie", "eerste divisie", "bundesliga", "2. bundesliga",
                  "iceland", "norway", "eliteserien", "sweden", "allsvenskan",
                  "superettan", "league one", "league two", "u19", "u21",
@@ -4808,6 +4804,8 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
         "away_last5_clean_sheets": away_all["last5_clean_sheets"],
         "home_last3_venue_btts_streak": home_venue["last3_btts_streak"],
         "away_last3_venue_btts_streak": away_venue["last3_btts_streak"],
+        "home_last3_venue_btts_count": home_venue["last3_btts_count"],
+        "away_last3_venue_btts_count": away_venue["last3_btts_count"],
         "home_scored_rate": home_all["scored_rate"],
         "away_scored_rate": away_all["scored_rate"],
         "league": league_name,
@@ -4832,7 +4830,7 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
             "home": home_all["played"], "away": away_all["played"],
             "home_venue": home_venue["played"], "away_venue": away_venue["played"],
         },
-        "method": "open_matchday_btts_ft_last3_venue_last5_cs_v3",
+        "method": "open_matchday_btts_ft_relaxed_v4",
         "league_folder": league_folder,
     }
 
@@ -4912,7 +4910,7 @@ def log_superbet_market_diagnostics(event_detail, fixture, max_rows=100):
 
 
 def btts_prematch_odds_gate(over25_quote, btts_quote):
-    """Require exact FT Over 2.5 <1.85 and standalone FT BTTS YES 1.60-1.90."""
+    """Require FT Over 2.5 <1.95 and standalone FT BTTS YES 1.55-2.05."""
     if not isinstance(over25_quote, dict) or not isinstance(btts_quote, dict):
         return False
     try:
@@ -4923,8 +4921,8 @@ def btts_prematch_odds_gate(over25_quote, btts_quote):
         return False
     return (
         abs(over_line - 2.5) <= 0.001
-        and 1.0 < over_odds < 1.85
-        and 1.60 <= btts_odds <= 1.90
+        and 1.0 < over_odds < 1.95
+        and 1.55 <= btts_odds <= 2.05
     )
 
 
@@ -4973,7 +4971,7 @@ def send_prematch_superbet_btts_picks(state):
             btts_price = (quote or {}).get("odds")
             print(
                 f"Superbet BTTS FT: odrzucam {fixture['home']} - {fixture['away']} — "
-                f"wymagany FT Over 2.5 <1.85 i BTTS Tak 1.60-1.90 "
+                f"wymagany FT Over 2.5 <1.95 i BTTS Tak 1.55-2.05 "
                 f"(Over 2.5={over_price}, BTTS={btts_price}).",
                 flush=True,
             )
@@ -5022,7 +5020,7 @@ def send_prematch_superbet_btts_picks(state):
             )
         candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "over25_quote": over25_quote, "url": bet_url, "analysis": analysis, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
     candidates.sort(key=lambda x: (-x["analysis"]["score"], x["kickoff"], x["home"], x["away"]))
-    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po filtrze kursowym FT: Over 2.5 <1.85, BTTS Tak 1.60-1.90 oraz kontroli historii.", flush=True)
+    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po filtrze kursowym FT: Over 2.5 <1.95, BTTS Tak 1.55-2.05 oraz kontroli historii.", flush=True)
     day_key = today.isoformat()
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     # Older scheduled tips may have been posted days before their kickoff date.
