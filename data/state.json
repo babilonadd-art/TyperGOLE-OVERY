@@ -5554,11 +5554,14 @@
         "method": "open_matchday_strict_btts_ft_form_venue_v2",
         "league_folder": "BRA_2_SERIE-B"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 8,
       "telegram_message_id": 499,
-      "sent_at": "2026-11-10T09:41:38.151022+01:00"
+      "sent_at": "2026-11-10T09:41:38.151022+01:00",
+      "won": false,
+      "settled_score": "4-0",
+      "settled_at": "2026-11-10T22:37:22.897096+01:00"
     },
     {
       "key": "superbet:15641659:BTTS_FT",
