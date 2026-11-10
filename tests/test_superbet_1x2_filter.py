@@ -1,6 +1,9 @@
 import unittest
+from unittest.mock import Mock, patch
 
-from bot import extract_superbet_1x2_full_time, btts_prematch_odds_gate
+import requests
+
+from bot import extract_superbet_1x2_full_time, btts_prematch_odds_gate, telegram_reply
 
 
 class SuperbetFullTime1X2Tests(unittest.TestCase):
@@ -72,6 +75,29 @@ class BttsOnlyPrematchOddsGateTests(unittest.TestCase):
     def test_rejects_missing_or_invalid_btts_quote(self):
         self.assertFalse(btts_prematch_odds_gate(None))
         self.assertFalse(btts_prematch_odds_gate({"odds": "not-a-price"}))
+
+
+class TelegramSettlementDeliveryTests(unittest.TestCase):
+    def test_http_400_reply_failure_retries_as_standalone_settlement(self):
+        response = Mock()
+        response.status_code = 400
+        response.json.return_value = {"ok": False, "description": "Bad Request: message to be replied not found"}
+        error = requests.HTTPError("400 Client Error", response=response)
+        with patch("bot.telegram", side_effect=[error, {"ok": True}]) as send:
+            result = telegram_reply("WYGRANA\\nDrużyna A - Drużyna B\\nWynik: 1-1", 123)
+        self.assertEqual(result, {"ok": True})
+        self.assertEqual(send.call_count, 2)
+        self.assertEqual(send.call_args_list[0].kwargs, {"reply_to_message_id": 123})
+        self.assertIn("ROZLICZENIE BTTS FT", send.call_args_list[1].args[0])
+
+    def test_non_400_delivery_errors_are_not_retried(self):
+        response = Mock()
+        response.status_code = 500
+        error = requests.HTTPError("500 Server Error", response=response)
+        with patch("bot.telegram", side_effect=error) as send:
+            with self.assertRaises(requests.HTTPError):
+                telegram_reply("WYGRANA", 123)
+        send.assert_called_once_with("WYGRANA", reply_to_message_id=123)
 
 
 if __name__ == "__main__":
