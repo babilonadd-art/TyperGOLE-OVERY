@@ -4917,7 +4917,7 @@ def btts_prematch_odds_gate(btts_quote):
         btts_odds = float(btts_quote.get("odds"))
     except (TypeError, ValueError):
         return False
-    return 1.55 <= btts_odds <= 2.05
+    return 1.55 <= btts_odds <= 2.40
 
 
 def send_prematch_superbet_btts_picks(state):
@@ -4963,7 +4963,7 @@ def send_prematch_superbet_btts_picks(state):
             btts_price = (quote or {}).get("odds")
             print(
                 f"Superbet BTTS FT: odrzucam {fixture['home']} - {fixture['away']} — "
-                f"wymagany wyłącznie rynek BTTS Tak FT, kurs 1.55-2.05 "
+                f"wymagany wyłącznie rynek BTTS Tak FT, kurs 1.55-2.40 "
                 f"(BTTS={btts_price}).",
                 flush=True,
             )
@@ -5012,7 +5012,7 @@ def send_prematch_superbet_btts_picks(state):
             )
         candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "url": bet_url, "analysis": analysis, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
     candidates.sort(key=lambda x: (-x["analysis"]["score"], x["kickoff"], x["home"], x["away"]))
-    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po filtrze wyłącznie BTTS Tak FT 1.55-2.05 oraz kontroli historii.", flush=True)
+    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po filtrze wyłącznie BTTS Tak FT 1.55-2.40 oraz kontroli historii.", flush=True)
     day_key = today.isoformat()
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     # Older scheduled tips may have been posted days before their kickoff date.
