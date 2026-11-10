@@ -4562,7 +4562,10 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
                 same_competition.append(row)
     else:
         same_competition = []
-    team_rows = same_competition if requested_league else league_rows
+    # Prefer exact competition history; if provider league labels do not
+    # match Open Matchday naming, fall back to the teams' current-season rows.
+    # This preserves real form data instead of rejecting every candidate.
+    team_rows = same_competition if same_competition else league_rows
     if not team_rows:
         return None
 
@@ -4609,18 +4612,18 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
     away_all = summarize(team_rows, away)
     home_venue = summarize(team_rows, home, "home")
     away_venue = summarize(team_rows, away, "away")
-    if min(home_all["played"], away_all["played"]) < 4:
+    if min(home_all["played"], away_all["played"]) < 3:
         return None
     if min(home_venue["played"], away_venue["played"]) < 2:
         return None
 
-    # Core gates (relaxed): season BTTS >=50%, recent BTTS in at least 2/5,
-    # and venue-specific BTTS >=33%. Keep minimum samples to avoid tiny samples.
-    if min(home_all["btts"], away_all["btts"]) < 0.50:
+    # Expanded BTTS pool: season BTTS >=40%, at least 1/5 recent BTTS,
+    # and venue-specific BTTS >=25%. Keep sample-size and odds checks intact.
+    if min(home_all["btts"], away_all["btts"]) < 0.40:
         return None
-    if min(home_all["last5"], away_all["last5"]) < 2:
+    if min(home_all["last5"], away_all["last5"]) < 1:
         return None
-    if min(home_venue["btts"], away_venue["btts"]) < (1 / 3):
+    if min(home_venue["btts"], away_venue["btts"]) < 0.25:
         return None
 
     # Competition preference list. White-listed leagues receive a modest boost;
@@ -4753,7 +4756,7 @@ def send_prematch_superbet_btts_picks(state):
             continue
         candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "url": bet_url, "analysis": analysis, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
     candidates.sort(key=lambda x: (-x["analysis"]["score"], x["kickoff"], x["home"], x["away"]))
-    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po kontroli historii BTTS i aktywnego kursu 1.70–2.50.", flush=True)
+    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po rozszerzonej kontroli historii BTTS i aktywnego kursu 1.70–2.50.", flush=True)
     day_key = today.isoformat()
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     # Older scheduled tips may have been posted days before their kickoff date.
