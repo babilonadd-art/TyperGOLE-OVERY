@@ -4612,13 +4612,15 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
     away_all = summarize(team_rows, away)
     home_venue = summarize(team_rows, home, "home")
     away_venue = summarize(team_rows, away, "away")
-    if min(home_all["played"], away_all["played"]) < 3:
+    # Smaller early-season sample: require only 2 total matches and 1 at the
+    # relevant venue for each team, so the scanner does not discard most fixtures.
+    if min(home_all["played"], away_all["played"]) < 2:
         return None
-    if min(home_venue["played"], away_venue["played"]) < 2:
+    if min(home_venue["played"], away_venue["played"]) < 1:
         return None
 
     # Expanded BTTS pool: season BTTS >=40%, at least 1/5 recent BTTS,
-    # and venue-specific BTTS >=25%. Keep sample-size and odds checks intact.
+    # and venue-specific BTTS >=25%, with reduced sample sizes (2 overall, 1 venue).
     if min(home_all["btts"], away_all["btts"]) < 0.40:
         return None
     if min(home_all["last5"], away_all["last5"]) < 1:
