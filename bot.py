@@ -607,8 +607,17 @@ def format_btts_ft_pick_message(pick, pick_number):
 
 
 def btts_ft_sent_picks_on_day(state, day):
-    """Return BTTS FT picks actually delivered on the given Warsaw-local date."""
+    """Return BTTS FT picks delivered after the most recent daily-cap reset."""
     sent = []
+    reset_at = state.get("btts_daily_limit_reset_at")
+    reset_stamp = None
+    if reset_at:
+        try:
+            reset_stamp = datetime.fromisoformat(str(reset_at).replace("Z", "+00:00"))
+            if reset_stamp.tzinfo is None:
+                reset_stamp = reset_stamp.replace(tzinfo=TZ)
+        except (TypeError, ValueError):
+            reset_stamp = None
     for pick in state.get("picks", []):
         if pick.get("market") != BTTS_FT_MARKET or pick.get("delivery_status") != "sent":
             continue
@@ -619,8 +628,12 @@ def btts_ft_sent_picks_on_day(state, day):
             stamp = datetime.fromisoformat(str(sent_at).replace("Z", "+00:00"))
             if stamp.tzinfo is None:
                 stamp = stamp.replace(tzinfo=TZ)
-            if stamp.astimezone(TZ).date().isoformat() == str(day):
-                sent.append(pick)
+            stamp = stamp.astimezone(TZ)
+            if stamp.date().isoformat() != str(day):
+                continue
+            if reset_stamp is not None and stamp <= reset_stamp.astimezone(TZ):
+                continue
+            sent.append(pick)
         except (TypeError, ValueError):
             continue
     sent.sort(key=lambda item: str(item.get("sent_at") or ""))
