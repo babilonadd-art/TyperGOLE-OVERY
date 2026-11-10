@@ -51,10 +51,7 @@ class PreviousDayBttsFtSettlementTests(unittest.TestCase):
             "away_score": 1,
         }
         state = {"picks": [pick]}
-        with patch.object(bot, "now_local", return_value=now), \\
-             patch.object(bot, "match_detail", return_value=match), \\
-             patch.object(bot, "telegram_reply") as reply, \\
-             patch.object(bot, "save_state"):
+        with patch.object(bot, "now_local", return_value=now) as mocked_now, patch.object(bot, "match_detail", return_value=match), patch.object(bot, "telegram_reply") as reply, patch.object(bot, "save_state"):
             settle_picks(state, allowed_markets={BTTS_FT_MARKET})
         self.assertTrue(pick["settled"])
         self.assertTrue(pick["won"])
