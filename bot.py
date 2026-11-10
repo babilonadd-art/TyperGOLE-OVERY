@@ -4902,8 +4902,8 @@ def btts_prematch_odds_gate(over25_quote, btts_quote):
         return False
     return (
         abs(over_line - 2.5) <= 0.001
-        and 1.01 < over_odds < 1.85
-        and 1.01 < btts_odds <= 1.90
+        and 1.0 < over_odds < 1.85
+        and 1.0 < btts_odds <= 1.90
     )
 
 
