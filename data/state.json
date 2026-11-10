@@ -2839,10 +2839,13 @@
       "odds_market": "Both Teams to Score — Yes",
       "odds_updated_at": "2026-11-07T01:26:44.218444214Z",
       "bet_url": "https://www.bet365.com/#/AC/B1/C1/D8/E202804392/F3/",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 319,
-      "sent_at": "2026-11-07T23:24:10.658751+01:00"
+      "sent_at": "2026-11-07T23:24:10.658751+01:00",
+      "won": false,
+      "settled_score": "0-0",
+      "settled_at": "2026-11-10T22:38:49.600629+01:00"
     },
     {
       "key": "204185993:BTTS_FT",
@@ -2864,10 +2867,13 @@
       "odds_market": "Both Teams to Score — Yes",
       "odds_updated_at": "2026-11-07T22:02:43.024761162Z",
       "bet_url": "https://www.bet365.com/#/AC/B1/C1/D8/E204185993/F3/",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 320,
-      "sent_at": "2026-11-07T23:24:12.549477+01:00"
+      "sent_at": "2026-11-07T23:24:12.549477+01:00",
+      "won": false,
+      "settled_score": "0-0",
+      "settled_at": "2026-11-10T22:38:50.444313+01:00"
     },
     {
       "key": "202804409:BTTS_FT",
@@ -5673,11 +5679,14 @@
         "method": "open_matchday_btts_ft_last3_venue_last5_cs_v3",
         "league_folder": "ENG_3_LEAGUE-ONE"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 10,
       "telegram_message_id": 501,
-      "sent_at": "2026-11-10T09:49:54.433996+01:00"
+      "sent_at": "2026-11-10T09:49:54.433996+01:00",
+      "won": false,
+      "settled_score": "4-0",
+      "settled_at": "2026-11-10T22:38:48.822453+01:00"
     }
   ],
   "reports_sent": [],
