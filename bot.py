@@ -4021,6 +4021,88 @@ def extract_superbet_btts_first_half(event_detail):
     return candidates[0]
 
 
+
+def extract_superbet_1x2_full_time(event_detail):
+    """Read the verified Polish Superbet full-time 1X2 market (group 547)."""
+    market_keys = (
+        "marketName", "market_name", "marketGroupName", "market_group_name",
+        "marketTitle", "market_title", "market", "marketGroup", "market_group",
+        "title", "groupName", "group_name",
+    )
+    selection_keys = (
+        "name", "selectionName", "selection_name", "oddName",
+        "outcomeName", "label", "displayName",
+    )
+    price_keys = ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
+    group_keys = (
+        "marketGroupId", "market_group_id", "marketGroupID",
+        "groupId", "group_id", "marketId", "market_id",
+    )
+
+    def label(value):
+        if isinstance(value, dict):
+            return str(first(value, "name", "title", "label", "description", "displayName", default="") or "").strip()
+        return str(value or "").strip()
+
+    rows = []
+    def walk(node, inherited_market="", inherited_group=None):
+        if isinstance(node, list):
+            for child in node:
+                walk(child, inherited_market, inherited_group)
+            return
+        if not isinstance(node, dict):
+            return
+        local_market = " ".join(
+            label(node.get(key)) for key in market_keys if node.get(key) not in (None, "")
+        ).strip()
+        market = local_market or inherited_market
+        group_id = first(node, *group_keys, default=inherited_group)
+        selection = next((label(node.get(key)) for key in selection_keys
+                          if node.get(key) not in (None, "")), "")
+        metadata = node.get("metadata")
+        if not selection and isinstance(metadata, dict):
+            selection = label(first(metadata, "name", "label", default=""))
+        price = first(node, *price_keys, default=None)
+        if selection and price not in (None, ""):
+            rows.append({
+                "market": market,
+                "group": str(group_id) if group_id is not None else "",
+                "selection": selection.strip().upper(),
+                "price": price,
+                "status": str(first(node, "status", "oddStatus", "state", default="")).strip().lower(),
+            })
+        for value in node.values():
+            if isinstance(value, (dict, list)):
+                walk(value, market, group_id)
+
+    walk(event_detail)
+    found = {"1": set(), "X": set(), "2": set()}
+    for row in rows:
+        market = re.sub(r"\\s+", " ", row["market"].strip().lower())
+        if row["group"] != "547" or market not in {"mecz", "match"}:
+            continue
+        if row["selection"] not in found or row["status"] not in {"active", "opened", "open", "1", "true"}:
+            continue
+        try:
+            price = float(str(row["price"]).replace(",", "."))
+        except (TypeError, ValueError):
+            continue
+        if not 1.01 <= price <= 1000:
+            continue
+        found[row["selection"]].add(round(price, 3))
+
+    if any(len(found[key]) != 1 for key in ("1", "X", "2")):
+        print(
+            "Superbet 1X2: brak kompletnego, jednoznacznego aktywnego rynku Mecz/grupa 547; "
+            + json.dumps({key: sorted(values) for key, values in found.items()}, ensure_ascii=False),
+            flush=True,
+        )
+        return None
+    result = {key: next(iter(found[key])) for key in ("1", "X", "2")}
+    return {"home": result["1"], "draw": result["X"], "away": result["2"], "market_group_id": 547}
+
+
+
 def extract_superbet_btts_full_time(event_detail):
     """Return one verified active YES quote from the full-match BTTS market only."""
     def norm(value):
@@ -4810,6 +4892,18 @@ def send_prematch_superbet_btts_picks(state):
             if diagnostic_events_logged < 8:
                 log_superbet_market_diagnostics(detail, fixture)
                 diagnostic_events_logged += 1
+            one_x_two = extract_superbet_1x2_full_time(detail)
+            if not one_x_two:
+                print(f"Superbet BTTS FT: odrzucam {fixture['home']} - {fixture['away']} — brak kompletnego rynku 1X2.", flush=True)
+                continue
+            if one_x_two["home"] > 10.00 or one_x_two["away"] > 10.00:
+                print(
+                    f"Superbet BTTS FT: odrzucam {fixture['home']} - {fixture['away']} — "
+                    f"1X2 za wysokie kursy na zwycięstwo (1={one_x_two['home']:.2f}, "
+                    f"X={one_x_two['draw']:.2f}, 2={one_x_two['away']:.2f}; limit 10.00).",
+                    flush=True,
+                )
+                continue
             quote = extract_superbet_btts_full_time(detail)
         except Exception as exc:
             print(f"Superbet BTTS FT: błąd kursu {fixture['home']} - {fixture['away']}: {type(exc).__name__}: {exc}", flush=True)
@@ -4889,11 +4983,14 @@ def send_prematch_superbet_btts_picks(state):
             break
         try:
             final_detail = superbet_event_detail(candidate["event_id"])
+            final_1x2 = extract_superbet_1x2_full_time(final_detail)
             final_quote = extract_superbet_btts_full_time(final_detail)
         except Exception as exc:
             print(f"Końcowa kontrola Superbet nieudana: {type(exc).__name__}: {exc}", flush=True)
             continue
-        if not final_quote or not 1.70 <= float(final_quote["odds"]) <= 2.50 or abs(float(final_quote["odds"]) - float(candidate["quote"]["odds"])) > 0.005:
+        if (not final_1x2 or final_1x2["home"] > 10.00 or final_1x2["away"] > 10.00
+                or not final_quote or not 1.70 <= float(final_quote["odds"]) <= 2.50
+                or abs(float(final_quote["odds"]) - float(candidate["quote"]["odds"])) > 0.005):
             print(f"Superbet: kurs/rynek zmienił się przed wysyłką — pomijam {candidate['home']} - {candidate['away']}.", flush=True)
             continue
         if same_fixture_pick_exists(state, candidate["id"], candidate["home"], candidate["away"], day_key, BTTS_FT_MARKET, competition=candidate["league"]):
