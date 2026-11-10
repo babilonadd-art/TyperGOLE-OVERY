@@ -5274,11 +5274,14 @@
         "method": "open_matchday_current_season_btts_form_venue",
         "league_folder": "NED_CUP_KNVB-BEKER"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 3,
       "telegram_message_id": 494,
-      "sent_at": "2026-11-10T01:35:01.412145+01:00"
+      "sent_at": "2026-11-10T01:35:01.412145+01:00",
+      "won": true,
+      "settled_score": "1-2",
+      "settled_at": "2026-11-10T22:07:59.875764+01:00"
     },
     {
       "key": "superbet:15811765:BTTS_FT",
