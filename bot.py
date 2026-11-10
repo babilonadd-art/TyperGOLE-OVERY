@@ -4753,6 +4753,14 @@ def send_prematch_superbet_btts_picks(state):
         analysis = btts_recent_form_analysis(fixture["home"], fixture["away"], kickoff, league)
         if not analysis:
             continue
+        # Superbet czasem nie przekazuje nazwy rozgrywek. W takim przypadku
+        # wykorzystaj ligę rozpoznaną z historii Open Matchday; nigdy nie ukrywaj
+        # wiersza ligi w wiadomości Telegram.
+        if not league:
+            inferred_league = str((analysis.get("metrics") or {}).get("league") or "").strip()
+            league = format_fixture_competition(
+                inferred_league or "Liga nieznana", fixture["home"], fixture["away"]
+            )
         candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "url": bet_url, "analysis": analysis, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
     candidates.sort(key=lambda x: (-x["analysis"]["score"], x["kickoff"], x["home"], x["away"]))
     print(f"Superbet BTTS FT: {len(candidates)} kandydatów po rozszerzonej kontroli historii BTTS i aktywnego kursu 1.70–2.50.", flush=True)
