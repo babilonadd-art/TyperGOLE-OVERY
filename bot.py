@@ -592,6 +592,7 @@ def format_btts_ft_pick_message(pick, pick_number):
     message = (
         f"𝗧𝗬𝗣 𝗡𝗥. {pick_number}\n\n"
         f"📅 DATA: {kickoff.strftime('%d.%m.%Y')}\n"
+        "━━━━━━━━━━━━━━━━━━\n"
         f"🕒 GODZINA: {kickoff.strftime('%H:%M')} — CZAS POLSKI\n"
         f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
         f"⚽ {home} – {away}\n"
@@ -782,6 +783,7 @@ def update_existing_btts_superbet_links(state):
                 payout = calculate_bet_result(stake, odds)
                 caption = (
                     f"📅 DATA: {kickoff.strftime('%d.%m.%Y')}\n"
+                    "━━━━━━━━━━━━━━━━━━\n"
                     f"🕒 GODZINA: {kickoff.strftime('%H:%M')} — CZAS POLSKI\n"
                     f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
                     f"⚽ {pick.get('home')} – {pick.get('away')}\n"
@@ -5074,7 +5076,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
         # duplicates across the five-minute scheduled workflow runs.
         headers_sent = state.setdefault("daily_headers_sent", [])
         if day_key not in headers_sent:
-            header = f"📅 𝗧𝗬𝗣𝗬 𝗡𝗔 𝗗𝗭𝗜𝗘𝗡 {today.strftime('%d.%m.%Y')}\n⚽ BTTS TAK — CAŁY MECZ (FT)"
+            header = f"📅 𝗧𝗬𝗣𝗬 𝗡𝗔 𝗗𝗭𝗜𝗘𝗡 {today.strftime('%d.%m.%Y')}\n━━━━━━━━━━━━━━━━━━\n⚽ BTTS TAK — CAŁY MECZ (FT)\n━━━━━━━━━━━━━━━━━━"
             try:
                 header_result = telegram(header)
                 header_message = header_result.get("result", {}) if isinstance(header_result, dict) else {}
