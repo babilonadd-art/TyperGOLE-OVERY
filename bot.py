@@ -4720,19 +4720,19 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
     away_venue = summarize(team_rows, away, "away")
 
     # Twarda kontrola jakości BTTS FT. Brak próbki lub danych dom/wyjazd
-    # oznacza odrzucenie, a nie obniżenie poprzeczki. Wczesnosezonowe
-    # i amatorskie mecze z niepewną historią nie mogą przejść na jednym wyniku.
+    # oznacza odrzucenie. Po lekkim poluzowaniu dopuszczamy próbkę od 2 spotkań,
+    # ale nadal wymagamy potwierdzenia z ostatnich meczów dom/wyjazd.
     if min(home_all["played"], away_all["played"]) < 2:
         return None
     if min(home_venue["played"], away_venue["played"]) < 2:
         return None
 
-    # Trend momentum: trzy ostatnie mecze gospodarza u siebie i gościa
-    # na wyjeździe muszą zawierać gola strzelonego i straconego.
+    # Trend momentum: w 3 ostatnich meczach gospodarza u siebie i gościa
+    # na wyjeździe przynajmniej 2 muszą zawierać gola obu drużyn.
     if min(home_venue["last3_btts_count"], away_venue["last3_btts_count"]) < 2:
         return None
 
-    # Odrzucamy defensywnych dominatorów: maksymalnie jedno czyste konto
+    # Odrzucamy defensywnych dominatorów: maksymalnie 2 czyste konta
     # w pięciu ostatnich meczach każdej drużyny.
     if home_all["last5_clean_sheets"] > 2 or away_all["last5_clean_sheets"] > 2:
         return None
