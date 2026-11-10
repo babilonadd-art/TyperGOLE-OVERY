@@ -69,6 +69,22 @@ class SuperbetFullTime1X2Tests(unittest.TestCase):
             {"odds": 1.80},
         ))
 
+    def test_prematch_gate_rejects_btts_below_160(self):
+        self.assertFalse(btts_prematch_odds_gate(
+            {"line": 2.5, "odds": 1.70},
+            {"odds": 1.35},
+        ))
+        self.assertFalse(btts_prematch_odds_gate(
+            {"line": 2.5, "odds": 1.70},
+            {"odds": 1.59},
+        ))
+
+    def test_prematch_gate_accepts_btts_at_160(self):
+        self.assertTrue(btts_prematch_odds_gate(
+            {"line": 2.5, "odds": 1.70},
+            {"odds": 1.60},
+        ))
+
     def test_prematch_gate_rejects_btts_above_190(self):
         self.assertFalse(btts_prematch_odds_gate(
             {"line": 2.5, "odds": 1.70},
