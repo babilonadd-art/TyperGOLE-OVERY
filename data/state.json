@@ -2427,11 +2427,14 @@
         "home_conceded_rate": 0.6,
         "away_conceded_rate": 1
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 293,
       "sent_at": "2026-11-07T13:31:16.354678+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "2-1",
+      "settled_at": "2026-11-10T22:41:12.960281+01:00"
     },
     {
       "key": "ca-boca-juniors-vs-defensa-y-justicia:BTTS_FT",
@@ -2462,11 +2465,14 @@
         "home_conceded_rate": 0.4,
         "away_conceded_rate": 0.6
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 294,
       "sent_at": "2026-11-07T13:35:50.639331+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": false,
+      "settled_score": "1-0",
+      "settled_at": "2026-11-10T22:41:15.069919+01:00"
     },
     {
       "key": "argentinos-juniors-vs-ca-huracan:BTTS_FT",
@@ -2611,11 +2617,14 @@
         "home_conceded_rate": 1,
         "away_conceded_rate": 0.8
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 299,
       "sent_at": "2026-11-07T16:31:38.292091+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "1-3",
+      "settled_at": "2026-11-10T22:41:11.492701+01:00"
     },
     {
       "key": "altrincham-vs-notts-county:BTTS_FT",
@@ -3807,11 +3816,14 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/athletic-club-mg-vs-atletico-go-14438767?t=offer-prematch-102&mdt=o",
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "telegram_message_id": 392,
       "sent_at": "2026-11-08T18:54:01.927341+01:00",
-      "counts_toward_daily_limit": false
+      "counts_toward_daily_limit": false,
+      "won": true,
+      "settled_score": "2-3",
+      "settled_at": "2026-11-10T22:41:18.641573+01:00"
     },
     {
       "key": "superbet:15612867:BTTS_FT",
@@ -5394,11 +5406,14 @@
         "method": "open_matchday_current_season_btts_form_venue",
         "league_folder": "ENG_7_NORTHERN-PREMIER-LEAGUE"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 5,
       "telegram_message_id": 496,
-      "sent_at": "2026-11-10T01:35:04.979119+01:00"
+      "sent_at": "2026-11-10T01:35:04.979119+01:00",
+      "won": false,
+      "settled_score": "1-0",
+      "settled_at": "2026-11-10T22:41:26.640833+01:00"
     },
     {
       "key": "superbet:15683657:BTTS_FT",
