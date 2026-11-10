@@ -4699,27 +4699,27 @@ def btts_recent_form_analysis(home, away, kickoff, league=""):
     # Twarda kontrola jakości BTTS FT. Brak próbki lub danych dom/wyjazd
     # oznacza odrzucenie, a nie obniżenie poprzeczki. Wczesnosezonowe
     # i amatorskie mecze z niepewną historią nie mogą przejść na jednym wyniku.
-    if min(home_all["played"], away_all["played"]) < 5:
+    if min(home_all["played"], away_all["played"]) < 3:
         return None
-    if min(home_venue["played"], away_venue["played"]) < 2:
+    if min(home_venue["played"], away_venue["played"]) < 1:
         return None
 
     # Umiarkowane kryteria BTTS FT: wymagamy regularności, ale nie odrzucamy
     # spotkań przez pojedyncze słabsze wyniki w ostatnich kolejkach.
-    if min(home_all["btts"], away_all["btts"]) < 0.55:
+    if min(home_all["btts"], away_all["btts"]) < 0.45:
         return None
-    if min(home_all["last5"], away_all["last5"]) < 2:
+    if min(home_all["last5"], away_all["last5"]) < 1:
         return None
 
     # Uwzględniamy miejsce rozgrywania i zdolność obu ekip do zdobywania goli.
-    if min(home_venue["btts"], away_venue["btts"]) < 0.45:
+    if min(home_venue["btts"], away_venue["btts"]) < 0.30:
         return None
-    if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.60:
+    if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.50:
         return None
-    # Nadal odrzucamy zespoły, które zbyt często nie strzelają gola.
-    if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.30:
+    # Luźniejszy filtr: dopuszczamy słabszą skuteczność, ale nie drużyny bez goli.
+    if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.50:
         return None
-    if min(home_all["avg_goals"], away_all["avg_goals"]) < 2.00:
+    if min(home_all["avg_goals"], away_all["avg_goals"]) < 1.50:
         return None
 
     # Competition preference list. White-listed leagues receive a modest boost;
@@ -4893,10 +4893,9 @@ def send_prematch_superbet_btts_picks(state):
                 log_superbet_market_diagnostics(detail, fixture)
                 diagnostic_events_logged += 1
             one_x_two = extract_superbet_1x2_full_time(detail)
-            if not one_x_two:
-                print(f"Superbet BTTS FT: odrzucam {fixture['home']} - {fixture['away']} — brak kompletnego rynku 1X2.", flush=True)
-                continue
-            if one_x_two["home"] > 10.00 or one_x_two["away"] > 10.00:
+            # 1X2 jest tylko dodatkowym bezpiecznikiem: brak pełnego rynku
+            # nie blokuje meczu; odrzucamy dopiero skrajny kurs >15.00.
+            if one_x_two and (one_x_two["home"] > 15.00 or one_x_two["away"] > 15.00):
                 print(
                     f"Superbet BTTS FT: odrzucam {fixture['home']} - {fixture['away']} — "
                     f"1X2 za wysokie kursy na zwycięstwo (1={one_x_two['home']:.2f}, "
@@ -4908,7 +4907,7 @@ def send_prematch_superbet_btts_picks(state):
         except Exception as exc:
             print(f"Superbet BTTS FT: błąd kursu {fixture['home']} - {fixture['away']}: {type(exc).__name__}: {exc}", flush=True)
             continue
-        if not quote or not 1.70 <= float(quote["odds"]) <= 2.50:
+        if not quote or not 1.60 <= float(quote["odds"]) <= 2.80:
             continue
         kickoff = kickoff_datetime({"kickoff_time": fixture.get("_bot_kickoff")})
         if not kickoff or kickoff <= now_local() or kickoff.date() != today:
@@ -4954,7 +4953,7 @@ def send_prematch_superbet_btts_picks(state):
             )
         candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "url": bet_url, "analysis": analysis, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
     candidates.sort(key=lambda x: (-x["analysis"]["score"], x["kickoff"], x["home"], x["away"]))
-    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po rozszerzonej kontroli historii BTTS i aktywnego kursu 1.70–2.50.", flush=True)
+    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po poluzowanych filtrach historii BTTS i aktywnym kursie 1.60–2.80.", flush=True)
     day_key = today.isoformat()
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     # Older scheduled tips may have been posted days before their kickoff date.
@@ -4988,8 +4987,8 @@ def send_prematch_superbet_btts_picks(state):
         except Exception as exc:
             print(f"Końcowa kontrola Superbet nieudana: {type(exc).__name__}: {exc}", flush=True)
             continue
-        if (not final_1x2 or final_1x2["home"] > 10.00 or final_1x2["away"] > 10.00
-                or not final_quote or not 1.70 <= float(final_quote["odds"]) <= 2.50
+        if ((final_1x2 and (final_1x2["home"] > 15.00 or final_1x2["away"] > 15.00))
+                or not final_quote or not 1.60 <= float(final_quote["odds"]) <= 2.80
                 or abs(float(final_quote["odds"]) - float(candidate["quote"]["odds"])) > 0.005):
             print(f"Superbet: kurs/rynek zmienił się przed wysyłką — pomijam {candidate['home']} - {candidate['away']}.", flush=True)
             continue
