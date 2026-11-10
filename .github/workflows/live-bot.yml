@@ -59,7 +59,10 @@ jobs:
             git add -f data/state.json
             if ! git diff --cached --quiet; then
               git commit -m "Persist live pick and settlement state"
-              git push
+              # Code commits can land while this scheduled job is running.
+              # Rebase the saved state snapshot onto the latest main before pushing.
+              git pull --rebase origin main
+              git push origin HEAD:main
             fi
           else
             echo "No state file was created; nothing to persist."
