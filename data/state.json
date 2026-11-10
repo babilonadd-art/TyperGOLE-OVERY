@@ -5603,6 +5603,66 @@
       "pick_number": 9,
       "telegram_message_id": 500,
       "sent_at": "2026-11-10T09:41:40.275581+01:00"
+    },
+    {
+      "key": "superbet:15641610:BTTS_FT",
+      "id": "superbet:15641610",
+      "slug": "",
+      "home": "Huddersfield Town",
+      "away": "Liverpool U21",
+      "league": "EFL League One U21",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U21"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T20:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.34,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/huddersfield-town-vs-liverpool-u21-15641610?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.8008035714285714,
+        "metrics": {
+          "home_btts": 0.75,
+          "away_btts": 0.625,
+          "home_venue_btts": 0.875,
+          "away_venue_btts": 0.7142857142857143,
+          "home_clean_sheets": 0.25,
+          "away_clean_sheets": 0.25,
+          "home_failed_to_score": 0.0625,
+          "away_failed_to_score": 0.1875,
+          "home_avg_goals": 2.8125,
+          "away_avg_goals": 3.375,
+          "home_recent_btts": 4,
+          "away_recent_btts": 3,
+          "home_last5_clean_sheets": 1,
+          "away_last5_clean_sheets": 1,
+          "home_last3_venue_btts_streak": true,
+          "away_last3_venue_btts_streak": true,
+          "home_scored_rate": 0.9375,
+          "away_scored_rate": 0.8125,
+          "league": "EFL League One",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 16,
+          "away": 16,
+          "home_venue": 8,
+          "away_venue": 7
+        },
+        "method": "open_matchday_btts_ft_last3_venue_last5_cs_v3",
+        "league_folder": "ENG_3_LEAGUE-ONE"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 10,
+      "telegram_message_id": 501,
+      "sent_at": "2026-11-10T09:49:54.433996+01:00"
     }
   ],
   "reports_sent": [],
@@ -9884,6 +9944,66 @@
       "pick_number": 9,
       "telegram_message_id": 500,
       "sent_at": "2026-11-10T09:41:40.275581+01:00"
+    },
+    {
+      "key": "superbet:15641610:BTTS_FT",
+      "id": "superbet:15641610",
+      "slug": "",
+      "home": "Huddersfield Town",
+      "away": "Liverpool U21",
+      "league": "EFL League One U21",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U21"
+      },
+      "date": "2026-11-10",
+      "kickoff_time": "2026-11-10T20:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.34,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/huddersfield-town-vs-liverpool-u21-15641610?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.8008035714285714,
+        "metrics": {
+          "home_btts": 0.75,
+          "away_btts": 0.625,
+          "home_venue_btts": 0.875,
+          "away_venue_btts": 0.7142857142857143,
+          "home_clean_sheets": 0.25,
+          "away_clean_sheets": 0.25,
+          "home_failed_to_score": 0.0625,
+          "away_failed_to_score": 0.1875,
+          "home_avg_goals": 2.8125,
+          "away_avg_goals": 3.375,
+          "home_recent_btts": 4,
+          "away_recent_btts": 3,
+          "home_last5_clean_sheets": 1,
+          "away_last5_clean_sheets": 1,
+          "home_last3_venue_btts_streak": true,
+          "away_last3_venue_btts_streak": true,
+          "home_scored_rate": 0.9375,
+          "away_scored_rate": 0.8125,
+          "league": "EFL League One",
+          "xg_available": false,
+          "lineups_available": false
+        },
+        "samples": {
+          "home": 16,
+          "away": 16,
+          "home_venue": 8,
+          "away_venue": 7
+        },
+        "method": "open_matchday_btts_ft_last3_venue_last5_cs_v3",
+        "league_folder": "ENG_3_LEAGUE-ONE"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 10,
+      "telegram_message_id": 501,
+      "sent_at": "2026-11-10T09:49:54.433996+01:00"
     }
   ],
   "team_history_cache": {
@@ -10516,7 +10636,7 @@
     "sent_at": "2026-11-06T23:28:15.347026+01:00",
     "telegram_message_id": 258
   },
-  "btts_image_cursor": 28,
+  "btts_image_cursor": 29,
   "daily_headers_sent": [
     "2026-11-09",
     "2026-11-10"
