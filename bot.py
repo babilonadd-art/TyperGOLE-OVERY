@@ -4936,9 +4936,9 @@ def btts_prematch_odds_gate(btts_quote):
     return 1.55 <= btts_odds <= 2.40
 
 
-def send_prematch_superbet_btts_picks(state):
-    """Send prematch BTTS FT picks using Superbet fixtures, odds and event links."""
-    today = now_local().date()
+def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
+    """Scan and send prematch BTTS FT picks for one Warsaw-local calendar date."""
+    today = scan_date
     events = superbet_prematch_event_links(target_date=today)
     if not events:
         print(f"Superbet BTTS FT: brak wydarzeń na {today.isoformat()}; bez fallbacku do innego bukmachera.", flush=True)
@@ -5115,6 +5115,27 @@ def send_prematch_superbet_btts_picks(state):
             save_state(state)
             print(f"Telegram Superbet BTTS FT error: {type(exc).__name__}: {exc}", flush=True)
             return
+
+
+def send_prematch_superbet_btts_picks(state):
+    """Scan today and tomorrow so evening runs do not miss next-day fixtures."""
+    today = now_local().date()
+    scan_dates = (today, today + timedelta(days=1))
+    for scan_date in scan_dates:
+        print(
+            f"BTTS FT: rozpoczynam skan daty {scan_date.isoformat()} "
+            f"(dzisiaj + jutro; limit 10 typów osobno na dzień).",
+            flush=True,
+        )
+        try:
+            _send_prematch_superbet_btts_picks_for_date(state, scan_date)
+        except Exception as exc:
+            print(
+                f"BTTS FT: błąd skanowania daty {scan_date.isoformat()}: "
+                f"{type(exc).__name__}: {exc}",
+                flush=True,
+            )
+
 
 def send_manual_archive_resend(state):
     """Send one explicitly queued historical pick once, clearly marked as archive."""
