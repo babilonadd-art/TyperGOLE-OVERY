@@ -12716,9 +12716,7 @@
   "btts_daily_limit_reset_at": "2026-11-11T08:17:00+01:00",
   "daily_btts_closers_sent": [
     "2026-11-07",
-    "2026-11-09",
     "2026-11-10",
-    "2026-11-08",
     "2026-11-11"
   ],
   "daily_btts_force_close": [
