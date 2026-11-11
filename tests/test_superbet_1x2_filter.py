@@ -78,17 +78,18 @@ class BttsOnlyPrematchOddsGateTests(unittest.TestCase):
 
 
 class TelegramSettlementDeliveryTests(unittest.TestCase):
-    def test_http_400_reply_failure_retries_as_standalone_settlement(self):
+    def test_http_400_reply_failure_does_not_publish_standalone_settlement(self):
         response = Mock()
         response.status_code = 400
         response.json.return_value = {"ok": False, "description": "Bad Request: message to be replied not found"}
         error = requests.HTTPError("400 Client Error", response=response)
-        with patch("bot.telegram", side_effect=[error, {"ok": True}]) as send:
-            result = telegram_reply("WYGRANA\\nDrużyna A - Drużyna B\\nWynik: 1-1", 123)
-        self.assertEqual(result, {"ok": True})
-        self.assertEqual(send.call_count, 2)
-        self.assertEqual(send.call_args_list[0].kwargs, {"reply_to_message_id": 123})
-        self.assertIn("ROZLICZENIE BTTS FT", send.call_args_list[1].args[0])
+        with patch("bot.telegram", side_effect=error) as send:
+            with self.assertRaises(requests.HTTPError):
+                telegram_reply("WYGRANA\\nDrużyna A - Drużyna B\\nWynik: 1-1", 123)
+        send.assert_called_once_with(
+            "WYGRANA\\nDrużyna A - Drużyna B\\nWynik: 1-1",
+            reply_to_message_id=123,
+        )
 
     def test_non_400_delivery_errors_are_not_retried(self):
         response = Mock()
