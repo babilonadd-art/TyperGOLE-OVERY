@@ -124,5 +124,33 @@ class BttsDailyCloseTests(unittest.TestCase):
         self.assertIn("2026-11-11", state["daily_btts_closers_sent"])
         self.assertEqual(state["daily_btts_daily_profit"]["2026-11-11"], 7.60)
 
+
+class BttsQualityGateTests(unittest.TestCase):
+    def test_rejects_probability_without_value_over_market(self):
+        self.assertFalse(bot.btts_value_gate(0.62, 1.70))
+
+    def test_rejects_low_probability_even_at_long_odds(self):
+        self.assertFalse(bot.btts_value_gate(0.57, 2.40))
+
+    def test_accepts_high_probability_with_four_point_edge(self):
+        self.assertTrue(bot.btts_value_gate(0.66, 1.70))
+
+    def test_rejects_invalid_odds_or_probability(self):
+        self.assertFalse(bot.btts_value_gate(0.70, 1.0))
+        self.assertFalse(bot.btts_value_gate(None, 2.0))
+        self.assertFalse(bot.btts_value_gate(1.2, 2.0))
+
+    def test_small_samples_are_shrunk_toward_neutral(self):
+        high = {
+            "btts": 1.0, "last5": 5, "last5_played": 5, "played": 5,
+            "goals_for_avg": 2.0, "goals_against_avg": 2.0,
+            "shots_on_target_sample": 0, "shots_on_target_avg": None,
+        }
+        venue = dict(high, played=3)
+        estimate = bot.btts_probability_estimate(high, high, venue, venue)
+        self.assertLess(estimate["probability"], estimate["raw_probability"])
+        self.assertGreater(estimate["probability"], 0.50)
+
+
 if __name__ == "__main__":
     unittest.main()
