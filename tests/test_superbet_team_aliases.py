@@ -345,5 +345,5 @@ class BTTSFTDailyNumberingTests(unittest.TestCase):
         }
         message = bot.format_btts_ft_pick_message(pick, 1)
         self.assertIn("𝗧𝗬𝗣 𝗡𝗥. 1", message)
-        self.assertIn("Superbet: 2.17", message)
-        self.assertIn("BTTS TAK — CAŁY MECZ (FT", message)
+        self.assertIn("💰 Kurs: 2.17", message)
+        self.assertIn("BTTS TAK (FT)", message)
