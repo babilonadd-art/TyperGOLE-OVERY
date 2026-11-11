@@ -6406,11 +6406,14 @@
         "method": "open_matchday_btts_ft_relaxed_v4",
         "league_folder": "CZE_1_CHANCE-LIGA"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 10,
       "telegram_message_id": 557,
-      "sent_at": "2026-11-11T08:22:56.631909+01:00"
+      "sent_at": "2026-11-11T08:22:56.631909+01:00",
+      "won": true,
+      "settled_score": "2-1",
+      "settled_at": "2026-11-11T21:09:05.697340+01:00"
     },
     {
       "key": "superbet:15658072:BTTS_FT",
