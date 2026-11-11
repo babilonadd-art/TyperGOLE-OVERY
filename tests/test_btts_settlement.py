@@ -9,6 +9,36 @@ from zoneinfo import ZoneInfo
 from bot import btts_first_half_won, kickoff_reached_for_settlement, pick_local_date
 
 
+
+class BttsTelegramMessageTests(unittest.TestCase):
+    def test_ft_pick_message_is_short_and_shows_model_probability(self):
+        pick = {
+            "home": "Home FC",
+            "away": "Away FC",
+            "league": "Test League",
+            "kickoff_time": "2026-11-12T18:30:00+01:00",
+            "odds": 1.85,
+            "stake": 10,
+            "bet_url": "https://example.com/match",
+            "analysis": {
+                "metrics": {
+                    "model_probability": 0.60,
+                    "home_btts": 0.80,
+                    "away_btts": 0.75,
+                    "home_recent_btts": 4,
+                    "away_recent_btts": 3,
+                }
+            },
+        }
+        message = bot.format_btts_ft_pick_message(pick, 3)
+        self.assertIn("Szacowana szansa BTTS do końca meczu: 60%", message)
+        self.assertIn("Home FC – Away FC", message)
+        self.assertIn("Kurs: 1.85", message)
+        self.assertNotIn("BTTS sezon", message)
+        self.assertNotIn("Ostatnie mecze", message)
+        self.assertNotIn("gospodarz", message)
+        self.assertNotIn("H2H", message)
+
 class BttsFirstHalfSettlementTests(unittest.TestCase):
     def test_pick_local_date_uses_warsaw_kickoff_date(self):
         pick = {"kickoff_time": "2026-11-08T00:30:00+01:00", "date": "2026-11-07"}
