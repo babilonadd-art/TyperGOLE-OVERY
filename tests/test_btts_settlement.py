@@ -51,10 +51,12 @@ class BttsFirstHalfSettlementTests(unittest.TestCase):
             "kickoff_time": "2026-11-08T12:30:00+01:00",
             "league": "Test League",
         }
-        with patch.object(bot, "api_get", return_value={"data": [fixture]}) as fetch, \\
-             patch.object(bot, "extract_matches", return_value=[fixture]), \\
-             patch.object(bot, "settlement_fixture_matches_pick", return_value=True), \\
-             patch.object(bot, "confirmed_final_fixture", return_value=True):
+        with (
+            patch.object(bot, "api_get", return_value={"data": [fixture]}) as fetch,
+            patch.object(bot, "extract_matches", return_value=[fixture]),
+            patch.object(bot, "settlement_fixture_matches_pick", return_value=True),
+            patch.object(bot, "confirmed_final_fixture", return_value=True),
+        ):
             result = bot.sportscore_result_for_pick(pick)
         self.assertIs(result, fixture)
         self.assertTrue(fetch.called)
