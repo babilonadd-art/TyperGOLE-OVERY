@@ -5790,7 +5790,7 @@
       },
       "settled": true,
       "delivery_status": "sent",
-      "pick_number": 6,
+      "pick_number": 1,
       "telegram_message_id": 553,
       "sent_at": "2026-11-11T08:22:50.433562+01:00",
       "won": false,
@@ -5861,7 +5861,7 @@
       },
       "settled": true,
       "delivery_status": "sent",
-      "pick_number": 7,
+      "pick_number": 2,
       "telegram_message_id": 554,
       "sent_at": "2026-11-11T08:22:51.923550+01:00",
       "won": true,
@@ -5932,7 +5932,7 @@
       },
       "settled": true,
       "delivery_status": "sent",
-      "pick_number": 9,
+      "pick_number": 3,
       "telegram_message_id": 556,
       "sent_at": "2026-11-11T08:22:55.165149+01:00",
       "won": false,
@@ -6003,7 +6003,7 @@
       },
       "settled": true,
       "delivery_status": "sent",
-      "pick_number": 10,
+      "pick_number": 4,
       "telegram_message_id": 557,
       "sent_at": "2026-11-11T08:22:56.631909+01:00",
       "won": true,
@@ -6074,7 +6074,7 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 11,
+      "pick_number": 5,
       "telegram_message_id": 558,
       "sent_at": "2026-11-11T10:53:18.417337+01:00"
     },
@@ -6142,7 +6142,7 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 12,
+      "pick_number": 6,
       "telegram_message_id": 559,
       "sent_at": "2026-11-11T12:42:12.218635+01:00"
     },
@@ -6210,7 +6210,7 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 13,
+      "pick_number": 7,
       "telegram_message_id": 560,
       "sent_at": "2026-11-11T12:42:15.315922+01:00"
     },
@@ -6278,7 +6278,7 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 14,
+      "pick_number": 8,
       "telegram_message_id": 563,
       "sent_at": "2026-11-11T13:41:27.911682+01:00"
     },
@@ -6346,7 +6346,7 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 15,
+      "pick_number": 9,
       "telegram_message_id": 564,
       "sent_at": "2026-11-11T13:41:30.195186+01:00"
     },
@@ -6414,7 +6414,7 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 16,
+      "pick_number": 10,
       "telegram_message_id": 565,
       "sent_at": "2026-11-11T19:21:17.954481+01:00"
     }
@@ -12718,9 +12718,16 @@
     "2026-11-07",
     "2026-11-09",
     "2026-11-10",
-    "2026-11-08"
+    "2026-11-08",
+    "2026-11-11"
   ],
   "daily_btts_force_close": [
     "2026-11-11"
-  ]
+  ],
+  "daily_btts_closer_messages": {
+    "2026-11-11": 568
+  },
+  "daily_btts_daily_profit": {
+    "2026-11-11": -11.31
+  }
 }
