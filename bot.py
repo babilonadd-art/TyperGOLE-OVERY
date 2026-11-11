@@ -3253,6 +3253,121 @@ def retry_pending_settlement_notifications(state):
             )
 
 
+
+def make_daily_btts_closer_image(day_key, wins, losses):
+    """Create a compact visual end-of-day divider after every BTTS FT pick is settled."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    width, height = 1200, 675
+    image = Image.new("RGB", (width, height), (8, 16, 30))
+    draw = ImageDraw.Draw(image)
+    for y in range(height):
+        blend = y / max(1, height - 1)
+        color = (int(8 + 8 * blend), int(16 + 14 * blend), int(30 + 24 * blend))
+        draw.line((0, y, width, y), fill=color)
+
+    def font(size):
+        for path in (
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf",
+        ):
+            try:
+                return ImageFont.truetype(path, size)
+            except OSError:
+                pass
+        return ImageFont.load_default()
+
+    def centered(text, y, selected_font, fill):
+        bounds = draw.textbbox((0, 0), text, font=selected_font)
+        x = (width - (bounds[2] - bounds[0])) // 2
+        draw.text((x, y), text, font=selected_font, fill=fill)
+
+    draw.rounded_rectangle(
+        (54, 48, width - 54, height - 48),
+        radius=38,
+        fill=(12, 27, 46),
+        outline=(52, 104, 143),
+        width=4,
+    )
+    draw.rounded_rectangle((90, 86, width - 90, 102), radius=8, fill=(35, 190, 155))
+    centered("BTTS  •  FT", 150, font(76), (246, 250, 255))
+    centered("ROZLICZENIA ZAKONCZONE", 250, font(39), (134, 213, 204))
+
+    total = wins + losses
+    draw.rounded_rectangle((175, 365, 555, 510), radius=24, fill=(20, 78, 68))
+    draw.rounded_rectangle((645, 365, 1025, 510), radius=24, fill=(92, 39, 49))
+    centered(f"WYGRANE  {wins}", 407, font(38), (130, 245, 192))
+    centered(f"PRZEGRANE  {losses}", 407, font(34), (255, 155, 160))
+    centered(f"ROZLICZONE: {total}", 548, font(27), (207, 222, 238))
+    centered(datetime.fromisoformat(day_key).strftime("%d.%m.%Y"), 590, font(24), (125, 155, 184))
+
+    output = io.BytesIO()
+    image.save(output, format="JPEG", quality=92, optimize=True)
+    output.seek(0)
+    return output
+
+
+def telegram_daily_btts_closer(day_key, picks):
+    """Post the daily BTTS FT closing graphic once all picks for that date are settled."""
+    wins = sum(1 for pick in picks if pick.get("won") is True)
+    losses = sum(1 for pick in picks if pick.get("won") is False)
+    total = len(picks)
+    day_label = datetime.fromisoformat(day_key).strftime("%d.%m.%Y")
+    caption = (
+        f"🏁 KONIEC ROZLICZEŃ BTTS FT — {day_label}\n"
+        f"🟢 Wygrane: {wins} | 🔴 Przegrane: {losses}\n"
+        f"📊 Rozliczone typy: {total}"
+    )
+    image_file = make_daily_btts_closer_image(day_key, wins, losses)
+    response = requests.post(
+        f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto",
+        data={"chat_id": CHAT_ID, "caption": caption},
+        files={"photo": (f"btts-zamkniecie-{day_key}.jpg", image_file, "image/jpeg")},
+        timeout=45,
+    )
+    response.raise_for_status()
+    result = response.json()
+    if not result.get("ok"):
+        raise RuntimeError(f"Telegram sendPhoto error: {result}")
+    return result
+
+
+def send_daily_btts_closers(state):
+    """Close previous BTTS days with one summary image after all picks are settled."""
+    today_key = now_local().date().isoformat()
+    closed = set(state.get("daily_btts_closers_sent", []))
+    by_day = {}
+    for pick in state.get("picks", []):
+        if pick.get("market") != BTTS_FT_MARKET or pick.get("delivery_status", "sent") != "sent":
+            continue
+        day_key = str(pick.get("date") or "")[:10]
+        if not day_key or day_key >= today_key or day_key in closed:
+            continue
+        by_day.setdefault(day_key, []).append(pick)
+
+    for day_key, picks in sorted(by_day.items()):
+        if not picks or not all(pick.get("settled") for pick in picks):
+            continue
+        try:
+            response = telegram_daily_btts_closer(day_key, picks)
+            result = response.get("result", {}) if isinstance(response, dict) else {}
+            if isinstance(result, list):
+                result = result[0] if result else {}
+            state.setdefault("daily_btts_closers_sent", []).append(day_key)
+            state.setdefault("daily_btts_closer_messages", {})[day_key] = result.get("message_id")
+            save_state(state)
+            print(
+                f"WYSŁANO GRAFIKĘ ZAMKNIĘCIA BTTS FT {day_key}; "
+                f"message_id={result.get('message_id')}",
+                flush=True,
+            )
+        except Exception as exc:
+            print(
+                f"Nie udało się wysłać grafiki zamknięcia BTTS FT {day_key}: "
+                f"{type(exc).__name__}: {exc}; ponowię przy następnym skanie.",
+                flush=True,
+            )
+
 def send_monthly_reports(state):
     today = now_local().date()
     sent = set(state.get("monthly_reports_sent", []))
@@ -4941,6 +5056,10 @@ def btts_prematch_odds_gate(btts_quote):
 def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
     """Scan and send prematch BTTS FT picks for one Warsaw-local calendar date."""
     today = scan_date
+    day_key = today.isoformat()
+    if day_key in set(state.get("daily_btts_closers_sent", [])):
+        print(f"BTTS FT: dzień {day_key} ma już grafikę zamknięcia; nie dokładam nowych typów.", flush=True)
+        return
     events = superbet_prematch_event_links(target_date=today)
     if not events:
         print(f"Superbet BTTS FT: brak wydarzeń na {today.isoformat()}; bez fallbacku do innego bukmachera.", flush=True)
@@ -5195,6 +5314,10 @@ def main():
         send_prematch_superbet_btts_picks(state)
     except Exception as exc:
         print(f"Superbet BTTS FT scanner error: {type(exc).__name__}: {exc}", flush=True)
+    try:
+        send_daily_btts_closers(state)
+    except Exception as exc:
+        print(f"Daily BTTS closer error: {type(exc).__name__}: {exc}", flush=True)
     try:
         send_monthly_reports(state)
     except Exception as exc:
