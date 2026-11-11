@@ -6128,11 +6128,14 @@
         "method": "open_matchday_btts_ft_relaxed_v4",
         "league_folder": "AUT_1_BUNDESLIGA"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 6,
       "telegram_message_id": 553,
-      "sent_at": "2026-11-11T08:22:50.433562+01:00"
+      "sent_at": "2026-11-11T08:22:50.433562+01:00",
+      "won": false,
+      "settled_score": "2-0",
+      "settled_at": "2026-11-11T22:13:18.148015+01:00"
     },
     {
       "key": "superbet:15721415:BTTS_FT",
