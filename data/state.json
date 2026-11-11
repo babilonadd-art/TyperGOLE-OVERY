@@ -6816,7 +6816,7 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 1,
+      "pick_number": 16,
       "telegram_message_id": 565,
       "sent_at": "2026-11-11T19:21:17.954481+01:00"
     }
