@@ -2214,8 +2214,13 @@ def moviodds_btts_candidates(state, now=None, board=None):
 
 
 def sportscore_result_for_pick(pick):
-    """Find one exact, confirmed finished fixture in SportScore's results archive."""
-    if not isinstance(pick, dict) or pick_local_date(pick) != now_local().date():
+    """Find one exact, confirmed finished fixture in SportScore's results archive.
+
+    Search the pick's own fixture date even after midnight. This lets older
+    unresolved BTTS FT picks be reconciled instead of being limited to today's
+    fixtures; exact team/category/date/kickoff checks remain mandatory.
+    """
+    if not isinstance(pick, dict) or not pick_local_date(pick):
         return None
 
     kickoff = kickoff_datetime(pick)
