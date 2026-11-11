@@ -3365,13 +3365,14 @@ def telegram_daily_btts_closer(day_key, picks):
 def send_daily_btts_closers(state):
     """Close completed previous BTTS days only after every pick is settled."""
     today_key = now_local().date().isoformat()
+    forced_close = set(state.get("daily_btts_force_close", []))
     closed = set(state.get("daily_btts_closers_sent", []))
     by_day = {}
     for pick in state.get("picks", []):
         if pick.get("market") != BTTS_FT_MARKET or pick.get("delivery_status", "sent") != "sent":
             continue
         day_key = str(pick.get("date") or "")[:10]
-        if not day_key or day_key >= today_key or day_key in closed:
+        if not day_key or (day_key >= today_key and day_key not in forced_close) or day_key in closed:
             continue
         by_day.setdefault(day_key, []).append(pick)
 
