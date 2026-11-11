@@ -5906,11 +5906,14 @@
         "method": "open_matchday_btts_ft_relaxed_v4",
         "league_folder": "POR_CUP_TACA-DE-PORTUGAL"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 4,
       "telegram_message_id": 530,
-      "sent_at": "2026-11-10T22:55:33.361710+01:00"
+      "sent_at": "2026-11-10T22:55:33.361710+01:00",
+      "won": true,
+      "settled_score": "1-1",
+      "settled_at": "2026-11-11T05:02:48.721358+01:00"
     },
     {
       "key": "superbet:15658217:BTTS_FT",
