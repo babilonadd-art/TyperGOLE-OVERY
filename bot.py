@@ -601,6 +601,8 @@ def format_btts_ft_pick_message(pick, pick_number):
         + (f"🔥 Ostatnie mecze: gospodarz {metrics['home_recent_btts']}/{metrics['home_recent_played']} BTTS; gość {metrics['away_recent_btts']}/{metrics['away_recent_played']} BTTS\n" if all(key in metrics for key in ("home_recent_btts", "away_recent_btts", "home_recent_played", "away_recent_played")) else "")
         + (f"🧠 Model BTTS: {metrics['model_probability']:.1%} | rynek: {metrics['implied_probability']:.1%} | przewaga: +{metrics['value_edge']:.1%}\n" if all(key in metrics for key in ("model_probability", "implied_probability", "value_edge")) else "")
         + (f"🎯 Strzały celne / mecz: gospodarz {metrics['home_shots_on_target_avg']:.1f}; gość {metrics['away_shots_on_target_avg']:.1f} (próba min. {metrics['shots_on_target_sample']})\n" if metrics.get("shots_stats_available") and metrics.get("home_shots_on_target_avg") is not None and metrics.get("away_shots_on_target_avg") is not None else "")
+        + (f"⚽ Strzały łącznie / mecz: gospodarz {metrics['home_shots_avg']:.1f}; gość {metrics['away_shots_avg']:.1f}\n" if metrics.get("shots_total_stats_available") and metrics.get("home_shots_avg") is not None and metrics.get("away_shots_avg") is not None else "")
+        + (f"🚩 Rożne / mecz: gospodarz {metrics['home_corners_avg']:.1f}; gość {metrics['away_corners_avg']:.1f}\n" if metrics.get("corners_stats_available") and metrics.get("home_corners_avg") is not None and metrics.get("away_corners_avg") is not None else "")
         + f"📈 Superbet: {odds:.2f}\n"
         f"💵 Stawka: {float(pick.get('stake') or STAKE):.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
         f"🔗 Mecz Superbet: {pick.get('bet_url') or ''}\n"
@@ -4798,46 +4800,38 @@ def btts_value_gate(model_probability, odds, min_probability=0.60, min_edge=0.04
 
 
 def btts_probability_estimate(home_all, away_all, home_venue, away_venue):
-    """Blend venue, season, recent-form and goal-rate evidence; shrink small samples."""
+    """Blend venue, season, recent form and optional shot/corner evidence; shrink small samples."""
     venue_rate = (home_venue["btts"] + away_venue["btts"]) / 2.0
     season_rate = (home_all["btts"] + away_all["btts"]) / 2.0
     home_recent = home_all["last5"] / max(1, home_all["last5_played"])
     away_recent = away_all["last5"] / max(1, away_all["last5_played"])
     recent_rate = (home_recent + away_recent) / 2.0
-
-    lambda_home = max(
-        0.05,
-        (home_venue["goals_for_avg"] + away_venue["goals_against_avg"]) / 2.0,
-    )
-    lambda_away = max(
-        0.05,
-        (away_venue["goals_for_avg"] + home_venue["goals_against_avg"]) / 2.0,
-    )
+    lambda_home = max(0.05, (home_venue["goals_for_avg"] + away_venue["goals_against_avg"]) / 2.0)
+    lambda_away = max(0.05, (away_venue["goals_for_avg"] + home_venue["goals_against_avg"]) / 2.0)
     poisson_rate = (1.0 - math.exp(-lambda_home)) * (1.0 - math.exp(-lambda_away))
+    raw_probability = 0.40 * venue_rate + 0.25 * season_rate + 0.20 * recent_rate + 0.15 * poisson_rate
 
-    raw_probability = (
-        0.40 * venue_rate
-        + 0.25 * season_rate
-        + 0.20 * recent_rate
-        + 0.15 * poisson_rate
-    )
     overall_sample = min(home_all["played"], away_all["played"])
     venue_sample = min(home_venue["played"], away_venue["played"])
-    reliability = min(1.0, overall_sample / 8.0) * (
-        0.75 + 0.25 * min(1.0, venue_sample / 5.0)
-    )
+    reliability = min(1.0, overall_sample / 8.0) * (0.75 + 0.25 * min(1.0, venue_sample / 5.0))
     probability = 0.50 + reliability * (raw_probability - 0.50)
 
-    # Shots on target are an optional corroborating signal. Missing provider
-    # statistics are never treated as zero and never create a penalty.
-    shots_sample = min(home_all["shots_on_target_sample"], away_all["shots_on_target_sample"])
-    shots_adjustment = 0.0
+    # Optional attack-volume corroboration. Missing statistics are not zeros.
+    shots_sample = min(home_all["shots_sample"], away_all["shots_sample"])
+    shots_on_target_sample = min(home_all["shots_on_target_sample"], away_all["shots_on_target_sample"])
+    corners_sample = min(home_all["corners_sample"], away_all["corners_sample"])
+    activity_adjustment = 0.0
     if shots_sample >= 3:
-        average_sot = (
-            home_all["shots_on_target_avg"] + away_all["shots_on_target_avg"]
-        ) / 2.0
-        shots_adjustment = max(-0.015, min(0.020, (average_sot - 3.0) * 0.008))
-        probability += shots_adjustment
+        average_shots = (home_all["shots_avg"] + away_all["shots_avg"]) / 2.0
+        activity_adjustment += max(-0.006, min(0.006, (average_shots - 10.0) * 0.001))
+    if shots_on_target_sample >= 3:
+        average_sot = (home_all["shots_on_target_avg"] + away_all["shots_on_target_avg"]) / 2.0
+        activity_adjustment += max(-0.010, min(0.010, (average_sot - 3.0) * 0.004))
+    if corners_sample >= 3:
+        average_corners = (home_all["corners_avg"] + away_all["corners_avg"]) / 2.0
+        activity_adjustment += max(-0.004, min(0.004, (average_corners - 4.5) * 0.001))
+    activity_adjustment = max(-0.015, min(0.015, activity_adjustment))
+    probability += activity_adjustment
 
     return {
         "probability": max(0.01, min(0.90, probability)),
@@ -4850,17 +4844,24 @@ def btts_probability_estimate(home_all, away_all, home_venue, away_venue):
         "recent_rate": recent_rate,
         "reliability": reliability,
         "shots_sample": shots_sample,
-        "shots_adjustment": shots_adjustment,
+        "shots_on_target_sample": shots_on_target_sample,
+        "corners_sample": corners_sample,
+        "activity_adjustment": activity_adjustment,
     }
 
 
 def btts_recent_form_analysis(home, away, kickoff, league="", odds=None):
     """Evaluate a prematch BTTS FT fixture using current-season Open Matchday data."""
     data = open_matchday_data()
+
+    def reject(reason):
+        print(f"BTTS ANALYSIS REJECT: {home} - {away}: {reason}", flush=True)
+        return None
+
     try:
         cutoff = kickoff.date() if hasattr(kickoff, "date") else datetime.fromisoformat(str(kickoff)).date()
     except (TypeError, ValueError):
-        return None
+        return reject("brak prawidłowej daty rozpoczęcia")
 
     def valid_result(row):
         try:
@@ -4908,7 +4909,7 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None):
 
     team_rows = same_competition if same_competition else league_rows
     if not team_rows:
-        return None
+        return reject("brak historii w Open Matchday dla tych drużyn/rozgrywek")
 
     def matches_team(row, team, side):
         return team_name_similarity(row.get(side), team) >= 0.88
@@ -4931,6 +4932,7 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None):
             scored, conceded = (fh, fa) if is_home else (fa, fh)
             shots_for = as_int(row.get("home_shots" if is_home else "away_shots"))
             target_for = as_int(row.get("home_target" if is_home else "away_target"))
+            corners_for = as_int(row.get("home_corners" if is_home else "away_corners"))
             selected.append({
                 "date": str(row.get("date") or ""),
                 "btts": fh > 0 and fa > 0,
@@ -4941,6 +4943,7 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None):
                 "total_goals": fh + fa,
                 "shots_for": shots_for,
                 "shots_on_target_for": target_for,
+                "corners_for": corners_for,
             })
 
         selected.sort(key=lambda item: item["date"])
@@ -4954,6 +4957,7 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None):
                 "last3_btts_count": 0, "last3_btts_streak": False,
                 "shots_avg": None, "shots_sample": 0,
                 "shots_on_target_avg": None, "shots_on_target_sample": 0,
+                "corners_avg": None, "corners_sample": 0,
             }
 
         last5 = selected[-5:]
@@ -4962,6 +4966,10 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None):
         shots_on_target = [
             item["shots_on_target_for"] for item in selected
             if item["shots_on_target_for"] is not None
+        ]
+        corners = [
+            item["corners_for"] for item in selected
+            if item["corners_for"] is not None
         ]
         return {
             "played": len(selected),
@@ -4982,6 +4990,8 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None):
             "shots_sample": len(shots),
             "shots_on_target_avg": sum(shots_on_target) / len(shots_on_target) if shots_on_target else None,
             "shots_on_target_sample": len(shots_on_target),
+            "corners_avg": sum(corners) / len(corners) if corners else None,
+            "corners_sample": len(corners),
         }
 
     home_all = summarize(team_rows, home)
@@ -4990,40 +5000,43 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None):
     away_venue = summarize(team_rows, away, "away")
 
     if min(home_all["played"], away_all["played"]) < 5:
-        return None
+        return reject("za mała próba sezonowa: potrzeba min. 5 meczów na zespół")
     if min(home_venue["played"], away_venue["played"]) < 3:
-        return None
+        return reject("za mała próba dom/wyjazd: potrzeba min. 3 meczów")
     if min(home_all["last5_played"], away_all["last5_played"]) < 4:
-        return None
+        return reject("brak co najmniej 4 meczów w ostatniej próbce")
     if min(home_all["btts"], away_all["btts"]) < 0.40:
-        return None
+        return reject("BTTS sezonowe poniżej 40% u jednej z drużyn")
     if min(home_venue["btts"], away_venue["btts"]) < 0.40:
-        return None
+        return reject("BTTS dom/wyjazd poniżej 40%")
     if min(home_all["last5"], away_all["last5"]) < 2:
-        return None
+        return reject("mniej niż 2 BTTS w ostatnich 5 meczach jednej z drużyn")
     if min(home_venue["last3_btts_count"], away_venue["last3_btts_count"]) < 1:
-        return None
+        return reject("brak BTTS w ostatnich 3 meczach na odpowiednim terenie")
     if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.60:
-        return None
+        return reject("jedna z drużyn strzelała w mniej niż 60% meczów")
     if min(home_venue["scored_rate"], away_venue["scored_rate"]) < 0.60:
-        return None
+        return reject("skuteczność strzelania dom/wyjazd poniżej 60%")
     if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.40:
-        return None
+        return reject("jedna z drużyn zbyt często nie strzela gola")
     if max(home_all["clean_sheets"], away_all["clean_sheets"]) > 0.45:
-        return None
+        return reject("jedna z drużyn zbyt często zachowuje czyste konto")
     if min(home_all["avg_goals"], away_all["avg_goals"]) < 2.0:
-        return None
+        return reject("średnia liczba goli w meczach drużyny poniżej 2.0")
 
     estimate = btts_probability_estimate(home_all, away_all, home_venue, away_venue)
     probability = estimate["probability"]
     try:
         price = float(odds)
     except (TypeError, ValueError):
-        return None
+        return reject("brak prawidłowego kursu BTTS")
     implied_probability = 1.0 / price if price > 1.0 else 1.0
     edge = probability - implied_probability
     if not btts_value_gate(probability, price):
-        return None
+        return reject(
+            f"brak przewagi modelu: model={probability:.1%}, "
+            f"kurs={price:.2f}, implied={implied_probability:.1%}, edge={edge:.1%}"
+        )
 
     league_name = str(league or "").strip()
     if not league_name:
@@ -5068,8 +5081,14 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None):
         "away_shots_avg": away_all["shots_avg"],
         "home_shots_on_target_avg": home_all["shots_on_target_avg"],
         "away_shots_on_target_avg": away_all["shots_on_target_avg"],
-        "shots_on_target_sample": estimate["shots_sample"],
-        "shots_stats_available": estimate["shots_sample"] >= 3,
+        "home_corners_avg": home_all["corners_avg"],
+        "away_corners_avg": away_all["corners_avg"],
+        "shots_sample": estimate["shots_sample"],
+        "shots_on_target_sample": estimate["shots_on_target_sample"],
+        "corners_sample": estimate["corners_sample"],
+        "shots_stats_available": estimate["shots_on_target_sample"] >= 3,
+        "shots_total_stats_available": estimate["shots_sample"] >= 3,
+        "corners_stats_available": estimate["corners_sample"] >= 3,
         "league": league_name,
         "xg_available": False,
         "lineups_available": False,
