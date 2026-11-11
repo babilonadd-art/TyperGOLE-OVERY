@@ -1,14 +1,12 @@
 name: TyperGOLE-OVERY Live Bot
 
 on:
-  # Uruchom także po zmianie kodu, ale nie po samym zapisie state.json.
+  # Uruchamiaj po zmianie kodu lub testów; zapis state.json nie uruchamia kolejnego skanu.
   push:
     branches: [main]
     paths:
       - "bot.py"
       - "tests/**"
-      - ".github/workflows/live-bot.yml"
-      - "data/state.json"
   workflow_dispatch:
   schedule:
     # Najszybszy wspierany interwał harmonogramu GitHub Actions: co 5 minut.
