@@ -12,7 +12,7 @@ Przedmeczowy Telegram bot dla rynku **BTTS — obie drużyny strzelą gola w ca�
 - Tylko BTTS cały mecz — TAK. Bez BTTS 1. połowy i bez innych rynków.
 - Maksymalnie 10 typów dziennie.
 - Minimalny kurs Superbet: 1.65.
-- Statystyki BTTS są liczone z bezpłatnych plików CSV Open Matchday: forma sezonowa, dom/wyjazd, ostatnie 5 spotkań, gole zdobywane i tracone, czyste konta oraz mecze bez zdobytej bramki. Gdy dostawca udostępnia dane, model dodatkowo wykorzystuje strzały i strzały celne. Puste pola statystyczne są traktowane jako brak danych, nigdy jako zero.
+- Statystyki BTTS są liczone z bezpłatnych plików CSV Open Matchday: forma sezonowa, dom/wyjazd, ostatnie 5 spotkań, gole zdobywane i tracone, czyste konta oraz mecze bez zdobytej bramki. Gdy dostawca udostępnia dane, model dodatkowo wykorzystuje strzały, strzały celne i rożne jako ograniczone sygnały aktywności ofensywnej. Puste pola statystyczne są traktowane jako brak danych, nigdy jako zero.
 - Model łączy wskaźniki BTTS z venue, formę ostatnich meczów i estymację Poissona opartą o gole zdobywane/tracone; ma korektę na wielkość próby. Typ przechodzi tylko przy estymacji co najmniej 60% i przewadze co najmniej 4 punktów procentowych nad prawdopodobieństwem wynikającym z kursu. Minimalna próba: 5 meczów ogółem na zespół i 3 na odpowiednim terenie.
 - Zakres kursów BTTS FT: 1.55–2.40. Brak odpowiedniej próbki, brak potwierdzonego rynku lub brak przewagi nad kursem oznacza pominięcie meczu.
 - Open Matchday nie publikuje xG ani składów; bot nie udaje, że ma te dane. Szczegółowe statystyki strzałów są dostępne tylko dla części lig/meczów, więc są używane wyłącznie wtedy, gdy istnieje wystarczająca próbka.
