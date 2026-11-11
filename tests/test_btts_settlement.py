@@ -140,11 +140,26 @@ class BttsQualityGateTests(unittest.TestCase):
         self.assertFalse(bot.btts_value_gate(None, 2.0))
         self.assertFalse(bot.btts_value_gate(1.2, 2.0))
 
+
+    def test_missing_optional_attack_stats_do_not_change_model(self):
+        base = {
+            "btts": 0.60, "last5": 3, "last5_played": 5, "played": 8,
+            "goals_for_avg": 1.5, "goals_against_avg": 1.2,
+            "shots_sample": 0, "shots_avg": None,
+            "shots_on_target_sample": 0, "shots_on_target_avg": None,
+            "corners_sample": 0, "corners_avg": None,
+        }
+        venue = dict(base, played=5)
+        estimate = bot.btts_probability_estimate(base, base, venue, venue)
+        self.assertEqual(estimate["activity_adjustment"], 0.0)
+
     def test_small_samples_are_shrunk_toward_neutral(self):
         high = {
             "btts": 1.0, "last5": 5, "last5_played": 5, "played": 5,
             "goals_for_avg": 2.0, "goals_against_avg": 2.0,
+            "shots_sample": 0, "shots_avg": None,
             "shots_on_target_sample": 0, "shots_on_target_avg": None,
+            "corners_sample": 0, "corners_avg": None,
         }
         venue = dict(high, played=3)
         estimate = bot.btts_probability_estimate(high, high, venue, venue)
