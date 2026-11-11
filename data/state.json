@@ -6470,7 +6470,7 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 1,
+      "pick_number": 11,
       "telegram_message_id": 558,
       "sent_at": "2026-11-11T10:53:18.417337+01:00"
     }
