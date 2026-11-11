@@ -601,14 +601,14 @@ def format_btts_ft_pick_message(pick, pick_number):
         probability_text = "—"
 
     message = (
-        f"🎯 𝗧𝗬𝗣 𝗡𝗥. {pick_number} — BTTS TAK (FT)\\n\\n"
-        f"⚽ {home} – {away}\\n"
-        f"📅 {kickoff.strftime('%d.%m.%Y')} | 🕒 {kickoff.strftime('%H:%M')} (Polska)\\n"
-        + (f"🏆 {league}\\n" if league else "")
-        + f"📊 Szacowana szansa BTTS do końca meczu: {probability_text}\\n"
-        + f"💰 Kurs: {odds:.2f}\\n"
-        + f"💵 Stawka: {stake:.2f} zł | Możliwa wypłata po podatku: {payout['payout']:.2f} zł\\n"
-        + f"🔗 Mecz: {pick.get('bet_url') or ''}\\n\\n"
+        f"🎯 𝗧𝗬𝗣 𝗡𝗥. {pick_number} — BTTS TAK (FT)\n\n"
+        f"⚽ {home} – {away}\n"
+        f"📅 {kickoff.strftime('%d.%m.%Y')} | 🕒 {kickoff.strftime('%H:%M')} (Polska)\n"
+        + (f"🏆 {league}\n" if league else "")
+        + f"📊 Szacowana szansa BTTS do końca meczu: {probability_text}\n"
+        + f"💰 Kurs: {odds:.2f}\n"
+        + f"💵 Stawka: {stake:.2f} zł | Możliwa wypłata po podatku: {payout['payout']:.2f} zł\n"
+        + f"🔗 Mecz: {pick.get('bet_url') or ''}\n\n"
         + "Typ dotyczy obu drużyn ze strzelonym golem po 90 minutach + doliczony czas. Bez dogrywki."
     )
     return message
