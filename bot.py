@@ -581,32 +581,35 @@ def telegram_edit_btts_pick(message, message_id):
 
 
 def format_btts_ft_pick_message(pick, pick_number):
-    """Rebuild a BTTS FT Telegram caption with a corrected pick number."""
+    """Create a short, user-friendly BTTS FT pick caption."""
     kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
     analysis = pick.get("analysis") or {}
     metrics = analysis.get("metrics") or {}
     odds = float(pick.get("odds") or 0)
-    payout = calculate_bet_result(float(pick.get("stake") or STAKE), odds)
-    home, away = pick.get("home") or "Gospodarze", pick.get("away") or "Goście"
+    stake = float(pick.get("stake") or STAKE)
+    payout = calculate_bet_result(stake, odds)
+    home = pick.get("home") or "Gospodarze"
+    away = pick.get("away") or "Goście"
     league = pick.get("league") or ""
+
+    probability = metrics.get("model_probability")
+    if probability is None:
+        probability = analysis.get("probability")
+    try:
+        probability_text = f"{float(probability):.0%}" if probability is not None else "—"
+    except (TypeError, ValueError):
+        probability_text = "—"
+
     message = (
-        f"𝗧𝗬𝗣 𝗡𝗥. {pick_number}\n\n"
-        f"📅 DATA: {kickoff.strftime('%d.%m.%Y')}\n"
-        "━━━━━━━━━━━━━━━━━━\n"
-        f"🕒 GODZINA: {kickoff.strftime('%H:%M')} — CZAS POLSKI\n"
-        f"🎯 BTTS TAK — CAŁY MECZ (FT, 90 MIN + DOLICZONY CZAS)\n"
-        f"⚽ {home} – {away}\n"
-        + (f"🏆 Liga: {league}\n" if league else "")
-        + (f"📊 BTTS sezon: gospodarz {metrics['home_btts']:.0%} ({round(metrics['home_btts'] * metrics['home_btts_played'])}/{metrics['home_btts_played']}); gość {metrics['away_btts']:.0%} ({round(metrics['away_btts'] * metrics['away_btts_played'])}/{metrics['away_btts_played']})\n🏟️ Dom/wyjazd: gospodarz {metrics['home_venue_btts']:.0%} ({round(metrics['home_venue_btts'] * metrics['home_venue_played'])}/{metrics['home_venue_played']}); gość {metrics['away_venue_btts']:.0%} ({round(metrics['away_venue_btts'] * metrics['away_venue_played'])}/{metrics['away_venue_played']})\n" if all(key in metrics for key in ("home_btts", "away_btts", "home_venue_btts", "away_venue_btts", "home_btts_played", "away_btts_played", "home_venue_played", "away_venue_played")) else "📊 Brak wystarczających statystyk.\n")
-        + (f"🔥 Ostatnie mecze: gospodarz {metrics['home_recent_btts']}/{metrics['home_recent_played']} BTTS; gość {metrics['away_recent_btts']}/{metrics['away_recent_played']} BTTS\n" if all(key in metrics for key in ("home_recent_btts", "away_recent_btts", "home_recent_played", "away_recent_played")) else "")
-        + (f"🧠 Model BTTS: {metrics['model_probability']:.1%} | rynek: {metrics['implied_probability']:.1%} | przewaga: +{metrics['value_edge']:.1%}\n" if all(key in metrics for key in ("model_probability", "implied_probability", "value_edge")) else "")
-        + (f"🎯 Strzały celne / mecz: gospodarz {metrics['home_shots_on_target_avg']:.1f}; gość {metrics['away_shots_on_target_avg']:.1f} (próba min. {metrics['shots_on_target_sample']})\n" if metrics.get("shots_stats_available") and metrics.get("home_shots_on_target_avg") is not None and metrics.get("away_shots_on_target_avg") is not None else "")
-        + (f"⚽ Strzały łącznie / mecz: gospodarz {metrics['home_shots_avg']:.1f}; gość {metrics['away_shots_avg']:.1f}\n" if metrics.get("shots_total_stats_available") and metrics.get("home_shots_avg") is not None and metrics.get("away_shots_avg") is not None else "")
-        + (f"🚩 Rożne / mecz: gospodarz {metrics['home_corners_avg']:.1f}; gość {metrics['away_corners_avg']:.1f}\n" if metrics.get("corners_stats_available") and metrics.get("home_corners_avg") is not None and metrics.get("away_corners_avg") is not None else "")
-        + f"📈 Superbet: {odds:.2f}\n"
-        f"💵 Stawka: {float(pick.get('stake') or STAKE):.2f} zł | Potencjalna wypłata po podatku: {payout['payout']:.2f} zł\n"
-        f"🔗 Mecz Superbet: {pick.get('bet_url') or ''}\n"
-        "Rozliczenie: wynik po 90 minutach; bez dogrywki i serii karnych."
+        f"🎯 𝗧𝗬𝗣 𝗡𝗥. {pick_number} — BTTS TAK (FT)\\n\\n"
+        f"⚽ {home} – {away}\\n"
+        f"📅 {kickoff.strftime('%d.%m.%Y')} | 🕒 {kickoff.strftime('%H:%M')} (Polska)\\n"
+        + (f"🏆 {league}\\n" if league else "")
+        + f"📊 Szacowana szansa BTTS do końca meczu: {probability_text}\\n"
+        + f"💰 Kurs: {odds:.2f}\\n"
+        + f"💵 Stawka: {stake:.2f} zł | Możliwa wypłata po podatku: {payout['payout']:.2f} zł\\n"
+        + f"🔗 Mecz: {pick.get('bet_url') or ''}\\n\\n"
+        + "Typ dotyczy obu drużyn ze strzelonym golem po 90 minutach + doliczony czas. Bez dogrywki."
     )
     return message
 
