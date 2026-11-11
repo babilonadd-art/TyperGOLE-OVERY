@@ -33,6 +33,32 @@ class BttsFirstHalfSettlementTests(unittest.TestCase):
     def test_missing_kickoff_blocks_automatic_settlement(self):
         self.assertFalse(kickoff_reached_for_settlement({}))
 
+
+    def test_sportscore_archive_can_reconcile_picks_from_previous_days(self):
+        fixture = {
+            "id": "historic-fixture-1",
+            "home": "Home FC",
+            "away": "Away FC",
+            "time": "2026-11-08T12:30:00+01:00",
+            "status": "finished",
+            "home_score": 2,
+            "away_score": 1,
+        }
+        pick = {
+            "home": "Home FC",
+            "away": "Away FC",
+            "date": "2026-11-08",
+            "kickoff_time": "2026-11-08T12:30:00+01:00",
+            "league": "Test League",
+        }
+        with patch.object(bot, "api_get", return_value={"data": [fixture]}) as fetch, \\
+             patch.object(bot, "extract_matches", return_value=[fixture]), \\
+             patch.object(bot, "settlement_fixture_matches_pick", return_value=True), \\
+             patch.object(bot, "confirmed_final_fixture", return_value=True):
+            result = bot.sportscore_result_for_pick(pick)
+        self.assertIs(result, fixture)
+        self.assertTrue(fetch.called)
+
     def test_both_teams_scored_before_break_is_win(self):
         self.assertTrue(btts_first_half_won(1, 1))
         self.assertTrue(btts_first_half_won(2, 1))
