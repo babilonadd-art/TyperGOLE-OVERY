@@ -6680,7 +6680,7 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 1,
+      "pick_number": 14,
       "telegram_message_id": 563,
       "sent_at": "2026-11-11T13:41:27.911682+01:00"
     },
@@ -6748,7 +6748,7 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 2,
+      "pick_number": 15,
       "telegram_message_id": 564,
       "sent_at": "2026-11-11T13:41:30.195186+01:00"
     }
