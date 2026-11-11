@@ -1988,29 +1988,18 @@ def telegram(message, reply_to_message_id=None):
 
 
 def telegram_reply(message, reply_to_message_id):
-    """Deliver a settlement; if Telegram rejects the reply reference, post it plainly."""
+    """Send settlement only as a reply to its original pick; never publish standalone."""
     if reply_to_message_id in (None, ""):
         raise RuntimeError("Brak ID wiadomości typu; nie można bezpiecznie powiązać rozliczenia.")
     try:
-        return telegram(message, reply_to_message_id=reply_to_message_id)
-    except requests.HTTPError as exc:
-        response = getattr(exc, "response", None)
-        # Telegram returns HTTP 400 when the referenced post is no longer
-        # replyable (for example, it was deleted or belongs to another chat).
-        # Do not lose the settlement: retry once as a clearly labelled channel
-        # message. Other HTTP/network errors still propagate and remain pending.
-        if response is None or response.status_code != 400:
-            raise
-        try:
-            detail = response.json()
-        except Exception:
-            detail = getattr(response, "text", str(exc))
-        print(
-            f"Telegram odrzucił odpowiedź do wiadomości {reply_to_message_id} "
-            f"(HTTP 400: {detail}); wysyłam rozliczenie jako osobny post.",
-            flush=True,
-        )
-        return telegram("📊 ROZLICZENIE BTTS FT\n" + message)
+        reply_id = int(reply_to_message_id)
+    except (TypeError, ValueError):
+        raise RuntimeError("Nieprawidłowe ID wiadomości typu; rozliczenie pozostaje oczekujące.")
+    if reply_id <= 0:
+        raise RuntimeError("Nieprawidłowe ID wiadomości typu; rozliczenie pozostaje oczekujące.")
+    # Any Telegram rejection/network error is allowed to propagate. The pick
+    # stays unsettled and the next scheduled scan retries the same reply.
+    return telegram(message, reply_to_message_id=reply_id)
 
 
 # Settlement lookup supports both live detail and the finished-fixture archive.
@@ -3254,8 +3243,32 @@ def retry_pending_settlement_notifications(state):
 
 
 
-def make_daily_btts_closer_image(day_key, wins, losses):
-    """Create a compact visual end-of-day divider after every BTTS FT pick is settled."""
+def daily_btts_net_profit(picks):
+    """Return net profit/loss for settled BTTS FT picks after the configured tax."""
+    total = 0.0
+    for pick in picks:
+        stake = float(pick.get("stake", STAKE) or STAKE)
+        if pick.get("won") is True:
+            odds = float(pick.get("odds") or 0)
+            total += calculate_bet_result(stake, odds)["profit"]
+        elif pick.get("won") is False:
+            total -= stake
+        elif pick.get("settlement_outcome") in {"void", "cancelled", "refunded"}:
+            continue
+        else:
+            raise ValueError(
+                f"Nieznany wynik rozliczenia dla {pick.get('key') or pick.get('home')}: "
+                "nie można zamknąć dnia ani policzyć bilansu."
+            )
+    return round(total, 2)
+
+
+def format_pln(value):
+    return f"{float(value):+.2f}".replace(".", ",") + " zł"
+
+
+def make_daily_btts_closer_image(day_key, wins, losses, net_profit):
+    """Create the daily BTTS FT closing graphic with final net profit/loss."""
     from PIL import Image, ImageDraw, ImageFont
 
     width, height = 1200, 675
@@ -3290,16 +3303,18 @@ def make_daily_btts_closer_image(day_key, wins, losses):
         width=4,
     )
     draw.rounded_rectangle((90, 86, width - 90, 102), radius=8, fill=(35, 190, 155))
-    centered("BTTS  •  FT", 150, font(76), (246, 250, 255))
-    centered("ROZLICZENIA ZAKONCZONE", 250, font(39), (134, 213, 204))
+    centered("BTTS  •  FT", 135, font(76), (246, 250, 255))
+    centered("ROZLICZENIA ZAKONCZONE", 225, font(39), (134, 213, 204))
 
     total = wins + losses
-    draw.rounded_rectangle((175, 365, 555, 510), radius=24, fill=(20, 78, 68))
-    draw.rounded_rectangle((645, 365, 1025, 510), radius=24, fill=(92, 39, 49))
-    centered(f"WYGRANE  {wins}", 407, font(38), (130, 245, 192))
-    centered(f"PRZEGRANE  {losses}", 407, font(34), (255, 155, 160))
-    centered(f"ROZLICZONE: {total}", 548, font(27), (207, 222, 238))
-    centered(datetime.fromisoformat(day_key).strftime("%d.%m.%Y"), 590, font(24), (125, 155, 184))
+    draw.rounded_rectangle((175, 315, 555, 445), radius=24, fill=(20, 78, 68))
+    draw.rounded_rectangle((645, 315, 1025, 445), radius=24, fill=(92, 39, 49))
+    centered(f"WYGRANE  {wins}", 355, font(38), (130, 245, 192))
+    centered(f"PRZEGRANE  {losses}", 355, font(34), (255, 155, 160))
+    profit_color = (130, 245, 192) if net_profit >= 0 else (255, 155, 160)
+    centered(f"ZYSK NETTO / STRATA: {format_pln(net_profit)}", 475, font(37), profit_color)
+    centered(f"ROZLICZONE: {total}", 535, font(27), (207, 222, 238))
+    centered(datetime.fromisoformat(day_key).strftime("%d.%m.%Y"), 580, font(24), (125, 155, 184))
 
     output = io.BytesIO()
     image.save(output, format="JPEG", quality=92, optimize=True)
@@ -3308,17 +3323,20 @@ def make_daily_btts_closer_image(day_key, wins, losses):
 
 
 def telegram_daily_btts_closer(day_key, picks):
-    """Post the daily BTTS FT closing graphic once all picks for that date are settled."""
+    """Post the daily BTTS FT closing graphic and final financial balance."""
     wins = sum(1 for pick in picks if pick.get("won") is True)
     losses = sum(1 for pick in picks if pick.get("won") is False)
     total = len(picks)
+    net_profit = daily_btts_net_profit(picks)
     day_label = datetime.fromisoformat(day_key).strftime("%d.%m.%Y")
     caption = (
         f"🏁 KONIEC ROZLICZEŃ BTTS FT — {day_label}\n"
         f"🟢 Wygrane: {wins} | 🔴 Przegrane: {losses}\n"
-        f"📊 Rozliczone typy: {total}"
+        f"📊 Rozliczone typy: {total}\n"
+        f"💰 ZYSK NETTO / STRATA: {format_pln(net_profit)}\n"
+        f"🔒 DZIEŃ ZAMKNIĘTY"
     )
-    image_file = make_daily_btts_closer_image(day_key, wins, losses)
+    image_file = make_daily_btts_closer_image(day_key, wins, losses, net_profit)
     response = requests.post(
         f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto",
         data={"chat_id": CHAT_ID, "caption": caption},
@@ -3333,7 +3351,7 @@ def telegram_daily_btts_closer(day_key, picks):
 
 
 def send_daily_btts_closers(state):
-    """Close previous BTTS days with one summary image after all picks are settled."""
+    """Close completed previous BTTS days only after every pick is settled."""
     today_key = now_local().date().isoformat()
     closed = set(state.get("daily_btts_closers_sent", []))
     by_day = {}
@@ -3346,7 +3364,17 @@ def send_daily_btts_closers(state):
         by_day.setdefault(day_key, []).append(pick)
 
     for day_key, picks in sorted(by_day.items()):
-        if not picks or not all(pick.get("settled") for pick in picks):
+        if not picks or not all(
+            pick.get("settled")
+            and pick.get("telegram_message_id")
+            and not pick.get("settlement_notification_retry")
+            for pick in picks
+        ):
+            pending = sum(1 for pick in picks if not pick.get("settled"))
+            print(
+                f"DZIEŃ BTTS {day_key} NIEZAMKNIĘTY — oczekujące rozliczenia: {pending}.",
+                flush=True,
+            )
             continue
         try:
             response = telegram_daily_btts_closer(day_key, picks)
@@ -3355,9 +3383,11 @@ def send_daily_btts_closers(state):
                 result = result[0] if result else {}
             state.setdefault("daily_btts_closers_sent", []).append(day_key)
             state.setdefault("daily_btts_closer_messages", {})[day_key] = result.get("message_id")
+            state.setdefault("daily_btts_daily_profit", {})[day_key] = daily_btts_net_profit(picks)
             save_state(state)
             print(
                 f"WYSŁANO GRAFIKĘ ZAMKNIĘCIA BTTS FT {day_key}; "
+                f"bilans={format_pln(daily_btts_net_profit(picks))}; "
                 f"message_id={result.get('message_id')}",
                 flush=True,
             )
@@ -3367,6 +3397,7 @@ def send_daily_btts_closers(state):
                 f"{type(exc).__name__}: {exc}; ponowię przy następnym skanie.",
                 flush=True,
             )
+
 
 def send_monthly_reports(state):
     today = now_local().date()
@@ -5195,7 +5226,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
         # duplicates across the five-minute scheduled workflow runs.
         headers_sent = state.setdefault("daily_headers_sent", [])
         if day_key not in headers_sent:
-            header = f"📅 𝗧𝗬𝗣𝗬 𝗡𝗔 𝗗𝗭𝗜𝗘𝗡 {today.strftime('%d.%m.%Y')}\n━━━━━━━━━━━━━━━━━━\n⚽ BTTS TAK — CAŁY MECZ (FT)\n━━━━━━━━━━━━━━━━━━"
+            header = f"🚀 𝗭𝗔𝗖𝗭𝗬𝗡𝗔𝗠𝗬 𝗞𝗢𝗟𝗘𝗝𝗡𝗬 𝗗𝗭𝗜𝗘Ń 𝗭 𝗧𝗬𝗣𝗔𝗠𝗜!\n📅 {today.strftime('%d.%m.%Y')}\n━━━━━━━━━━━━━━━━━━\n⚽ BTTS TAK — CAŁY MECZ (FT)\n━━━━━━━━━━━━━━━━━━"
             try:
                 header_result = telegram(header)
                 header_message = header_result.get("result", {}) if isinstance(header_result, dict) else {}
