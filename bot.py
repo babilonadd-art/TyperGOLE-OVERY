@@ -4790,8 +4790,8 @@ def send_prematch_over_15_ht_picks(state):
 MAX_DAILY_BTTS_FT_PICKS = 10
 
 
-def btts_value_gate(model_probability, odds, min_probability=0.52, min_edge=0.01):
-    """Keep a modest positive model edge without demanding an unrealistic 60%+ estimate at every price."""
+def btts_value_gate(model_probability, odds, min_probability=0.50, min_edge=0.00):
+    """Use a softer probability/value threshold while retaining the BTTS odds band."""
     try:
         probability = float(model_probability)
         price = float(odds)
@@ -5003,32 +5003,32 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None):
     home_venue = summarize(team_rows, home, "home")
     away_venue = summarize(team_rows, away, "away")
 
-    # Relax sample and form cutoffs: short histories should not eliminate
-    # almost every fixture, but a minimum evidence floor remains in place.
-    if min(home_all["played"], away_all["played"]) < 4:
-        return reject("za mała próba sezonowa: potrzeba min. 4 meczów na zespół")
-    if min(home_venue["played"], away_venue["played"]) < 2:
-        return reject("za mała próba dom/wyjazd: potrzeba min. 2 meczów")
-    if min(home_all["last5_played"], away_all["last5_played"]) < 3:
-        return reject("brak co najmniej 3 meczów w ostatniej próbce")
-    if min(home_all["btts"], away_all["btts"]) < 0.30:
-        return reject("BTTS sezonowe poniżej 30% u jednej z drużyn")
-    if min(home_venue["btts"], away_venue["btts"]) < 0.25:
-        return reject("BTTS dom/wyjazd poniżej 25%")
+    # Moderately relaxed cutoffs: widen the candidate pool without removing
+    # the minimum historical evidence needed for a reasoned BTTS assessment.
+    if min(home_all["played"], away_all["played"]) < 3:
+        return reject("za mała próba sezonowa: potrzeba min. 3 meczów na zespół")
+    if min(home_venue["played"], away_venue["played"]) < 1:
+        return reject("brak choć jednego meczu dom/wyjazd w próbce")
+    if min(home_all["last5_played"], away_all["last5_played"]) < 2:
+        return reject("brak co najmniej 2 meczów w ostatniej próbce")
+    if min(home_all["btts"], away_all["btts"]) < 0.25:
+        return reject("BTTS sezonowe poniżej 25% u jednej z drużyn")
+    if min(home_venue["btts"], away_venue["btts"]) < 0.20:
+        return reject("BTTS dom/wyjazd poniżej 20%")
     if min(home_all["last5"], away_all["last5"]) < 1:
         return reject("brak BTTS w ostatnich 5 meczach jednej z drużyn")
-    if min(home_venue["last3_btts_count"], away_venue["last3_btts_count"]) < 1:
-        return reject("brak BTTS w ostatnich 3 meczach na odpowiednim terenie")
-    if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.50:
-        return reject("jedna z drużyn strzelała w mniej niż 50% meczów")
-    if min(home_venue["scored_rate"], away_venue["scored_rate"]) < 0.50:
-        return reject("skuteczność strzelania dom/wyjazd poniżej 50%")
-    if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.60:
-        return reject("jedna z drużyn zbyt często nie strzela gola")
-    if max(home_all["clean_sheets"], away_all["clean_sheets"]) > 0.60:
-        return reject("jedna z drużyn zbyt często zachowuje czyste konto")
-    if min(home_all["avg_goals"], away_all["avg_goals"]) < 1.6:
-        return reject("średnia liczba goli w meczach drużyny poniżej 1.6")
+    if home_venue["last3_btts_count"] + away_venue["last3_btts_count"] < 1:
+        return reject("brak BTTS w ostatnich 3 meczach na którymkolwiek odpowiednim terenie")
+    if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.40:
+        return reject("jedna z drużyn strzelała w mniej niż 40% meczów")
+    if min(home_venue["scored_rate"], away_venue["scored_rate"]) < 0.40:
+        return reject("skuteczność strzelania dom/wyjazd poniżej 40%")
+    if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.70:
+        return reject("jedna z drużyn nie strzela gola w ponad 70% meczów")
+    if max(home_all["clean_sheets"], away_all["clean_sheets"]) > 0.70:
+        return reject("jedna z drużyn zachowuje czyste konto w ponad 70% meczów")
+    if min(home_all["avg_goals"], away_all["avg_goals"]) < 1.4:
+        return reject("średnia liczba goli w meczach drużyny poniżej 1.4")
 
     estimate = btts_probability_estimate(home_all, away_all, home_venue, away_venue)
     probability = estimate["probability"]
