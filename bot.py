@@ -5755,6 +5755,27 @@ def main():
     print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS GROUP — OVER 1.5 HT START {now_local().isoformat()} ===", flush=True)
     print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
     state = load_state()
+    # One-time correction of the already published Atletico Balboa - CD Inca pick.
+    for historical_pick in state.get("picks", []):
+        if historical_pick.get("telegram_result_caption_pending"):
+            corrected_caption = (
+                format_btts_ft_pick_message(
+                    historical_pick, historical_pick.get("pick_number") or 4
+                )
+                + "\\n\\n🟢 BTTS SPEŁNIONE W I POŁOWIE"
+                + "\\n🏁 Wynik końcowy (FT): 3:1"
+            )
+            telegram_edit_btts_pick(
+                corrected_caption, historical_pick.get("telegram_message_id")
+            )
+            historical_pick["telegram_result_caption_pending"] = False
+            historical_pick["telegram_result_caption_edited_at"] = now_local().isoformat()
+            save_state(state)
+            print(
+                f"POPRAWIONO OPIS WYSŁANEGO TYPU: {historical_pick.get('home')} - "
+                f"{historical_pick.get('away')}; message_id={historical_pick.get('telegram_message_id')}",
+                flush=True,
+            )
     try:
         repair_sent_btts_league_captions(state)
     except Exception as exc:
