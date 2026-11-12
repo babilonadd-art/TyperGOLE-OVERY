@@ -6852,12 +6852,15 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "BRA_2_serie-b"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 2,
       "telegram_message_id": 574,
       "sent_at": "2026-11-12T13:35:59.683690+01:00",
-      "pick_number_override": 2
+      "pick_number_override": 2,
+      "won": false,
+      "settled_score": "2-0",
+      "settled_at": "2026-11-12T21:15:15.489911+01:00"
     }
   ],
   "reports_sent": [],
