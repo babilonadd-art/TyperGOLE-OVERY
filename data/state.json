@@ -6907,11 +6907,11 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 3,
+      "pick_number": 6,
       "telegram_message_id": 576,
       "sent_at": "2026-11-12T21:22:00.418908+01:00",
-      "league_caption_repair_pending": true,
-      "league_caption_repaired_at": "2026-11-12T22:40:45.746442+01:00"
+      "league_caption_repair_pending": false,
+      "league_caption_repaired_at": "2026-11-12T22:45:33.335207+01:00"
     },
     {
       "key": "superbet:15673447:BTTS_FT",
@@ -6954,11 +6954,11 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 4,
+      "pick_number": 7,
       "telegram_message_id": 577,
       "sent_at": "2026-11-12T21:22:02.513553+01:00",
-      "league_caption_repair_pending": true,
-      "league_caption_repaired_at": "2026-11-12T22:40:46.231145+01:00"
+      "league_caption_repair_pending": false,
+      "league_caption_repaired_at": "2026-11-12T22:45:33.889001+01:00"
     },
     {
       "key": "superbet:15815337:BTTS_FT",
@@ -7047,11 +7047,11 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 5,
+      "pick_number": 8,
       "telegram_message_id": 578,
       "sent_at": "2026-11-12T21:22:04.474082+01:00",
-      "league_caption_repair_pending": true,
-      "league_caption_repaired_at": "2026-11-12T22:40:46.704969+01:00"
+      "league_caption_repair_pending": false,
+      "league_caption_repaired_at": "2026-11-12T22:45:34.387166+01:00"
     },
     {
       "key": "superbet:15613695:BTTS_FT",
@@ -7140,11 +7140,11 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 6,
+      "pick_number": 9,
       "telegram_message_id": 579,
       "sent_at": "2026-11-12T21:22:06.444935+01:00",
-      "league_caption_repair_pending": true,
-      "league_caption_repaired_at": "2026-11-12T22:40:47.137803+01:00"
+      "league_caption_repair_pending": false,
+      "league_caption_repaired_at": "2026-11-12T22:45:34.943585+01:00"
     }
   ],
   "reports_sent": [],
