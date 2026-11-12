@@ -5679,12 +5679,14 @@ def send_manual_archive_resend(state):
     print(f"WYSŁANO ARCHIWALNY TEST: {home} - {away}; message_id={message_id}", flush=True)
 
 def repair_sent_btts_league_captions(state):
-    """Edit already-published Telegram captions for the four verified fixtures."""
+    """Edit already-published Telegram captions with verified Polish competition names."""
     fixes = {
-        ("aguila", "municipal limeno"): "El Salvador Primera División",
-        ("atletico balboa", "cd inca"): "El Salvador Primera División",
-        ("academia puerto cabello", "monagas"): "Liga FUTVE — Clausura, Cuadrangular B",
-        ("aurora fc", "mixco"): "Liga Nacional de Fútbol de Guatemala",
+        ("aguila", "municipal limeno"): "Salwadorska Primera División",
+        ("atletico balboa", "cd inca"): "Salwadorska Primera División",
+        ("academia puerto cabello", "monagas"): "Wenezuelska Primera División — Clausura, grupa B",
+        ("aurora fc", "mixco"): "Gwatemalska Liga Narodowa",
+        ("colon santa fe (r)", "central cordoba (r)"): "Argentyńska Liga Rezerw — Torneo Proyección",
+        ("ceara b", "atletico ce"): "Brazylijski Puchar Fares Lopes",
     }
     for pick in state.get("picks", []):
         if pick.get("market") != BTTS_FT_MARKET or pick.get("delivery_status") != "sent":
