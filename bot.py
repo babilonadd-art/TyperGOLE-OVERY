@@ -5764,8 +5764,9 @@ def main():
                 format_btts_ft_pick_message(
                     historical_pick, historical_pick.get("pick_number") or 4
                 )
-                + "\\n\\n🟢 BTTS SPEŁNIONE W I POŁOWIE"
-                + "\\n🏁 Wynik w I połowie (HT): 3:1"
+                + "\n\n🟢 BTTS SPEŁNIONE W I POŁOWIE"
+                + "\n🏁 Wynik w I połowie (HT): 3:1"
+                + "\n⏳ To nie jest wynik końcowy (FT). Mecz nie został jeszcze zakończony."
             )
             telegram_edit_btts_pick(
                 corrected_caption, historical_pick.get("telegram_message_id")
