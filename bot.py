@@ -5764,6 +5764,7 @@ if __name__ == "__main__":
 # Manual live scan trigger: 2026-11-06
 # Manual Telegram caption repair trigger: 2026-11-12-2
 # Exact BTTS numbering repair: 3-6
+# Pin manual pick_number_override values for Telegram sequence repair
 # Duplicate guard reset: fresh picks only; historical settlement records retained.
 # Daily counter reset: sent historical picks flagged false do not consume today's cap.
 # Trigger a fresh scan after resetting BTTS caps for both scan dates.
