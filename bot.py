@@ -2967,9 +2967,14 @@ def settle_picks(state, allowed_markets=None):
                     winnings_text = f"\nSTRATA: {-stake:.2f} zł" if not won else ""
                 yield_text = ""
                 pick_label = f"TYP NR. {pick['pick_number']}\n" if pick.get("pick_number") else ""
+                if pick.get("market") == BTTS_FT_MARKET:
+                    manual_period = str(manual.get("period") or "FT").upper()
+                    period_label = "Wynik końcowy (FT)" if manual_period in ("FT", "FULL_TIME", "KONIEC") else f"Wynik — {manual_period}"
+                else:
+                    period_label = "Wynik"
                 settlement_message = (
                     f"{pick_label}{result_text}\n{pick['home']} - {pick['away']}\n"
-                    f"Wynik: {score_text} | Gole: {goals_text}"
+                    f"{period_label}: {score_text} | Gole: {goals_text}"
                     f"{winnings_text}{yield_text}"
                 )
                 telegram_reply(
@@ -3251,9 +3256,20 @@ def settle_picks(state, allowed_markets=None):
                 winnings_text = f"\nSTRATA: {-stake:.2f} zł" if not won else ""
             yield_text = ""
             pick_label = f"TYP NR. {pick['pick_number']}\n" if pick.get("pick_number") else ""
+            if pick.get("market") == BTTS_FT_MARKET:
+                if finished:
+                    period_label = "Wynik końcowy (FT)"
+                elif minute is not None and int(minute) <= 45:
+                    period_label = "Wynik w I połowie (BTTS już spełnione)"
+                elif minute is not None:
+                    period_label = "Wynik w II połowie (BTTS już spełnione)"
+                else:
+                    period_label = "Wynik w chwili spełnienia BTTS (nie końcowy)"
+            else:
+                period_label = "Wynik"
             settlement_message = (
                 f"{pick_label}{result_text}\n{pick['home']} - {pick['away']}\n"
-                f"Wynik: {score_text} | Gole: {goals_text}"
+                f"{period_label}: {score_text} | Gole: {goals_text}"
                 f"{winnings_text}{yield_text}"
             )
             telegram_reply(
