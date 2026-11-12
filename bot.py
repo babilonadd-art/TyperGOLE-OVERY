@@ -5679,7 +5679,7 @@ def send_manual_archive_resend(state):
     print(f"WYSŁANO ARCHIWALNY TEST: {home} - {away}; message_id={message_id}", flush=True)
 
 def repair_sent_btts_league_captions(state):
-    """Edit already-published Telegram captions with verified Polish competition names."""
+    """Edit published Telegram captions with verified Polish leagues and corrected sequential pick numbers."""
     fixes = {
         ("aguila", "municipal limeno"): "Salwadorska Primera División",
         ("atletico balboa", "cd inca"): "Salwadorska Primera División",
