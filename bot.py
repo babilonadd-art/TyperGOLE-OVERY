@@ -4913,7 +4913,72 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
 
     team_rows = same_competition if same_competition else league_rows
     if not team_rows:
-        return reject("brak historii w Open Matchday dla tych drużyn/rozgrywek")
+        # Open Matchday is an optional evidence source, never a fixture-eligibility
+        # gate. When it has no history for either side, retain the match for a
+        # clearly-labelled market-only fallback instead of silently discarding it.
+        try:
+            market_odds = float(odds)
+        except (TypeError, ValueError):
+            return reject("brak prawidłowego kursu BTTS do analizy awaryjnej")
+        if not 1.55 <= market_odds <= 2.40:
+            return reject("kurs BTTS poza zakresem 1.55-2.40 w analizie awaryjnej")
+        if isinstance(one_x_two, dict):
+            try:
+                home_price = float(one_x_two["home"])
+                away_price = float(one_x_two["away"])
+                if min(home_price, away_price) <= 1.0:
+                    raise ValueError("invalid 1X2")
+                underdog_price = max(home_price, away_price)
+                if underdog_price >= 8.0:
+                    return reject(
+                        f"brak historii Open Matchday i bardzo wysoki kurs 1X2 "
+                        f"na słabszą drużynę ({underdog_price:.2f})"
+                    )
+            except (KeyError, TypeError, ValueError):
+                return reject("brak wiarygodnego rynku 1X2 w analizie awaryjnej")
+        implied = 1.0 / market_odds
+        league_name = str(league or "Liga nieznana").strip()
+        metrics = {
+            "home_btts": None, "away_btts": None,
+            "home_venue_btts": None, "away_venue_btts": None,
+            "home_btts_played": 0, "away_btts_played": 0,
+            "home_venue_played": 0, "away_venue_played": 0,
+            "home_recent_played": 0, "away_recent_played": 0,
+            "home_recent_btts": None, "away_recent_btts": None,
+            "home_last5_clean_sheets": None, "away_last5_clean_sheets": None,
+            "home_clean_sheets": None, "away_clean_sheets": None,
+            "home_failed_to_score": None, "away_failed_to_score": None,
+            "home_avg_goals": None, "away_avg_goals": None,
+            "home_scored_rate": None, "away_scored_rate": None,
+            "home_venue_scored_rate": None, "away_venue_scored_rate": None,
+            "home_venue_goals_for_avg": None, "away_venue_goals_for_avg": None,
+            "home_last3_venue_btts_count": None, "away_last3_venue_btts_count": None,
+            "model_probability": implied, "raw_model_probability": None,
+            "implied_probability": implied, "value_edge": 0.0,
+            "poisson_probability": None, "expected_home_goals": None,
+            "expected_away_goals": None, "sample_reliability": 0.0,
+            "home_shots_avg": None, "away_shots_avg": None,
+            "home_shots_on_target_avg": None, "away_shots_on_target_avg": None,
+            "home_corners_avg": None, "away_corners_avg": None,
+            "shots_sample": 0, "shots_on_target_sample": 0, "corners_sample": 0,
+            "shots_stats_available": False, "shots_total_stats_available": False,
+            "corners_stats_available": False, "league": league_name,
+            "xg_available": False, "lineups_available": False,
+            "analysis_confidence": "niska — brak historii Open Matchday",
+        }
+        print(
+            f"BTTS ANALYSIS FALLBACK: {home} - {away}: brak historii Open Matchday; "
+            f"pozostawiam do oceny rynkowej (BTTS={market_odds:.2f}, "
+            f"prawdopodobieństwo implikowane={implied:.1%}).",
+            flush=True,
+        )
+        return {
+            "score": 0.50,
+            "metrics": metrics,
+            "samples": {"home": 0, "away": 0, "home_venue": 0, "away_venue": 0},
+            "method": "market_only_no_open_matchday_history",
+            "league_folder": "",
+        }
 
     def matches_team(row, team, side):
         return team_name_similarity(row.get(side), team) >= 0.88
