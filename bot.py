@@ -5304,18 +5304,20 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
     # Older scheduled tips may have been posted days before their kickoff date.
     # They must not consume today's cap or today's numbering.
     for corrected_number, old_pick in enumerate(sent_today, 1):
+        # A manually requested number override takes precedence over automatic daily numbering.
+        target_number = int(old_pick.get("pick_number_override") or corrected_number)
         old_number = old_pick.get("pick_number")
-        if old_number != corrected_number:
+        if old_number != target_number:
             message_id = old_pick.get("telegram_message_id")
             if message_id:
                 try:
                     telegram_edit_btts_pick(
-                        format_btts_ft_pick_message(old_pick, corrected_number),
+                        format_btts_ft_pick_message(old_pick, target_number),
                         message_id,
                     )
-                    old_pick["pick_number"] = corrected_number
+                    old_pick["pick_number"] = target_number
                     save_state(state)
-                    print(f"Skorygowano numer BTTS FT: {old_pick.get('home')} - {old_pick.get('away')} → TYP NR. {corrected_number}.", flush=True)
+                    print(f"Skorygowano numer BTTS FT: {old_pick.get('home')} - {old_pick.get('away')} → TYP NR. {target_number}.", flush=True)
                 except Exception as exc:
                     print(f"Nie udało się poprawić numeru starej wiadomości BTTS FT: {type(exc).__name__}: {exc}", flush=True)
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
