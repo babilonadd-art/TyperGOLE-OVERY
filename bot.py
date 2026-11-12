@@ -5680,6 +5680,12 @@ def send_manual_archive_resend(state):
 
 def repair_sent_btts_league_captions(state):
     """Edit published Telegram captions with verified Polish leagues and corrected sequential pick numbers."""
+    number_fixes = {
+        ("aguila", "municipal limeno"): 3,
+        ("atletico balboa", "cd inca"): 4,
+        ("academia puerto cabello", "monagas"): 5,
+        ("aurora fc", "mixco"): 6,
+    }
     fixes = {
         ("aguila", "municipal limeno"): "Salwadorska Primera División",
         ("atletico balboa", "cd inca"): "Salwadorska Primera División",
@@ -5696,8 +5702,11 @@ def repair_sent_btts_league_captions(state):
         key = (str(pick.get("home") or "").strip().casefold(),
                str(pick.get("away") or "").strip().casefold())
         league = fixes.get(key)
-        if not league:
+        corrected_number = number_fixes.get(key)
+        if not league or not corrected_number:
             continue
+        # Enforce the requested sequence on every repair run; do not trust stale state.
+        pick["pick_number"] = corrected_number
         pick["league"] = league
         pick.setdefault("analysis", {}).setdefault("metrics", {})["league"] = league
         try:
@@ -5754,6 +5763,7 @@ if __name__ == "__main__":
     main()
 # Manual live scan trigger: 2026-11-06
 # Manual Telegram caption repair trigger: 2026-11-12-2
+# Exact BTTS numbering repair: 3-6
 # Duplicate guard reset: fresh picks only; historical settlement records retained.
 # Daily counter reset: sent historical picks flagged false do not consume today's cap.
 # Trigger a fresh scan after resetting BTTS caps for both scan dates.
