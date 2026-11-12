@@ -6964,7 +6964,8 @@
       "won": true,
       "settled_score": "3-1",
       "settled_at": "2026-11-12T23:33:48.138877+01:00",
-      "settlement_method": "user_confirmed"
+      "settlement_method": "user_confirmed",
+      "telegram_result_caption_pending": true
     },
     {
       "key": "superbet:15815337:BTTS_FT",
