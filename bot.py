@@ -600,12 +600,23 @@ def format_btts_ft_pick_message(pick, pick_number):
     except (TypeError, ValueError):
         probability_text = "—"
 
+    market_only = analysis.get("method") == "market_only_no_open_matchday_history"
+    probability_line = (
+        f"📊 Prawdopodobieństwo wynikające z kursu BTTS: {probability_text} (bez historii drużyn)\n"
+        if market_only else
+        f"📊 Szacowana szansa BTTS do końca meczu: {probability_text}\n"
+    )
+    confidence_line = (
+        "⚠️ Analiza awaryjna — brak historii w Open Matchday; niższa pewność, decyzja oparta na rynku.\n"
+        if market_only else ""
+    )
     message = (
         f"🎯 𝗧𝗬𝗣 𝗡𝗥. {pick_number} — BTTS TAK (FT)\n\n"
         f"⚽ {home} – {away}\n"
         f"📅 {kickoff.strftime('%d.%m.%Y')} | 🕒 {kickoff.strftime('%H:%M')} (Polska)\n"
         + (f"🏆 {league}\n" if league else "")
-        + f"📊 Szacowana szansa BTTS do końca meczu: {probability_text}\n"
+        + probability_line
+        + confidence_line
         + f"💰 Kurs: {odds:.2f}\n"
         + f"💵 Stawka: {stake:.2f} zł | Możliwa wypłata po podatku: {payout['payout']:.2f} zł\n"
         + f"🔗 Mecz: {pick.get('bet_url') or ''}\n\n"
