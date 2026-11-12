@@ -2063,7 +2063,12 @@ def telegram(message, reply_to_message_id=None):
             raise RuntimeError("Nieprawidłowe ID oryginalnego typu; wynik nie zostanie wysłany osobno.")
         payload["reply_to_message_id"] = reply_id
     response = requests.post(url, json=payload, timeout=20)
-    response.raise_for_status()
+    if response.status_code >= 400:
+        # Keep Telegram's diagnostic body: status-only HTTPError hid why
+        # settlement replies were rejected (e.g. an invalid reply target).
+        raise RuntimeError(
+            f"Telegram API HTTP {response.status_code}: {response.text[:500]}"
+        )
     result = response.json()
     if not result.get("ok"):
         raise RuntimeError(f"Telegram API error: {result}")
@@ -5754,7 +5759,7 @@ def repair_sent_btts_league_captions(state):
 
 
 def main():
-    print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS GROUP — OVER 1.5 HT START {now_local().isoformat()} ===", flush=True)
+    print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS FT START {now_local().isoformat()} ===", flush=True)
     print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
     state = load_state()
     # One-time correction of the already published Atletico Balboa - CD Inca pick.
@@ -5811,7 +5816,7 @@ def main():
     except Exception as exc:
         print(f"Monthly report error: {type(exc).__name__}: {exc}", flush=True)
     save_state(state)
-    print("=== TyperGOLE-OVERY PRE-MATCH BTTS GROUP — OVER 1.5 HT END ===", flush=True)
+    print("=== TyperGOLE-OVERY PRE-MATCH BTTS FT END ===", flush=True)
 
 
 if __name__ == "__main__":
