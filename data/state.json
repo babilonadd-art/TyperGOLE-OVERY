@@ -6766,7 +6766,7 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 1,
+      "pick_number": 4,
       "telegram_message_id": 573,
       "sent_at": "2026-11-12T09:48:02.980475+01:00"
     }
