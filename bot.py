@@ -2984,6 +2984,7 @@ def settle_picks(state, allowed_markets=None):
                 pick["settled"] = True
                 pick["won"] = won
                 pick["settled_score"] = score_text
+                pick["settled_period"] = str(manual.get("period") or "FT").upper()
                 pick["settled_at"] = now_local().isoformat()
                 pick["settlement_method"] = "user_confirmed"
                 pick.pop("manual_result", None)
@@ -3260,9 +3261,9 @@ def settle_picks(state, allowed_markets=None):
                 if finished:
                     period_label = "Wynik końcowy (FT)"
                 elif minute is not None and int(minute) <= 45:
-                    period_label = "Wynik w I połowie (BTTS już spełnione)"
+                    period_label = "Wynik w I połowie (HT — BTTS już spełnione)"
                 elif minute is not None:
-                    period_label = "Wynik w II połowie (BTTS już spełnione)"
+                    period_label = "Wynik w II połowie — mecz trwa (BTTS już spełnione)"
                 else:
                     period_label = "Wynik w chwili spełnienia BTTS (nie końcowy)"
             else:
@@ -3279,6 +3280,7 @@ def settle_picks(state, allowed_markets=None):
             pick["settled"] = True
             pick["won"] = won
             pick["settled_score"] = score_text
+            pick["settled_period"] = ("FT" if finished else "HT" if minute is not None and int(minute) <= 45 else "2H" if minute is not None else "BTTS_LIVE")
             pick["settled_at"] = now.isoformat()
             pick.pop("goal_pending_since", None)
             # Persist immediately so a later scan/restart cannot lose the settlement.
@@ -3332,7 +3334,7 @@ def retry_pending_settlement_notifications(state):
         message = (
             f"🔁 PONOWIONE ROZLICZENIE — BTTS CAŁY MECZ\n"
             f"{pick_label}{result_text}\n{pick.get('home')} - {pick.get('away')}\n"
-            f"Wynik: {score}"
+            f"{'Wynik końcowy (FT)' if pick.get('settled_period') == 'FT' else 'Wynik w I połowie (HT)' if pick.get('settled_period') == 'HT' else 'Wynik w II połowie' if pick.get('settled_period') == '2H' else 'Wynik potwierdzenia BTTS'}: {score}"
         )
         if odds is not None:
             message += f"\nKurs: {odds:.2f}"
@@ -5763,7 +5765,7 @@ def main():
                     historical_pick, historical_pick.get("pick_number") or 4
                 )
                 + "\\n\\n🟢 BTTS SPEŁNIONE W I POŁOWIE"
-                + "\\n🏁 Wynik końcowy (FT): 3:1"
+                + "\\n🏁 Wynik w I połowie (HT): 3:1"
             )
             telegram_edit_btts_pick(
                 corrected_caption, historical_pick.get("telegram_message_id")
