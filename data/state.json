@@ -6505,7 +6505,8 @@
       "pick_number": 1,
       "telegram_message_id": 569,
       "sent_at": "2026-11-12T01:24:22.847396+01:00",
-      "league_caption_repair_pending": true
+      "league_caption_repair_pending": false,
+      "league_caption_repaired_at": "2026-11-12T22:27:50.009998+01:00"
     },
     {
       "key": "superbet:14558869:BTTS_FT",
@@ -6862,7 +6863,8 @@
       "won": false,
       "settled_score": "2-0",
       "settled_at": "2026-11-12T21:15:15.489911+01:00",
-      "league_caption_repair_pending": true
+      "league_caption_repair_pending": false,
+      "league_caption_repaired_at": "2026-11-12T22:27:50.443483+01:00"
     },
     {
       "key": "superbet:15592975:BTTS_FT",
@@ -6908,8 +6910,8 @@
       "pick_number": 6,
       "telegram_message_id": 576,
       "sent_at": "2026-11-12T21:22:00.418908+01:00",
-      "league_caption_repair_pending": true,
-      "league_caption_repaired_at": "2026-11-12T22:20:19.657474+01:00"
+      "league_caption_repair_pending": false,
+      "league_caption_repaired_at": "2026-11-12T22:27:50.844434+01:00"
     },
     {
       "key": "superbet:15673447:BTTS_FT",
@@ -6955,8 +6957,8 @@
       "pick_number": 7,
       "telegram_message_id": 577,
       "sent_at": "2026-11-12T21:22:02.513553+01:00",
-      "league_caption_repair_pending": true,
-      "league_caption_repaired_at": "2026-11-12T22:20:20.280963+01:00"
+      "league_caption_repair_pending": false,
+      "league_caption_repaired_at": "2026-11-12T22:27:51.227369+01:00"
     },
     {
       "key": "superbet:15815337:BTTS_FT",
@@ -7048,8 +7050,8 @@
       "pick_number": 8,
       "telegram_message_id": 578,
       "sent_at": "2026-11-12T21:22:04.474082+01:00",
-      "league_caption_repair_pending": true,
-      "league_caption_repaired_at": "2026-11-12T22:20:20.599358+01:00"
+      "league_caption_repair_pending": false,
+      "league_caption_repaired_at": "2026-11-12T22:27:51.633888+01:00"
     },
     {
       "key": "superbet:15613695:BTTS_FT",
@@ -7141,8 +7143,8 @@
       "pick_number": 9,
       "telegram_message_id": 579,
       "sent_at": "2026-11-12T21:22:06.444935+01:00",
-      "league_caption_repair_pending": true,
-      "league_caption_repaired_at": "2026-11-12T22:20:20.950302+01:00"
+      "league_caption_repair_pending": false,
+      "league_caption_repaired_at": "2026-11-12T22:27:55.046843+01:00"
     }
   ],
   "reports_sent": [],
