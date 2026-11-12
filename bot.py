@@ -3134,17 +3134,32 @@ def settle_picks(state, allowed_markets=None):
                     )
                     continue
             elif pick.get("market") == BTTS_FT_MARKET:
-                regulation_home, regulation_away = extract_regulation_time_score(match)
-                if regulation_home is None or regulation_away is None:
-                    print(
-                        f"BTTS FT: brak wiarygodnego wyniku po 90 minutach dla {pick.get('key')}; "
-                        "nie używam wyniku dogrywki ani serii karnych.",
-                        flush=True,
-                    )
-                    continue
-                target_total = regulation_home + regulation_away
-                target_score = f"{regulation_home}-{regulation_away}"
-                period_complete = finished
+                # BTTS TAK (FT) wygrywa natychmiast, gdy obie drużyny strzelą.
+                # Nie czekamy na przerwę ani końcowy gwizdek: po wyniku 1-1,
+                # 2-1 itd. warunek rynku jest już spełniony i nie może przegrać.
+                if (home_now is not None and away_now is not None
+                        and home_now > 0 and away_now > 0):
+                    target_total = home_now + away_now
+                    target_score = f"{home_now}-{away_now}"
+                    period_complete = True
+                    won = True
+                elif finished:
+                    regulation_home, regulation_away = extract_regulation_time_score(match)
+                    if regulation_home is None or regulation_away is None:
+                        print(
+                            f"BTTS FT: brak wiarygodnego wyniku po 90 minutach dla {pick.get('key')}; "
+                            "nie używam wyniku dogrywki ani serii karnych.",
+                            flush=True,
+                        )
+                        continue
+                    target_total = regulation_home + regulation_away
+                    target_score = f"{regulation_home}-{regulation_away}"
+                    period_complete = True
+                else:
+                    # Przy wyniku 0-0, 1-0 lub 0-1 typ pozostaje otwarty do FT.
+                    target_total = current_total
+                    target_score = f"{home_now}-{away_now}" if current_total is not None else None
+                    period_complete = False
             else:
                 target_total = current_total
                 target_score = f"{home_now}-{away_now}" if current_total is not None else None
