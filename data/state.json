@@ -6868,7 +6868,7 @@
       "slug": "",
       "home": "Aguila",
       "away": "Municipal Limeno",
-      "league": "Liga nieznana",
+      "league": "El Salvador Primera División",
       "competition_category": {
         "gender": "MEN",
         "age_group": "SENIOR"
@@ -6876,7 +6876,7 @@
       "date": "2026-11-12",
       "kickoff_time": "2026-11-12T22:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.61,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -6887,9 +6887,9 @@
         "metrics": {
           "model_probability": 0.6211180124223602,
           "implied_probability": 0.6211180124223602,
-          "value_edge": 0.0,
-          "sample_reliability": 0.0,
-          "league": "Liga nieznana",
+          "value_edge": 0,
+          "sample_reliability": 0,
+          "league": "El Salvador Primera División",
           "analysis_confidence": "niska — brak historii jednej z drużyn w Open Matchday"
         },
         "samples": {
@@ -6905,7 +6905,8 @@
       "delivery_status": "sent",
       "pick_number": 6,
       "telegram_message_id": 576,
-      "sent_at": "2026-11-12T21:22:00.418908+01:00"
+      "sent_at": "2026-11-12T21:22:00.418908+01:00",
+      "league_caption_repair_pending": true
     },
     {
       "key": "superbet:15673447:BTTS_FT",
@@ -6913,7 +6914,7 @@
       "slug": "",
       "home": "Atletico Balboa",
       "away": "CD Inca",
-      "league": "Liga nieznana",
+      "league": "El Salvador Primera División",
       "competition_category": {
         "gender": "MEN",
         "age_group": "SENIOR"
@@ -6921,7 +6922,7 @@
       "date": "2026-11-12",
       "kickoff_time": "2026-11-12T22:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.68,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -6932,9 +6933,9 @@
         "metrics": {
           "model_probability": 0.5952380952380952,
           "implied_probability": 0.5952380952380952,
-          "value_edge": 0.0,
-          "sample_reliability": 0.0,
-          "league": "Liga nieznana",
+          "value_edge": 0,
+          "sample_reliability": 0,
+          "league": "El Salvador Primera División",
           "analysis_confidence": "niska — brak historii jednej z drużyn w Open Matchday"
         },
         "samples": {
@@ -6950,7 +6951,8 @@
       "delivery_status": "sent",
       "pick_number": 7,
       "telegram_message_id": 577,
-      "sent_at": "2026-11-12T21:22:02.513553+01:00"
+      "sent_at": "2026-11-12T21:22:02.513553+01:00",
+      "league_caption_repair_pending": true
     },
     {
       "key": "superbet:15815337:BTTS_FT",
@@ -6958,7 +6960,7 @@
       "slug": "",
       "home": "Academia Puerto Cabello",
       "away": "Monagas",
-      "league": "Liga nieznana",
+      "league": "Liga FUTVE — Clausura, Cuadrangular B",
       "competition_category": {
         "gender": "MEN",
         "age_group": "SENIOR"
@@ -6966,7 +6968,7 @@
       "date": "2026-11-12",
       "kickoff_time": "2026-11-12T23:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.82,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -7006,11 +7008,11 @@
           "model_probability": 0.5494505494505494,
           "raw_model_probability": null,
           "implied_probability": 0.5494505494505494,
-          "value_edge": 0.0,
+          "value_edge": 0,
           "poisson_probability": null,
           "expected_home_goals": null,
           "expected_away_goals": null,
-          "sample_reliability": 0.0,
+          "sample_reliability": 0,
           "home_shots_avg": null,
           "away_shots_avg": null,
           "home_shots_on_target_avg": null,
@@ -7023,7 +7025,7 @@
           "shots_stats_available": false,
           "shots_total_stats_available": false,
           "corners_stats_available": false,
-          "league": "Liga nieznana",
+          "league": "Liga FUTVE — Clausura, Cuadrangular B",
           "xg_available": false,
           "lineups_available": false,
           "analysis_confidence": "niska — brak historii Open Matchday"
@@ -7041,7 +7043,8 @@
       "delivery_status": "sent",
       "pick_number": 8,
       "telegram_message_id": 578,
-      "sent_at": "2026-11-12T21:22:04.474082+01:00"
+      "sent_at": "2026-11-12T21:22:04.474082+01:00",
+      "league_caption_repair_pending": true
     },
     {
       "key": "superbet:15613695:BTTS_FT",
@@ -7049,7 +7052,7 @@
       "slug": "",
       "home": "Aurora FC",
       "away": "Mixco",
-      "league": "Liga nieznana",
+      "league": "Liga Nacional de Fútbol de Guatemala",
       "competition_category": {
         "gender": "MEN",
         "age_group": "SENIOR"
@@ -7057,7 +7060,7 @@
       "date": "2026-11-12",
       "kickoff_time": "2026-11-12T23:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.74,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -7097,11 +7100,11 @@
           "model_probability": 0.5747126436781609,
           "raw_model_probability": null,
           "implied_probability": 0.5747126436781609,
-          "value_edge": 0.0,
+          "value_edge": 0,
           "poisson_probability": null,
           "expected_home_goals": null,
           "expected_away_goals": null,
-          "sample_reliability": 0.0,
+          "sample_reliability": 0,
           "home_shots_avg": null,
           "away_shots_avg": null,
           "home_shots_on_target_avg": null,
@@ -7114,7 +7117,7 @@
           "shots_stats_available": false,
           "shots_total_stats_available": false,
           "corners_stats_available": false,
-          "league": "Liga nieznana",
+          "league": "Liga Nacional de Fútbol de Guatemala",
           "xg_available": false,
           "lineups_available": false,
           "analysis_confidence": "niska — brak historii Open Matchday"
@@ -7132,7 +7135,8 @@
       "delivery_status": "sent",
       "pick_number": 9,
       "telegram_message_id": 579,
-      "sent_at": "2026-11-12T21:22:06.444935+01:00"
+      "sent_at": "2026-11-12T21:22:06.444935+01:00",
+      "league_caption_repair_pending": true
     }
   ],
   "reports_sent": [],
@@ -13239,7 +13243,7 @@
       "date": "2026-11-12",
       "kickoff_time": "2026-11-12T22:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.61,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -13250,8 +13254,8 @@
         "metrics": {
           "model_probability": 0.6211180124223602,
           "implied_probability": 0.6211180124223602,
-          "value_edge": 0.0,
-          "sample_reliability": 0.0,
+          "value_edge": 0,
+          "sample_reliability": 0,
           "league": "Liga nieznana",
           "analysis_confidence": "niska — brak historii jednej z drużyn w Open Matchday"
         },
@@ -13284,7 +13288,7 @@
       "date": "2026-11-12",
       "kickoff_time": "2026-11-12T22:30:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.68,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -13295,8 +13299,8 @@
         "metrics": {
           "model_probability": 0.5952380952380952,
           "implied_probability": 0.5952380952380952,
-          "value_edge": 0.0,
-          "sample_reliability": 0.0,
+          "value_edge": 0,
+          "sample_reliability": 0,
           "league": "Liga nieznana",
           "analysis_confidence": "niska — brak historii jednej z drużyn w Open Matchday"
         },
@@ -13329,7 +13333,7 @@
       "date": "2026-11-12",
       "kickoff_time": "2026-11-12T23:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.82,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -13369,11 +13373,11 @@
           "model_probability": 0.5494505494505494,
           "raw_model_probability": null,
           "implied_probability": 0.5494505494505494,
-          "value_edge": 0.0,
+          "value_edge": 0,
           "poisson_probability": null,
           "expected_home_goals": null,
           "expected_away_goals": null,
-          "sample_reliability": 0.0,
+          "sample_reliability": 0,
           "home_shots_avg": null,
           "away_shots_avg": null,
           "home_shots_on_target_avg": null,
@@ -13420,7 +13424,7 @@
       "date": "2026-11-12",
       "kickoff_time": "2026-11-12T23:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.74,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -13460,11 +13464,11 @@
           "model_probability": 0.5747126436781609,
           "raw_model_probability": null,
           "implied_probability": 0.5747126436781609,
-          "value_edge": 0.0,
+          "value_edge": 0,
           "poisson_probability": null,
           "expected_home_goals": null,
           "expected_away_goals": null,
-          "sample_reliability": 0.0,
+          "sample_reliability": 0,
           "home_shots_avg": null,
           "away_shots_avg": null,
           "home_shots_on_target_avg": null,
