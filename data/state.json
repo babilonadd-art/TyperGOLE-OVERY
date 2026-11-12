@@ -6590,7 +6590,7 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 1,
+      "pick_number": 2,
       "telegram_message_id": 571,
       "sent_at": "2026-11-12T01:25:35.030415+01:00"
     }
