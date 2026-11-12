@@ -5079,6 +5079,45 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
     home_venue = summarize(team_rows, home, "home")
     away_venue = summarize(team_rows, away, "away")
 
+    # If Open Matchday knows one team but has zero usable matches for the other,
+    # use the same explicitly-labelled market-only fallback. Missing one side's
+    # archive must not silently disqualify an otherwise listed fixture.
+    if min(home_all["played"], away_all["played"]) == 0:
+        try:
+            market_odds = float(odds)
+        except (TypeError, ValueError):
+            return reject("brak prawidłowego kursu BTTS do analizy awaryjnej")
+        if not 1.55 <= market_odds <= 2.40:
+            return reject("kurs BTTS poza zakresem 1.55-2.40 w analizie awaryjnej")
+        if isinstance(one_x_two, dict):
+            try:
+                underdog_price = max(float(one_x_two["home"]), float(one_x_two["away"]))
+            except (KeyError, TypeError, ValueError):
+                return reject("brak wiarygodnego rynku 1X2 w analizie awaryjnej")
+            if underdog_price >= 8.0:
+                return reject(
+                    f"brak historii jednej z drużyn i bardzo wysoki kurs 1X2 "
+                    f"na słabszą drużynę ({underdog_price:.2f})"
+                )
+        implied = 1.0 / market_odds
+        return {
+            "score": 0.50,
+            "metrics": {
+                "model_probability": implied,
+                "implied_probability": implied,
+                "value_edge": 0.0,
+                "sample_reliability": 0.0,
+                "league": str(league or "Liga nieznana").strip(),
+                "analysis_confidence": "niska — brak historii jednej z drużyn w Open Matchday",
+            },
+            "samples": {
+                "home": home_all["played"], "away": away_all["played"],
+                "home_venue": home_venue["played"], "away_venue": away_venue["played"],
+            },
+            "method": "market_only_no_open_matchday_history",
+            "league_folder": "",
+        }
+
     # Przywrócone mocniejsze wymagania sprzed ostatniego poluzowania.
     if min(home_all["played"], away_all["played"]) < 4:
         return reject("za mała próba sezonowa: potrzeba min. 4 meczów na zespół")
