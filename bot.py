@@ -959,6 +959,67 @@ def fixture_categories_compatible(home_a, away_a, competition_a, home_b, away_b,
     return left == right
 
 
+def resolve_btts_competition(home, away, kickoff, preferred=""):
+    """Resolve a missing BTTS league from Open Matchday's global fixtures/results.
+    Never return a fabricated or generic league label.
+    """
+    preferred = str(preferred or "").strip()
+    if preferred and preferred.casefold() not in {"unknown", "unknown league", "liga nieznana"}:
+        return format_fixture_competition(preferred, home, away), "Superbet"
+
+    try:
+        data = open_matchday_data()
+    except Exception as exc:
+        print(f"League resolver: Open Matchday unavailable: {type(exc).__name__}: {exc}", flush=True)
+        return "", ""
+
+    target_date = kickoff.date() if isinstance(kickoff, datetime) else None
+    candidates = []
+    # First choice: the same fixture in the public worldwide match schedule.
+    for row in data.get("fixtures", []):
+        row_home, row_away = str(row.get("home") or "").strip(), str(row.get("away") or "").strip()
+        if not row_home or not row_away:
+            continue
+        row_kickoff = open_matchday_kickoff(row)
+        if target_date and row_kickoff and abs((row_kickoff.date() - target_date).days) > 1:
+            continue
+        direct = (team_name_similarity(row_home, home), team_name_similarity(row_away, away))
+        reverse = (team_name_similarity(row_home, away), team_name_similarity(row_away, home))
+        score = max(min(direct), min(reverse))
+        league = str(row.get("_league") or "").strip()
+        if score >= 0.88 and league and league.casefold() not in {"unknown", "liga nieznana"}:
+            candidates.append((score, 2 if target_date and row_kickoff and row_kickoff.date() == target_date else 1, league))
+    if candidates:
+        candidates.sort(reverse=True)
+        best = candidates[0]
+        return format_fixture_competition(best[2], home, away), "Open Matchday — terminarz"
+
+    # Second choice: identify a competition shared by both teams in recent results.
+    team_leagues = []
+    for team in (home, away):
+        counts = {}
+        latest = {}
+        for row in data.get("results", []):
+            row_home, row_away = str(row.get("home") or "").strip(), str(row.get("away") or "").strip()
+            if max(team_name_similarity(team, row_home), team_name_similarity(team, row_away)) < 0.88:
+                continue
+            league = str(row.get("_league") or "").strip()
+            if not league or league.casefold() in {"unknown", "liga nieznana"}:
+                continue
+            counts[league] = counts.get(league, 0) + 1
+            row_date = str(row.get("date") or "")
+            latest[league] = max(latest.get(league, ""), row_date)
+        team_leagues.append((counts, latest))
+    common = set(team_leagues[0][0]) & set(team_leagues[1][0])
+    if common:
+        league = max(common, key=lambda name: (
+            min(team_leagues[0][0][name], team_leagues[1][0][name]),
+            min(team_leagues[0][1].get(name, ""), team_leagues[1][1].get(name, "")),
+        ))
+        return format_fixture_competition(league, home, away), "Open Matchday — wspólna liga w historii"
+    return "", ""
+
+
 def format_fixture_competition(competition, home="", away=""):
     """Keep youth age and explicitly mark women's competitions in Telegram."""
     label = str(competition or "Liga nieznana").strip()
@@ -5430,12 +5491,24 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
                 league = ""
         else:
             league = ""
+        league_source_name = league
+        if not league:
+            league, league_source_name = resolve_btts_competition(
+                fixture["home"], fixture["away"], kickoff, league_source
+            )
         if not league:
             print(
-                f"Superbet BTTS FT: brak nazwy ligi dla {fixture['home']} - {fixture['away']}; "
-                f"typ może zostać wysłany bez wiersza ligi.",
+                f"Superbet BTTS FT: nie udało się wiarygodnie ustalić ligi dla "
+                f"{fixture['home']} - {fixture['away']}; typ pominięty — nie wysyłam "
+                f"wiadomości z 'Liga nieznana'.",
                 flush=True,
             )
+            continue
+        print(
+            f"Superbet BTTS FT: liga rozpoznana dla {fixture['home']} - {fixture['away']}: "
+            f"{league} (źródło: {league_source_name}).",
+            flush=True,
+        )
         if same_fixture_pick_exists(state, fixture["id"], fixture["home"], fixture["away"], today.isoformat(), BTTS_FT_MARKET, competition=league):
             continue
         bet_url = superbet_btts_full_time_url(event.get("url"), quote)
