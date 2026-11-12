@@ -6424,7 +6424,7 @@
       "slug": "",
       "home": "Colon Santa Fe (R)",
       "away": "Central Cordoba (R)",
-      "league": "Primera Nacional",
+      "league": "Argentyńska Liga Rezerw — Torneo Proyección",
       "competition_category": {
         "gender": "MEN",
         "age_group": "SENIOR"
@@ -6487,7 +6487,7 @@
           "shots_stats_available": false,
           "shots_total_stats_available": false,
           "corners_stats_available": false,
-          "league": "Primera Nacional",
+          "league": "Argentyńska Liga Rezerw — Torneo Proyección",
           "xg_available": false,
           "lineups_available": false
         },
@@ -6504,7 +6504,8 @@
       "delivery_status": "sent",
       "pick_number": 1,
       "telegram_message_id": 569,
-      "sent_at": "2026-11-12T01:24:22.847396+01:00"
+      "sent_at": "2026-11-12T01:24:22.847396+01:00",
+      "league_caption_repair_pending": true
     },
     {
       "key": "superbet:14558869:BTTS_FT",
@@ -6776,7 +6777,7 @@
       "slug": "",
       "home": "Ceara B",
       "away": "Atletico CE",
-      "league": "Série B",
+      "league": "Brazylijski Puchar Fares Lopes",
       "competition_category": {
         "gender": "MEN",
         "age_group": "SENIOR"
@@ -6839,7 +6840,7 @@
           "shots_stats_available": false,
           "shots_total_stats_available": false,
           "corners_stats_available": false,
-          "league": "Série B",
+          "league": "Brazylijski Puchar Fares Lopes",
           "xg_available": false,
           "lineups_available": false
         },
@@ -6860,7 +6861,8 @@
       "pick_number_override": 2,
       "won": false,
       "settled_score": "2-0",
-      "settled_at": "2026-11-12T21:15:15.489911+01:00"
+      "settled_at": "2026-11-12T21:15:15.489911+01:00",
+      "league_caption_repair_pending": true
     },
     {
       "key": "superbet:15592975:BTTS_FT",
@@ -6868,7 +6870,7 @@
       "slug": "",
       "home": "Aguila",
       "away": "Municipal Limeno",
-      "league": "El Salvador Primera División",
+      "league": "Salwadorska Primera División",
       "competition_category": {
         "gender": "MEN",
         "age_group": "SENIOR"
@@ -6889,7 +6891,7 @@
           "implied_probability": 0.6211180124223602,
           "value_edge": 0,
           "sample_reliability": 0,
-          "league": "El Salvador Primera División",
+          "league": "Salwadorska Primera División",
           "analysis_confidence": "niska — brak historii jednej z drużyn w Open Matchday"
         },
         "samples": {
@@ -6906,7 +6908,7 @@
       "pick_number": 6,
       "telegram_message_id": 576,
       "sent_at": "2026-11-12T21:22:00.418908+01:00",
-      "league_caption_repair_pending": false,
+      "league_caption_repair_pending": true,
       "league_caption_repaired_at": "2026-11-12T22:20:19.657474+01:00"
     },
     {
@@ -6915,7 +6917,7 @@
       "slug": "",
       "home": "Atletico Balboa",
       "away": "CD Inca",
-      "league": "El Salvador Primera División",
+      "league": "Salwadorska Primera División",
       "competition_category": {
         "gender": "MEN",
         "age_group": "SENIOR"
@@ -6936,7 +6938,7 @@
           "implied_probability": 0.5952380952380952,
           "value_edge": 0,
           "sample_reliability": 0,
-          "league": "El Salvador Primera División",
+          "league": "Salwadorska Primera División",
           "analysis_confidence": "niska — brak historii jednej z drużyn w Open Matchday"
         },
         "samples": {
@@ -6953,7 +6955,7 @@
       "pick_number": 7,
       "telegram_message_id": 577,
       "sent_at": "2026-11-12T21:22:02.513553+01:00",
-      "league_caption_repair_pending": false,
+      "league_caption_repair_pending": true,
       "league_caption_repaired_at": "2026-11-12T22:20:20.280963+01:00"
     },
     {
@@ -6962,7 +6964,7 @@
       "slug": "",
       "home": "Academia Puerto Cabello",
       "away": "Monagas",
-      "league": "Liga FUTVE — Clausura, Cuadrangular B",
+      "league": "Wenezuelska Primera División — Clausura, grupa B",
       "competition_category": {
         "gender": "MEN",
         "age_group": "SENIOR"
@@ -7027,7 +7029,7 @@
           "shots_stats_available": false,
           "shots_total_stats_available": false,
           "corners_stats_available": false,
-          "league": "Liga FUTVE — Clausura, Cuadrangular B",
+          "league": "Wenezuelska Primera División — Clausura, grupa B",
           "xg_available": false,
           "lineups_available": false,
           "analysis_confidence": "niska — brak historii Open Matchday"
@@ -7046,7 +7048,7 @@
       "pick_number": 8,
       "telegram_message_id": 578,
       "sent_at": "2026-11-12T21:22:04.474082+01:00",
-      "league_caption_repair_pending": false,
+      "league_caption_repair_pending": true,
       "league_caption_repaired_at": "2026-11-12T22:20:20.599358+01:00"
     },
     {
@@ -7055,7 +7057,7 @@
       "slug": "",
       "home": "Aurora FC",
       "away": "Mixco",
-      "league": "Liga Nacional de Fútbol de Guatemala",
+      "league": "Gwatemalska Liga Narodowa",
       "competition_category": {
         "gender": "MEN",
         "age_group": "SENIOR"
@@ -7120,7 +7122,7 @@
           "shots_stats_available": false,
           "shots_total_stats_available": false,
           "corners_stats_available": false,
-          "league": "Liga Nacional de Fútbol de Guatemala",
+          "league": "Gwatemalska Liga Narodowa",
           "xg_available": false,
           "lineups_available": false,
           "analysis_confidence": "niska — brak historii Open Matchday"
@@ -7139,7 +7141,7 @@
       "pick_number": 9,
       "telegram_message_id": 579,
       "sent_at": "2026-11-12T21:22:06.444935+01:00",
-      "league_caption_repair_pending": false,
+      "league_caption_repair_pending": true,
       "league_caption_repaired_at": "2026-11-12T22:20:20.950302+01:00"
     }
   ],
