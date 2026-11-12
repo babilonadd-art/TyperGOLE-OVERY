@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 import requests
 
-from bot import extract_superbet_1x2_full_time, btts_prematch_odds_gate, telegram_reply
+from bot import extract_superbet_1x2_full_time, btts_prematch_odds_gate, btts_1x2_risk_gate, telegram_reply
 
 
 class SuperbetFullTime1X2Tests(unittest.TestCase):
@@ -75,6 +75,51 @@ class BttsOnlyPrematchOddsGateTests(unittest.TestCase):
     def test_rejects_missing_or_invalid_btts_quote(self):
         self.assertFalse(btts_prematch_odds_gate(None))
         self.assertFalse(btts_prematch_odds_gate({"odds": "not-a-price"}))
+
+
+
+class BttsUnderdogRiskGateTests(unittest.TestCase):
+    def setUp(self):
+        self.metrics = {
+            "home_scored_rate": 0.80,
+            "away_scored_rate": 0.72,
+            "home_venue_scored_rate": 0.82,
+            "away_venue_scored_rate": 0.70,
+            "home_venue_goals_for_avg": 1.35,
+            "away_venue_goals_for_avg": 0.95,
+        }
+
+    def test_rejects_underdog_at_eight_or_higher_even_if_scoring_numbers_are_good(self):
+        ok, reason = btts_1x2_risk_gate(
+            {"home": 1.30, "draw": 5.0, "away": 9.00}, self.metrics
+        )
+        self.assertFalse(ok)
+        self.assertIn("9.00", reason)
+
+    def test_requires_strong_underdog_attack_between_six_and_eight(self):
+        weak = dict(self.metrics, away_scored_rate=0.50, away_venue_scored_rate=0.45)
+        ok, reason = btts_1x2_risk_gate(
+            {"home": 1.35, "draw": 4.8, "away": 6.50}, weak
+        )
+        self.assertFalse(ok)
+        self.assertIn("słaba ofensywa", reason)
+
+    def test_accepts_six_to_eight_only_with_strong_scoring_evidence(self):
+        ok, reason = btts_1x2_risk_gate(
+            {"home": 1.35, "draw": 4.8, "away": 6.50}, self.metrics
+        )
+        self.assertTrue(ok)
+        self.assertEqual(reason, "")
+
+    def test_does_not_add_extra_restriction_to_balanced_1x2_market(self):
+        ok, reason = btts_1x2_risk_gate(
+            {"home": 2.20, "draw": 3.2, "away": 3.10}, self.metrics
+        )
+        self.assertTrue(ok)
+        self.assertEqual(reason, "")
+
+    def test_missing_1x2_market_preserves_existing_behavior(self):
+        self.assertEqual(btts_1x2_risk_gate(None, self.metrics), (True, ""))
 
 
 class TelegramSettlementDeliveryTests(unittest.TestCase):
