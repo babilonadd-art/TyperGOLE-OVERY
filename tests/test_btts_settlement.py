@@ -156,14 +156,14 @@ class BttsDailyCloseTests(unittest.TestCase):
 
 
 class BttsQualityGateTests(unittest.TestCase):
-    def test_rejects_probability_without_value_over_market(self):
-        self.assertFalse(bot.btts_value_gate(0.62, 1.70))
+    def test_rejects_negative_value_over_market(self):
+        self.assertFalse(bot.btts_value_gate(0.55, 1.70))
 
-    def test_rejects_low_probability_even_at_long_odds(self):
-        self.assertFalse(bot.btts_value_gate(0.57, 2.40))
+    def test_rejects_probability_below_relaxed_minimum(self):
+        self.assertFalse(bot.btts_value_gate(0.49, 2.40))
 
-    def test_accepts_high_probability_with_four_point_edge(self):
-        self.assertTrue(bot.btts_value_gate(0.66, 1.70))
+    def test_accepts_probability_and_nonnegative_market_edge(self):
+        self.assertTrue(bot.btts_value_gate(0.62, 1.70))
 
     def test_rejects_invalid_odds_or_probability(self):
         self.assertFalse(bot.btts_value_gate(0.70, 1.0))
