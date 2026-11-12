@@ -590,7 +590,11 @@ def format_btts_ft_pick_message(pick, pick_number):
     payout = calculate_bet_result(stake, odds)
     home = pick.get("home") or "Gospodarze"
     away = pick.get("away") or "Goście"
-    league = pick.get("league") or ""
+    league = str(pick.get("league") or pick.get("competition") or "").strip()
+    if not league or league.casefold() in {"unknown", "unknown league", "liga nieznana"}:
+        raise ValueError(
+            f"Nie wysyłam BTTS bez potwierdzonej nazwy ligi: {home} - {away}"
+        )
 
     probability = metrics.get("model_probability")
     if probability is None:
@@ -614,7 +618,7 @@ def format_btts_ft_pick_message(pick, pick_number):
         f"🎯 𝗧𝗬𝗣 𝗡𝗥. {pick_number} — BTTS TAK (FT)\n\n"
         f"⚽ {home} – {away}\n"
         f"📅 {kickoff.strftime('%d.%m.%Y')} | 🕒 {kickoff.strftime('%H:%M')} (Polska)\n"
-        + (f"🏆 {league}\n" if league else "")
+        + f"🏆 Liga: {league}\n"
         + probability_line
         + confidence_line
         + f"💰 Kurs: {odds:.2f}\n"
@@ -5518,14 +5522,15 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
         analysis = btts_recent_form_analysis(fixture["home"], fixture["away"], kickoff, league, quote["odds"], one_x_two)
         if not analysis:
             continue
-        # Superbet czasem nie przekazuje nazwy rozgrywek. W takim przypadku
-        # wykorzystaj ligę rozpoznaną z historii Open Matchday; nigdy nie ukrywaj
-        # wiersza ligi w wiadomości Telegram.
-        if not league:
-            inferred_league = str((analysis.get("metrics") or {}).get("league") or "").strip()
-            league = format_fixture_competition(
-                inferred_league or "Liga nieznana", fixture["home"], fixture["away"]
+        # Ostateczna blokada: typ bez prawdziwej nazwy ligi nie może trafić
+        # do Telegrama ani do listy kandydatów.
+        if not league or league.strip().casefold() in {"unknown", "unknown league", "liga nieznana"}:
+            print(
+                f"Superbet BTTS FT: pomijam {fixture['home']} - {fixture['away']} — "
+                "brak potwierdzonej ligi przed publikacją.",
+                flush=True,
             )
+            continue
         candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "url": bet_url, "analysis": analysis, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
     candidates.sort(key=lambda x: (-x["analysis"]["score"], x["kickoff"], x["home"], x["away"]))
     print(f"Superbet BTTS FT: {len(candidates)} kandydatów po zaostrzonym filtrze BTTS FT 1.55-2.40, historii i przewagi nad kursem.", flush=True)
