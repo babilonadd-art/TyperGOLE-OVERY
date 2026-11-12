@@ -5388,13 +5388,13 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
 
 
 def send_prematch_superbet_btts_picks(state):
-    """Scan today and tomorrow so evening runs do not miss next-day fixtures."""
+    """Scan fixtures scheduled only for the current local day."""
     today = now_local().date()
-    scan_dates = (today, today + timedelta(days=1))
+    scan_dates = (today,)
     for scan_date in scan_dates:
         print(
             f"BTTS FT: rozpoczynam skan daty {scan_date.isoformat()} "
-            f"(dzisiaj + jutro; limit 10 typów osobno na dzień).",
+            f"(tylko dzisiaj; limit 10 typów).",
             flush=True,
         )
         try:
