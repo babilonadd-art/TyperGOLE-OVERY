@@ -5678,10 +5678,45 @@ def send_manual_archive_resend(state):
     save_state(state)
     print(f"WYSŁANO ARCHIWALNY TEST: {home} - {away}; message_id={message_id}", flush=True)
 
+def repair_sent_btts_league_captions(state):
+    """Edit already-published Telegram captions for the four verified fixtures."""
+    fixes = {
+        ("aguila", "municipal limeno"): "El Salvador Primera División",
+        ("atletico balboa", "cd inca"): "El Salvador Primera División",
+        ("academia puerto cabello", "monagas"): "Liga FUTVE — Clausura, Cuadrangular B",
+        ("aurora fc", "mixco"): "Liga Nacional de Fútbol de Guatemala",
+    }
+    for pick in state.get("picks", []):
+        if pick.get("market") != BTTS_FT_MARKET or pick.get("delivery_status") != "sent":
+            continue
+        if not pick.get("telegram_message_id") or not pick.get("league_caption_repair_pending"):
+            continue
+        key = (str(pick.get("home") or "").strip().casefold(),
+               str(pick.get("away") or "").strip().casefold())
+        league = fixes.get(key)
+        if not league:
+            continue
+        pick["league"] = league
+        pick.setdefault("analysis", {}).setdefault("metrics", {})["league"] = league
+        try:
+            message = format_btts_ft_pick_message(pick, int(pick.get("pick_number") or 1))
+            telegram_edit_btts_pick(message, pick["telegram_message_id"])
+            pick["league_caption_repair_pending"] = False
+            pick["league_caption_repaired_at"] = now_local().isoformat()
+            save_state(state)
+            print(f"POPRAWIONO LIGĘ W TELEGRAMIE: {pick.get('home')} - {pick.get('away')} → {league}; message_id={pick.get('telegram_message_id')}", flush=True)
+        except Exception as exc:
+            print(f"Nie udało się poprawić ligi w Telegramie dla {pick.get('home')} - {pick.get('away')}: {type(exc).__name__}: {exc}", flush=True)
+
+
 def main():
     print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS GROUP — OVER 1.5 HT START {now_local().isoformat()} ===", flush=True)
     print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
     state = load_state()
+    try:
+        repair_sent_btts_league_captions(state)
+    except Exception as exc:
+        print(f"Błąd poprawiania nazw lig w już wysłanych typach: {type(exc).__name__}: {exc}", flush=True)
     try:
         send_manual_archive_resend(state)
     except Exception as exc:
