@@ -1024,6 +1024,18 @@ def resolve_btts_competition(home, away, kickoff, preferred=""):
     return "", ""
 
 
+def is_uefa_nations_league_competition(competition):
+    """Identify UEFA Nations League labels without relying on team-name guesses."""
+    label = unicodedata.normalize("NFKD", str(competition or ""))
+    label = "".join(ch for ch in label if not unicodedata.combining(ch)).casefold()
+    compact = re.sub(r"[^a-z0-9]+", " ", label).strip()
+    return (
+        "nations league" in compact
+        or "liga narodow" in compact
+        or "uefa nations" in compact
+    )
+
+
 def format_fixture_competition(competition, home="", away=""):
     """Keep youth age and explicitly mark women's competitions in Telegram."""
     label = str(competition or "Liga nieznana").strip()
@@ -5025,7 +5037,19 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
     else:
         same_competition = []
 
-    team_rows = same_competition if same_competition else league_rows
+    # Open Matchday's published season dataset has no dedicated UEFA Nations
+    # League international-team history. Do not accidentally treat similarly
+    # named club teams as national-team form; use the explicit market-only
+    # fallback below for this competition instead.
+    if is_uefa_nations_league_competition(league):
+        team_rows = []
+        print(
+            f"BTTS: {league} — brak dedykowanej historii reprezentacji w Open Matchday; "
+            "nie używam historii klubowej, przechodzę do jawnej analizy rynkowej.",
+            flush=True,
+        )
+    else:
+        team_rows = same_competition if same_competition else league_rows
     if not team_rows:
         # Open Matchday is an optional evidence source, never a fixture-eligibility
         # gate. When it has no history for either side, retain the match for a
