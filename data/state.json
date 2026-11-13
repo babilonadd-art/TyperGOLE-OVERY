@@ -5958,7 +5958,7 @@
       },
       "settled": false,
       "delivery_status": "sent",
-      "pick_number": 2,
+      "pick_number": 1,
       "telegram_message_id": 571,
       "sent_at": "2026-11-12T01:25:35.030415+01:00",
       "pick_number_override": 1
@@ -12486,7 +12486,8 @@
       "delivery_status": "sent",
       "pick_number": 1,
       "telegram_message_id": 571,
-      "sent_at": "2026-11-12T01:25:35.030415+01:00"
+      "sent_at": "2026-11-12T01:25:35.030415+01:00",
+      "pick_number_override": 1
     },
     {
       "key": "superbet:14543397:BTTS_FT",
@@ -13147,7 +13148,8 @@
       "delivery_status": "sent",
       "pick_number": 2,
       "telegram_message_id": 587,
-      "sent_at": "2026-11-13T15:01:50.547717+01:00"
+      "sent_at": "2026-11-13T15:01:50.547717+01:00",
+      "pick_number_override": 2
     }
   ],
   "team_history_cache": {
