@@ -2932,14 +2932,10 @@
       "odds_market": "Both Teams to Score — Yes",
       "odds_updated_at": "2026-10-31T12:49:25.516703028Z",
       "bet_url": "https://www.bet365.com/#/AC/B1/C1/D8/E202407189/F3/",
-      "settled": true,
+      "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 327,
-      "sent_at": "2026-11-07T23:24:31.281055+01:00",
-      "won": false,
-      "settled_score": "7-0",
-      "settled_period": "FT",
-      "settled_at": "2026-11-13T23:45:10.911252+01:00"
+      "sent_at": "2026-11-07T23:24:31.281055+01:00"
     },
     {
       "key": "202407196:BTTS_FT",
@@ -2961,14 +2957,10 @@
       "odds_market": "Both Teams to Score — Yes",
       "odds_updated_at": "2026-10-30T06:49:28.764748923Z",
       "bet_url": "https://www.bet365.com/#/AC/B1/C1/D8/E202407196/F3/",
-      "settled": true,
+      "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 328,
-      "sent_at": "2026-11-07T23:24:33.137263+01:00",
-      "won": false,
-      "settled_score": "0-0",
-      "settled_period": "FT",
-      "settled_at": "2026-11-13T23:45:12.341080+01:00"
+      "sent_at": "2026-11-07T23:24:33.137263+01:00"
     },
     {
       "key": "203575012:BTTS_FT",
@@ -4932,15 +4924,11 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/santa-cruz-rj-vs-serra-macaense-15766449?t=offer-prematch-102&mdt=o",
-      "settled": true,
+      "settled": false,
       "delivery_status": "sent",
       "pick_number": 7,
       "telegram_message_id": 474,
-      "sent_at": "2026-11-09T17:00:51.563829+01:00",
-      "won": true,
-      "settled_score": "1-2",
-      "settled_period": "FT",
-      "settled_at": "2026-11-13T23:44:57.029080+01:00"
+      "sent_at": "2026-11-09T17:00:51.563829+01:00"
     },
     {
       "key": "superbet:15597032:BTTS_FT",
@@ -4988,15 +4976,11 @@
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
       "odds_updated_at": null,
       "bet_url": "https://superbet.pl/kursy/pilka-nozna/chapelton-maroons-vs-racing-united-fc-15627249?t=offer-prematch-102&mdt=o",
-      "settled": true,
+      "settled": false,
       "delivery_status": "sent",
       "pick_number": 9,
       "telegram_message_id": 476,
-      "sent_at": "2026-11-09T17:00:55.165496+01:00",
-      "won": false,
-      "settled_score": "0-0",
-      "settled_period": "FT",
-      "settled_at": "2026-11-13T23:44:59.592481+01:00"
+      "sent_at": "2026-11-09T17:00:55.165496+01:00"
     },
     {
       "key": "superbet:15595577:BTTS_FT",
@@ -6065,16 +6049,11 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "BRA_2_serie-b"
       },
-      "settled": true,
+      "settled": false,
       "delivery_status": "sent",
       "pick_number": 3,
       "telegram_message_id": 572,
-      "sent_at": "2026-11-12T08:55:40.978330+01:00",
-      "won": true,
-      "settled_score": "2-2",
-      "settled_period": "FT",
-      "settled_at": "2026-11-13T23:45:09.222332+01:00",
-      "settlement_method": "user_confirmed"
+      "sent_at": "2026-11-12T08:55:40.978330+01:00"
     },
     {
       "key": "superbet:15857499:BTTS_FT",
@@ -6644,15 +6623,11 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "ENG_7_northern-premier-league"
       },
-      "settled": true,
+      "settled": false,
       "delivery_status": "sent",
       "pick_number": 1,
       "telegram_message_id": 581,
-      "sent_at": "2026-11-13T00:18:43.568662+01:00",
-      "won": true,
-      "settled_score": "3-1",
-      "settled_period": "FT",
-      "settled_at": "2026-11-13T23:45:05.692843+01:00"
+      "sent_at": "2026-11-13T00:18:43.568662+01:00"
     },
     {
       "key": "manual:2026-11-13:dijon-orleans:BTTS_FT",
