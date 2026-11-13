@@ -5780,6 +5780,31 @@ def repair_manual_archive_caption(state):
     print(f"ODDZIELONO NAGŁÓWEK DNIA OD TYPU BTTS; pick_message_id={message_id}", flush=True)
 
 
+def repair_manual_pick_number_captions(state):
+    """Edit specific manually resent Telegram picks to their requested numbers."""
+    pending = state.get("manual_pick_number_repairs", [])
+    if not pending:
+        return
+    remaining = []
+    for item in pending:
+        pick_key = item.get("pick_key")
+        message_id = item.get("message_id")
+        number = int(item.get("pick_number") or 0)
+        pick = next((p for p in state.get("picks", []) if p.get("key") == pick_key), None)
+        if not pick or not message_id or number < 1:
+            remaining.append(item)
+            continue
+        try:
+            telegram_edit_btts_pick(format_btts_ft_pick_message(pick, number), message_id)
+            pick["pick_number"] = number
+            pick["pick_number_override"] = number
+            print(f"POPRAWIONO NUMER RĘCZNIE W TELEGRAMIE: {pick.get('home')} - {pick.get('away')} → TYP NR. {number}; message_id={message_id}", flush=True)
+        except Exception as exc:
+            remaining.append(item)
+            print(f"Nie udało się poprawić ręcznego numeru: {type(exc).__name__}: {exc}", flush=True)
+    state["manual_pick_number_repairs"] = remaining
+    save_state(state)
+
 def repair_sent_btts_league_captions(state):
     """Edit published Telegram captions with verified Polish leagues and corrected sequential pick numbers."""
     number_fixes = {
@@ -5944,3 +5969,4 @@ if __name__ == "__main__":
 
 # Trigger queued Telegram resend: Leganes-Burgos BTTS FT 2026-11-13.
 # Trigger manual Telegram resend for Dijon-Orleans BTTS FT pick 2026-11-13.
+# Trigger manual Telegram numbering correction: Leganes 1, Dijon-Orleans 2 (2026-11-13).
