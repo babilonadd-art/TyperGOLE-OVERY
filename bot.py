@@ -5715,8 +5715,8 @@ def send_manual_archive_resend(state):
     home, away = item["home"], item["away"]
     if item.get("kind") == "btts_ft_pick":
         message = (
-            format_btts_ft_pick_message(item, int(item.get("pick_number") or 1))
-            + "\n\n🔥 KOLEJNY DZIEŃ Z BTTS!"
+            "🔥 KOLEJNY DZIEŃ Z BTTS!\\n\\n"
+            + format_btts_ft_pick_message(item, int(item.get("pick_number") or 1))
         )
     else:
         message = (
@@ -5745,6 +5745,26 @@ def send_manual_archive_resend(state):
     }
     save_state(state)
     print(f"WYSŁANO ARCHIWALNY TEST: {home} - {away}; message_id={message_id}", flush=True)
+
+def repair_manual_archive_caption(state):
+    """Move the next-day BTTS signature above the already resent pick."""
+    pending = state.get("manual_archive_caption_repair_pending")
+    if not pending:
+        return
+    message_id = pending.get("telegram_message_id")
+    pick_key = pending.get("pick_key")
+    pick = next((p for p in state.get("picks", []) if p.get("key") == pick_key), None)
+    if not pick or not message_id:
+        raise ValueError("Brak typu lub message_id do poprawienia podpisu kolejnego dnia.")
+    message = "🔥 KOLEJNY DZIEŃ Z BTTS!\\n\\n" + format_btts_ft_pick_message(
+        pick, int(pick.get("pick_number") or 1)
+    )
+    telegram_edit_btts_pick(message, message_id)
+    state.pop("manual_archive_caption_repair_pending", None)
+    state["manual_archive_caption_repaired_at"] = now_local().isoformat()
+    save_state(state)
+    print(f"POPRAWIONO PODPIS KOLEJNEGO DNIA NAD TYPEM BTTS; message_id={message_id}", flush=True)
+
 
 def repair_sent_btts_league_captions(state):
     """Edit published Telegram captions with verified Polish leagues and corrected sequential pick numbers."""
@@ -5849,6 +5869,10 @@ def main():
                 f"{historical_pick.get('away')}; message_id={historical_pick.get('telegram_message_id')}",
                 flush=True,
             )
+    try:
+        repair_manual_archive_caption(state)
+    except Exception as exc:
+        print(f"Nie udało się poprawić podpisu kolejnego dnia BTTS: {type(exc).__name__}: {exc}", flush=True)
     try:
         repair_sent_btts_league_captions(state)
     except Exception as exc:
