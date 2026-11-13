@@ -16,6 +16,7 @@ Przedmeczowy Telegram bot dla rynku **BTTS — obie drużyny strzelą gola w ca�
 - Model łączy wskaźniki BTTS z venue, formę ostatnich meczów i estymację Poissona opartą o gole zdobywane/tracone; ma korektę na wielkość próby. Typ przechodzi tylko przy estymacji co najmniej 60% i przewadze co najmniej 4 punktów procentowych nad prawdopodobieństwem wynikającym z kursu. Minimalna próba: 5 meczów ogółem na zespół i 3 na odpowiednim terenie.
 - Zakres kursów BTTS FT: 1.55–2.40. Brak odpowiedniej próbki, brak potwierdzonego rynku lub brak przewagi nad kursem oznacza pominięcie meczu.
 - Open Matchday nie publikuje xG ani składów; bot nie udaje, że ma te dane. Szczegółowe statystyki strzałów są dostępne tylko dla części lig/meczów, więc są używane wyłącznie wtedy, gdy istnieje wystarczająca próbka.
+- Bot nie wyklucza rozgrywek reprezentacyjnych, w tym UEFA Nations League: terminarz i rynek BTTS FT nadal pochodzą z Superbet. Ponieważ Open Matchday nie udostępnia osobnej historii reprezentacji dla Ligi Narodów, bot nie podstawia historii podobnie nazwanych klubów — dla tych spotkań używa jawnie oznaczonego trybu analizy rynkowej, z zachowaniem kontroli kursu BTTS i ryzyka 1X2.
 - Procent w wiadomości jest estymacją modelu, nie gwarancją trafienia.
 
 ## Rozliczanie
