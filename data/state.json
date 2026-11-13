@@ -13751,5 +13751,9 @@
       "exclusion_policy": "user_requested_remove_without_settlement",
       "net_profit_pln": -21.05
     }
+  },
+  "manual_archive_caption_repair_pending": {
+    "pick_key": "superbet:15689400:BTTS_FT",
+    "telegram_message_id": 586
   }
 }
