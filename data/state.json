@@ -13816,9 +13816,6 @@
       "net_profit_pln": -21.05
     }
   },
-  "manual_archive_caption_repaired_at": "2026-11-13T14:57:29.896426+01:00",
-  "manual_archive_caption_repair_pending": {
-    "telegram_message_id": 587,
-    "pick_key": "manual:2026-11-13:dijon-orleans:BTTS_FT"
-  }
+  "manual_archive_caption_repaired_at": "2026-11-13T15:05:58.217237+01:00",
+  "manual_archive_caption_repaired_message_id": 587
 }
