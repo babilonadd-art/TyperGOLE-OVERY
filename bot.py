@@ -3274,21 +3274,27 @@ def settle_picks(state, allowed_markets=None):
                 winnings_text = f"\nSTRATA: {-stake:.2f} zł" if not won else ""
             yield_text = ""
             pick_label = f"TYP NR. {pick['pick_number']}\n" if pick.get("pick_number") else ""
+            live_btts_label = ""
             if pick.get("market") == BTTS_FT_MARKET:
                 if finished:
                     period_label = "Wynik końcowy (FT)"
                 elif minute is not None and int(minute) <= 45:
                     period_label = "Wynik w I połowie (HT — BTTS już spełnione)"
+                    live_btts_label = f"\n⏱️ BTTS SPEŁNIONE W {minute}. MINUCIE"
+                    live_btts_label += "\n🔴 LIVE — MECZ TRWA"
                 elif minute is not None:
                     period_label = "Wynik w II połowie — mecz trwa (BTTS już spełnione)"
+                    live_btts_label = f"\n⏱️ BTTS SPEŁNIONE W {minute}. MINUCIE"
+                    live_btts_label += "\n🔴 LIVE — MECZ TRWA"
                 else:
                     period_label = "Wynik w chwili spełnienia BTTS (nie końcowy)"
+                    live_btts_label = "\n🔴 LIVE — MECZ TRWA"
             else:
                 period_label = "Wynik"
             settlement_message = (
                 f"{pick_label}{result_text}\n{pick['home']} - {pick['away']}\n"
                 f"{period_label}: {score_text} | Gole: {goals_text}"
-                f"{winnings_text}{yield_text}"
+                f"{live_btts_label}{winnings_text}{yield_text}"
             )
             telegram_reply(
                     settlement_message,
