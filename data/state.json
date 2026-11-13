@@ -13752,8 +13752,5 @@
       "net_profit_pln": -21.05
     }
   },
-  "manual_archive_caption_repair_pending": {
-    "pick_key": "superbet:15689400:BTTS_FT",
-    "telegram_message_id": 586
-  }
+  "manual_archive_caption_repaired_at": "2026-11-13T14:57:29.896426+01:00"
 }
