@@ -45,6 +45,8 @@ jobs:
           mkdir -p data
           : > data/superbet_diagnostics.jsonl
       - name: Run pre-match BTTS full-time only
+        # A code push runs regression tests only; it must not settle the whole queue.
+        if: github.event_name != 'push'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
