@@ -7155,14 +7155,18 @@
         "method": "market_only_no_open_matchday_history",
         "league_folder": ""
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 6,
       "telegram_message_id": 579,
       "sent_at": "2026-11-12T21:22:06.444935+01:00",
       "league_caption_repair_pending": false,
       "league_caption_repaired_at": "2026-11-12T22:47:32.861225+01:00",
-      "pick_number_override": 6
+      "pick_number_override": 6,
+      "won": false,
+      "settled_score": "0-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-13T01:54:11.624793+01:00"
     },
     {
       "key": "superbet:15689400:BTTS_FT",
