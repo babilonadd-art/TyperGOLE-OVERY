@@ -5941,3 +5941,5 @@ if __name__ == "__main__":
 
 # Trigger manually researched Dijon-Orleans BTTS Telegram post (2026-11-13).
 # Separate standalone BTTS day header fix: 2026-11-13
+
+# Trigger queued Telegram resend: Leganes-Burgos BTTS FT 2026-11-13.
