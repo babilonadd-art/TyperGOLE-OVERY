@@ -5940,3 +5940,4 @@ if __name__ == "__main__":
 # Trigger live workflow to process queued manual BTTS settlement (3-1).
 
 # Trigger manually researched Dijon-Orleans BTTS Telegram post (2026-11-13).
+# Separate standalone BTTS day header fix: 2026-11-13
