@@ -5644,7 +5644,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
         # duplicates across the five-minute scheduled workflow runs.
         headers_sent = state.setdefault("daily_headers_sent", [])
         if day_key not in headers_sent:
-            header = f"🚀 𝗭𝗔𝗖𝗭𝗬𝗡𝗔𝗠𝗬 𝗞𝗢𝗟𝗘𝗝𝗡𝗬 𝗗𝗭𝗜𝗘Ń 𝗭 𝗧𝗬𝗣𝗔𝗠𝗜!\n📅 {today.strftime('%d.%m.%Y')}\n━━━━━━━━━━━━━━━━━━\n⚽ BTTS TAK — CAŁY MECZ (FT)\n━━━━━━━━━━━━━━━━━━"
+            header = f"🔥 KOLEJNY DZIEŃ Z BTTS!\n📅 {today.strftime('%d.%m.%Y')}"
             try:
                 header_result = telegram(header)
                 header_message = header_result.get("result", {}) if isinstance(header_result, dict) else {}
@@ -5708,24 +5708,30 @@ def send_prematch_superbet_btts_picks(state):
 
 
 def send_manual_archive_resend(state):
-    """Send one explicitly queued historical pick once, clearly marked as archive."""
+    """Send a queued manual pick with the day signature as a separate message."""
     item = state.get("manual_archive_resend")
     if not item:
         return
     home, away = item["home"], item["away"]
     if item.get("kind") == "btts_ft_pick":
-        message = (
-            "🔥 KOLEJNY DZIEŃ Z BTTS!\\n\\n"
-            + format_btts_ft_pick_message(item, int(item.get("pick_number") or 1))
-        )
+        # Send the day marker in its own Telegram message, once only.
+        if not item.get("standalone_header_sent"):
+            header_result = telegram("🔥 KOLEJNY DZIEŃ Z BTTS!")
+            header_message = header_result.get("result", {}) if isinstance(header_result, dict) else {}
+            if isinstance(header_message, list):
+                header_message = header_message[0] if header_message else {}
+            item["standalone_header_sent"] = True
+            item["standalone_header_message_id"] = header_message.get("message_id")
+            save_state(state)
+        message = format_btts_ft_pick_message(item, int(item.get("pick_number") or 1))
     else:
         message = (
-            "🧪 ARCHIWALNY TEST WYSYŁKI — MECZ ZAKOŃCZONY\n"
-            f"⚽ {home} – {away}\n"
-            f"🏆 Liga: {item.get('league', 'Brazylia')}\n"
-            f"🎯 Rynek: {item.get('market', 'typ archiwalny')}\n"
-            f"📈 Kurs z wcześniejszego typu: {float(item.get('odds', 0)):.2f}\n"
-            f"🏁 Wynik końcowy: {item.get('result', 'brak')}\n"
+            "🧪 ARCHIWALNY TEST WYSYŁKI — MECZ ZAKOŃCZONY\\n"
+            f"⚽ {home} – {away}\\n"
+            f"🏆 Liga: {item.get('league', 'Brazylia')}\\n"
+            f"🎯 Rynek: {item.get('market', 'typ archiwalny')}\\n"
+            f"📈 Kurs z wcześniejszego typu: {float(item.get('odds', 0)):.2f}\\n"
+            f"🏁 Wynik końcowy: {item.get('result', 'brak')}\\n"
             "To wyłącznie test wysyłki i herbów — nie jest aktualnym typem."
         )
     image_cursor = int(state.get("btts_image_cursor", 0)) % len(BTTS_IMAGE_POOL)
@@ -5742,6 +5748,7 @@ def send_manual_archive_resend(state):
     state["last_manual_archive_resend"] = {
         "home": home, "away": away, "sent_at": now_local().isoformat(),
         "telegram_message_id": message_id,
+        "header_message_id": item.get("standalone_header_message_id"),
     }
     save_state(state)
     print(f"WYSŁANO ARCHIWALNY TEST: {home} - {away}; message_id={message_id}", flush=True)
@@ -5756,14 +5763,21 @@ def repair_manual_archive_caption(state):
     pick = next((p for p in state.get("picks", []) if p.get("key") == pick_key), None)
     if not pick or not message_id:
         raise ValueError("Brak typu lub message_id do poprawienia podpisu kolejnego dnia.")
-    message = "🔥 KOLEJNY DZIEŃ Z BTTS!\\n\\n" + format_btts_ft_pick_message(
-        pick, int(pick.get("pick_number") or 1)
-    )
+    # The day signature is its own Telegram text message, never part of a pick.
+    if not pending.get("standalone_header_message_id"):
+        header_result = telegram("🔥 KOLEJNY DZIEŃ Z BTTS!")
+        header_message = header_result.get("result", {}) if isinstance(header_result, dict) else {}
+        if isinstance(header_message, list):
+            header_message = header_message[0] if header_message else {}
+        pending["standalone_header_message_id"] = header_message.get("message_id")
+        save_state(state)
+    message = format_btts_ft_pick_message(pick, int(pick.get("pick_number") or 1))
     telegram_edit_btts_pick(message, message_id)
     state.pop("manual_archive_caption_repair_pending", None)
     state["manual_archive_caption_repaired_at"] = now_local().isoformat()
+    state["manual_archive_caption_repaired_message_id"] = message_id
     save_state(state)
-    print(f"POPRAWIONO PODPIS KOLEJNEGO DNIA NAD TYPEM BTTS; message_id={message_id}", flush=True)
+    print(f"ODDZIELONO NAGŁÓWEK DNIA OD TYPU BTTS; pick_message_id={message_id}", flush=True)
 
 
 def repair_sent_btts_league_captions(state):
