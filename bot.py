@@ -5713,15 +5713,21 @@ def send_manual_archive_resend(state):
     if not item:
         return
     home, away = item["home"], item["away"]
-    message = (
-        "🧪 ARCHIWALNY TEST WYSYŁKI — MECZ ZAKOŃCZONY\n"
-        f"⚽ {home} – {away}\n"
-        f"🏆 Liga: {item.get('league', 'Brazylia')}\n"
-        f"🎯 Rynek: {item.get('market', 'typ archiwalny')}\n"
-        f"📈 Kurs z wcześniejszego typu: {float(item.get('odds', 0)):.2f}\n"
-        f"🏁 Wynik końcowy: {item.get('result', 'brak')}\n"
-        "To wyłącznie test wysyłki i herbów — nie jest aktualnym typem."
-    )
+    if item.get("kind") == "btts_ft_pick":
+        message = (
+            format_btts_ft_pick_message(item, int(item.get("pick_number") or 1))
+            + "\n\n🔥 KOLEJNY DZIEŃ Z BTTS!"
+        )
+    else:
+        message = (
+            "🧪 ARCHIWALNY TEST WYSYŁKI — MECZ ZAKOŃCZONY\n"
+            f"⚽ {home} – {away}\n"
+            f"🏆 Liga: {item.get('league', 'Brazylia')}\n"
+            f"🎯 Rynek: {item.get('market', 'typ archiwalny')}\n"
+            f"📈 Kurs z wcześniejszego typu: {float(item.get('odds', 0)):.2f}\n"
+            f"🏁 Wynik końcowy: {item.get('result', 'brak')}\n"
+            "To wyłącznie test wysyłki i herbów — nie jest aktualnym typem."
+        )
     image_cursor = int(state.get("btts_image_cursor", 0)) % len(BTTS_IMAGE_POOL)
     response = telegram_btts_ft(message, BTTS_IMAGE_POOL[image_cursor])
     state["btts_image_cursor"] = (image_cursor + 1) % len(BTTS_IMAGE_POOL)
