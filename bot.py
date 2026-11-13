@@ -5924,3 +5924,5 @@ if __name__ == "__main__":
 # Trigger a fresh scan after resetting BTTS caps for both scan dates.
 
 # Trigger live workflow to process queued manual BTTS settlement (3-1).
+
+# Trigger manually researched Dijon-Orleans BTTS Telegram post (2026-11-13).
