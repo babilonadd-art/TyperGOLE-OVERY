@@ -2087,7 +2087,7 @@ def telegram(message, reply_to_message_id=None):
     return result
 
 
-def telegram_reply(message, reply_to_message_id):
+def telegram_reply(message, reply_to_message_id):  # reply-only delivery; no standalone fallback
     """Send a settlement only as a reply to its original pick; never publish standalone."""
     if reply_to_message_id in (None, ""):
         raise RuntimeError("Brak ID wiadomości typu; nie można bezpiecznie powiązać rozliczenia.")
