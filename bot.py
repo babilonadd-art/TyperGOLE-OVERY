@@ -5758,6 +5758,41 @@ def repair_sent_btts_league_captions(state):
             print(f"Nie udało się poprawić ligi w Telegramie dla {pick.get('home')} - {pick.get('away')}: {type(exc).__name__}: {exc}", flush=True)
 
 
+def btts_new_day_scan_gate(state, current=None):
+    """Allow today's new BTTS picks only from 08:00, after yesterday is closed."""
+    current = current or now_local()
+    current = current.astimezone(TZ) if current.tzinfo else current.replace(tzinfo=TZ)
+    if current.hour < 8:
+        return False, "przed 08:00 — skan nowych typów wstrzymany"
+
+    previous_day = (current.date() - timedelta(days=1)).isoformat()
+    previous_picks = [
+        pick for pick in state.get("picks", [])
+        if pick.get("market") == BTTS_FT_MARKET
+        and pick.get("delivery_status", "sent") == "sent"
+        and str(pick.get("date") or "")[:10] == previous_day
+    ]
+    if not previous_picks:
+        return True, "brak typów z poprzedniego dnia"
+
+    pending = [
+        pick for pick in previous_picks
+        if not pick.get("settled")
+        or not pick.get("telegram_message_id")
+        or pick.get("settlement_notification_retry")
+    ]
+    if pending:
+        return False, (
+            f"poprzedni dzień {previous_day} ma {len(pending)} nierozliczonych "
+            "lub niepotwierdzonych typów"
+        )
+
+    closed_days = set(state.get("daily_btts_closers_sent", []))
+    if previous_day not in closed_days:
+        return False, f"poprzedni dzień {previous_day} nie ma jeszcze wysłanego zamknięcia"
+    return True, f"poprzedni dzień {previous_day} rozliczony i zamknięty"
+
+
 def main():
     print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS FT START {now_local().isoformat()} ===", flush=True)
     print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
@@ -5802,15 +5837,20 @@ def main():
     settle_picks(state, allowed_markets={BTTS_FT_MARKET})
     retry_pending_settlement_notifications(state)
 
-    # Existing sent picks are left unchanged; new BTTS FT picks use Superbet links.
-    try:
-        send_prematch_superbet_btts_picks(state)
-    except Exception as exc:
-        print(f"Superbet BTTS FT scanner error: {type(exc).__name__}: {exc}", flush=True)
+    # Close the previous BTTS day before considering any new-day picks.
     try:
         send_daily_btts_closers(state)
     except Exception as exc:
         print(f"Daily BTTS closer error: {type(exc).__name__}: {exc}", flush=True)
+
+    # Never publish today's picks before 08:00 or while yesterday remains open.
+    scan_allowed, scan_reason = btts_new_day_scan_gate(state)
+    print(f"BRAMKA NOWEGO DNIA: {'OTWARTA' if scan_allowed else 'ZAMKNIĘTA'} — {scan_reason}", flush=True)
+    if scan_allowed:
+        try:
+            send_prematch_superbet_btts_picks(state)
+        except Exception as exc:
+            print(f"Superbet BTTS FT scanner error: {type(exc).__name__}: {exc}", flush=True)
     try:
         send_monthly_reports(state)
     except Exception as exc:
