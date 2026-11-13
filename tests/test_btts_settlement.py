@@ -120,12 +120,24 @@ class BttsDailyCloseTests(unittest.TestCase):
             "stake": 10, "odds": 2.00, "won": None, "settlement_outcome": "void",
         }]), 0.00)
 
-    def test_telegram_reply_never_falls_back_to_standalone_post(self):
-        response = requests.Response()
-        response.status_code = 400
-        error = requests.HTTPError("reply rejected", response=response)
+    def test_telegram_reply_falls_back_when_original_post_was_deleted(self):
+        with patch.object(
+            bot, "telegram",
+            side_effect=[
+                RuntimeError('Telegram API HTTP 400: {"ok":false,"description":"Bad Request: message to be replied not found"}'),
+                {"ok": True, "result": {"message_id": 456}},
+            ],
+        ) as send:
+            result = bot.telegram_reply("Rozliczenie", 123)
+        self.assertEqual(result["result"]["message_id"], 456)
+        self.assertEqual(send.call_args_list[0].kwargs, {"reply_to_message_id": 123})
+        self.assertEqual(send.call_args_list[1].args, ("Rozliczenie",))
+        self.assertEqual(send.call_args_list[1].kwargs, {})
+
+    def test_telegram_reply_does_not_fallback_for_other_errors(self):
+        error = RuntimeError("Telegram API HTTP 403: bot was blocked")
         with patch.object(bot, "telegram", side_effect=error) as send:
-            with self.assertRaises(requests.HTTPError):
+            with self.assertRaisesRegex(RuntimeError, "bot was blocked"):
                 bot.telegram_reply("Rozliczenie", 123)
         send.assert_called_once_with("Rozliczenie", reply_to_message_id=123)
 
