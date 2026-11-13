@@ -13767,13 +13767,13 @@
     }
   },
   "last_manual_archive_resend": {
-    "home": "Leganes",
-    "away": "Burgos",
-    "sent_at": "2026-11-13T15:44:11.175215+01:00",
-    "telegram_message_id": 590,
-    "header_message_id": 589
+    "home": "Dijon",
+    "away": "Orléans",
+    "sent_at": "2026-11-13T18:07:19.843333+01:00",
+    "telegram_message_id": 591,
+    "header_message_id": null
   },
-  "btts_image_cursor": 26,
+  "btts_image_cursor": 27,
   "daily_headers_sent": [
     "2026-11-09",
     "2026-11-10",
@@ -13818,39 +13818,5 @@
     }
   },
   "manual_archive_caption_repaired_at": "2026-11-13T15:05:58.217237+01:00",
-  "manual_archive_caption_repaired_message_id": 587,
-  "manual_archive_resend": {
-    "key": "manual:2026-11-13:dijon-orleans:BTTS_FT",
-    "id": "manual:2026-11-13:dijon-orleans",
-    "slug": "dijon-vs-orleans",
-    "home": "Dijon",
-    "away": "Orléans",
-    "league": "Coupe de France",
-    "date": "2026-11-13",
-    "kickoff_time": "2026-11-13T20:00:00+01:00",
-    "market": "BTTS_FT",
-    "stake": 10,
-    "odds": 1.73,
-    "odds_source": "OddVora — kurs rynkowy porównawczy",
-    "odds_market": "Both Teams to Score — Yes",
-    "bet_url": "https://www.oddvora.com/match/1647948-dijon-vs-orleans",
-    "analysis": {
-      "method": "manual_external_research",
-      "metrics": {
-        "model_probability": 0.59,
-        "raw_model_probability": 0.59,
-        "implied_probability": 0.5780346820809249,
-        "value_edge": 0.01196531791907507,
-        "expected_home_goals": 2.06,
-        "expected_away_goals": 1.04
-      }
-    },
-    "settled": false,
-    "delivery_status": "sent",
-    "pick_number": 2,
-    "telegram_message_id": 587,
-    "sent_at": "2026-11-13T15:01:50.547717+01:00",
-    "kind": "btts_ft_pick",
-    "standalone_header_sent": true
-  }
+  "manual_archive_caption_repaired_message_id": 587
 }
