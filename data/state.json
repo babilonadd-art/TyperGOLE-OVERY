@@ -6045,11 +6045,14 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "BRA_2_serie-b"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 3,
       "telegram_message_id": 572,
-      "sent_at": "2026-11-12T08:55:40.978330+01:00"
+      "sent_at": "2026-11-12T08:55:40.978330+01:00",
+      "won": true,
+      "settled_score": "2-2",
+      "settled_at": "2026-11-13T20:31:48.367Z"
     },
     {
       "key": "superbet:15857499:BTTS_FT",
@@ -12567,11 +12570,14 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "BRA_2_serie-b"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 1,
       "telegram_message_id": 572,
-      "sent_at": "2026-11-12T08:55:40.978330+01:00"
+      "sent_at": "2026-11-12T08:55:40.978330+01:00",
+      "won": true,
+      "settled_score": "2-2",
+      "settled_at": "2026-11-13T20:31:48.371Z"
     },
     {
       "key": "superbet:15857499:BTTS_FT",
