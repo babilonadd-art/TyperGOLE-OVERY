@@ -5960,7 +5960,8 @@
       "delivery_status": "sent",
       "pick_number": 2,
       "telegram_message_id": 571,
-      "sent_at": "2026-11-12T01:25:35.030415+01:00"
+      "sent_at": "2026-11-12T01:25:35.030415+01:00",
+      "pick_number_override": 1
     },
     {
       "key": "superbet:14543397:BTTS_FT",
@@ -6654,7 +6655,8 @@
       "delivery_status": "sent",
       "pick_number": 2,
       "telegram_message_id": 587,
-      "sent_at": "2026-11-13T15:01:50.547717+01:00"
+      "sent_at": "2026-11-13T15:01:50.547717+01:00",
+      "pick_number_override": 2
     }
   ],
   "reports_sent": [],
@@ -13818,5 +13820,17 @@
     }
   },
   "manual_archive_caption_repaired_at": "2026-11-13T15:05:58.217237+01:00",
-  "manual_archive_caption_repaired_message_id": 587
+  "manual_archive_caption_repaired_message_id": 587,
+  "manual_pick_number_repairs": [
+    {
+      "pick_key": "superbet:14558869:BTTS_FT",
+      "message_id": 590,
+      "pick_number": 1
+    },
+    {
+      "pick_key": "manual:2026-11-13:dijon-orleans:BTTS_FT",
+      "message_id": 591,
+      "pick_number": 2
+    }
+  ]
 }
