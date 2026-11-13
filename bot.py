@@ -2088,7 +2088,7 @@ def telegram(message, reply_to_message_id=None):
 
 
 def telegram_reply(message, reply_to_message_id):
-    """Send settlement only as a reply to its original pick; never publish standalone."""
+    """Reply to the original pick; if it was deleted, publish settlement standalone."""
     if reply_to_message_id in (None, ""):
         raise RuntimeError("Brak ID wiadomości typu; nie można bezpiecznie powiązać rozliczenia.")
     try:
@@ -2097,9 +2097,18 @@ def telegram_reply(message, reply_to_message_id):
         raise RuntimeError("Nieprawidłowe ID wiadomości typu; rozliczenie pozostaje oczekujące.")
     if reply_id <= 0:
         raise RuntimeError("Nieprawidłowe ID wiadomości typu; rozliczenie pozostaje oczekujące.")
-    # Any Telegram rejection/network error is allowed to propagate. The pick
-    # stays unsettled and the next scheduled scan retries the same reply.
-    return telegram(message, reply_to_message_id=reply_id)
+    try:
+        return telegram(message, reply_to_message_id=reply_id)
+    except RuntimeError as exc:
+        # Telegram returns this when the original pick was deleted. Do not
+        # lose the settlement: publish it as a normal channel post instead.
+        if "message to be replied not found" not in str(exc).lower():
+            raise
+        print(
+            f"ORYGINALNY POST TYPU {reply_id} NIE ISTNIEJE — wysyłam rozliczenie jako osobną wiadomość.",
+            flush=True,
+        )
+        return telegram(message)
 
 
 # Settlement lookup supports both live detail and the finished-fixture archive.
