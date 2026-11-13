@@ -2933,7 +2933,7 @@
       "odds_updated_at": "2026-10-31T12:49:25.516703028Z",
       "bet_url": "https://www.bet365.com/#/AC/B1/C1/D8/E202407189/F3/",
       "settled": false,
-      "delivery_status": "sent",
+      "delivery_status": "excluded_from_daily_closure",
       "telegram_message_id": 327,
       "sent_at": "2026-11-07T23:24:31.281055+01:00"
     },
@@ -2958,7 +2958,7 @@
       "odds_updated_at": "2026-10-30T06:49:28.764748923Z",
       "bet_url": "https://www.bet365.com/#/AC/B1/C1/D8/E202407196/F3/",
       "settled": false,
-      "delivery_status": "sent",
+      "delivery_status": "excluded_from_daily_closure",
       "telegram_message_id": 328,
       "sent_at": "2026-11-07T23:24:33.137263+01:00"
     },
@@ -6050,7 +6050,7 @@
         "league_folder": "BRA_2_serie-b"
       },
       "settled": false,
-      "delivery_status": "sent",
+      "delivery_status": "excluded_from_daily_closure",
       "pick_number": 3,
       "telegram_message_id": 572,
       "sent_at": "2026-11-12T08:55:40.978330+01:00"
@@ -6138,7 +6138,7 @@
         "league_folder": "ARG_1_liga-profesional"
       },
       "settled": false,
-      "delivery_status": "sent",
+      "delivery_status": "excluded_from_daily_closure",
       "pick_number": 4,
       "telegram_message_id": 573,
       "sent_at": "2026-11-12T09:48:02.980475+01:00"
@@ -13830,6 +13830,15 @@
       "excluded_unsettled_picks": 9,
       "exclusion_policy": "user_requested_remove_without_settlement",
       "net_profit_pln": -21.05
+    },
+    "2026-11-13": {
+      "closed_at": "2026-11-14T00:42:00+01:00",
+      "settled_picks_counted": 2,
+      "wins": 2,
+      "losses": 0,
+      "excluded_unsettled_picks": 4,
+      "exclusion_policy": "user_requested_remove_without_settlement",
+      "note": "Annagh United – Ballinamallard United pozostaje wykluczony z aktywnej listy dnia"
     }
   },
   "manual_archive_caption_repaired_at": "2026-11-13T15:05:58.217237+01:00",
