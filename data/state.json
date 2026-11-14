@@ -6624,10 +6624,11 @@
         "league_folder": "ENG_7_northern-premier-league"
       },
       "settled": false,
-      "delivery_status": "sent",
+      "delivery_status": "excluded_from_daily_closure",
       "pick_number": 1,
       "telegram_message_id": 581,
-      "sent_at": "2026-11-13T00:18:43.568662+01:00"
+      "sent_at": "2026-11-13T00:18:43.568662+01:00",
+      "exclusion_reason": "user_requested_exclusion_from_13_nov_daily_closure"
     },
     {
       "key": "manual:2026-11-13:dijon-orleans:BTTS_FT",
@@ -13811,7 +13812,8 @@
     "2026-11-12"
   ],
   "daily_btts_force_close": [
-    "2026-11-11"
+    "2026-11-11",
+    "2026-11-13"
   ],
   "daily_btts_closer_messages": {
     "2026-11-11": 568,
