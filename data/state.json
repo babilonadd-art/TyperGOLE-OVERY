@@ -6751,11 +6751,15 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "ENG_7_northern-premier-league"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 1,
       "telegram_message_id": 602,
-      "sent_at": "2026-11-14T08:46:03.838999+01:00"
+      "sent_at": "2026-11-14T08:46:03.838999+01:00",
+      "won": true,
+      "settled_score": "5-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-14T18:28:56.605271+01:00"
     },
     {
       "key": "superbet:15704989:BTTS_FT",
@@ -7205,11 +7209,15 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "SCO_4_league-two"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 6,
       "telegram_message_id": 607,
-      "sent_at": "2026-11-14T08:46:11.422025+01:00"
+      "sent_at": "2026-11-14T08:46:11.422025+01:00",
+      "won": true,
+      "settled_score": "2-6",
+      "settled_period": "FT",
+      "settled_at": "2026-11-14T18:29:01.287791+01:00"
     },
     {
       "key": "superbet:15705131:BTTS_FT",
