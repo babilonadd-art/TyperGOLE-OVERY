@@ -7127,16 +7127,16 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "ITA_1_serie-a"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 5,
       "telegram_message_id": 606,
       "sent_at": "2026-11-14T08:46:10.192692+01:00",
-      "manual_result": {
-        "won": true,
-        "score": "2-1",
-        "period": "FT"
-      }
+      "won": true,
+      "settled_score": "2-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-14T23:28:50.170840+01:00",
+      "settlement_method": "user_confirmed"
     },
     {
       "key": "superbet:15704899:BTTS_FT",
@@ -7410,16 +7410,16 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "ENG_6_national-league-north"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 8,
       "telegram_message_id": 609,
       "sent_at": "2026-11-14T08:46:14.033295+01:00",
-      "manual_result": {
-        "won": true,
-        "score": "1-2",
-        "period": "FT"
-      }
+      "won": true,
+      "settled_score": "1-2",
+      "settled_period": "FT",
+      "settled_at": "2026-11-14T23:28:50.696965+01:00",
+      "settlement_method": "user_confirmed"
     },
     {
       "key": "superbet:15704921:BTTS_FT",
@@ -7505,16 +7505,16 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "ENG_4_league-two"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 9,
       "telegram_message_id": 610,
       "sent_at": "2026-11-14T08:46:15.115865+01:00",
-      "manual_result": {
-        "won": false,
-        "score": "0-1",
-        "period": "FT"
-      }
+      "won": false,
+      "settled_score": "0-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-14T23:28:51.237873+01:00",
+      "settlement_method": "user_confirmed"
     },
     {
       "key": "superbet:15704972:BTTS_FT",
