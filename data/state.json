@@ -6931,11 +6931,15 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "GRE_1_super-league"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 3,
       "telegram_message_id": 604,
-      "sent_at": "2026-11-14T08:46:07.570742+01:00"
+      "sent_at": "2026-11-14T08:46:07.570742+01:00",
+      "won": false,
+      "settled_score": "4-0",
+      "settled_period": "FT",
+      "settled_at": "2026-11-14T16:35:32.395331+01:00"
     },
     {
       "key": "superbet:15704970:BTTS_FT",
