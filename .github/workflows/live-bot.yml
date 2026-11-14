@@ -7,6 +7,7 @@ on:
     paths:
       - "bot.py"
       - "tests/**"
+      - "data/state.json"
   workflow_dispatch:
   schedule:
     # Najszybszy wspierany interwał harmonogramu GitHub Actions: co 5 minut.
@@ -46,7 +47,9 @@ jobs:
           : > data/superbet_diagnostics.jsonl
       - name: Run pre-match BTTS full-time only
         # A code push runs regression tests only; it must not settle the whole queue.
-        if: github.event_name != 'push'
+        # User commits (including a queued state correction) run the bot.
+        # Bot-authored state commits only persist results and must not recurse.
+        if: github.event_name != 'push' || github.actor != 'github-actions[bot]'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
