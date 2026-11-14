@@ -2950,6 +2950,15 @@ def settle_picks(state, allowed_markets=None):
             continue
         if pick.get("delivery_status", "sent") != "sent":
             continue
+        # Explicitly excluded historical picks remain visible in the archive,
+        # but must never be settled automatically or block a daily close.
+        if pick.get("exclude_from_settlement"):
+            print(
+                f"POMINIĘTO NA ŻĄDANIE UŻYTKOWNIKA: {pick.get('home')} - "
+                f"{pick.get('away')} — bez rozliczenia.",
+                flush=True,
+            )
+            continue
         if pick.get("settled"):
             continue
         if not pick.get("telegram_message_id"):
@@ -3501,7 +3510,9 @@ def send_daily_btts_closers(state):
     closed = set(state.get("daily_btts_closers_sent", []))
     by_day = {}
     for pick in state.get("picks", []):
-        if pick.get("market") != BTTS_FT_MARKET or pick.get("delivery_status", "sent") != "sent":
+        if (pick.get("market") != BTTS_FT_MARKET
+                or pick.get("delivery_status", "sent") != "sent"
+                or pick.get("exclude_from_settlement")):
             continue
         day_key = str(pick.get("date") or "")[:10]
         if not day_key or (day_key >= today_key and day_key not in forced_close) or day_key in closed:
@@ -5865,6 +5876,7 @@ def btts_new_day_scan_gate(state, current=None):
         pick for pick in state.get("picks", [])
         if pick.get("market") == BTTS_FT_MARKET
         and pick.get("delivery_status", "sent") == "sent"
+        and not pick.get("exclude_from_settlement")
         and str(pick.get("date") or "")[:10] == previous_day
     ]
     if not previous_picks:
