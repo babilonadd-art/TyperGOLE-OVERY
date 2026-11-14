@@ -7565,11 +7565,15 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "ENG_5_national-league"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 10,
       "telegram_message_id": 611,
-      "sent_at": "2026-11-14T08:46:16.101035+01:00"
+      "sent_at": "2026-11-14T08:46:16.101035+01:00",
+      "won": true,
+      "settled_score": "2-2",
+      "settled_period": "FT",
+      "settled_at": "2026-11-14T17:56:49.026928+01:00"
     }
   ],
   "reports_sent": [],
