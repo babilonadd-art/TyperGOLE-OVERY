@@ -2985,7 +2985,12 @@
       "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 329,
-      "sent_at": "2026-11-07T23:24:34.694772+01:00"
+      "sent_at": "2026-11-07T23:24:34.694772+01:00",
+      "manual_result": {
+        "won": true,
+        "score": "3-1",
+        "period": "FT"
+      }
     },
     {
       "key": "203564760:BTTS_FT",
@@ -3010,7 +3015,12 @@
       "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 330,
-      "sent_at": "2026-11-07T23:24:36.403883+01:00"
+      "sent_at": "2026-11-07T23:24:36.403883+01:00",
+      "manual_result": {
+        "won": true,
+        "score": "1-1",
+        "period": "FT"
+      }
     },
     {
       "key": "202407309:BTTS_FT",
@@ -3035,7 +3045,12 @@
       "settled": false,
       "delivery_status": "sent",
       "telegram_message_id": 331,
-      "sent_at": "2026-11-07T23:24:37.869558+01:00"
+      "sent_at": "2026-11-07T23:24:37.869558+01:00",
+      "manual_result": {
+        "won": true,
+        "score": "3-1",
+        "period": "FT"
+      }
     },
     {
       "key": "204133456:BTTS_FT",
@@ -15659,7 +15674,8 @@
   ],
   "daily_btts_force_close": [
     "2026-11-11",
-    "2026-11-13"
+    "2026-11-13",
+    "2026-11-14"
   ],
   "daily_btts_closer_messages": {
     "2026-11-11": 568,
