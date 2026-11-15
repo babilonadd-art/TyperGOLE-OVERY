@@ -8060,11 +8060,15 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "BRA_2_serie-b"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 5,
       "telegram_message_id": 628,
-      "sent_at": "2026-11-15T06:59:02.643520+01:00"
+      "sent_at": "2026-11-15T06:59:02.643520+01:00",
+      "won": true,
+      "settled_score": "1-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-15T17:26:51.222505+01:00"
     },
     {
       "key": "superbet:15722383:BTTS_FT",
