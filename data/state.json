@@ -7880,11 +7880,15 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "ESP_2_segunda-division"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 3,
       "telegram_message_id": 626,
-      "sent_at": "2026-11-15T06:58:59.714496+01:00"
+      "sent_at": "2026-11-15T06:58:59.714496+01:00",
+      "won": true,
+      "settled_score": "1-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-15T21:23:58.453035+01:00"
     },
     {
       "key": "superbet:14558873:BTTS_FT",
