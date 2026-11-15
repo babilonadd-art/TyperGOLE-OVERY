@@ -5865,11 +5865,11 @@ def repair_sent_btts_league_captions(state):
 
 
 def btts_new_day_scan_gate(state, current=None):
-    """Allow today's new BTTS picks only from 08:00, after yesterday is closed."""
+    """Allow today's new BTTS picks from 06:00, after yesterday is closed."""
     current = current or now_local()
     current = current.astimezone(TZ) if current.tzinfo else current.replace(tzinfo=TZ)
-    if current.hour < 8:
-        return False, "przed 08:00 — skan nowych typów wstrzymany"
+    if current.hour < 6:
+        return False, "przed 06:00 — skan nowych typów wstrzymany"
 
     previous_day = (current.date() - timedelta(days=1)).isoformat()
     previous_picks = [
@@ -5954,7 +5954,7 @@ def main():
     except Exception as exc:
         print(f"Daily BTTS closer error: {type(exc).__name__}: {exc}", flush=True)
 
-    # Never publish today's picks before 08:00 or while yesterday remains open.
+    # Never publish today's picks before 06:00 or while yesterday remains open.
     scan_allowed, scan_reason = btts_new_day_scan_gate(state)
     print(f"BRAMKA NOWEGO DNIA: {'OTWARTA' if scan_allowed else 'ZAMKNIĘTA'} — {scan_reason}", flush=True)
     if scan_allowed:
