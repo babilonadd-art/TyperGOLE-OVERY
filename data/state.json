@@ -8244,11 +8244,15 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "ENG_7_northern-premier-league"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 7,
       "telegram_message_id": 630,
-      "sent_at": "2026-11-15T06:59:04.904728+01:00"
+      "sent_at": "2026-11-15T06:59:04.904728+01:00",
+      "won": true,
+      "settled_score": "2-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-15T18:44:35.572858+01:00"
     },
     {
       "key": "superbet:15737225:BTTS_FT",
