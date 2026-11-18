@@ -4933,14 +4933,14 @@ def send_prematch_over_15_ht_picks(state):
 MAX_DAILY_BTTS_FT_PICKS = 10
 
 
-def btts_value_gate(model_probability, odds, min_probability=0.52, min_edge=0.01):
-    """Use a softer probability/value threshold while retaining the BTTS odds band."""
+def btts_value_gate(model_probability, odds, min_probability=0.60, min_edge=0.04):
+    """Strict BTTS value gate: >=60% model probability and >=4pp edge."""
     try:
         probability = float(model_probability)
         price = float(odds)
     except (TypeError, ValueError):
         return False
-    if not (0.0 < probability < 1.0 and 1.55 <= price <= 2.40):
+    if not (0.0 < probability < 1.0 and 1.70 <= price <= 2.50):
         return False
     implied_probability = 1.0 / price
     return probability >= min_probability and probability - implied_probability >= min_edge
@@ -5066,74 +5066,9 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
             flush=True,
         )
     else:
-        team_rows = same_competition if same_competition else league_rows
+        team_rows = same_competition
     if not team_rows:
-        # Open Matchday is an optional evidence source, never a fixture-eligibility
-        # gate. When it has no history for either side, retain the match for a
-        # clearly-labelled market-only fallback instead of silently discarding it.
-        try:
-            market_odds = float(odds)
-        except (TypeError, ValueError):
-            return reject("brak prawidłowego kursu BTTS do analizy awaryjnej")
-        if not 1.55 <= market_odds <= 2.40:
-            return reject("kurs BTTS poza zakresem 1.55-2.40 w analizie awaryjnej")
-        if isinstance(one_x_two, dict):
-            try:
-                home_price = float(one_x_two["home"])
-                away_price = float(one_x_two["away"])
-                if min(home_price, away_price) <= 1.0:
-                    raise ValueError("invalid 1X2")
-                underdog_price = max(home_price, away_price)
-                if underdog_price >= 8.0:
-                    return reject(
-                        f"brak historii Open Matchday i bardzo wysoki kurs 1X2 "
-                        f"na słabszą drużynę ({underdog_price:.2f})"
-                    )
-            except (KeyError, TypeError, ValueError):
-                return reject("brak wiarygodnego rynku 1X2 w analizie awaryjnej")
-        implied = 1.0 / market_odds
-        league_name = str(league or "Liga nieznana").strip()
-        metrics = {
-            "home_btts": None, "away_btts": None,
-            "home_venue_btts": None, "away_venue_btts": None,
-            "home_btts_played": 0, "away_btts_played": 0,
-            "home_venue_played": 0, "away_venue_played": 0,
-            "home_recent_played": 0, "away_recent_played": 0,
-            "home_recent_btts": None, "away_recent_btts": None,
-            "home_last5_clean_sheets": None, "away_last5_clean_sheets": None,
-            "home_clean_sheets": None, "away_clean_sheets": None,
-            "home_failed_to_score": None, "away_failed_to_score": None,
-            "home_avg_goals": None, "away_avg_goals": None,
-            "home_scored_rate": None, "away_scored_rate": None,
-            "home_venue_scored_rate": None, "away_venue_scored_rate": None,
-            "home_venue_goals_for_avg": None, "away_venue_goals_for_avg": None,
-            "home_last3_venue_btts_count": None, "away_last3_venue_btts_count": None,
-            "model_probability": implied, "raw_model_probability": None,
-            "implied_probability": implied, "value_edge": 0.0,
-            "poisson_probability": None, "expected_home_goals": None,
-            "expected_away_goals": None, "sample_reliability": 0.0,
-            "home_shots_avg": None, "away_shots_avg": None,
-            "home_shots_on_target_avg": None, "away_shots_on_target_avg": None,
-            "home_corners_avg": None, "away_corners_avg": None,
-            "shots_sample": 0, "shots_on_target_sample": 0, "corners_sample": 0,
-            "shots_stats_available": False, "shots_total_stats_available": False,
-            "corners_stats_available": False, "league": league_name,
-            "xg_available": False, "lineups_available": False,
-            "analysis_confidence": "niska — brak historii Open Matchday",
-        }
-        print(
-            f"BTTS ANALYSIS FALLBACK: {home} - {away}: brak historii Open Matchday; "
-            f"pozostawiam do oceny rynkowej (BTTS={market_odds:.2f}, "
-            f"prawdopodobieństwo implikowane={implied:.1%}).",
-            flush=True,
-        )
-        return {
-            "score": 0.50,
-            "metrics": metrics,
-            "samples": {"home": 0, "away": 0, "home_venue": 0, "away_venue": 0},
-            "method": "market_only_no_open_matchday_history",
-            "league_folder": "",
-        }
+        return reject("brak historii obu drużyn w tej samej lidze — bez trybu awaryjnego")
 
     def matches_team(row, team, side):
         return team_name_similarity(row.get(side), team) >= 0.88
@@ -5223,70 +5158,34 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
     home_venue = summarize(team_rows, home, "home")
     away_venue = summarize(team_rows, away, "away")
 
-    # If Open Matchday knows one team but has zero usable matches for the other,
-    # use the same explicitly-labelled market-only fallback. Missing one side's
-    # archive must not silently disqualify an otherwise listed fixture.
     if min(home_all["played"], away_all["played"]) == 0:
-        try:
-            market_odds = float(odds)
-        except (TypeError, ValueError):
-            return reject("brak prawidłowego kursu BTTS do analizy awaryjnej")
-        if not 1.55 <= market_odds <= 2.40:
-            return reject("kurs BTTS poza zakresem 1.55-2.40 w analizie awaryjnej")
-        if isinstance(one_x_two, dict):
-            try:
-                underdog_price = max(float(one_x_two["home"]), float(one_x_two["away"]))
-            except (KeyError, TypeError, ValueError):
-                return reject("brak wiarygodnego rynku 1X2 w analizie awaryjnej")
-            if underdog_price >= 8.0:
-                return reject(
-                    f"brak historii jednej z drużyn i bardzo wysoki kurs 1X2 "
-                    f"na słabszą drużynę ({underdog_price:.2f})"
-                )
-        implied = 1.0 / market_odds
-        return {
-            "score": 0.50,
-            "metrics": {
-                "model_probability": implied,
-                "implied_probability": implied,
-                "value_edge": 0.0,
-                "sample_reliability": 0.0,
-                "league": str(league or "Liga nieznana").strip(),
-                "analysis_confidence": "niska — brak historii jednej z drużyn w Open Matchday",
-            },
-            "samples": {
-                "home": home_all["played"], "away": away_all["played"],
-                "home_venue": home_venue["played"], "away_venue": away_venue["played"],
-            },
-            "method": "market_only_no_open_matchday_history",
-            "league_folder": "",
-        }
+        return reject("brak historii jednej z drużyn — bez typowania na podstawie samego kursu")
 
     # Przywrócone mocniejsze wymagania sprzed ostatniego poluzowania.
-    if min(home_all["played"], away_all["played"]) < 4:
-        return reject("za mała próba sezonowa: potrzeba min. 4 meczów na zespół")
-    if min(home_venue["played"], away_venue["played"]) < 2:
-        return reject("za mała próba dom/wyjazd: potrzeba min. 2 meczów")
-    if min(home_all["last5_played"], away_all["last5_played"]) < 3:
-        return reject("brak co najmniej 3 meczów w ostatniej próbce")
-    if min(home_all["btts"], away_all["btts"]) < 0.30:
-        return reject("BTTS sezonowe poniżej 30% u jednej z drużyn")
-    if min(home_venue["btts"], away_venue["btts"]) < 0.25:
-        return reject("BTTS dom/wyjazd poniżej 25%")
-    if min(home_all["last5"], away_all["last5"]) < 1:
-        return reject("brak BTTS w ostatnich 5 meczach jednej z drużyn")
-    if min(home_venue["last3_btts_count"], away_venue["last3_btts_count"]) < 1:
-        return reject("brak BTTS w ostatnich 3 meczach na odpowiednim terenie")
-    if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.50:
-        return reject("jedna z drużyn strzelała w mniej niż 50% meczów")
-    if min(home_venue["scored_rate"], away_venue["scored_rate"]) < 0.50:
-        return reject("skuteczność strzelania dom/wyjazd poniżej 50%")
-    if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.60:
-        return reject("jedna z drużyn zbyt często nie strzela gola")
-    if max(home_all["clean_sheets"], away_all["clean_sheets"]) > 0.60:
-        return reject("jedna z drużyn zbyt często zachowuje czyste konto")
-    if min(home_all["avg_goals"], away_all["avg_goals"]) < 1.6:
-        return reject("średnia liczba goli w meczach drużyny poniżej 1.6")
+    if min(home_all["played"], away_all["played"]) < 5:
+        return reject("za mała próba sezonowa: potrzeba min. 5 meczów na zespół")
+    if min(home_venue["played"], away_venue["played"]) < 3:
+        return reject("za mała próba dom/wyjazd: potrzeba min. 3 meczów")
+    if min(home_all["last5_played"], away_all["last5_played"]) < 5:
+        return reject("brak pełnej próbki 5 ostatnich meczów")
+    if min(home_all["btts"], away_all["btts"]) < 0.60:
+        return reject("BTTS sezonowe poniżej 60% u jednej z drużyn")
+    if min(home_venue["btts"], away_venue["btts"]) < 0.50:
+        return reject("BTTS dom/wyjazd poniżej 50%")
+    if min(home_all["last5"], away_all["last5"]) < 4:
+        return reject("mniej niż 4/5 BTTS w ostatnich meczach jednej z drużyn")
+    if min(home_venue["last3_btts_count"], away_venue["last3_btts_count"]) < 2:
+        return reject("mniej niż 2/3 BTTS na odpowiednim terenie")
+    if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.80:
+        return reject("jedna z drużyn strzelała w mniej niż 80% meczów")
+    if min(home_venue["scored_rate"], away_venue["scored_rate"]) < 0.75:
+        return reject("skuteczność strzelania dom/wyjazd poniżej 75%")
+    if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.20:
+        return reject("drużyna nie zdobywa gola w ponad 20% spotkań")
+    if max(home_all["clean_sheets"], away_all["clean_sheets"]) > 0.25:
+        return reject("rywal zbyt często zachowuje czyste konto (powyżej 25%)")
+    if min(home_all["avg_goals"], away_all["avg_goals"]) < 2.5:
+        return reject("średnia goli w meczach jednej z drużyn poniżej 2.5")
 
     estimate = btts_probability_estimate(home_all, away_all, home_venue, away_venue)
     probability = estimate["probability"]
@@ -5502,14 +5401,14 @@ def btts_1x2_risk_gate(one_x_two, metrics):
 
 
 def btts_prematch_odds_gate(btts_quote):
-    """Require standalone FT BTTS YES odds in the existing 1.55-2.40 range."""
+    """Require standalone FT BTTS YES odds in the existing 1.70-2.50 range."""
     if not isinstance(btts_quote, dict):
         return False
     try:
         btts_odds = float(btts_quote.get("odds"))
     except (TypeError, ValueError):
         return False
-    return 1.55 <= btts_odds <= 2.40
+    return 1.70 <= btts_odds <= 2.50
 
 
 def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
