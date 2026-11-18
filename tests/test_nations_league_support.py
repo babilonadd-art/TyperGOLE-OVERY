@@ -16,7 +16,7 @@ class NationsLeagueBttsTests(unittest.TestCase):
             with self.subTest(label=label):
                 self.assertTrue(bot.is_uefa_nations_league_competition(label))
 
-    def test_does_not_use_club_history_for_nations_league(self):
+    def test_skips_nations_league_without_verified_national_team_history(self):
         kickoff = datetime(2026, 11, 13, 20, 45, tzinfo=ZoneInfo("Europe/Warsaw"))
         # Even if a similarly named club fixture exists in Open Matchday,
         # it must not be treated as national-team history.
@@ -42,10 +42,7 @@ class NationsLeagueBttsTests(unittest.TestCase):
                 {"home": 2.10, "away": 3.40},
             )
 
-        self.assertIsNotNone(analysis)
-        self.assertEqual(analysis["method"], "market_only_no_open_matchday_history")
-        self.assertEqual(analysis["samples"]["home"], 0)
-        self.assertEqual(analysis["samples"]["away"], 0)
+        self.assertIsNone(analysis)
 
 
 if __name__ == "__main__":
