@@ -164,11 +164,11 @@ class BttsQualityGateTests(unittest.TestCase):
     def test_rejects_negative_value_over_market(self):
         self.assertFalse(bot.btts_value_gate(0.55, 1.70))
 
-    def test_rejects_probability_below_relaxed_minimum(self):
+    def test_rejects_probability_below_strict_minimum(self):
         self.assertFalse(bot.btts_value_gate(0.49, 2.40))
 
-    def test_accepts_probability_and_nonnegative_market_edge(self):
-        self.assertTrue(bot.btts_value_gate(0.62, 1.70))
+    def test_accepts_probability_with_at_least_four_point_edge(self):
+        self.assertTrue(bot.btts_value_gate(0.64, 1.80))
 
     def test_rejects_invalid_odds_or_probability(self):
         self.assertFalse(bot.btts_value_gate(0.70, 1.0))
