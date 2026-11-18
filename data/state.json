@@ -8530,11 +8530,15 @@
         "method": "market_only_no_open_matchday_history",
         "league_folder": ""
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 3,
       "telegram_message_id": 640,
-      "sent_at": "2026-11-18T06:07:59.352796+01:00"
+      "sent_at": "2026-11-18T06:07:59.352796+01:00",
+      "won": false,
+      "settled_score": "0-3",
+      "settled_period": "FT",
+      "settled_at": "2026-11-18T21:25:58.559399+01:00"
     },
     {
       "key": "superbet:15828543:BTTS_FT",
