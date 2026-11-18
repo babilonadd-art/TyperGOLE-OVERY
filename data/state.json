@@ -8628,11 +8628,15 @@
         "method": "market_only_no_open_matchday_history",
         "league_folder": ""
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 5,
       "telegram_message_id": 642,
-      "sent_at": "2026-11-18T06:08:04.802019+01:00"
+      "sent_at": "2026-11-18T06:08:04.802019+01:00",
+      "won": true,
+      "settled_score": "2-5",
+      "settled_period": "FT",
+      "settled_at": "2026-11-18T23:12:56.123355+01:00"
     }
   ],
   "reports_sent": [],
