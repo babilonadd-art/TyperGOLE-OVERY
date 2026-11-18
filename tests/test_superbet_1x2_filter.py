@@ -62,15 +62,15 @@ class SuperbetFullTime1X2Tests(unittest.TestCase):
 
 class BttsOnlyPrematchOddsGateTests(unittest.TestCase):
     def test_accepts_btts_odds_at_both_range_boundaries(self):
-        self.assertTrue(btts_prematch_odds_gate({"odds": 1.55}))
-        self.assertTrue(btts_prematch_odds_gate({"odds": 2.40}))
+        self.assertTrue(btts_prematch_odds_gate({"odds": 1.70}))
+        self.assertTrue(btts_prematch_odds_gate({"odds": 2.50}))
 
     def test_accepts_btts_odds_inside_range(self):
-        self.assertTrue(btts_prematch_odds_gate({"odds": 1.90}))
+        self.assertTrue(btts_prematch_odds_gate({"odds": 2.10}))
 
     def test_rejects_btts_odds_outside_range(self):
-        self.assertFalse(btts_prematch_odds_gate({"odds": 1.54}))
-        self.assertFalse(btts_prematch_odds_gate({"odds": 2.41}))
+        self.assertFalse(btts_prematch_odds_gate({"odds": 1.69}))
+        self.assertFalse(btts_prematch_odds_gate({"odds": 2.51}))
 
     def test_rejects_missing_or_invalid_btts_quote(self):
         self.assertFalse(btts_prematch_odds_gate(None))
