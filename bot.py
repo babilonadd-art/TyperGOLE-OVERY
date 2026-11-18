@@ -2258,7 +2258,7 @@ def extract_moviodds_btts_ft_quote(match):
             odds = float(quote.get("odds_dec"))
         except (TypeError, ValueError):
             continue
-        if not 1.70 <= odds <= 2.50:
+        if not 1.55 <= odds <= 2.40:
             continue
         candidates.append({
             "odds": odds, "market": "Both Teams to Score — Yes",
@@ -2309,7 +2309,7 @@ def moviodds_btts_candidates(state, now=None, board=None):
             "competition_category": fixture_category_signature(home, away, league),
         })
     candidates.sort(key=lambda item: (item["kickoff"], item["home"], item["away"]))
-    print(f"MoviOdds/Bet365: kandydaci BTTS FT w kursie 1.70–2.50: {len(candidates)}", flush=True)
+    print(f"MoviOdds/Bet365: kandydaci BTTS FT w kursie 1.55–2.40: {len(candidates)}", flush=True)
     return candidates
 
 
@@ -4940,7 +4940,7 @@ def btts_value_gate(model_probability, odds, min_probability=0.60, min_edge=0.04
         price = float(odds)
     except (TypeError, ValueError):
         return False
-    if not (0.0 < probability < 1.0 and 1.70 <= price <= 2.50):
+    if not (0.0 < probability < 1.0 and 1.55 <= price <= 2.40):
         return False
     implied_probability = 1.0 / price
     return probability >= min_probability and probability - implied_probability >= min_edge
@@ -5401,14 +5401,14 @@ def btts_1x2_risk_gate(one_x_two, metrics):
 
 
 def btts_prematch_odds_gate(btts_quote):
-    """Require standalone FT BTTS YES odds in the existing 1.70-2.50 range."""
+    """Require standalone FT BTTS YES odds in the requested 1.55-2.40 range."""
     if not isinstance(btts_quote, dict):
         return False
     try:
         btts_odds = float(btts_quote.get("odds"))
     except (TypeError, ValueError):
         return False
-    return 1.70 <= btts_odds <= 2.50
+    return 1.55 <= btts_odds <= 2.40
 
 
 def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
