@@ -17675,7 +17675,7 @@
     "2026-11-15": 623,
     "2026-11-18": 637
   },
-  "btts_daily_limit_reset_at": "2026-11-19T17:12:00+01:00",
+  "btts_daily_limit_reset_at": "2026-11-19T17:16:00+01:00",
   "daily_btts_closers_sent": [
     "2026-11-07",
     "2026-11-10",
@@ -17733,5 +17733,5 @@
       "pick_number": 2
     }
   ],
-  "btts_daily_limit_reset_reason": "manual reset requested by user; keep all pick history and pending settlements"
+  "btts_daily_limit_reset_reason": "manual reset requested by user; minimum BTTS odds confirmed at 1.80; keep all pick history and pending settlements"
 }
