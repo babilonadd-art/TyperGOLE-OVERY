@@ -28,8 +28,8 @@ class BttsNewDayScanGateTests(unittest.TestCase):
             "daily_btts_closers_sent": ["2026-11-12"],
         }
         allowed, reason = bot.btts_new_day_scan_gate(state, now)
-        self.assertFalse(allowed)
-        self.assertIn("nierozliczonych", reason)
+        self.assertTrue(allowed)
+        self.assertIn("odblokowany", reason)
 
     def test_blocks_until_previous_day_closer_is_sent(self):
         now = datetime(2026, 11, 13, 6, 0, tzinfo=self.tz)
