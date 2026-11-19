@@ -5401,14 +5401,14 @@ def btts_1x2_risk_gate(one_x_two, metrics):
 
 
 def btts_prematch_odds_gate(btts_quote):
-    """Require standalone FT BTTS YES odds in the requested 1.55-2.40 range."""
+    """Require standalone FT BTTS YES odds in the requested 1.80-2.40 range."""
     if not isinstance(btts_quote, dict):
         return False
     try:
         btts_odds = float(btts_quote.get("odds"))
     except (TypeError, ValueError):
         return False
-    return 1.55 <= btts_odds <= 2.40
+    return 1.80 <= btts_odds <= 2.40
 
 
 def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
@@ -5449,7 +5449,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
             btts_price = (quote or {}).get("odds")
             print(
                 f"Superbet BTTS FT: odrzucam {fixture['home']} - {fixture['away']} — "
-                f"wymagany wyłącznie rynek BTTS Tak FT, kurs 1.55-2.40 "
+                f"wymagany wyłącznie rynek BTTS Tak FT, kurs 1.80-2.40 "
                 f"(BTTS={btts_price}).",
                 flush=True,
             )
@@ -5511,7 +5511,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
             continue
         candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "url": bet_url, "analysis": analysis, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
     candidates.sort(key=lambda x: (-x["analysis"]["score"], x["kickoff"], x["home"], x["away"]))
-    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po zaostrzonym filtrze BTTS FT 1.55-2.40, historii i przewagi nad kursem.", flush=True)
+    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po filtrze BTTS FT 1.80-2.40, historii i przewagi nad kursem.", flush=True)
     day_key = today.isoformat()
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     # Older scheduled tips may have been posted days before their kickoff date.
@@ -5788,9 +5788,13 @@ def btts_new_day_scan_gate(state, current=None):
         or pick.get("settlement_notification_retry")
     ]
     if pending:
-        return False, (
-            f"poprzedni dzień {previous_day} ma {len(pending)} nierozliczonych "
-            "lub niepotwierdzonych typów"
+        # An unresolved result from a previous date must remain pending and
+        # visible in its own daily report, but must not freeze all future
+        # BTTS scans indefinitely. New picks keep today's date and quota.
+        print(
+            f"BTTS FT: UWAGA — poprzedni dzień {previous_day} ma "
+            f"{len(pending)} nierozliczonych typów; nie blokuję dzisiejszego skanu.",
+            flush=True,
         )
 
     closed_days = set(state.get("daily_btts_closers_sent", []))
