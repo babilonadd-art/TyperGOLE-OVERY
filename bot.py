@@ -5799,7 +5799,17 @@ def btts_new_day_scan_gate(state, current=None):
 
     closed_days = set(state.get("daily_btts_closers_sent", []))
     if previous_day not in closed_days:
+        if pending:
+            return True, (
+                f"poprzedni dzień {previous_day} ma nierozliczone typy; "
+                "pozostają w kolejce, ale dzisiejszy skan jest odblokowany"
+            )
         return False, f"poprzedni dzień {previous_day} nie ma jeszcze wysłanego zamknięcia"
+    if pending:
+        return True, (
+            f"poprzedni dzień {previous_day} ma nierozliczone typy; "
+            "dzisiejszy skan odblokowany, rozliczenia pozostają osobno"
+        )
     return True, f"poprzedni dzień {previous_day} rozliczony i zamknięty"
 
 
