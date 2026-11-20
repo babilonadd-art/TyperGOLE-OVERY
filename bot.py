@@ -23,8 +23,8 @@ OPEN_MATCHDAY_ZIP = "https://github.com/oladeeayo/open-matchday/archive/refs/hea
 OPEN_MATCHDAY_SEASON = "2627"
 _OPEN_MATCHDAY_CACHE = None
 _SPORTSCORE_SETTLEMENT_CACHE = {}
-FIVEDOLLAR_API = "https://api.5dollarfootballapi.com"
-FIVEDOLLAR_API_KEY = os.getenv("FIVEDOLLAR_API_KEY", "").strip()
+BSD_API = "https://sports.bzzoiro.com"
+BSD_API_TOKEN = os.getenv("BSD_API_TOKEN", "").strip()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
@@ -625,7 +625,7 @@ def format_btts_ft_pick_message(pick, pick_number):
         + f"💰 Kurs: {odds:.2f}\n"
         + f"💵 Stawka: {stake:.2f} zł | Możliwa wypłata po podatku: {payout['payout']:.2f} zł\n"
         + f"🔗 Mecz: {pick.get('bet_url') or ''}\n"
-        + "📡 Football data by 5DollarFootballAPI: https://5dollarfootballapi.com\\n\\n"
+        + "📡 Football data by BSD: https://sports.bzzoiro.com\\n\\n"
         + "Typ dotyczy obu drużyn ze strzelonym golem po 90 minutach + doliczony czas. Bez dogrywki."
     )
     return message
@@ -2232,120 +2232,84 @@ def moviodds_finished_result(pick):
     return {}
 
 
-def fivedollar_get(path, params=None, timeout=25):
-    """Call 5DollarFootballAPI using the free account key."""
-    api_key = FIVEDOLLAR_API_KEY
-    if not api_key:
+def bsd_get(path, params=None, timeout=25):
+    """Call the free BSD football API using the account token."""
+    if not BSD_API_TOKEN:
         raise RuntimeError(
-            "Brak sekretu FIVEDOLLAR_API_KEY. Załóż bezpłatne konto 5DollarFootballAPI "
-            "i dodaj klucz w GitHub Secrets."
+            "Brak sekretu BSD_API_TOKEN. Załóż bezpłatne konto BSD i dodaj token "
+            "w GitHub Secrets."
         )
     response = requests.get(
-        f"{FIVEDOLLAR_API}/v1/{path.lstrip('/')}",
+        f"{BSD_API}/api/v2/{path.lstrip('/')}",
         params=params or {},
-        headers={**HEADERS, "Authorization": f"Bearer {api_key}"},
+        headers={**HEADERS, "Authorization": f"Token {BSD_API_TOKEN}"},
         timeout=timeout,
     )
     response.raise_for_status()
     payload = response.json()
-    if not isinstance(payload, dict) or payload.get("success") != 1:
-        raise RuntimeError(f"5DollarFootballAPI zwróciło błąd: {payload}")
-    return payload.get("data")
+    if isinstance(payload, dict) and payload.get("error"):
+        raise RuntimeError(f"BSD API zwróciło błąd: {payload}")
+    return payload
 
 
-def extract_fivedollar_btts_ft_quote(payload):
-    """Read the real Bet365 pre-match BTTS YES price only."""
-    data = payload
-    if not isinstance(data, dict):
+def extract_bsd_btts_ft_quote(payload):
+    """Read the free-plan consensus full-time BTTS YES price."""
+    if not isinstance(payload, dict):
         return None
-    bookmakers = data.get("bookmakers") or []
-    for bookmaker in bookmakers:
-        if not isinstance(bookmaker, dict):
-            continue
-        slug = str(bookmaker.get("slug") or "").strip().lower()
-        if slug and slug != "bet365":
-            continue
-        odds_block = bookmaker.get("odds") or {}
-        btts = odds_block.get("btts") or {}
-        # Closing is the latest recorded pre-match price; opening is a safe
-        # fallback when the closing quote has not been published yet.
-        for phase in ("closing", "opening"):
-            prices = btts.get(phase) or {}
-            try:
-                odds = float(prices.get("yes"))
-            except (TypeError, ValueError):
-                continue
-            if 1.60 <= odds <= 2.40:
-                return {
-                    "odds": odds,
-                    "market": "BTTS — Yes (FT)",
-                    "updated_at": prices.get("updated_at") or prices.get("recorded_at"),
-                    "bookmaker": bookmaker.get("name") or "Bet365",
-                    "phase": phase,
-                }
-    return None
-
-
-
-def extract_moviodds_btts_ft_quote(match):
-    """Legacy parser retained for historical regression tests; not used for new picks."""
-    candidates = []
-    group_status = match.get("group_status") if isinstance(match.get("group_status"), dict) else {}
-    for quote in match.get("quotes", []) or []:
-        market = re.sub(r"[^a-z0-9]+", " ", str(quote.get("group_name") or "").lower()).strip()
-        if market != "both teams to score":
-            continue
-        if quote.get("phase") not in (None, "", "prematch"):
-            continue
-        if quote.get("suspended") is True or quote.get("stale") is True:
-            continue
-        group_id = str(quote.get("group_id") or "")
-        if group_id and isinstance(group_status.get(group_id), dict) and group_status[group_id].get("stale"):
-            continue
-        if str(quote.get("label") or "").strip().lower() not in {"yes", "tak"}:
-            continue
-        try:
-            odds = float(quote.get("odds_dec"))
-        except (TypeError, ValueError):
-            continue
-        if not 1.60 <= odds <= 2.40:
-            continue
-        candidates.append({
-            "odds": odds, "market": "Both Teams to Score — Yes",
-            "group_id": group_id, "sel_id": str(quote.get("sel_id") or ""),
-            "updated_at": quote.get("ts"),
-        })
-    if not candidates:
+    odds_block = payload.get("odds") or {}
+    try:
+        odds = float(odds_block.get("btts_yes"))
+    except (TypeError, ValueError):
         return None
-    if len({round(item["odds"], 3) for item in candidates}) != 1:
+    if not 1.60 <= odds <= 2.40:
         return None
-    if len({item["group_id"] for item in candidates}) != 1:
-        return None
-    return candidates[0]
+    return {
+        "odds": odds,
+        "market": "BTTS — Yes (FT)",
+        "updated_at": payload.get("last_update_at"),
+        "bookmaker": "Konsensus BSD (wielu bukmacherów)",
+        "source": "BSD",
+    }
 
 
-def fivedollar_fixture_odds(fixture_id):
-    payload = fivedollar_get(
-        f"fixtures/{fixture_id}/odds", {"market": "btts"}, timeout=25
+def bsd_fixture_odds(fixture_id):
+    payload = bsd_get(f"events/{fixture_id}/odds/", timeout=25)
+    return extract_bsd_btts_ft_quote(payload)
+
+
+def bsd_event_team_name(value):
+    if isinstance(value, dict):
+        return str(first(value, "name", "display_name", "short_name", default="") or "").strip()
+    return str(value or "").strip()
+
+
+def bsd_event_league_name(event):
+    value = first(
+        event, "league_name", "competition_name", "tournament_name",
+        "competition", "league", "tournament", default=""
     )
-    return extract_fivedollar_btts_ft_quote(payload)
+    if isinstance(value, dict):
+        value = first(value, "name", "display_name", "title", default="")
+    return str(value or "").strip()
 
 
-def fivedollar_btts_candidates(state, now=None, target_date=None):
-    """Get next-day fixtures and real Bet365 BTTS odds; cache the scan for 50 min.
+def bsd_btts_candidates(state, now=None, target_date=None):
+    """Scan all BSD free-tier competitions and collect real consensus BTTS odds.
 
-    Free tier is limited to 60 calls/hour. We fetch at most 50 fixture markets
-    per scan and cache them in persisted bot state, leaving room for final
-    price verification before publishing.
+    BSD's free football plan covers 60+ competitions and 7,500 requests/day.
+    Odds are consensus prices across the covered bookmakers, not a named book.
     """
     current = now or now_local()
     target_day = target_date or current.date()
     if isinstance(target_day, str):
         target_day = datetime.fromisoformat(target_day).date()
-    cache = state.get("fivedollar_btts_cache") or {}
+
+    cache = state.get("bsd_btts_cache") or {}
     cache_time = None
     try:
-        cache_time = datetime.fromisoformat(str(cache.get("fetched_at") or "").replace("Z", "+00:00"))
+        cache_time = datetime.fromisoformat(
+            str(cache.get("fetched_at") or "").replace("Z", "+00:00")
+        )
         if cache_time.tzinfo is None:
             cache_time = cache_time.replace(tzinfo=TZ)
         cache_time = cache_time.astimezone(TZ)
@@ -2354,75 +2318,81 @@ def fivedollar_btts_candidates(state, now=None, target_date=None):
 
     raw_candidates = cache.get("items") if (
         cache.get("date") == target_day.isoformat()
-        and cache_time and (current.astimezone(TZ) - cache_time).total_seconds() < 3000
+        and cache_time
+        and (current.astimezone(TZ) - cache_time).total_seconds() < 2700
         and isinstance(cache.get("items"), list)
     ) else None
 
     if raw_candidates is None:
-        local_start = datetime(target_day.year, target_day.month, target_day.day, tzinfo=TZ)
-        local_end = local_start + timedelta(days=1)
         params = {
-            "start_time": int(local_start.astimezone(timezone.utc).timestamp()),
-            "end_time": int(local_end.astimezone(timezone.utc).timestamp()),
-            "status": "scheduled", "per_page": 100, "lang": "pl",
+            "date_from": target_day.isoformat(),
+            "date_to": target_day.isoformat(),
+            "status": "upcoming",
+            "limit": 200,
+            "offset": 0,
         }
-        fixtures = []
-        page = 1
+        events = []
         while True:
-            page_params = {**params, "page": page}
-            payload = fivedollar_get("fixtures", page_params, timeout=35)
-            if isinstance(payload, dict):
-                batch = payload.get("data") or []
-                pagination = payload.get("pagination") or {}
-            else:
-                batch, pagination = payload or [], {}
-            fixtures.extend(item for item in batch if isinstance(item, dict))
-            if not pagination.get("has_more") or page >= 5:
+            payload = bsd_get("events/", params, timeout=35)
+            batch = payload.get("results") or [] if isinstance(payload, dict) else []
+            events.extend(item for item in batch if isinstance(item, dict))
+            if not isinstance(payload, dict) or not payload.get("next") or not batch:
                 break
-            page += 1
+            params["offset"] += len(batch)
+            if params["offset"] >= 2000:
+                print("BSD: osiągnięto limit bezpieczeństwa 2000 meczów na skan.", flush=True)
+                break
 
-        fixtures.sort(key=lambda item: int(item.get("kickoff_ts") or 0))
+        events.sort(key=lambda item: str(item.get("event_date") or ""))
         raw_candidates = []
-        odds_calls = 0
-        for fixture in fixtures:
-            if odds_calls >= 50:
-                print("5DollarFootballAPI: limit bezpieczeństwa 50 zapytań o kursy w jednym skanie; reszta spotkań pominięta.", flush=True)
-                break
-            fixture_id = str(fixture.get("id") or "").strip()
-            teams_block = fixture.get("teams") or {}
-            home = str((teams_block.get("home") or {}).get("name") or "").strip()
-            away = str((teams_block.get("away") or {}).get("name") or "").strip()
-            kickoff = kickoff_datetime({"kickoff_time": fixture.get("kickoff_utc")})
+        checked_odds = 0
+        for event in events:
+            fixture_id = str(event.get("id") or event.get("event_id") or "").strip()
+            home = bsd_event_team_name(first(event, "home_team", "home", default=""))
+            away = bsd_event_team_name(first(event, "away_team", "away", default=""))
+            kickoff = kickoff_datetime({
+                "kickoff_time": first(event, "event_date", "kickoff_time", "date", default="")
+            })
             if not fixture_id or not home or not away or not kickoff:
                 continue
             if kickoff <= current or kickoff.astimezone(TZ).date() != target_day:
                 continue
-            odds_calls += 1
             try:
-                quote = fivedollar_fixture_odds(fixture_id)
+                quote = bsd_fixture_odds(fixture_id)
             except Exception as exc:
-                print(f"5DollarFootballAPI BTTS {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
+                print(
+                    f"BSD BTTS {home} - {away}: {type(exc).__name__}: {exc}",
+                    flush=True,
+                )
                 continue
+            checked_odds += 1
             if not quote:
                 continue
-            league_block = fixture.get("league") or {}
             raw_candidates.append({
-                "id": fixture_id, "home": home, "away": away,
-                "league": str(league_block.get("name") or "Liga nieznana"),
-                "kickoff": kickoff.isoformat(), "quote": quote,
-                "url": "", "competition_category": "",
+                "id": fixture_id,
+                "home": home,
+                "away": away,
+                "league": bsd_event_league_name(event),
+                "kickoff": kickoff.isoformat(),
+                "quote": quote,
+                "url": "",
+                "competition_category": "",
             })
-        state["fivedollar_btts_cache"] = {
+            # BSD documents a 25 req/s burst cap; keep the bot comfortably below it.
+            time.sleep(0.06)
+
+        state["bsd_btts_cache"] = {
             "date": target_day.isoformat(),
             "fetched_at": current.astimezone(TZ).isoformat(),
             "items": raw_candidates,
-            "fixture_count": len(fixtures),
-            "odds_calls": odds_calls,
+            "fixture_count": len(events),
+            "odds_calls": checked_odds,
         }
         save_state(state)
         print(
-            f"5DollarFootballAPI/Bet365: {len(fixtures)} meczów w terminarzu, "
-            f"{odds_calls} sprawdzonych rynków BTTS, {len(raw_candidates)} kursów w zakresie 1.60–2.40.",
+            f"BSD: {len(events)} meczów z 60+ darmowych rozgrywek, "
+            f"{checked_odds} sprawdzonych rynków BTTS, "
+            f"{len(raw_candidates)} kursów konsensusowych 1.60–2.40.",
             flush=True,
         )
 
@@ -2437,8 +2407,9 @@ def fivedollar_btts_candidates(state, now=None, target_date=None):
             continue
         if kickoff <= current or kickoff.date() != target_day:
             continue
-        home, away, fixture_id = item.get("home"), item.get("away"), str(item.get("id") or "")
-        league = str(item.get("league") or "Liga nieznana")
+        home, away = item.get("home"), item.get("away")
+        fixture_id = str(item.get("id") or "")
+        league = str(item.get("league") or "")
         quote = item.get("quote") or {}
         if not fixture_id or not home or not away or not btts_prematch_odds_gate(quote):
             continue
@@ -2452,7 +2423,7 @@ def fivedollar_btts_candidates(state, now=None, target_date=None):
             "competition_category": fixture_category_signature(home, away, league),
         })
     candidates.sort(key=lambda item: (item["kickoff"], item["home"], item["away"]))
-    print(f"5DollarFootballAPI/Bet365: kandydaci BTTS FT na {target_day}: {len(candidates)}", flush=True)
+    print(f"BSD: kandydaci BTTS FT na {target_day}: {len(candidates)}", flush=True)
     return candidates
 
 def sportscore_result_for_pick(pick):
@@ -5554,7 +5525,7 @@ def btts_prematch_odds_gate(btts_quote):
 
 
 def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
-    """Scan and send BTTS FT picks using verified Bet365 / 5DollarFootballAPI prices."""
+    """Scan and send BTTS FT picks using BSD consensus BTTS prices."""
     target_day = scan_date
     day_key = target_day.isoformat()
     if day_key in set(state.get("daily_btts_closers_sent", [])):
@@ -5562,11 +5533,11 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
         return
 
     try:
-        candidates = fivedollar_btts_candidates(
+        candidates = bsd_btts_candidates(
             state, now=now_local(), target_date=target_day
         )
     except Exception as exc:
-        print(f"5DollarFootballAPI/Bet365: nie udało się pobrać terminarza lub kursów BTTS: {type(exc).__name__}: {exc}", flush=True)
+        print(f"BSD: nie udało się pobrać terminarza lub kursów BTTS: {type(exc).__name__}: {exc}", flush=True)
         return
     eligible = []
     for candidate in candidates:
@@ -5606,7 +5577,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
     eligible.sort(key=lambda item: (
         -item["analysis"]["score"], item["kickoff"], item["home"], item["away"]
     ))
-    print(f"Bet365 BTTS FT: {len(eligible)} kandydatów po analizie; kursy 1.60–2.40.", flush=True)
+    print(f"BSD BTTS FT: {len(eligible)} kandydatów po analizie; kursy konsensusowe 1.60–2.40.", flush=True)
 
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     for corrected_number, old_pick in enumerate(sent_today, 1):
@@ -5633,14 +5604,14 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
 
         # Refresh the full Bet365 board immediately before publication.
         try:
-            final_quote = fivedollar_fixture_odds(candidate["id"])
+            final_quote = bsd_fixture_odds(candidate["id"])
         except Exception as exc:
-            print(f"Końcowa kontrola kursu Bet365 nieudana: {type(exc).__name__}: {exc}", flush=True)
+            print(f"Końcowa kontrola kursu BSD nieudana: {type(exc).__name__}: {exc}", flush=True)
             continue
 
         if (not final_quote or not btts_prematch_odds_gate(final_quote)
                 or abs(float(final_quote["odds"]) - float(candidate["quote"]["odds"])) > 0.005):
-            print(f"Bet365: kurs BTTS zmienił się lub rynek zniknął — pomijam {candidate['home']} - {candidate['away']}.", flush=True)
+            print(f"BSD: kurs konsensusowy BTTS zmienił się lub rynek zniknął — pomijam {candidate['home']} - {candidate['away']}.", flush=True)
             continue
         if same_fixture_pick_exists(
             state, candidate["id"], candidate["home"], candidate["away"],
@@ -5674,7 +5645,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
             "date": day_key, "kickoff_time": candidate["kickoff"].isoformat(),
             "market": BTTS_FT_MARKET, "stake": STAKE,
             "odds": float(final_quote["odds"]),
-            "odds_source": "Bet365 / 5DollarFootballAPI",
+            "odds_source": "BSD consensus (wielu bukmacherów)",
             "odds_market": final_quote["market"],
             "odds_updated_at": final_quote.get("updated_at"),
             "bet_url": candidate.get("url") or "",
@@ -5699,7 +5670,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
             save_state(state)
             sent_count += 1
             next_number += 1
-            print(f"WYSŁANO BTTS FT Bet365 TYP NR. {pick_number}: {candidate['home']} - {candidate['away']} @ {final_quote['odds']:.2f}", flush=True)
+            print(f"WYSŁANO BTTS FT BSD TYP NR. {pick_number}: {candidate['home']} - {candidate['away']} @ {final_quote['odds']:.2f}", flush=True)
         except Exception as exc:
             pick["delivery_status"] = "failed"
             pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
