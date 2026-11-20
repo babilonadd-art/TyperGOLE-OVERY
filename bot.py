@@ -625,7 +625,7 @@ def format_btts_ft_pick_message(pick, pick_number):
         + f"💰 Kurs: {odds:.2f}\n"
         + f"💵 Stawka: {stake:.2f} zł | Możliwa wypłata po podatku: {payout['payout']:.2f} zł\n"
         + f"🔗 Mecz: {pick.get('bet_url') or ''}\n"
-        + "📡 Football data by BSD: https://sports.bzzoiro.com\\n\\n"
+        + "📡 Football data by BSD: https://sports.bzzoiro.com\n\n"
         + "Typ dotyczy obu drużyn ze strzelonym golem po 90 minutach + doliczony czas. Bez dogrywki."
     )
     return message
@@ -2364,8 +2364,10 @@ def bsd_btts_candidates(state, now=None, target_date=None):
                     f"BSD BTTS {home} - {away}: {type(exc).__name__}: {exc}",
                     flush=True,
                 )
+                time.sleep(0.06)
                 continue
             checked_odds += 1
+            time.sleep(0.06)
             if not quote:
                 continue
             raw_candidates.append({
@@ -5554,7 +5556,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
                 candidate["home"], candidate["away"], kickoff, league_source
             )
         if not league:
-            print(f"Bet365 BTTS FT: brak potwierdzonej ligi dla {candidate['home']} - {candidate['away']}; pomijam.", flush=True)
+            print(f"BSD BTTS FT: brak potwierdzonej ligi dla {candidate['home']} - {candidate['away']}; pomijam.", flush=True)
             continue
         if same_fixture_pick_exists(
             state, candidate["id"], candidate["home"], candidate["away"],
@@ -5602,7 +5604,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
             print(f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {day_key}.", flush=True)
             break
 
-        # Refresh the full Bet365 board immediately before publication.
+        # Refresh the BSD consensus BTTS price immediately before publication.
         try:
             final_quote = bsd_fixture_odds(candidate["id"])
         except Exception as exc:
@@ -5675,12 +5677,12 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
             pick["delivery_status"] = "failed"
             pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
             save_state(state)
-            print(f"Telegram Bet365 BTTS FT error: {type(exc).__name__}: {exc}", flush=True)
+            print(f"Telegram BSD BTTS FT error: {type(exc).__name__}: {exc}", flush=True)
             return
 
 
 def send_prematch_superbet_btts_picks(state):
-    """Scan next-day fixtures and publish verified Bet365 prices."""
+    """Scan next-day fixtures and publish verified BSD consensus prices."""
     today = now_local().date()
     scan_dates = (today + timedelta(days=1),)
     for scan_date in scan_dates:
