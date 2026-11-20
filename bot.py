@@ -2272,6 +2272,44 @@ def extract_bsd_btts_ft_quote(payload):
     }
 
 
+
+def extract_moviodds_btts_ft_quote(match):
+    """Legacy compatibility parser for historical unit tests only; not used for new picks."""
+    candidates = []
+    group_status = match.get("group_status") if isinstance(match.get("group_status"), dict) else {}
+    for quote in match.get("quotes", []) or []:
+        market = re.sub(r"[^a-z0-9]+", " ", str(quote.get("group_name") or "").lower()).strip()
+        if market != "both teams to score":
+            continue
+        if quote.get("phase") not in (None, "", "prematch"):
+            continue
+        if quote.get("suspended") is True or quote.get("stale") is True:
+            continue
+        group_id = str(quote.get("group_id") or "")
+        if group_id and isinstance(group_status.get(group_id), dict) and group_status[group_id].get("stale"):
+            continue
+        if str(quote.get("label") or "").strip().lower() not in {"yes", "tak"}:
+            continue
+        try:
+            odds = float(quote.get("odds_dec"))
+        except (TypeError, ValueError):
+            continue
+        if not 1.60 <= odds <= 2.40:
+            continue
+        candidates.append({
+            "odds": odds, "market": "Both Teams to Score — Yes",
+            "group_id": group_id, "sel_id": str(quote.get("sel_id") or ""),
+            "updated_at": quote.get("ts"),
+        })
+    if not candidates:
+        return None
+    if len({round(item["odds"], 3) for item in candidates}) != 1:
+        return None
+    if len({item["group_id"] for item in candidates}) != 1:
+        return None
+    return candidates[0]
+
+
 def bsd_fixture_odds(fixture_id):
     payload = bsd_get(f"events/{fixture_id}/odds/", timeout=25)
     return extract_bsd_btts_ft_quote(payload)
