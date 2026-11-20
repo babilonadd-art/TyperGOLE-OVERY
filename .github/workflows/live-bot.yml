@@ -53,7 +53,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          MOVIODDS_API_KEY: ${{ secrets.MOVIODDS_API_KEY }}
+          FIVEDOLLAR_API_KEY: ${{ secrets.FIVEDOLLAR_API_KEY }}
           TZ: Europe/Warsaw
         run: python bot.py
       - name: Save bot state
