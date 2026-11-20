@@ -5903,3 +5903,4 @@ if __name__ == "__main__":
 # Trigger manual Telegram numbering correction: Leganes 1, Dijon-Orleans 2 (2026-11-13).
 
 # Manual Telegram close-day trigger: 2026-11-13
+# Manual live BTTS FT scan trigger: 2026-11-20
