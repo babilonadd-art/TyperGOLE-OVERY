@@ -2331,6 +2331,27 @@ def bsd_event_league_name(event):
     return str(value or "").strip()
 
 
+def btts_overnight_scan_date(current=None):
+    """Return the date whose 00:00–05:59 local kickoff window is next."""
+    current = (current or now_local()).astimezone(TZ)
+    return current.date() if current.hour < 6 else current.date() + timedelta(days=1)
+
+
+def btts_is_overnight_kickoff(kickoff):
+    """True only for kickoffs from 00:00 through 05:59 in Europe/Warsaw."""
+    if isinstance(kickoff, str):
+        try:
+            kickoff = datetime.fromisoformat(kickoff.replace("Z", "+00:00"))
+        except ValueError:
+            return False
+    if not isinstance(kickoff, datetime):
+        return False
+    if kickoff.tzinfo is None:
+        kickoff = kickoff.replace(tzinfo=TZ)
+    local = kickoff.astimezone(TZ)
+    return 0 <= local.hour < 6
+
+
 def bsd_btts_candidates(state, now=None, target_date=None):
     """Scan all BSD free-tier competitions and collect real consensus BTTS odds.
 
@@ -2397,7 +2418,7 @@ def bsd_btts_candidates(state, now=None, target_date=None):
             if (
                 kickoff_local <= current.astimezone(TZ)
                 or kickoff_local.date() != target_day
-                or not (0 <= kickoff_local.hour < 6)
+                or not btts_is_overnight_kickoff(kickoff_local)
             ):
                 continue
             try:
@@ -2453,7 +2474,7 @@ def bsd_btts_candidates(state, now=None, target_date=None):
         if (
             kickoff <= current
             or kickoff.date() != target_day
-            or not (0 <= kickoff.hour < 6)
+            or not btts_is_overnight_kickoff(kickoff)
         ):
             continue
         home, away = item.get("home"), item.get("away")
@@ -5731,13 +5752,8 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
 def send_prematch_superbet_btts_picks(state):
     """Scan next-day fixtures and publish verified BSD consensus prices."""
     current = now_local().astimezone(TZ)
-    # Nocny skan obejmuje wyłącznie mecze od 00:00 do 05:59 czasu polskiego.
     # Przed 06:00 szukamy jeszcze dzisiejszej nocy; od 06:00 kolejnej nocy.
-    scan_date = (
-        current.date()
-        if current.hour < 6
-        else current.date() + timedelta(days=1)
-    )
+    scan_date = btts_overnight_scan_date(current)
     scan_dates = (scan_date,)
     for scan_date in scan_dates:
         print(
