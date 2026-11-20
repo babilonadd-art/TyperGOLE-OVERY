@@ -64,6 +64,9 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+users.noreply.github.com"
             git add -f data/state.json
+            if [ -f data/openfootball_cache.json ]; then
+              git add -f data/openfootball_cache.json
+            fi
             if ! git diff --cached --quiet; then
               git commit -m "Persist live pick and settlement state"
               # Code commits can land while this scheduled job is running.
