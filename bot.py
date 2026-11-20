@@ -4930,7 +4930,7 @@ def send_prematch_over_15_ht_picks(state):
 
 
 
-MAX_DAILY_BTTS_FT_PICKS = 10
+MAX_DAILY_BTTS_FT_PICKS = 4
 
 
 def btts_value_gate(model_probability, odds, min_probability=0.60, min_edge=0.04):
@@ -4940,7 +4940,7 @@ def btts_value_gate(model_probability, odds, min_probability=0.60, min_edge=0.04
         price = float(odds)
     except (TypeError, ValueError):
         return False
-    if not (0.0 < probability < 1.0 and 1.55 <= price <= 2.40):
+    if not (0.0 < probability < 1.0 and 1.80 <= price <= 2.40):
         return False
     implied_probability = 1.0 / price
     return probability >= min_probability and probability - implied_probability >= min_edge
@@ -5408,7 +5408,7 @@ def btts_prematch_odds_gate(btts_quote):
         btts_odds = float(btts_quote.get("odds"))
     except (TypeError, ValueError):
         return False
-    return 1.55 <= btts_odds <= 2.40
+    return 1.80 <= btts_odds <= 2.40
 
 
 def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
