@@ -2393,7 +2393,12 @@ def bsd_btts_candidates(state, now=None, target_date=None):
             })
             if not fixture_id or not home or not away or not kickoff:
                 continue
-            if kickoff <= current or kickoff.astimezone(TZ).date() != target_day:
+            kickoff_local = kickoff.astimezone(TZ)
+            if (
+                kickoff_local <= current.astimezone(TZ)
+                or kickoff_local.date() != target_day
+                or not (0 <= kickoff_local.hour < 6)
+            ):
                 continue
             try:
                 quote = bsd_fixture_odds(fixture_id)
@@ -2445,7 +2450,11 @@ def bsd_btts_candidates(state, now=None, target_date=None):
             kickoff = kickoff.astimezone(TZ)
         except (TypeError, ValueError):
             continue
-        if kickoff <= current or kickoff.date() != target_day:
+        if (
+            kickoff <= current
+            or kickoff.date() != target_day
+            or not (0 <= kickoff.hour < 6)
+        ):
             continue
         home, away = item.get("home"), item.get("away")
         fixture_id = str(item.get("id") or "")
@@ -5721,12 +5730,19 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
 
 def send_prematch_superbet_btts_picks(state):
     """Scan next-day fixtures and publish verified BSD consensus prices."""
-    today = now_local().date()
-    scan_dates = (today + timedelta(days=1),)
+    current = now_local().astimezone(TZ)
+    # Nocny skan obejmuje wyłącznie mecze od 00:00 do 05:59 czasu polskiego.
+    # Przed 06:00 szukamy jeszcze dzisiejszej nocy; od 06:00 kolejnej nocy.
+    scan_date = (
+        current.date()
+        if current.hour < 6
+        else current.date() + timedelta(days=1)
+    )
+    scan_dates = (scan_date,)
     for scan_date in scan_dates:
         print(
-            f"BTTS FT: rozpoczynam skan daty {scan_date.isoformat()} "
-            f"(jutro; limit 4 typów).",
+            f"BTTS FT: nocny skan {scan_date.isoformat()} "
+            f"(tylko start 00:00–05:59 czasu polskiego; limit 4 typów).",
             flush=True,
         )
         try:
