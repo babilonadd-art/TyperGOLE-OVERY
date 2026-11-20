@@ -17675,7 +17675,7 @@
     "2026-11-15": 623,
     "2026-11-18": 637
   },
-  "btts_daily_limit_reset_at": "2026-11-19T17:27:08+01:00",
+  "btts_daily_limit_reset_at": "2026-11-20T22:34:23.581Z",
   "daily_btts_closers_sent": [
     "2026-11-07",
     "2026-11-10",
@@ -17733,5 +17733,5 @@
       "pick_number": 2
     }
   ],
-  "btts_daily_limit_reset_reason": "manual BTTS bot reset requested; preserve all pick history and pending settlements; doubles feature request: 2 per day"
+  "btts_daily_limit_reset_reason": "Manual reset requested by user on 2026-11-20"
 }
