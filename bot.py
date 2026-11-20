@@ -5449,7 +5449,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
             btts_price = (quote or {}).get("odds")
             print(
                 f"Superbet BTTS FT: odrzucam {fixture['home']} - {fixture['away']} — "
-                f"wymagany wyłącznie rynek BTTS Tak FT, kurs 1.55-2.40 "
+                f"wymagany wyłącznie rynek BTTS Tak FT, kurs 1.80-2.40 "
                 f"(BTTS={btts_price}).",
                 flush=True,
             )
@@ -5511,7 +5511,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
             continue
         candidates.append({"id": fixture["id"], "event_id": event_id, "home": fixture["home"], "away": fixture["away"], "league": league, "kickoff": kickoff, "quote": quote, "url": bet_url, "analysis": analysis, "competition_category": fixture_category_signature(fixture["home"], fixture["away"], league)})
     candidates.sort(key=lambda x: (-x["analysis"]["score"], x["kickoff"], x["home"], x["away"]))
-    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po filtrze BTTS FT 1.55-2.40, historii i przewagi nad kursem.", flush=True)
+    print(f"Superbet BTTS FT: {len(candidates)} kandydatów po filtrze BTTS FT 1.80-2.40, historii i przewagi nad kursem.", flush=True)
     day_key = today.isoformat()
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     # Older scheduled tips may have been posted days before their kickoff date.
@@ -5604,13 +5604,13 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
 
 
 def send_prematch_superbet_btts_picks(state):
-    """Scan fixtures scheduled only for the current local day."""
+    """Scan fixtures scheduled for the next Warsaw-local calendar day."""
     today = now_local().date()
-    scan_dates = (today,)
+    scan_dates = (today + timedelta(days=1),)
     for scan_date in scan_dates:
         print(
             f"BTTS FT: rozpoczynam skan daty {scan_date.isoformat()} "
-            f"(tylko dzisiaj; limit 4 typów).",
+            f"(jutro; limit 4 typów).",
             flush=True,
         )
         try:
