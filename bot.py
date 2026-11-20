@@ -5191,6 +5191,7 @@ def openfootball_season_key(current=None):
 def openfootball_text_match_rows(repo, path, raw_text, season):
     """Parse OpenFootball Football.TXT fixtures with completed full-time scores."""
     rows = []
+    current_day = None
     league = path.rsplit('/', 1)[-1].replace('.txt', '').replace('_', ' ')
     for line in raw_text.splitlines():
         header = re.match(r'^\s*=\s*(.+?)\s*
