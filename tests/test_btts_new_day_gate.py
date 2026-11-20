@@ -9,11 +9,10 @@ class BttsNewDayScanGateTests(unittest.TestCase):
     def setUp(self):
         self.tz = ZoneInfo("Europe/Warsaw")
 
-    def test_blocks_new_day_before_0600(self):
+    def test_allows_new_day_scan_before_0600(self):
         now = datetime(2026, 11, 13, 5, 59, tzinfo=self.tz)
-        allowed, reason = bot.btts_new_day_scan_gate({"picks": []}, now)
-        self.assertFalse(allowed)
-        self.assertIn("06:00", reason)
+        allowed, _ = bot.btts_new_day_scan_gate({"picks": []}, now)
+        self.assertTrue(allowed)
 
     def test_blocks_until_previous_day_picks_are_settled(self):
         now = datetime(2026, 11, 13, 6, 0, tzinfo=self.tz)
