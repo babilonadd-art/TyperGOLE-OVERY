@@ -24,6 +24,7 @@ OPEN_MATCHDAY_SEASON = "2627"
 _OPEN_MATCHDAY_CACHE = None
 _SPORTSCORE_SETTLEMENT_CACHE = {}
 MOVIODDS_API = "https://moviodds.com"
+MOVIODDS_API_KEY = os.getenv("MOVIODDS_API_KEY", "").strip()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
@@ -2163,9 +2164,11 @@ def moviodds_get(path, params=None, timeout=90, max_attempts=5):
     for attempt in range(max_attempts):
         response = None
         try:
+            if not MOVIODDS_API_KEY:
+                raise RuntimeError("Brak sekretu MOVIODDS_API_KEY — dodaj darmowy klucz API MoviOdds w GitHub Secrets")
             response = requests.get(
                 f"{MOVIODDS_API}{path}", params=params or {},
-                headers={**HEADERS, "Accept-Encoding": "gzip"}, timeout=timeout,
+                headers={**HEADERS, "Accept-Encoding": "gzip", "X-API-Key": MOVIODDS_API_KEY}, timeout=timeout,
             )
             if response.status_code not in retryable_statuses:
                 response.raise_for_status()
