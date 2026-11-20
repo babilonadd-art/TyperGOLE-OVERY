@@ -29,7 +29,7 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
 STAKE = 10.0
 BET_TAX_RATE = 0.12
-# Maksymalnie 10 typów BTTS FT dziennie.
+# Maksymalnie 4 typy BTTS FT dziennie.
 
 def calculate_bet_result(stake, odds):
     """Calculate Polish 12% stake tax, payout and net profit."""
@@ -54,9 +54,9 @@ def now_local():
     return datetime.now(TZ)
 
 
-# Limit 8 typów BTTS FT na każdy dzień kalendarzowy (Europe/Warsaw).
+# Limit 4 typów BTTS FT na każdy dzień kalendarzowy (Europe/Warsaw).
 # Licznik resetuje się automatycznie po zmianie daty; historia pozostaje zachowana.
-MAX_DAILY_BTTS_FT_PICKS = 10
+MAX_DAILY_BTTS_FT_PICKS = 4
 
 
 def daily_sent_match_count(state, day):
@@ -2258,7 +2258,7 @@ def extract_moviodds_btts_ft_quote(match):
             odds = float(quote.get("odds_dec"))
         except (TypeError, ValueError):
             continue
-        if not 1.55 <= odds <= 2.40:
+        if not 1.80 <= odds <= 2.40:
             continue
         candidates.append({
             "odds": odds, "market": "Both Teams to Score — Yes",
@@ -2309,7 +2309,7 @@ def moviodds_btts_candidates(state, now=None, board=None):
             "competition_category": fixture_category_signature(home, away, league),
         })
     candidates.sort(key=lambda item: (item["kickoff"], item["home"], item["away"]))
-    print(f"MoviOdds/Bet365: kandydaci BTTS FT w kursie 1.55–2.40: {len(candidates)}", flush=True)
+    print(f"MoviOdds/Bet365: kandydaci BTTS FT w kursie 1.80–2.40: {len(candidates)}", flush=True)
     return candidates
 
 
@@ -5401,7 +5401,7 @@ def btts_1x2_risk_gate(one_x_two, metrics):
 
 
 def btts_prematch_odds_gate(btts_quote):
-    """Require standalone FT BTTS YES odds in the requested 1.55-2.40 range."""
+    """Require standalone FT BTTS YES odds in the requested 1.80-2.40 range."""
     if not isinstance(btts_quote, dict):
         return False
     try:
@@ -5610,7 +5610,7 @@ def send_prematch_superbet_btts_picks(state):
     for scan_date in scan_dates:
         print(
             f"BTTS FT: rozpoczynam skan daty {scan_date.isoformat()} "
-            f"(tylko dzisiaj; limit 10 typów).",
+            f"(tylko dzisiaj; limit 4 typów).",
             flush=True,
         )
         try:
