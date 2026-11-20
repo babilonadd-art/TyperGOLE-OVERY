@@ -624,7 +624,8 @@ def format_btts_ft_pick_message(pick, pick_number):
         + confidence_line
         + f"💰 Kurs: {odds:.2f}\n"
         + f"💵 Stawka: {stake:.2f} zł | Możliwa wypłata po podatku: {payout['payout']:.2f} zł\n"
-        + f"🔗 Mecz: {pick.get('bet_url') or ''}\n\n"
+        + f"🔗 Mecz: {pick.get('bet_url') or ''}\n"
+        + "📡 Football data by 5DollarFootballAPI: https://5dollarfootballapi.com\\n\\n"
         + "Typ dotyczy obu drużyn ze strzelonym golem po 90 minutach + doliczony czas. Bez dogrywki."
     )
     return message
@@ -5515,7 +5516,7 @@ def btts_prematch_odds_gate(btts_quote):
 
 
 def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
-    """Scan and send BTTS FT picks using verified Bet365 / MoviOdds prices."""
+    """Scan and send BTTS FT picks using verified Bet365 / 5DollarFootballAPI prices."""
     target_day = scan_date
     day_key = target_day.isoformat()
     if day_key in set(state.get("daily_btts_closers_sent", [])):
