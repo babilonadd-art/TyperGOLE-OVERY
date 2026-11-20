@@ -21,6 +21,9 @@ TZ = ZoneInfo("Europe/Warsaw")
 API = "https://sportscore.com"  # legacy fallback for older pick types
 OPEN_MATCHDAY_ZIP = "https://github.com/oladeeayo/open-matchday/archive/refs/heads/master.zip"
 OPEN_MATCHDAY_SEASON = "2627"
+OPENFOOTBALL_BASE = "https://raw.githubusercontent.com/openfootball/football.json/master"
+OPENFOOTBALL_FILES = ("de.1.json", "en.1.json", "en.2.json", "es.1.json", "fr.1.json", "it.1.json", "nl.1.json", "pt.1.json")
+_OPENFOOTBALL_CACHE = None
 _OPEN_MATCHDAY_CACHE = None
 _SPORTSCORE_SETTLEMENT_CACHE = {}
 BSD_API = "https://sports.bzzoiro.com"
@@ -5180,9 +5183,99 @@ def btts_probability_estimate(home_all, away_all, home_venue, away_venue):
     }
 
 
+def openfootball_season_key(current=None):
+    current = current or now_local()
+    return f"{current.year}-{str(current.year + 1)[-2:]}" if current.month >= 7 else f"{current.year - 1}-{str(current.year)[-2:]}"
+
+def openfootball_btts_results(force_refresh=False):
+    """Load CC0 OpenFootball match results for selected leagues; cache for 20h."""
+    global _OPENFOOTBALL_CACHE
+    if _OPENFOOTBALL_CACHE is not None and not force_refresh:
+        return _OPENFOOTBALL_CACHE
+    season = openfootball_season_key()
+    cache_path = Path("data/openfootball_cache.json")
+    cached = {}
+    try:
+        cached = json.loads(cache_path.read_text(encoding="utf-8"))
+        fetched_at = datetime.fromisoformat(str(cached.get("fetched_at", "")).replace("Z", "+00:00"))
+        if fetched_at.tzinfo is None: fetched_at = fetched_at.replace(tzinfo=timezone.utc)
+        age = (datetime.now(timezone.utc) - fetched_at.astimezone(timezone.utc)).total_seconds()
+        if not force_refresh and cached.get("season") == season and age < 72000 and isinstance(cached.get("results"), list):
+            _OPENFOOTBALL_CACHE = cached["results"]
+            print(f"OpenFootball: cache {len(_OPENFOOTBALL_CACHE)} wyników, sezon {season}.", flush=True)
+            return _OPENFOOTBALL_CACHE
+    except (OSError, ValueError, TypeError, AttributeError):
+        cached = {}
+    results, errors = [], []
+    for filename in OPENFOOTBALL_FILES:
+        try:
+            response = requests.get(f"{OPENFOOTBALL_BASE}/{season}/{filename}", headers=HEADERS, timeout=25)
+            if response.status_code == 404: continue
+            response.raise_for_status()
+            payload = response.json()
+            if not isinstance(payload, dict) or not isinstance(payload.get("matches"), list): raise ValueError("nieprawidłowy JSON")
+            league = str(payload.get("name") or filename)
+            for match in payload["matches"]:
+                if not isinstance(match, dict): continue
+                score = match.get("score") if isinstance(match.get("score"), dict) else {}
+                ft = score.get("ft")
+                if not isinstance(ft, list) or len(ft) != 2: continue
+                try:
+                    hg, ag = int(ft[0]), int(ft[1])
+                    match_day = datetime.fromisoformat(str(match.get("date", ""))[:10]).date()
+                except (TypeError, ValueError): continue
+                home, away = str(match.get("team1") or "").strip(), str(match.get("team2") or "").strip()
+                if not home or not away or hg < 0 or ag < 0: continue
+                ht = score.get("ht"); ht_home = ht_away = None
+                if isinstance(ht, list) and len(ht) == 2:
+                    try: ht_home, ht_away = int(ht[0]), int(ht[1])
+                    except (TypeError, ValueError): pass
+                results.append({"date": match_day.isoformat(), "home": home, "away": away, "ft_home": hg, "ft_away": ag, "ht_home": ht_home, "ht_away": ht_away, "_league": league, "_folder": "openfootball", "_source": "OpenFootball"})
+        except Exception as exc: errors.append(f"{filename}: {type(exc).__name__}: {exc}")
+    if not results:
+        stale = cached.get("results") if isinstance(cached, dict) else None
+        if isinstance(stale, list) and stale:
+            _OPENFOOTBALL_CACHE = stale
+            print(f"OpenFootball: źródło niedostępne, używam cache {len(stale)} wyników.", flush=True)
+            return stale
+        raise RuntimeError("OpenFootball nie zwrócił wyników: " + "; ".join(errors))
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = cache_path.with_suffix(".tmp")
+    tmp.write_text(json.dumps({"season": season, "fetched_at": datetime.now(timezone.utc).isoformat(), "results": results}, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(cache_path)
+    _OPENFOOTBALL_CACHE = results
+    print(f"OpenFootball: pobrano {len(results)} wyników z {len(OPENFOOTBALL_FILES)} lig (CC0), sezon {season}.", flush=True)
+    if errors: print("OpenFootball: część lig pominięta: " + "; ".join(errors), flush=True)
+    return results
+
+def merge_openfootball_history(base_rows, extra_rows):
+    """Append OpenFootball scores without duplicating Open Matchday matches."""
+    merged = list(base_rows or []); added = 0
+    for extra in extra_rows or []:
+        try: extra_day = datetime.fromisoformat(str(extra.get("date", ""))[:10]).date()
+        except ValueError: continue
+        duplicate = False
+        for old in merged:
+            try: old_day = datetime.fromisoformat(str(old.get("date", ""))[:10]).date()
+            except ValueError: continue
+            if abs((old_day - extra_day).days) > 1: continue
+            if team_name_similarity(old.get("home"), extra.get("home")) >= 0.88 and team_name_similarity(old.get("away"), extra.get("away")) >= 0.88:
+                duplicate = True; break
+        if not duplicate: merged.append(extra); added += 1
+    if added: print(f"BTTS: OpenFootball dodał {added} wyników do historii.", flush=True)
+    return merged
+
 def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_two=None):
-    """Evaluate a prematch BTTS FT fixture using current-season Open Matchday data."""
-    data = open_matchday_data()
+    """Evaluate prematch BTTS FT using Open Matchday enriched with OpenFootball scores."""
+    try:
+        data = open_matchday_data()
+    except Exception as exc:
+        print(f"BTTS: Open Matchday niedostępny: {type(exc).__name__}: {exc}", flush=True)
+        data = {"fixtures": [], "results": []}
+    try:
+        data["results"] = merge_openfootball_history(data.get("results", []), openfootball_btts_results())
+    except Exception as exc:
+        print(f"BTTS: OpenFootball niedostępny: {type(exc).__name__}: {exc}", flush=True)
 
     def reject(reason):
         print(f"BTTS ANALYSIS REJECT: {home} - {away}: {reason}", flush=True)
