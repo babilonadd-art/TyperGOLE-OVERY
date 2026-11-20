@@ -5239,6 +5239,11 @@ def openfootball_text_results(season):
     """Discover current-season Football.TXT files across OpenFootball country repositories."""
     jobs = []
     errors = []
+    if '-' in season:
+        first_year = int(season.split('-', 1)[0])
+        target_seasons = (season, f'{first_year - 1}-{str(first_year)[-2:]}')
+    else:
+        target_seasons = (season, str(int(season) - 1))
     for repo in OPENFOOTBALL_REPOS:
         try:
             response = requests.get(
@@ -5252,24 +5257,26 @@ def openfootball_text_results(season):
                 path = str(item.get('path') or '')
                 if item.get('type') != 'blob' or not path.lower().endswith('.txt'):
                     continue
-                is_season_file = season in path
-                is_calendar_file = (
-                    season == str(now_local().year)
-                    and re.search(r'(^|[/_-])' + re.escape(season) + r'([/_-]|\.)', path) is not None
-                )
-                if is_season_file or is_calendar_file:
-                    jobs.append((repo, path))
+                matching_season = next((
+                    target for target in target_seasons
+                    if target in path or (
+                        '-' not in target
+                        and re.search(r'(^|[/_-])' + re.escape(target) + r'([/_-]|\.)', path) is not None
+                    )
+                ), None)
+                if matching_season:
+                    jobs.append((repo, path, matching_season))
         except Exception as exc:
             errors.append(f'{repo} tree: {type(exc).__name__}: {exc}')
 
     rows = []
 
     def fetch_one(job):
-        repo, path = job
+        repo, path, file_season = job
         url = f'https://raw.githubusercontent.com/openfootball/{repo}/master/{path}'
         response = requests.get(url, headers=HEADERS, timeout=25)
         response.raise_for_status()
-        return openfootball_text_match_rows(repo, path, response.text, season)
+        return openfootball_text_match_rows(repo, path, response.text, file_season)
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         futures = {pool.submit(fetch_one, job): job for job in jobs}
@@ -5277,7 +5284,7 @@ def openfootball_text_results(season):
             try:
                 rows.extend(future.result())
             except Exception as exc:
-                repo_name, file_path = futures[future]
+                repo_name, file_path, _file_season = futures[future]
                 errors.append(f'{repo_name}/{file_path}: {type(exc).__name__}: {exc}')
     print(
         f'OpenFootball: Football.TXT sprawdził {len(jobs)} plików '
