@@ -2254,7 +2254,7 @@ def fivedollar_get(path, params=None, timeout=25):
 
 def extract_fivedollar_btts_ft_quote(payload):
     """Read the real Bet365 pre-match BTTS YES price only."""
-    data = payload.get("data") if isinstance(payload, dict) else payload
+    data = payload
     if not isinstance(data, dict):
         return None
     bookmakers = data.get("bookmakers") or []
