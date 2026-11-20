@@ -23,8 +23,8 @@ OPEN_MATCHDAY_ZIP = "https://github.com/oladeeayo/open-matchday/archive/refs/hea
 OPEN_MATCHDAY_SEASON = "2627"
 _OPEN_MATCHDAY_CACHE = None
 _SPORTSCORE_SETTLEMENT_CACHE = {}
-MOVIODDS_API = "https://moviodds.com"
-MOVIODDS_API_KEY = os.getenv("MOVIODDS_API_KEY", "").strip()
+FIVEDOLLAR_API = "https://api.5dollarfootballapi.com"
+FIVEDOLLAR_API_KEY = os.getenv("FIVEDOLLAR_API_KEY", "").strip()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
@@ -2231,93 +2231,190 @@ def moviodds_finished_result(pick):
     return {}
 
 
-def moviodds_prematch_board():
-    """Fetch all Bet365 pre-match soccer fixtures and prices."""
-    payload = moviodds_get("/odds", {"sport": "soccer", "links": "1"}, timeout=90)
-    matches = payload.get("matches", [])
-    if not isinstance(matches, list):
-        raise RuntimeError("MoviOdds /odds returned no matches list")
-    return matches
+def fivedollar_get(path, params=None, timeout=25):
+    """Call 5DollarFootballAPI using the free account key."""
+    api_key = FIVEDOLLAR_API_KEY
+    if not api_key:
+        raise RuntimeError(
+            "Brak sekretu FIVEDOLLAR_API_KEY. Załóż bezpłatne konto 5DollarFootballAPI "
+            "i dodaj klucz w GitHub Secrets."
+        )
+    response = requests.get(
+        f"{FIVEDOLLAR_API}/v1/{path.lstrip('/')}",
+        params=params or {},
+        headers={**HEADERS, "Authorization": f"Bearer {api_key}"},
+        timeout=timeout,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if not isinstance(payload, dict) or payload.get("success") != 1:
+        raise RuntimeError(f"5DollarFootballAPI zwróciło błąd: {payload}")
+    return payload.get("data")
 
 
-def extract_moviodds_btts_ft_quote(match):
-    """Select only standalone full-time Both Teams to Score — Yes."""
-    candidates = []
-    group_status = match.get("group_status") if isinstance(match.get("group_status"), dict) else {}
-    for quote in match.get("quotes", []) or []:
-        market = re.sub(r"[^a-z0-9]+", " ", str(quote.get("group_name") or "").lower()).strip()
-        if market != "both teams to score":
-            continue
-        if quote.get("phase") not in (None, "", "prematch"):
-            continue
-        if quote.get("suspended") is True or quote.get("stale") is True:
-            continue
-        group_id = str(quote.get("group_id") or "")
-        if group_id and isinstance(group_status.get(group_id), dict) and group_status[group_id].get("stale"):
-            continue
-        if str(quote.get("label") or "").strip().lower() not in {"yes", "tak"}:
-            continue
-        try:
-            odds = float(quote.get("odds_dec"))
-        except (TypeError, ValueError):
-            continue
-        if not 1.60 <= odds <= 2.40:
-            continue
-        candidates.append({
-            "odds": odds, "market": "Both Teams to Score — Yes",
-            "group_id": group_id, "sel_id": str(quote.get("sel_id") or ""),
-            "updated_at": quote.get("ts"),
-        })
-    if not candidates:
+def extract_fivedollar_btts_ft_quote(payload):
+    """Read the real Bet365 pre-match BTTS YES price only."""
+    data = payload.get("data") if isinstance(payload, dict) else payload
+    if not isinstance(data, dict):
         return None
-    if len({round(item["odds"], 3) for item in candidates}) != 1:
-        return None
-    if len({item["group_id"] for item in candidates}) != 1:
-        return None
-    return candidates[0]
+    bookmakers = data.get("bookmakers") or []
+    for bookmaker in bookmakers:
+        if not isinstance(bookmaker, dict):
+            continue
+        slug = str(bookmaker.get("slug") or "").strip().lower()
+        if slug and slug != "bet365":
+            continue
+        odds_block = bookmaker.get("odds") or {}
+        btts = odds_block.get("btts") or {}
+        # Closing is the latest recorded pre-match price; opening is a safe
+        # fallback when the closing quote has not been published yet.
+        for phase in ("closing", "opening"):
+            prices = btts.get(phase) or {}
+            try:
+                odds = float(prices.get("yes"))
+            except (TypeError, ValueError):
+                continue
+            if 1.60 <= odds <= 2.40:
+                return {
+                    "odds": odds,
+                    "market": "BTTS — Yes (FT)",
+                    "updated_at": prices.get("updated_at") or prices.get("recorded_at"),
+                    "bookmaker": bookmaker.get("name") or "Bet365",
+                    "phase": phase,
+                }
+    return None
 
 
-def moviodds_btts_candidates(state, now=None, board=None, target_date=None):
-    """Build unique, future-only Bet365 BTTS FT candidates for a Warsaw-local date."""
+def fivedollar_fixture_odds(fixture_id):
+    payload = fivedollar_get(
+        f"fixtures/{fixture_id}/odds", {"market": "btts"}, timeout=25
+    )
+    return extract_fivedollar_btts_ft_quote(payload)
+
+
+def fivedollar_btts_candidates(state, now=None, target_date=None):
+    """Get next-day fixtures and real Bet365 BTTS odds; cache the scan for 50 min.
+
+    Free tier is limited to 60 calls/hour. We fetch at most 50 fixture markets
+    per scan and cache them in persisted bot state, leaving room for final
+    price verification before publishing.
+    """
     current = now or now_local()
     target_day = target_date or current.date()
     if isinstance(target_day, str):
         target_day = datetime.fromisoformat(target_day).date()
+    cache = state.get("fivedollar_btts_cache") or {}
+    cache_time = None
+    try:
+        cache_time = datetime.fromisoformat(str(cache.get("fetched_at") or "").replace("Z", "+00:00"))
+        if cache_time.tzinfo is None:
+            cache_time = cache_time.replace(tzinfo=TZ)
+        cache_time = cache_time.astimezone(TZ)
+    except (TypeError, ValueError):
+        cache_time = None
+
+    raw_candidates = cache.get("items") if (
+        cache.get("date") == target_day.isoformat()
+        and cache_time and (current.astimezone(TZ) - cache_time).total_seconds() < 3000
+        and isinstance(cache.get("items"), list)
+    ) else None
+
+    if raw_candidates is None:
+        local_start = datetime(target_day.year, target_day.month, target_day.day, tzinfo=TZ)
+        local_end = local_start + timedelta(days=1)
+        params = {
+            "start_time": int(local_start.astimezone(timezone.utc).timestamp()),
+            "end_time": int(local_end.astimezone(timezone.utc).timestamp()),
+            "status": "scheduled", "per_page": 100, "lang": "pl",
+        }
+        fixtures = []
+        page = 1
+        while True:
+            page_params = {**params, "page": page}
+            payload = fivedollar_get("fixtures", page_params, timeout=35)
+            if isinstance(payload, dict):
+                batch = payload.get("data") or []
+                pagination = payload.get("pagination") or {}
+            else:
+                batch, pagination = payload or [], {}
+            fixtures.extend(item for item in batch if isinstance(item, dict))
+            if not pagination.get("has_more") or page >= 5:
+                break
+            page += 1
+
+        fixtures.sort(key=lambda item: int(item.get("kickoff_ts") or 0))
+        raw_candidates = []
+        odds_calls = 0
+        for fixture in fixtures:
+            if odds_calls >= 50:
+                print("5DollarFootballAPI: limit bezpieczeństwa 50 zapytań o kursy w jednym skanie; reszta spotkań pominięta.", flush=True)
+                break
+            fixture_id = str(fixture.get("id") or "").strip()
+            teams_block = fixture.get("teams") or {}
+            home = str((teams_block.get("home") or {}).get("name") or "").strip()
+            away = str((teams_block.get("away") or {}).get("name") or "").strip()
+            kickoff = kickoff_datetime({"kickoff_time": fixture.get("kickoff_utc")})
+            if not fixture_id or not home or not away or not kickoff:
+                continue
+            if kickoff <= current or kickoff.astimezone(TZ).date() != target_day:
+                continue
+            odds_calls += 1
+            try:
+                quote = fivedollar_fixture_odds(fixture_id)
+            except Exception as exc:
+                print(f"5DollarFootballAPI BTTS {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
+                continue
+            if not quote:
+                continue
+            league_block = fixture.get("league") or {}
+            raw_candidates.append({
+                "id": fixture_id, "home": home, "away": away,
+                "league": str(league_block.get("name") or "Liga nieznana"),
+                "kickoff": kickoff.isoformat(), "quote": quote,
+                "url": "", "competition_category": "",
+            })
+        state["fivedollar_btts_cache"] = {
+            "date": target_day.isoformat(),
+            "fetched_at": current.astimezone(TZ).isoformat(),
+            "items": raw_candidates,
+            "fixture_count": len(fixtures),
+            "odds_calls": odds_calls,
+        }
+        save_state(state)
+        print(
+            f"5DollarFootballAPI/Bet365: {len(fixtures)} meczów w terminarzu, "
+            f"{odds_calls} sprawdzonych rynków BTTS, {len(raw_candidates)} kursów w zakresie 1.60–2.40.",
+            flush=True,
+        )
+
     candidates = []
-    for match in (board if board is not None else moviodds_prematch_board()):
-        if match.get("in_play") is True:
+    for item in raw_candidates:
+        try:
+            kickoff = datetime.fromisoformat(str(item.get("kickoff")).replace("Z", "+00:00"))
+            if kickoff.tzinfo is None:
+                kickoff = kickoff.replace(tzinfo=TZ)
+            kickoff = kickoff.astimezone(TZ)
+        except (TypeError, ValueError):
             continue
-        if str(match.get("sport") or "soccer").lower() not in {"soccer", "football"}:
+        if kickoff <= current or kickoff.date() != target_day:
             continue
-        kickoff = kickoff_datetime({"kickoff_time": match.get("kickoff_utc")})
-        if kickoff is None or kickoff <= current or kickoff.date() != target_day:
-            continue
-        home, away = str(match.get("home") or "").strip(), str(match.get("away") or "").strip()
-        fixture_id = str(match.get("id") or "").strip()
-        if not home or not away or not fixture_id:
-            continue
-        league = format_fixture_competition(str(match.get("league") or "Liga nieznana"), home, away)
-        quote = extract_moviodds_btts_ft_quote(match)
-        if not quote:
+        home, away, fixture_id = item.get("home"), item.get("away"), str(item.get("id") or "")
+        league = str(item.get("league") or "Liga nieznana")
+        quote = item.get("quote") or {}
+        if not fixture_id or not home or not away or not btts_prematch_odds_gate(quote):
             continue
         if same_fixture_pick_exists(
             state, fixture_id, home, away, kickoff.date().isoformat(),
             BTTS_FT_MARKET, competition=league,
         ):
             continue
-        links = match.get("links") if isinstance(match.get("links"), dict) else {}
-        match_url = links.get("prematch") or links.get("match") or ""
-        if not str(match_url).startswith("https://"):
-            match_url = ""
         candidates.append({
-            "id": fixture_id, "home": home, "away": away, "league": league,
-            "kickoff": kickoff, "quote": quote, "url": match_url,
+            **item, "kickoff": kickoff, "quote": quote,
             "competition_category": fixture_category_signature(home, away, league),
         })
     candidates.sort(key=lambda item: (item["kickoff"], item["home"], item["away"]))
-    print(f"MoviOdds/Bet365: kandydaci BTTS FT w kursie 1.60–2.40 na {target_day}: {len(candidates)}", flush=True)
+    print(f"5DollarFootballAPI/Bet365: kandydaci BTTS FT na {target_day}: {len(candidates)}", flush=True)
     return candidates
-
 
 def sportscore_result_for_pick(pick):
     """Find one exact, confirmed finished fixture in SportScore's results archive.
@@ -5426,14 +5523,12 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
         return
 
     try:
-        board = moviodds_prematch_board()
+        candidates = fivedollar_btts_candidates(
+            state, now=now_local(), target_date=target_day
+        )
     except Exception as exc:
-        print(f"Bet365/MoviOdds: nie udało się pobrać kursów; nie używam innego bukmachera: {type(exc).__name__}: {exc}", flush=True)
+        print(f"5DollarFootballAPI/Bet365: nie udało się pobrać terminarza lub kursów BTTS: {type(exc).__name__}: {exc}", flush=True)
         return
-
-    candidates = moviodds_btts_candidates(
-        state, now=now_local(), board=board, target_date=target_day
-    )
     eligible = []
     for candidate in candidates:
         kickoff = candidate["kickoff"]
@@ -5499,12 +5594,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
 
         # Refresh the full Bet365 board immediately before publication.
         try:
-            final_board = moviodds_prematch_board()
-            final_match = next((
-                row for row in final_board
-                if str(row.get("id") or "") == str(candidate["id"])
-            ), None)
-            final_quote = extract_moviodds_btts_ft_quote(final_match) if final_match else None
+            final_quote = fivedollar_fixture_odds(candidate["id"])
         except Exception as exc:
             print(f"Końcowa kontrola kursu Bet365 nieudana: {type(exc).__name__}: {exc}", flush=True)
             continue
@@ -5545,7 +5635,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
             "date": day_key, "kickoff_time": candidate["kickoff"].isoformat(),
             "market": BTTS_FT_MARKET, "stake": STAKE,
             "odds": float(final_quote["odds"]),
-            "odds_source": "Bet365 / MoviOdds",
+            "odds_source": "Bet365 / 5DollarFootballAPI",
             "odds_market": final_quote["market"],
             "odds_updated_at": final_quote.get("updated_at"),
             "bet_url": candidate.get("url") or "",
