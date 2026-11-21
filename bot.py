@@ -6433,13 +6433,14 @@ def send_daily_offsides_list(state):
     picks = []
     details_checked = 0
 
-    def fetch_quote(candidate):
+    def fetch_quote(indexed_candidate):
+        index, candidate = indexed_candidate
         event, kickoff, home, away, event_id = candidate
         try:
             detail = superbet_event_detail(event_id)
             quote = extract_superbet_match_offsides_over(detail)
             debug = None
-            if details_checked < 2:
+            if index < 2:
                 markets = detail.get("markets") if isinstance(detail, dict) else None
                 sample_market = markets[0] if isinstance(markets, list) and markets else {}
                 sample_odds = sample_market.get("odds") if isinstance(sample_market, dict) else None
@@ -6462,7 +6463,7 @@ def send_daily_offsides_list(state):
             break
         batch = candidates[offset:offset + 20]
         with ThreadPoolExecutor(max_workers=8) as executor:
-            results = list(executor.map(fetch_quote, batch))
+            results = list(executor.map(fetch_quote, enumerate(batch, start=offset)))
         for candidate, quote, debug, error in results:
             event, kickoff, home, away, event_id = candidate
             details_checked += 1
