@@ -154,6 +154,19 @@ def main():
         if already_sent(state, match, home, away):
             continue
         promising, metrics, signals = core.match_stats_look_promising(match, "FT")
+        if not metrics:
+            # The live board often omits stats; request the match's own live detail.
+            slug = core.match_slug(match)
+            if slug:
+                try:
+                    detail = core.match_detail(slug, None)
+                    if detail:
+                        enriched = dict(match)
+                        enriched.update({k: v for k, v in detail.items() if v not in (None, "", [], {})})
+                        match = enriched
+                        promising, metrics, signals = core.match_stats_look_promising(match, "FT")
+                except Exception as exc:
+                    print(f"Nie udało się pobrać statystyk LIVE dla {home} - {away}: {exc}", flush=True)
         if promising:
             candidates.append((signals, minute, match))
     candidates.sort(key=lambda x: (x[0], x[1]), reverse=True)
