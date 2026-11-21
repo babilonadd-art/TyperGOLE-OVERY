@@ -34,7 +34,7 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 STATE_PATH = Path("data/state.json")
 STAKE = 10.0
 BET_TAX_RATE = 0.12
-# Maksymalnie 4 typy BTTS FT dziennie.
+# Maksymalnie 10 typów BTTS FT dziennie.
 
 def calculate_bet_result(stake, odds):
     """Calculate Polish 12% stake tax, payout and net profit."""
@@ -3649,31 +3649,20 @@ def make_daily_btts_closer_image(day_key, wins, losses, net_profit):
 
 
 def telegram_daily_btts_closer(day_key, picks):
-    """Post the daily BTTS FT closing graphic and final financial balance."""
+    """Send the daily BTTS FT closing balance as plain text, without an image."""
     wins = sum(1 for pick in picks if pick.get("won") is True)
     losses = sum(1 for pick in picks if pick.get("won") is False)
     total = len(picks)
     net_profit = daily_btts_net_profit(picks)
     day_label = datetime.fromisoformat(day_key).strftime("%d.%m.%Y")
-    caption = (
+    message = (
         f"🏁 KONIEC ROZLICZEŃ BTTS FT — {day_label}\n"
         f"🟢 Wygrane: {wins} | 🔴 Przegrane: {losses}\n"
         f"📊 Rozliczone typy: {total}\n"
         f"💰 ZYSK NETTO / STRATA: {format_pln(net_profit)}\n"
         f"🔒 DZIEŃ ZAMKNIĘTY"
     )
-    image_file = make_daily_btts_closer_image(day_key, wins, losses, net_profit)
-    response = requests.post(
-        f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto",
-        data={"chat_id": CHAT_ID, "caption": caption},
-        files={"photo": (f"btts-zamkniecie-{day_key}.jpg", image_file, "image/jpeg")},
-        timeout=45,
-    )
-    response.raise_for_status()
-    result = response.json()
-    if not result.get("ok"):
-        raise RuntimeError(f"Telegram sendPhoto error: {result}")
-    return result
+    return telegram(message)
 
 
 def send_daily_btts_closers(state):
