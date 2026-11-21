@@ -19557,264 +19557,8 @@
   "bsd_btts_cache": {
     "date": "2026-11-21",
     "window": "all_day",
-    "fetched_at": "2026-11-21T13:20:53.999189+01:00",
+    "fetched_at": "2026-11-21T14:25:16.868740+01:00",
     "items": [
-      {
-        "id": "588306",
-        "home": "Tamworth",
-        "away": "Eastleigh",
-        "league": "",
-        "kickoff": "2026-11-21T13:30:00+01:00",
-        "quote": {
-          "odds": 1.55,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "224728",
-        "home": "Newport County",
-        "away": "Swindon Town",
-        "league": "",
-        "kickoff": "2026-11-21T13:30:00+01:00",
-        "quote": {
-          "odds": 1.7,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "224727",
-        "home": "Gillingham",
-        "away": "Crewe Alexandra",
-        "league": "",
-        "kickoff": "2026-11-21T13:30:00+01:00",
-        "quote": {
-          "odds": 1.71,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "224228",
-        "home": "Reading",
-        "away": "Bromley",
-        "league": "",
-        "kickoff": "2026-11-21T13:30:00+01:00",
-        "quote": {
-          "odds": 1.72,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "224227",
-        "home": "Blackpool",
-        "away": "Wigan Athletic",
-        "league": "",
-        "kickoff": "2026-11-21T13:30:00+01:00",
-        "quote": {
-          "odds": 1.58,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "214161",
-        "home": "Southampton",
-        "away": "Derby County",
-        "league": "",
-        "kickoff": "2026-11-21T13:30:00+01:00",
-        "quote": {
-          "odds": 1.81,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "214158",
-        "home": "Millwall",
-        "away": "Queens Park Rangers",
-        "league": "",
-        "kickoff": "2026-11-21T13:30:00+01:00",
-        "quote": {
-          "odds": 1.58,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "209642",
-        "home": "Manchester City",
-        "away": "Fulham",
-        "league": "",
-        "kickoff": "2026-11-21T13:30:00+01:00",
-        "quote": {
-          "odds": 1.6,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "211755",
-        "home": "Slavia Sofia",
-        "away": "Arda Kardzhali",
-        "league": "",
-        "kickoff": "2026-11-21T13:45:00+01:00",
-        "quote": {
-          "odds": 1.91,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "643252",
-        "home": "Kayserispor",
-        "away": "Sarıyer",
-        "league": "",
-        "kickoff": "2026-11-21T14:00:00+01:00",
-        "quote": {
-          "odds": 1.86,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": null,
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "580585",
-        "home": "Stade Lavallois",
-        "away": "Montpellier",
-        "league": "",
-        "kickoff": "2026-11-21T14:00:00+01:00",
-        "quote": {
-          "odds": 1.61,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": null,
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "216051",
-        "home": "Galatasaray",
-        "away": "Samsunspor",
-        "league": "",
-        "kickoff": "2026-11-21T14:00:00+01:00",
-        "quote": {
-          "odds": 1.73,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "216049",
-        "home": "Amedspor",
-        "away": "Çaykur Rizespor",
-        "league": "",
-        "kickoff": "2026-11-21T14:00:00+01:00",
-        "quote": {
-          "odds": 1.55,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "214924",
-        "home": "CE Sabadell",
-        "away": "Granada",
-        "league": "",
-        "kickoff": "2026-11-21T14:00:00+01:00",
-        "quote": {
-          "odds": 1.87,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "214651",
-        "home": "FK Csíkszereda Miercurea Ciuc",
-        "away": "FC Corvinul Hunedoara",
-        "league": "",
-        "kickoff": "2026-11-21T14:00:00+01:00",
-        "quote": {
-          "odds": 1.77,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "213641",
-        "home": "Deportivo Alavés",
-        "away": "Deportivo de A Coruña",
-        "league": "",
-        "kickoff": "2026-11-21T14:00:00+01:00",
-        "quote": {
-          "odds": 1.87,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
       {
         "id": "654357",
         "home": "US Monastir",
@@ -19824,7 +19568,7 @@
         "quote": {
           "odds": 2.25,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -19840,7 +19584,7 @@
         "quote": {
           "odds": 2.59,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -19856,7 +19600,7 @@
         "quote": {
           "odds": 2.76,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20080,7 +19824,7 @@
         "quote": {
           "odds": 1.8,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20096,7 +19840,7 @@
         "quote": {
           "odds": 1.85,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20112,7 +19856,7 @@
         "quote": {
           "odds": 1.76,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20128,7 +19872,7 @@
         "quote": {
           "odds": 1.73,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20144,7 +19888,7 @@
         "quote": {
           "odds": 1.85,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20160,7 +19904,7 @@
         "quote": {
           "odds": 1.68,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20240,7 +19984,7 @@
         "quote": {
           "odds": 1.78,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20256,7 +20000,7 @@
         "quote": {
           "odds": 1.87,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20272,7 +20016,7 @@
         "quote": {
           "odds": 1.6,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20288,7 +20032,7 @@
         "quote": {
           "odds": 1.5,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20336,7 +20080,7 @@
         "quote": {
           "odds": 1.55,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20352,7 +20096,7 @@
         "quote": {
           "odds": 1.61,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20368,7 +20112,7 @@
         "quote": {
           "odds": 1.54,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20400,7 +20144,7 @@
         "quote": {
           "odds": 1.96,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20464,7 +20208,7 @@
         "quote": {
           "odds": 1.55,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20480,7 +20224,7 @@
         "quote": {
           "odds": 1.64,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20496,7 +20240,7 @@
         "quote": {
           "odds": 1.54,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20512,7 +20256,7 @@
         "quote": {
           "odds": 1.68,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20528,7 +20272,7 @@
         "quote": {
           "odds": 1.6,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20544,7 +20288,7 @@
         "quote": {
           "odds": 1.53,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20560,7 +20304,7 @@
         "quote": {
           "odds": 1.51,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20576,7 +20320,7 @@
         "quote": {
           "odds": 1.68,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20592,7 +20336,7 @@
         "quote": {
           "odds": 1.84,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20608,7 +20352,7 @@
         "quote": {
           "odds": 1.87,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20624,7 +20368,7 @@
         "quote": {
           "odds": 1.64,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20640,7 +20384,7 @@
         "quote": {
           "odds": 1.54,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20656,7 +20400,7 @@
         "quote": {
           "odds": 1.74,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20672,7 +20416,7 @@
         "quote": {
           "odds": 1.6,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20688,7 +20432,7 @@
         "quote": {
           "odds": 1.61,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20704,7 +20448,7 @@
         "quote": {
           "odds": 1.61,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20720,7 +20464,7 @@
         "quote": {
           "odds": 1.56,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20736,7 +20480,7 @@
         "quote": {
           "odds": 1.83,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20752,7 +20496,7 @@
         "quote": {
           "odds": 1.52,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20768,7 +20512,7 @@
         "quote": {
           "odds": 1.74,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20784,7 +20528,7 @@
         "quote": {
           "odds": 1.5,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20800,7 +20544,7 @@
         "quote": {
           "odds": 1.59,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20816,7 +20560,7 @@
         "quote": {
           "odds": 1.63,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20832,7 +20576,7 @@
         "quote": {
           "odds": 1.73,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20848,7 +20592,7 @@
         "quote": {
           "odds": 1.91,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20864,7 +20608,7 @@
         "quote": {
           "odds": 1.83,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20880,7 +20624,7 @@
         "quote": {
           "odds": 1.72,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20896,7 +20640,7 @@
         "quote": {
           "odds": 1.85,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20912,7 +20656,7 @@
         "quote": {
           "odds": 1.83,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20928,7 +20672,7 @@
         "quote": {
           "odds": 1.73,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20944,7 +20688,7 @@
         "quote": {
           "odds": 1.84,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20960,7 +20704,7 @@
         "quote": {
           "odds": 1.63,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20976,7 +20720,7 @@
         "quote": {
           "odds": 1.54,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -20992,7 +20736,7 @@
         "quote": {
           "odds": 1.53,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21008,7 +20752,7 @@
         "quote": {
           "odds": 1.5,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21024,7 +20768,7 @@
         "quote": {
           "odds": 1.72,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21040,7 +20784,7 @@
         "quote": {
           "odds": 1.83,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21056,7 +20800,7 @@
         "quote": {
           "odds": 1.66,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21072,7 +20816,7 @@
         "quote": {
           "odds": 1.58,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21088,7 +20832,7 @@
         "quote": {
           "odds": 1.73,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21104,7 +20848,7 @@
         "quote": {
           "odds": 1.79,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21120,7 +20864,7 @@
         "quote": {
           "odds": 1.7,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21136,7 +20880,7 @@
         "quote": {
           "odds": 1.53,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21152,7 +20896,7 @@
         "quote": {
           "odds": 1.65,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21168,7 +20912,7 @@
         "quote": {
           "odds": 1.82,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21184,7 +20928,7 @@
         "quote": {
           "odds": 1.8,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21200,7 +20944,7 @@
         "quote": {
           "odds": 1.74,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21232,7 +20976,7 @@
         "quote": {
           "odds": 1.83,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21280,7 +21024,7 @@
         "quote": {
           "odds": 1.98,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21296,7 +21040,7 @@
         "quote": {
           "odds": 1.72,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21328,7 +21072,7 @@
         "quote": {
           "odds": 1.53,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21344,7 +21088,7 @@
         "quote": {
           "odds": 1.51,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21456,7 +21200,7 @@
         "quote": {
           "odds": 1.91,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21472,7 +21216,7 @@
         "quote": {
           "odds": 1.64,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21488,7 +21232,7 @@
         "quote": {
           "odds": 1.84,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21504,7 +21248,7 @@
         "quote": {
           "odds": 1.87,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21536,7 +21280,7 @@
         "quote": {
           "odds": 1.57,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21552,7 +21296,7 @@
         "quote": {
           "odds": 1.88,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21568,7 +21312,7 @@
         "quote": {
           "odds": 1.74,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21584,7 +21328,7 @@
         "quote": {
           "odds": 1.82,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21600,7 +21344,7 @@
         "quote": {
           "odds": 1.76,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21616,7 +21360,7 @@
         "quote": {
           "odds": 1.67,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21632,7 +21376,7 @@
         "quote": {
           "odds": 1.76,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21648,7 +21392,7 @@
         "quote": {
           "odds": 1.57,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21664,7 +21408,7 @@
         "quote": {
           "odds": 1.83,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:05:07Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21696,7 +21440,7 @@
         "quote": {
           "odds": 3.8,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21744,7 +21488,7 @@
         "quote": {
           "odds": 1.64,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21776,7 +21520,7 @@
         "quote": {
           "odds": 1.82,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21824,7 +21568,7 @@
         "quote": {
           "odds": 1.68,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21840,7 +21584,7 @@
         "quote": {
           "odds": 1.59,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21856,7 +21600,7 @@
         "quote": {
           "odds": 1.6,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21872,7 +21616,7 @@
         "quote": {
           "odds": 1.65,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21888,7 +21632,7 @@
         "quote": {
           "odds": 1.58,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21904,7 +21648,7 @@
         "quote": {
           "odds": 1.56,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21920,7 +21664,7 @@
         "quote": {
           "odds": 1.58,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21936,7 +21680,7 @@
         "quote": {
           "odds": 1.62,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21952,7 +21696,7 @@
         "quote": {
           "odds": 1.83,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21968,7 +21712,7 @@
         "quote": {
           "odds": 1.79,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -21984,7 +21728,7 @@
         "quote": {
           "odds": 1.79,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -22016,7 +21760,7 @@
         "quote": {
           "odds": 2.01,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -22032,7 +21776,7 @@
         "quote": {
           "odds": 1.95,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -22048,7 +21792,7 @@
         "quote": {
           "odds": 1.58,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -22064,7 +21808,7 @@
         "quote": {
           "odds": 1.5,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -22112,7 +21856,7 @@
         "quote": {
           "odds": 1.73,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T12:20:11Z",
+          "updated_at": "2026-11-21T13:20:13Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -22169,6 +21913,6 @@
       }
     ],
     "fixture_count": 226,
-    "odds_calls": 195
+    "odds_calls": 175
   }
 }
