@@ -5360,6 +5360,117 @@ def merge_openfootball_history(base_rows, extra_rows):
     if added: print(f"BTTS: OpenFootball dodał {added} wyników do historii.", flush=True)
     return merged
 
+# StatsBomb Open Data: bezpłatne, publiczne pliki JSON; bez API key.
+# To wyłącznie pomocniczy opis tendencji do spalonych — nie zmienia oceny BTTS,
+# ponieważ dane obejmują tylko wybrane, przeważnie historyczne rozgrywki.
+STATSBOMB_OPEN_DATA_BASE = "https://raw.githubusercontent.com/hudl/open-data/master/data"
+_STATSBOMB_CACHE = {"competitions": None, "matches": {}, "events": {}}
+
+def statsbomb_open_json(path, timeout=30):
+    response = requests.get(
+        f"{STATSBOMB_OPEN_DATA_BASE}/{path.lstrip('/')}",
+        headers=HEADERS, timeout=timeout,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def statsbomb_offside_history(home, away, kickoff, league, sample_size=5):
+    """Return optional recent offside counts where StatsBomb openly covers the competition."""
+    try:
+        if _STATSBOMB_CACHE["competitions"] is None:
+            _STATSBOMB_CACHE["competitions"] = statsbomb_open_json("competitions.json", timeout=45)
+        competitions = _STATSBOMB_CACHE["competitions"]
+        requested = re.sub(r"[^a-z0-9]+", "", str(league or "").casefold())
+        ranked = []
+        for comp in competitions if isinstance(competitions, list) else []:
+            comp_name = str(comp.get("competition_name") or "")
+            country = str(comp.get("country_name") or "")
+            comp_key = re.sub(r"[^a-z0-9]+", "", comp_name.casefold())
+            country_key = re.sub(r"[^a-z0-9]+", "", country.casefold())
+            score = 1.0 if requested and (requested in comp_key or comp_key in requested) else (
+                difflib.SequenceMatcher(None, requested, comp_key).ratio() if requested else 0.0
+            )
+            if requested and country_key and country_key in requested:
+                score = max(score, 0.75)
+            if score >= 0.68:
+                ranked.append((score, comp))
+        if not ranked:
+            return None
+        ranked.sort(key=lambda item: item[0], reverse=True)
+        comp = ranked[0][1]
+        comp_id, season_id = comp.get("competition_id"), comp.get("season_id")
+        if comp_id is None or season_id is None:
+            return None
+        cache_key = f"{comp_id}/{season_id}"
+        if cache_key not in _STATSBOMB_CACHE["matches"]:
+            _STATSBOMB_CACHE["matches"][cache_key] = statsbomb_open_json(
+                f"matches/{comp_id}/{season_id}.json", timeout=45
+            )
+        matches = _STATSBOMB_CACHE["matches"][cache_key]
+        try:
+            cutoff = kickoff.date() if hasattr(kickoff, "date") else datetime.fromisoformat(str(kickoff)).date()
+        except (TypeError, ValueError):
+            return None
+
+        team_matches = {str(home): [], str(away): []}
+        for match in matches if isinstance(matches, list) else []:
+            try:
+                played = datetime.fromisoformat(str(match.get("match_date", ""))[:10]).date()
+            except (TypeError, ValueError):
+                continue
+            if played >= cutoff:
+                continue
+            ht = str((match.get("home_team") or {}).get("home_team_name") or "")
+            at = str((match.get("away_team") or {}).get("away_team_name") or "")
+            mid = match.get("match_id")
+            if not mid:
+                continue
+            for target in (str(home), str(away)):
+                if team_name_similarity(ht, target) >= 0.88 or team_name_similarity(at, target) >= 0.88:
+                    team_matches[target].append((played, mid))
+        output = {}
+        for target, rows in team_matches.items():
+            rows.sort(key=lambda item: item[0], reverse=True)
+            selected = rows[:sample_size]
+            counts = []
+            for played, match_id in selected:
+                if match_id not in _STATSBOMB_CACHE["events"]:
+                    _STATSBOMB_CACHE["events"][match_id] = statsbomb_open_json(
+                        f"events/{match_id}.json", timeout=45
+                    )
+                events = _STATSBOMB_CACHE["events"][match_id]
+                count = 0
+                for event in events if isinstance(events, list) else []:
+                    event_team = str((event.get("team") or {}).get("name") or "")
+                    if team_name_similarity(event_team, target) < 0.88:
+                        continue
+                    event_type = str((event.get("type") or {}).get("name") or "").casefold()
+                    pass_outcome = str(((event.get("pass") or {}).get("outcome") or {}).get("name") or "").casefold()
+                    if event_type == "offside" or pass_outcome in {"pass offside", "offside"}:
+                        count += 1
+                counts.append({"date": played.isoformat(), "offsides": count})
+            output["home" if target == str(home) else "away"] = {
+                "matches": len(counts),
+                "offsides_total": sum(item["offsides"] for item in counts),
+                "offsides_avg": (sum(item["offsides"] for item in counts) / len(counts)) if counts else None,
+                "last_matches": counts,
+            }
+        if not output.get("home", {}).get("matches") and not output.get("away", {}).get("matches"):
+            return None
+        return {
+            "source": "StatsBomb Open Data",
+            "competition": comp.get("competition_name"),
+            "season": comp.get("season_name"),
+            "home": output.get("home", {"matches": 0, "offsides_total": 0, "offsides_avg": None, "last_matches": []}),
+            "away": output.get("away", {"matches": 0, "offsides_total": 0, "offsides_avg": None, "last_matches": []}),
+            "affects_btts_score": False,
+        }
+    except Exception as exc:
+        print(f"StatsBomb Open Data: brak danych spalonych dla {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
+        return None
+
+
 def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_two=None):
     """Evaluate prematch BTTS FT using Open Matchday enriched with OpenFootball scores."""
     try:
@@ -5642,6 +5753,10 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
         "xg_available": False,
         "lineups_available": False,
     }
+    # Dodatkowa kontrola tendencji do spalonych (nie wpływa na model BTTS).
+    offside_data = statsbomb_offside_history(home, away, kickoff, league)
+    metrics["offside_stats"] = offside_data
+    metrics["offside_stats_available"] = bool(offside_data)
     risk_ok, risk_reason = btts_1x2_risk_gate(one_x_two, metrics)
     if not risk_ok:
         return reject(risk_reason)
