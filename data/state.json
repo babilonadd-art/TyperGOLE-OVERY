@@ -8907,12 +8907,16 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "FRA_1_ligue-1"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 3,
       "telegram_batch_message": true,
       "telegram_message_id": 649,
-      "sent_at": "2026-11-21T09:05:40.848290+01:00"
+      "sent_at": "2026-11-21T09:05:40.848290+01:00",
+      "won": false,
+      "settled_score": "0-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-21T23:37:36.167396+01:00"
     },
     {
       "key": "603816:BTTS_FT",
