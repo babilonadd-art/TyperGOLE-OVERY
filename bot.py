@@ -1159,21 +1159,37 @@ def superbet_event_detail(event_id):
     detail = request(event_id)
     if not detail:
         return {}
-    # The public event calendar exposes event_id, while the detailed offer
-    # object also carries offerId. Some Superbet deployments resolve markets
-    # against that offer identifier rather than the calendar event id.
-    if not any(isinstance(detail.get(key), (list, dict)) for key in ("markets", "marketGroups", "odds")):
-        offer_id = detail.get("offerId") or detail.get("offer_id")
-        if offer_id and str(offer_id) != str(event_id):
-            try:
-                offer_detail = request(offer_id)
-                if offer_detail and any(
-                    isinstance(offer_detail.get(key), (list, dict))
-                    for key in ("markets", "marketGroups", "odds")
-                ):
-                    return offer_detail
-            except requests.RequestException as exc:
-                print(f"Superbet offerId fallback {offer_id}: {type(exc).__name__}: {exc}", flush=True)
+    # Calendar responses may contain an empty/metadata-only odds dict.
+    # Retry by offerId unless actual market collections contain entries.
+    def has_real_market_rows(value):
+        if not isinstance(value, dict):
+            return False
+        for key in ("markets", "marketGroups", "market_groups", "market_groups_list"):
+            rows = value.get(key)
+            if isinstance(rows, list) and rows:
+                return True
+            if isinstance(rows, dict) and rows:
+                return True
+        odds = value.get("odds")
+        if isinstance(odds, list) and odds:
+            return True
+        if isinstance(odds, dict) and any(isinstance(v, (list, dict)) and v for v in odds.values()):
+            return True
+        return False
+
+    offer_id = detail.get("offerId") or detail.get("offer_id")
+    if offer_id and str(offer_id) != str(event_id) and not has_real_market_rows(detail):
+        try:
+            offer_detail = request(offer_id)
+            if offer_detail and has_real_market_rows(offer_detail):
+                return offer_detail
+            print(
+                f"Superbet offerId fallback {offer_id}: odpowiedź bez właściwych rynków "
+                f"(keys={list(offer_detail.keys()) if isinstance(offer_detail, dict) else []})",
+                flush=True,
+            )
+        except requests.RequestException as exc:
+            print(f"Superbet offerId fallback {offer_id}: {type(exc).__name__}: {exc}", flush=True)
     return detail
 
 
@@ -6398,8 +6414,8 @@ def extract_superbet_match_offsides_over(event_detail):
                 line = float(str(row["line_raw"]).replace(",", "."))
             except (TypeError, ValueError):
                 line = None
-        # User filter: never accept a total line above Over 2.5.
-        if line is None or not (0 <= line <= 2.5):
+        # User filter: accept match-total lines up to and including Over 3.0.
+        if line is None or not (0 <= line <= 3.0):
             rejected["selection"] += 1
             continue
         if selection and not re.search(r"\b(?:over|powyzej)\b", selection):
@@ -6419,8 +6435,8 @@ def extract_superbet_match_offsides_over(event_detail):
         if not prices or max(prices) - min(prices) > 0.005:
             rejected["price"] += 1
             continue
-        # User filter: decimal odds must be at least 1.70.
-        if prices[0] < 1.70:
+        # User filter: decimal odds must be at least 1.60.
+        if prices[0] < 1.60:
             rejected["price"] += 1
             continue
         found.setdefault(line, set()).add(prices[0])
