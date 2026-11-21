@@ -6272,14 +6272,13 @@ def btts_new_day_scan_gate(state, current=None):
 
 
 def extract_superbet_match_offsides_over(event_detail):
-    """Return a real open FT total-match offsides Over quote; never team totals."""
-    rows = []
+    """Extract a real open full-match total-offsides Over quote from Superbet v2 data."""
+    candidates = []
     market_keys = (
         "marketName", "market_name", "marketGroupName", "market_group_name",
-        "marketTitle", "market_title", "market", "marketGroup", "market_group", "title",
+        "marketTitle", "market_title", "market", "marketGroup", "market_group",
+        "title", "name", "label", "displayName",
     )
-    selection_keys = ("name", "selectionName", "selection_name", "oddName",
-                      "outcomeName", "label", "displayName")
     price_keys = ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
 
     def norm(value):
@@ -6288,76 +6287,122 @@ def extract_superbet_match_offsides_over(event_detail):
         value = re.sub(r"(?<=\d),(?=\d)", ".", value)
         return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9.]+", " ", value)).strip()
 
-    def walk(node, inherited=""):
+    def walk(node, inherited_market="", inherited_status=""):
         if isinstance(node, list):
             for child in node:
-                walk(child, inherited)
+                walk(child, inherited_market, inherited_status)
             return
         if not isinstance(node, dict):
             return
-        labels = [str(node.get(k)) for k in market_keys
-                  if node.get(k) not in (None, "") and not isinstance(node.get(k), (dict, list))]
-        context = " ".join(x for x in (inherited, " ".join(labels)) if x).strip()
-        if any(node.get(k) not in (None, "") for k in price_keys) and any(
-            node.get(k) not in (None, "") for k in selection_keys
-        ):
-            row = dict(node)
-            row["_market_context"] = context
-            rows.append(row)
-        for child in node.values():
+
+        # Superbet v2 nests outcomes under market objects. Keep the parent
+        # market name and status when descending into the odds/selections.
+        local_labels = []
+        for key in market_keys:
+            value = node.get(key)
+            if value not in (None, "") and not isinstance(value, (dict, list)):
+                local_labels.append(str(value))
+        local_market = " ".join(x for x in (inherited_market, " ".join(local_labels)) if x)
+        status_value = first(node, "status", "oddStatus", "state", "isActive", default=None)
+        status = str(status_value).strip().lower() if status_value is not None else inherited_status
+
+        if any(node.get(k) not in (None, "") for k in price_keys):
+            metadata = node.get("metadata") if isinstance(node.get("metadata"), dict) else {}
+            selection = first(node, "selectionName", "selection_name", "oddName",
+                              "outcomeName", "label", "displayName", "name", default=None)
+            if selection in (None, ""):
+                selection = first(metadata, "name", "info", "label", default="")
+            specifiers = metadata.get("specifiers") if isinstance(metadata.get("specifiers"), dict) else {}
+            line_raw = first(node, "line", "total", "handicap", "specifier", default=None)
+            if line_raw in (None, ""):
+                line_raw = first(specifiers, "total", "line", "handicap", default=None)
+            candidates.append({
+                "market": local_market,
+                "status": status,
+                "selection": str(selection or ""),
+                "line_raw": line_raw,
+                "price_values": [node.get(k) for k in price_keys if node.get(k) not in (None, "")],
+                "metadata": metadata,
+            })
+
+        for key, child in node.items():
             if isinstance(child, (dict, list)):
-                walk(child, context)
+                walk(child, local_market, status)
 
     walk(event_detail)
     found = {}
-    for row in rows:
-        status = str(first(row, "status", "oddStatus", "state", default="")).lower()
-        if status not in {"active", "opened", "open", "1", "true"}:
-            continue
-        market = norm(" ".join(
-            [str(first(row, k, default="")) for k in market_keys]
-            + [str(row.get("_market_context") or "")]
-        ))
-        # The market itself must clearly describe total-match offsides.
-        if not any(x in market for x in ("spalone", "offsides", "offside")):
-            continue
-        if any(x in market for x in ("druzyn", "team", "gospodarz", "gosci", "home", "away")):
-            continue
-        if not any(x in market for x in ("liczba", "suma", "total", "caly mecz", "full match", "full time", "ft")):
-            continue
-        if any(x in market for x in ("1 pol", "pierwsza polowa", "first half", "2 pol", "second half", "dogryw", "extra time")):
-            continue
-        selection = str(first(row, *selection_keys, default="")).strip()
-        match = re.search(r"\b(?:over|powyzej)\s*(\d+(?:\.\d+)?)\b", norm(selection))
-        if not match:
-            continue
-        line = float(match.group(1))
-        prices = []
-        invalid = False
-        for key in price_keys:
-            raw = row.get(key)
-            if raw in (None, ""):
+    rejected = {"status": 0, "market": 0, "selection": 0, "price": 0}
+    for row in candidates:
+        status = row["status"]
+        # Accept known active states; a missing state is allowed only when
+        # Superbet provides an explicit display flag on the outcome.
+        display = row["metadata"].get("display")
+        if status:
+            if status not in {"active", "opened", "open", "1", "true", "available"}:
+                rejected["status"] += 1
                 continue
-            try:
-                value = float(str(raw).replace(",", "."))
-            except (TypeError, ValueError):
-                invalid = True
-                break
-            if not 1.01 <= value <= 1000:
-                invalid = True
-                break
-            prices.append(value)
-        if invalid or not prices or max(prices) - min(prices) > 0.005:
+        elif display not in (True, 1, "1", "true", "True"):
+            rejected["status"] += 1
             continue
-        price = prices[0]
-        if line not in found:
-            found[line] = set()
-        found[line].add(price)
+
+        market = norm(row["market"])
+        if not any(token in market for token in ("spalone", "offsides", "offside")):
+            rejected["market"] += 1
+            continue
+        # Reject team, half, minute and extra-time markets. A plain
+        # "Total Offsides" market is the standard match-total market.
+        if any(token in market for token in (
+            "druzyn", "team", "gospodarz", "gosci", "home", "away",
+            "1 pol", "pierwsza polowa", "first half", "1st half",
+            "2 pol", "druga polowa", "second half", "2nd half",
+            "minute", "minuta", "dogryw", "extra time",
+        )):
+            rejected["market"] += 1
+            continue
+        if not any(token in market for token in (
+            "liczba", "suma", "total", "caly mecz", "full match", "full time", "ft",
+        )):
+            rejected["market"] += 1
+            continue
+
+        selection = norm(row["selection"])
+        match = re.search(r"\b(?:over|powyzej)\s*(\d+(?:\.\d+)?)\b", selection)
+        line = float(match.group(1)) if match else None
+        if line is None and row["line_raw"] not in (None, ""):
+            try:
+                line = float(str(row["line_raw"]).replace(",", "."))
+            except (TypeError, ValueError):
+                line = None
+        if line is None or not (0 <= line <= 30):
+            rejected["selection"] += 1
+            continue
+        if selection and not re.search(r"\b(?:over|powyzej)\b", selection):
+            rejected["selection"] += 1
+            continue
+
+        prices = []
+        try:
+            for raw in row["price_values"]:
+                value = float(str(raw).replace(",", "."))
+                if not 1.01 <= value <= 1000:
+                    raise ValueError("kurs poza zakresem")
+                prices.append(value)
+        except (TypeError, ValueError):
+            rejected["price"] += 1
+            continue
+        if not prices or max(prices) - min(prices) > 0.005:
+            rejected["price"] += 1
+            continue
+        found.setdefault(line, set()).add(prices[0])
+
     valid = [(line, next(iter(prices))) for line, prices in found.items() if len(prices) == 1]
     if not valid:
         return None
     line, odds = sorted(valid, key=lambda item: item[0])[0]
-    return {"line": line, "odds": odds, "market": "Suma spalonych — cały mecz FT", "source": "Superbet"}
+    return {
+        "line": line, "odds": odds,
+        "market": "Suma spalonych — cały mecz FT", "source": "Superbet",
+    }
 
 
 def send_daily_offsides_list(state):
@@ -6386,6 +6431,19 @@ def send_daily_offsides_list(state):
             continue
         try:
             detail = superbet_event_detail(event_id)
+            if len(picks) == 0 and len(seen) < 2:
+                markets = detail.get("markets") if isinstance(detail, dict) else None
+                sample_market = markets[0] if isinstance(markets, list) and markets else {}
+                sample_odds = sample_market.get("odds") if isinstance(sample_market, dict) else None
+                sample_odd = sample_odds[0] if isinstance(sample_odds, list) and sample_odds else {}
+                print(
+                    "SPALONE FT DEBUG: event_keys=" + str(list(detail.keys())[:18]) +
+                    "; market_keys=" + str(list(sample_market.keys())[:18] if isinstance(sample_market, dict) else []) +
+                    "; market_name=" + str(sample_market.get("name") if isinstance(sample_market, dict) else None) +
+                    "; odd_keys=" + str(list(sample_odd.keys())[:18] if isinstance(sample_odd, dict) else []) +
+                    "; odd_metadata=" + str(sample_odd.get("metadata") if isinstance(sample_odd, dict) else None),
+                    flush=True,
+                )
             quote = extract_superbet_match_offsides_over(detail)
         except Exception as exc:
             print(f"SPALONE FT {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
