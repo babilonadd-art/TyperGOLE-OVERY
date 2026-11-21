@@ -127,8 +127,14 @@ def espn_enrich_live_match(match):
     return match
 
 
-def in_send_window(minute):
-    return minute is not None and any(start <= minute <= end for start, end in ALLOWED_WINDOWS)
+def market_for_minute(minute):
+    if minute is None:
+        return None
+    if 26 <= minute <= 38:
+        return "HT"
+    if 60 <= minute <= 78:
+        return "FT"
+    return None
 
 
 def target_over_line(total_goals):
@@ -175,11 +181,12 @@ def publish_candidate(state, match, superbet_events):
     if home in ("Gospodarze", "") or away in ("Goście", ""):
         return False
     h, a, minute, status = core.score_and_minute(match)
-    if h is None or a is None or not in_send_window(minute):
+    market = market_for_minute(minute)
+    if h is None or a is None or market is None:
         return False
 
     # Require at least one actual attacking signal from the live stats payload.
-    promising, metrics, signal_count = core.match_stats_look_promising(match, "FT")
+    promising, metrics, signal_count = core.match_stats_look_promising(match, market)
     if not promising:
         return False
 
@@ -195,7 +202,7 @@ def publish_candidate(state, match, superbet_events):
         return False
 
     line_floor = target_over_line(h + a)
-    quote = core.extract_superbet_live_over_odds(detail, "FT", line_floor, min_odds=MIN_ODDS)
+    quote = core.extract_superbet_live_over_odds(detail, market, line_floor, min_odds=MIN_ODDS)
     if not quote:
         return False
     odds = float(quote["odds"])
@@ -208,8 +215,9 @@ def publish_candidate(state, match, superbet_events):
     record = {
         "id": str(identity), "home": home, "away": away,
         "date": core.now_local().date().isoformat(),
-        "minute": minute, "score": f"{h}:{a}", "line": quote["line"],
-        "odds": odds, "league": league, "sent_at": core.now_local().isoformat(),
+        "minute": minute, "score": f"{h}:{a}", "market": market,
+        "line": quote["line"], "odds": odds, "league": league,
+        "sent_at": core.now_local().isoformat(),
         "delivery_status": "pending",
     }
     # Persist the fixture claim before Telegram delivery to prevent duplicate posts
@@ -218,12 +226,13 @@ def publish_candidate(state, match, superbet_events):
     save_live_state(state)
 
     url = core.superbet_goal_market_url(event.get("url"))
+    market_label = "DO KOŃCA 1. POŁOWY (HT)" if market == "HT" else "DO KOŃCA MECZU (FT)"
     message = (
-        "⚽ OVER LIVE — CAŁY MECZ (FT)\n"
+        f"⚽ OVER LIVE — {market_label}\n"
         f"🏆 {league}\n"
         f"{home} – {away}\n"
         f"⏱️ {minute}' | Wynik: {h}:{a}\n"
-        f"🎯 Over {quote['line']:.1f} FT\n"
+        f"🎯 Over {quote['line']:.1f} {market}\n"
         f"📈 Kurs Superbet: {odds:.2f}\n"
         f"📊 Sygnały ofensywne LIVE: {signal_count}\n"
         + (f"🔗 {url}" if url else "")
@@ -266,13 +275,14 @@ def main():
     for match in live:
         h, a, minute, _ = core.score_and_minute(match)
         home, away = core.teams(match)
-        if h is None or a is None or not in_send_window(minute):
+        market = market_for_minute(minute)
+        if h is None or a is None or market is None:
             continue
         if already_sent(state, match, home, away):
             continue
         if match.get("_espn_event_id"):
             match = espn_enrich_live_match(match)
-        promising, metrics, signals = core.match_stats_look_promising(match, "FT")
+        promising, metrics, signals = core.match_stats_look_promising(match, market)
         if not metrics:
             # The live board often omits stats; request the match's own live detail.
             slug = core.match_slug(match)
@@ -283,7 +293,7 @@ def main():
                         enriched = dict(match)
                         enriched.update({k: v for k, v in detail.items() if v not in (None, "", [], {})})
                         match = enriched
-                        promising, metrics, signals = core.match_stats_look_promising(match, "FT")
+                        promising, metrics, signals = core.match_stats_look_promising(match, market)
                 except Exception as exc:
                     print(f"Nie udało się pobrać statystyk LIVE dla {home} - {away}: {exc}", flush=True)
         if promising:
