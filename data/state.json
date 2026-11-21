@@ -17918,24 +17918,8 @@
   "btts_daily_limit_reset_reason": "Manual reset requested by user on 2026-11-20",
   "bsd_btts_cache": {
     "date": "2026-11-21",
-    "fetched_at": "2026-11-21T03:37:34.358479+01:00",
+    "fetched_at": "2026-11-21T04:28:58.567936+01:00",
     "items": [
-      {
-        "id": "211643",
-        "home": "Club Tijuana",
-        "away": "Atlante FC",
-        "league": "",
-        "kickoff": "2026-11-21T04:00:00+01:00",
-        "quote": {
-          "odds": 1.78,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T02:35:07Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
       {
         "id": "607430",
         "home": "Auckland FC",
@@ -17954,6 +17938,6 @@
       }
     ],
     "fixture_count": 226,
-    "odds_calls": 3
+    "odds_calls": 1
   }
 }
