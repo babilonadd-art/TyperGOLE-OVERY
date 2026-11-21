@@ -37,7 +37,7 @@ def norm_text(value):
 def recent_venue_rows(results, team, venue, folder):
     found = []
     for row in results:
-        if row.get("_folder") != folder:
+        if folder and row.get("_folder") != folder:
             continue
         side = "home" if core.team_name_similarity(team, str(row.get("home") or "")) >= 0.90 else (
             "away" if core.team_name_similarity(team, str(row.get("away") or "")) >= 0.90 else None
@@ -55,26 +55,14 @@ def recent_venue_rows(results, team, venue, folder):
     return found[:SAMPLE_SIZE]
 
 def choose_stats_folder(results, event):
-    home, away = event["home"], event["away"]
-    league = norm_text(event.get("competition_name") or "")
-    folders = sorted({str(row.get("_folder") or "") for row in results if row.get("_folder")})
-    candidates = []
-    for folder in folders:
-        hr = recent_venue_rows(results, home, "home", folder)
-        ar = recent_venue_rows(results, away, "away", folder)
-        if min(len(hr), len(ar)) < MIN_SAMPLE:
-            continue
-        league_name = next((str(r.get("_league") or "") for r in results if r.get("_folder") == folder), "")
-        similarity = core.team_name_similarity(league, norm_text(league_name)) if league else 0.0
-        candidates.append((similarity, min(len(hr), len(ar)), folder, league_name, hr, ar))
-    if not candidates:
+    # Teams can have their venue history split across separate competition CSVs.
+    home_rows = recent_venue_rows(results, event["home"], "home", None)
+    away_rows = recent_venue_rows(results, event["away"], "away", None)
+    if min(len(home_rows), len(away_rows)) < MIN_SAMPLE:
         return None
-    candidates.sort(key=lambda x: (x[0], x[1]), reverse=True)
-    if league and candidates[0][0] < 0.55 and len(candidates) > 1:
-        return None
-    if len(candidates) > 1 and abs(candidates[0][0] - candidates[1][0]) < 0.04 and candidates[0][1] == candidates[1][1]:
-        return None
-    return candidates[0]
+    return (1.0, min(len(home_rows), len(away_rows)), "all_competitions",
+            event.get("competition_name") or "Dane Open Matchday",
+            home_rows, away_rows)
 
 def analyze_team(home_rows, away_rows):
     home_for, home_allowed = [x[1] for x in home_rows], [x[2] for x in home_rows]
@@ -237,7 +225,12 @@ def main():
     state = load_state()
     results = core.open_matchday_data().get("results", [])
     print(f"Open Matchday: {len(results)} wyników; statystyki celnych strzałów.", flush=True)
-    events = core.superbet_prematch_event_links(target_date=now.date())
+    # Include after-midnight fixtures in the night scan.
+    events = []
+    for target_day in (now.date(), now.date() + core.timedelta(days=1)):
+        events.extend(core.superbet_prematch_event_links(target_date=target_day))
+    unique_events = {str(e.get("event_id")): e for e in events if e.get("event_id")}
+    events = list(unique_events.values())
     future = []
     for event in events:
         kickoff = core.kickoff_datetime({"kickoff_time": event.get("time")})
