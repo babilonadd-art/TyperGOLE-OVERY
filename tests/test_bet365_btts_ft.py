@@ -40,24 +40,25 @@ class RegulationTimeBttsTests(unittest.TestCase):
 
 
 class MoviOddsBttsMarketTests(unittest.TestCase):
-    def test_only_full_time_yes_in_range_is_selected(self):
+    def test_only_full_time_yes_market_is_selected_without_upper_odds_cap(self):
         match = {"quotes": [
             {"group_name": "Both Teams to Score", "label": "Yes", "odds_dec": 2.05, "group_id": "btts", "phase": "prematch"},
             {"group_name": "Both Teams to Score", "label": "No", "odds_dec": 1.80, "group_id": "btts", "phase": "prematch"},
             {"group_name": "Both Teams to Score 1st Half", "label": "Yes", "odds_dec": 2.20, "group_id": "btts1h"},
-            {"group_name": "Both Teams to Score", "label": "Yes", "odds_dec": 2.60, "group_id": "btts"},
         ]}
         quote = extract_moviodds_btts_ft_quote(match)
         self.assertIsNotNone(quote)
         self.assertEqual(quote["odds"], 2.05)
 
-    def test_suspended_and_out_of_range_quotes_are_rejected(self):
+    def test_suspended_quotes_are_rejected_and_higher_odds_are_allowed(self):
         self.assertIsNone(extract_moviodds_btts_ft_quote({"quotes": [
             {"group_name": "Both Teams to Score", "label": "Yes", "odds_dec": 2.00, "group_id": "btts", "suspended": True}
         ]}))
-        self.assertIsNone(extract_moviodds_btts_ft_quote({"quotes": [
+        quote = extract_moviodds_btts_ft_quote({"quotes": [
             {"group_name": "Both Teams to Score", "label": "Yes", "odds_dec": 2.55, "group_id": "btts"}
-        ]}))
+        ]})
+        self.assertIsNotNone(quote)
+        self.assertEqual(quote["odds"], 2.55)
 
 
 if __name__ == "__main__":
