@@ -6413,55 +6413,83 @@ def send_daily_offsides_list(state):
     if day in sent_days:
         print(f"SPALONE FT: lista na {day} została już wysłana.", flush=True)
         return
+
     events = superbet_prematch_event_links(target_date=current.date())
-    picks = []
+    candidates = []
     seen = set()
     for event in events:
-        if len(picks) >= 10:
-            break
-        kickoff = superbet_event_kickoff({
-            "fixture": {"utc_date": event.get("time")}
-        })
+        kickoff = superbet_event_kickoff({"fixture": {"utc_date": event.get("time")}})
         if not kickoff or kickoff <= current:
             continue
         home, away = event.get("home", ""), event.get("away", "")
         event_id = str(event.get("event_id") or "")
         fixture_key = re.sub(r"\W+", "", (home + away).lower())
-        if not event_id or fixture_key in seen:
+        if not event_id or not fixture_key or fixture_key in seen:
             continue
+        seen.add(fixture_key)
+        candidates.append((event, kickoff, home, away, event_id))
+
+    print(f"SPALONE FT: {len(candidates)} przyszłych meczów do sprawdzenia.", flush=True)
+    picks = []
+    details_checked = 0
+
+    def fetch_quote(candidate):
+        event, kickoff, home, away, event_id = candidate
         try:
             detail = superbet_event_detail(event_id)
-            if len(picks) == 0 and len(seen) < 2:
+            quote = extract_superbet_match_offsides_over(detail)
+            debug = None
+            if details_checked < 2:
                 markets = detail.get("markets") if isinstance(detail, dict) else None
                 sample_market = markets[0] if isinstance(markets, list) and markets else {}
                 sample_odds = sample_market.get("odds") if isinstance(sample_market, dict) else None
                 sample_odd = sample_odds[0] if isinstance(sample_odds, list) and sample_odds else {}
-                print(
-                    "SPALONE FT DEBUG: event_keys=" + str(list(detail.keys())[:18]) +
+                debug = (
+                    "event_keys=" + str(list(detail.keys())[:18]) +
                     "; market_keys=" + str(list(sample_market.keys())[:18] if isinstance(sample_market, dict) else []) +
                     "; market_name=" + str(sample_market.get("name") if isinstance(sample_market, dict) else None) +
                     "; odd_keys=" + str(list(sample_odd.keys())[:18] if isinstance(sample_odd, dict) else []) +
-                    "; odd_metadata=" + str(sample_odd.get("metadata") if isinstance(sample_odd, dict) else None),
-                    flush=True,
+                    "; odd_metadata=" + str(sample_odd.get("metadata") if isinstance(sample_odd, dict) else None)
                 )
-            quote = extract_superbet_match_offsides_over(detail)
+            return candidate, quote, debug, None
         except Exception as exc:
-            print(f"SPALONE FT {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
-            continue
-        if not quote:
-            continue
-        seen.add(fixture_key)
-        picks.append({
-            "home": home, "away": away, "kickoff": kickoff,
-            "line": quote["line"], "odds": quote["odds"],
-            "league": event.get("competition_name") or "",
-            "url": event.get("url") or "",
-        })
-        time.sleep(0.08)
+            return candidate, None, None, f"{type(exc).__name__}: {exc}"
+
+    # Small parallel batches avoid waiting 15 seconds per event while keeping
+    # request volume controlled and preserving event order inside each batch.
+    for offset in range(0, len(candidates), 20):
+        if len(picks) >= 10:
+            break
+        batch = candidates[offset:offset + 20]
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            results = list(executor.map(fetch_quote, batch))
+        for candidate, quote, debug, error in results:
+            event, kickoff, home, away, event_id = candidate
+            details_checked += 1
+            if debug:
+                print("SPALONE FT DEBUG: " + debug, flush=True)
+            if error:
+                print(f"SPALONE FT {home} - {away}: {error}", flush=True)
+                continue
+            if not quote:
+                continue
+            picks.append({
+                "home": home, "away": away, "kickoff": kickoff,
+                "line": quote["line"], "odds": quote["odds"],
+                "league": event.get("competition_name") or "",
+                "url": event.get("url") or "",
+            })
+            if len(picks) >= 10:
+                break
 
     if not picks:
-        print("SPALONE FT: brak potwierdzonych, otwartych kursów na sumę spalonych. Nie wysyłam fikcyjnych typów.", flush=True)
+        print(
+            f"SPALONE FT: sprawdzono {details_checked}/{len(candidates)} przyszłych meczów; "
+            "brak potwierdzonych, otwartych kursów na sumę spalonych. Nie wysyłam fikcyjnych typów.",
+            flush=True,
+        )
         return
+
     lines = ["⚽ SPALONE — CAŁY MECZ (FT)", f"📅 {current.strftime('%d.%m.%Y')}", ""]
     for idx, pick in enumerate(picks, 1):
         lines.append(
@@ -6472,15 +6500,18 @@ def send_daily_offsides_list(state):
         if pick.get("url"):
             lines.append(f"🔗 {pick['url']}")
         lines.append("")
-    result = telegram("\n".join(lines))
-    if result:
-        sent_days.append(day)
-        state["offsides_daily_sent_count"] = len(picks)
-        state["offsides_last_list"] = [
-            {**p, "kickoff": p["kickoff"].isoformat()} for p in picks
-        ]
-        save_state(state)
-        print(f"SPALONE FT: wysłano listę {len(picks)}/10 typów.", flush=True)
+
+    telegram("\n".join(lines))
+    # telegram() does not return a reliable success flag; persist the attempt
+    # only when the call completed without raising, preventing duplicate posts.
+    sent_days.append(day)
+    state["offsides_daily_sent_count"] = len(picks)
+    state["offsides_last_list"] = [
+        {**p, "kickoff": p["kickoff"].isoformat()} for p in picks
+    ]
+    save_state(state)
+    print(f"SPALONE FT: wysłano listę {len(picks)}/10 typów.", flush=True)
+
 
 def main():
     print(f"=== TyperGOLE-OVERY PRE-MATCH OFFSIDES FT START {now_local().isoformat()} ===", flush=True)
