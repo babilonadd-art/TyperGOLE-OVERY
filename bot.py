@@ -2322,9 +2322,9 @@ def bsd_event_league_name(event):
 
 
 def btts_overnight_scan_date(current=None):
-    """Return the date whose 00:00–05:59 local kickoff window is next."""
+    """Return today's local calendar date for the all-day BTTS scan."""
     current = (current or now_local()).astimezone(TZ)
-    return current.date() if current.hour < 6 else current.date() + timedelta(days=1)
+    return current.date()
 
 
 def btts_is_overnight_kickoff(kickoff):
@@ -2367,6 +2367,7 @@ def bsd_btts_candidates(state, now=None, target_date=None):
 
     raw_candidates = cache.get("items") if (
         cache.get("date") == target_day.isoformat()
+        and cache.get("window") == "all_day"
         and cache_time
         and (current.astimezone(TZ) - cache_time).total_seconds() < 2700
         and isinstance(cache.get("items"), list)
@@ -2408,7 +2409,6 @@ def bsd_btts_candidates(state, now=None, target_date=None):
             if (
                 kickoff_local <= current.astimezone(TZ)
                 or kickoff_local.date() != target_day
-                or not btts_is_overnight_kickoff(kickoff_local)
             ):
                 continue
             try:
@@ -2439,6 +2439,7 @@ def bsd_btts_candidates(state, now=None, target_date=None):
 
         state["bsd_btts_cache"] = {
             "date": target_day.isoformat(),
+            "window": "all_day",
             "fetched_at": current.astimezone(TZ).isoformat(),
             "items": raw_candidates,
             "fixture_count": len(events),
@@ -2464,7 +2465,6 @@ def bsd_btts_candidates(state, now=None, target_date=None):
         if (
             kickoff <= current
             or kickoff.date() != target_day
-            or not btts_is_overnight_kickoff(kickoff)
         ):
             continue
         home, away = item.get("home"), item.get("away")
@@ -5924,15 +5924,14 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
 
 
 def send_prematch_superbet_btts_picks(state):
-    """Scan next-day fixtures and publish verified BSD consensus prices."""
+    """Scan the rest of today's fixtures and publish verified BSD consensus prices."""
     current = now_local().astimezone(TZ)
-    # Przed 06:00 szukamy jeszcze dzisiejszej nocy; od 06:00 kolejnej nocy.
-    scan_date = btts_overnight_scan_date(current)
+    scan_date = current.date()
     scan_dates = (scan_date,)
     for scan_date in scan_dates:
         print(
-            f"BTTS FT: nocny skan {scan_date.isoformat()} "
-            f"(tylko start 00:00–05:59 czasu polskiego; limit 10 typów).",
+            f"BTTS FT: skan całego dnia {scan_date.isoformat()} "
+            f"(od teraz do 23:59 czasu polskiego; limit 10 typów).",
             flush=True,
         )
         try:
