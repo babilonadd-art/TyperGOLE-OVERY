@@ -104,12 +104,20 @@ def espn_enrich_live_match(match):
             for item in side.get("statistics") or []:
                 if not isinstance(item, dict):
                     continue
-                name = str(item.get("name") or item.get("label") or "").lower().replace(" ", "_")
+                import re
+                raw_name = str(item.get("name") or item.get("label") or "").lower()
+                name = re.sub(r"[^a-z0-9]+", "_", raw_name).strip("_")
                 value = item.get("displayValue", item.get("value"))
                 try:
                     number = float(str(value).replace("%", ""))
                 except (TypeError, ValueError):
                     continue
+                if "shot" in name and ("target" in name or "on_goal" in name):
+                    name = "shots_on_target"
+                elif "shot" in name and ("total" in name or name in ("shots", "shot")):
+                    name = "total_shots"
+                elif "dangerous" in name and "attack" in name:
+                    name = "dangerous_attacks"
                 stats.setdefault(name, {})[key] = number
         if stats:
             match["statistics"] = stats
