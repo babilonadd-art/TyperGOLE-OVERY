@@ -6374,7 +6374,8 @@ def extract_superbet_match_offsides_over(event_detail):
                 line = float(str(row["line_raw"]).replace(",", "."))
             except (TypeError, ValueError):
                 line = None
-        if line is None or not (0 <= line <= 30):
+        # User filter: never accept a total line above Over 2.5.
+        if line is None or not (0 <= line <= 2.5):
             rejected["selection"] += 1
             continue
         if selection and not re.search(r"\b(?:over|powyzej)\b", selection):
@@ -6392,6 +6393,10 @@ def extract_superbet_match_offsides_over(event_detail):
             rejected["price"] += 1
             continue
         if not prices or max(prices) - min(prices) > 0.005:
+            rejected["price"] += 1
+            continue
+        # User filter: decimal odds must be at least 1.70.
+        if prices[0] < 1.70:
             rejected["price"] += 1
             continue
         found.setdefault(line, set()).add(prices[0])
