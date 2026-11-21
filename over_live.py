@@ -195,7 +195,7 @@ def publish_candidate(state, match, superbet_events):
         return False
 
     line_floor = target_over_line(h + a)
-    quote = core.extract_superbet_live_over_odds(detail, "FT", line_floor)
+    quote = core.extract_superbet_live_over_odds(detail, "FT", line_floor, min_odds=MIN_ODDS)
     if not quote:
         return False
     odds = float(quote["odds"])
