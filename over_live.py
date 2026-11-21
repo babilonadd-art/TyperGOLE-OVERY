@@ -49,6 +49,8 @@ def save_live_state(state):
 def already_sent(state, match, home, away):
     identity = core.match_identifier(match) or core.match_slug(match)
     for item in state["sent"]:
+        if item.get("delivery_status") not in {"sent", "pending"}:
+            continue
         if identity and str(item.get("id") or "") == str(identity):
             return True
         if (core.normalized_team_name(item.get("home")) == core.normalized_team_name(home)
