@@ -606,6 +606,19 @@ def format_btts_ft_pick_message(pick, pick_number):
     return message
 
 
+def format_btts_ft_pick_list(picks, day_key):
+    """Format all newly selected BTTS FT tips as one clear Telegram text post."""
+    day_label = datetime.fromisoformat(str(day_key)).strftime("%d.%m.%Y")
+    entries = [
+        f"{int(pick.get('pick_number') or index)}. {pick.get('home')} – {pick.get('away')}\\n"
+        f"Liga: {pick.get('league')}\\n"
+        f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}\\n"
+        f"Godzina: {(kickoff_datetime({'kickoff_time': pick.get('kickoff_time')}) or now_local()).strftime('%H:%M')}"
+        for index, pick in enumerate(picks, 1)
+    ]
+    return f"⚽ BTTS TAK — LISTA TYPÓW\\n📅 {day_label}\\n\\n" + "\\n\\n".join(entries)
+
+
 def btts_ft_sent_picks_on_day(state, day):
     """Return BTTS FT picks delivered after the most recent daily-cap reset."""
     sent = []
@@ -740,6 +753,8 @@ def update_existing_btts_superbet_links(state):
         if pick.get("delivery_status", "sent") != "sent" or pick.get("settled"):
             continue
         if not pick.get("telegram_message_id"):
+            continue
+        if pick.get("telegram_batch_message"):
             continue
         if "superbet.pl/" in str(pick.get("bet_url") or "") and pick.get("link_caption_version") == 2:
             continue
@@ -5824,6 +5839,8 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
 
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     for corrected_number, old_pick in enumerate(sent_today, 1):
+        if old_pick.get("telegram_batch_message"):
+            continue
         target_number = int(old_pick.get("pick_number_override") or corrected_number)
         if old_pick.get("pick_number") != target_number and old_pick.get("telegram_message_id"):
             try:
@@ -5840,8 +5857,9 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
     sent_count = len(sent_today)
     next_number = max((int(p.get("pick_number") or 0) for p in sent_today), default=0) + 1
 
+    batch_picks = []
     for candidate in eligible:
-        if sent_count >= MAX_DAILY_BTTS_FT_PICKS:
+        if sent_count + len(batch_picks) >= MAX_DAILY_BTTS_FT_PICKS:
             print(f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {day_key}.", flush=True)
             break
 
@@ -5862,22 +5880,6 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
         ):
             continue
 
-        headers_sent = state.setdefault("daily_headers_sent", [])
-        if day_key not in headers_sent:
-            header = f"🔥 KOLEJNY DZIEŃ Z BTTS!\\n📅 {target_day.strftime('%d.%m.%Y')}"
-            try:
-                header_result = telegram(header)
-                header_message = header_result.get("result", {}) if isinstance(header_result, dict) else {}
-                if isinstance(header_message, list):
-                    header_message = header_message[0] if header_message else {}
-                headers_sent.append(day_key)
-                state.setdefault("daily_header_messages", {})[day_key] = header_message.get("message_id")
-                save_state(state)
-                print(f"WYSŁANO NAGŁÓWEK DNIA {day_key}.", flush=True)
-            except Exception as exc:
-                print(f"Nie udało się wysłać nagłówka dnia {day_key}: {type(exc).__name__}: {exc}; wstrzymuję typy.", flush=True)
-                return
-
         pick_number = next_number
         pick = {
             "key": f"{candidate['id']}:{BTTS_FT_MARKET}",
@@ -5895,28 +5897,40 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
             "analysis": candidate["analysis"], "settled": False,
             "delivery_status": "pending", "pick_number": pick_number,
         }
+        pick["telegram_batch_message"] = True
         state.setdefault("picks", []).append(pick)
         state.setdefault("duplicate_guard", []).append(pick)
+        batch_picks.append(pick)
+        next_number += 1
         save_state(state)
-        message = format_btts_ft_pick_message(pick, pick_number)
+
+    if batch_picks:
         try:
+            message = format_btts_ft_pick_list(batch_picks, day_key)
             response = telegram(message)
-            result = response.get("result", []) if isinstance(response, dict) else []
-            if isinstance(result, list) and result:
-                pick["telegram_message_id"] = result[0].get("message_id")
-            elif isinstance(result, dict):
-                pick["telegram_message_id"] = result.get("message_id")
-            pick["delivery_status"] = "sent"
-            pick["sent_at"] = now_local().isoformat()
+            result = response.get("result", {}) if isinstance(response, dict) else {}
+            if isinstance(result, list):
+                result = result[0] if result else {}
+            message_id = result.get("message_id") if isinstance(result, dict) else None
+            sent_at = now_local().isoformat()
+            for pick in batch_picks:
+                pick["telegram_message_id"] = message_id
+                pick["delivery_status"] = "sent"
+                pick["sent_at"] = sent_at
             save_state(state)
-            sent_count += 1
-            next_number += 1
-            print(f"WYSŁANO BTTS FT BSD TYP NR. {pick_number}: {candidate['home']} - {candidate['away']} @ {final_quote['odds']:.2f}", flush=True)
+            sent_count += len(batch_picks)
+            print(
+                f"WYSŁANO JEDNĄ LISTĘ BTTS FT: {len(batch_picks)} typów "
+                f"(numery {batch_picks[0]['pick_number']}–{batch_picks[-1]['pick_number']}); "
+                f"wiadomość Telegram ID={message_id}.",
+                flush=True,
+            )
         except Exception as exc:
-            pick["delivery_status"] = "failed"
-            pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
+            for pick in batch_picks:
+                pick["delivery_status"] = "failed"
+                pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
             save_state(state)
-            print(f"Telegram BSD BTTS FT error: {type(exc).__name__}: {exc}", flush=True)
+            print(f"Telegram BTTS FT — nie udało się wysłać zbiorczej listy: {type(exc).__name__}: {exc}", flush=True)
             return
 
 
@@ -5969,10 +5983,7 @@ def send_manual_archive_resend(state):
             f"🏁 Wynik końcowy: {item.get('result', 'brak')}\\n"
             "To wyłącznie test wysyłki i herbów — nie jest aktualnym typem."
         )
-    image_cursor = int(state.get("btts_image_cursor", 0)) % len(BTTS_IMAGE_POOL)
-    response = telegram_btts_ft(message, BTTS_IMAGE_POOL[image_cursor])
-    state["btts_image_cursor"] = (image_cursor + 1) % len(BTTS_IMAGE_POOL)
-    save_state(state)
+    response = telegram(message)
     result = response.get("result", []) if isinstance(response, dict) else []
     message_id = None
     if isinstance(result, list) and result:
@@ -6058,6 +6069,8 @@ def repair_sent_btts_league_captions(state):
     }
     for pick in state.get("picks", []):
         if pick.get("market") != BTTS_FT_MARKET or pick.get("delivery_status") != "sent":
+            continue
+        if pick.get("telegram_batch_message"):
             continue
         if not pick.get("telegram_message_id") or not pick.get("league_caption_repair_pending"):
             continue
