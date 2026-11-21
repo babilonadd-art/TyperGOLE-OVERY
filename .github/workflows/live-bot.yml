@@ -1,29 +1,31 @@
-name: TyperGOLE-OVERY — migration from BTTS to OVER LIVE (paused)
+name: TyperGOLE-OVERY — OVER LIVE
 
 on:
-  # Uruchamiaj po zmianie kodu lub testów; zapis state.json nie uruchamia kolejnego skanu.
   push:
     branches: [main]
     paths:
+      - "over_live.py"
       - "bot.py"
+      - "requirements.txt"
+      - ".github/workflows/live-bot.yml"
       - "tests/**"
-      - "data/state.json"
   workflow_dispatch:
   schedule:
+    - cron: "*/5 * * * *"
 
 permissions:
   contents: write
 
 concurrency:
-  group: typergole-live
-  cancel-in-progress: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+  group: typergole-over-live
+  cancel-in-progress: true
 
 jobs:
-  run-bot:
+  over-live:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
-      - name: Checkout latest main (including saved pick state)
+      - name: Checkout main and persistent state
         uses: actions/checkout@v4
         with:
           ref: main
@@ -32,16 +34,28 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
+          cache: pip
           cache-dependency-path: requirements.txt
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Run clock regression tests
-        if: github.event_name != 'schedule'
-        run: python -m unittest discover -s tests -v
-      - name: Initialize Superbet diagnostic log
+      - name: Compile and test
         run: |
-          mkdir -p data
-          : > data/superbet_diagnostics.jsonl
-      - name: Safety pause — old BTTS engine must not publish as OVER LIVE
-        run: echo "Bot publication is paused until the dedicated live-over engine and verified live data source are implemented."
+          python -m py_compile bot.py over_live.py
+          if [ -d tests ]; then python -m unittest discover -s tests -v; fi
+      - name: Run OVER LIVE scanner
+        if: github.event_name != 'push'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TZ: Europe/Warsaw
+        run: python over_live.py
+      - name: Save duplicate protection state
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/over_live_state.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Persist OVER LIVE sent-match state"
+            git push
+          fi
