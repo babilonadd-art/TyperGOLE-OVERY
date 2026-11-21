@@ -6438,19 +6438,19 @@ def extract_superbet_match_offsides_over(event_detail):
 def send_daily_offsides_list(state):
     """Publish up to ten verified full-time match offsides Over quotes as one list."""
     current = now_local().astimezone(TZ)
-    day = current.date().isoformat()
+    target_day = current.date() + timedelta(days=1)
+    day = target_day.isoformat()
     sent_days = state.setdefault("offsides_list_sent_days", [])
     if day in sent_days:
         print(f"SPALONE FT: lista na {day} została już wysłana.", flush=True)
         return
 
     # User requested a dedicated scan for tomorrow (Warsaw calendar date).
-    target_day = current.date() + timedelta(days=1)
     events_by_id = {}
     for event in superbet_prematch_event_links(target_date=target_day):
-            event_id = str(event.get("event_id") or "")
-            if event_id:
-                events_by_id[event_id] = event
+        event_id = str(event.get("event_id") or "")
+        if event_id:
+            events_by_id[event_id] = event
     events = list(events_by_id.values())
     candidates = []
     seen = set()
@@ -6489,7 +6489,7 @@ def send_daily_offsides_list(state):
                 sample_odds = sample_market.get("odds") if isinstance(sample_market, dict) else None
                 sample_odd = sample_odds[0] if isinstance(sample_odds, list) and sample_odds else {}
                 debug = (
-                    "event_keys=" + str(list(detail.keys())[:18]) +
+                    "event_keys=" + str(list(detail.keys())) +
                     "; market_keys=" + str(list(sample_market.keys())[:18] if isinstance(sample_market, dict) else []) +
                     "; market_name=" + str(sample_market.get("name") if isinstance(sample_market, dict) else None) +
                     "; odd_keys=" + str(list(sample_odd.keys())[:18] if isinstance(sample_odd, dict) else []) +
@@ -6539,7 +6539,7 @@ def send_daily_offsides_list(state):
         )
         return
 
-    lines = ["⚽ SPALONE — CAŁY MECZ (FT)", f"📅 {current.strftime('%d.%m.%Y')}", ""]
+    lines = ["⚽ SPALONE — CAŁY MECZ (FT)", f"📅 MECZE NA {target_day.strftime('%d.%m.%Y')}", ""]
     for idx, pick in enumerate(picks, 1):
         lines.append(
             f"{idx}. **{pick['home']} – {pick['away']}**\n"
