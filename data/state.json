@@ -19863,5 +19863,6 @@
     "fixture_count": 226,
     "odds_calls": 21
   },
-  "offsides_list_sent_days": []
+  "offsides_list_sent_days": [],
+  "offsides_scan_cursor": 0
 }
