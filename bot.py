@@ -603,6 +603,7 @@ def format_btts_ft_pick_message(pick, pick_number):
         f"Godzina: {kickoff.strftime('%H:%M')} | {kickoff.strftime('%d.%m.%Y')}\\n"
         "Źródło kursu: konsensus BSD"
     )
+    return message
 
 
 def btts_ft_sent_picks_on_day(state, day):
