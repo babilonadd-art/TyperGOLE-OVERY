@@ -70,6 +70,66 @@
       "sent_at": "2026-11-21T21:51:43.810327+01:00",
       "delivery_status": "sent",
       "telegram_message_id": 657
+    },
+    {
+      "id": "401883107",
+      "home": "Tenerife",
+      "away": "Mallorca",
+      "date": "2026-11-21",
+      "minute": 66,
+      "score": "0:0",
+      "market": "FT",
+      "line": 0.5,
+      "odds": 1.83,
+      "league": "Spanish LALIGA 2",
+      "sent_at": "2026-11-21T22:25:21.284994+01:00",
+      "delivery_status": "sent",
+      "telegram_message_id": 658
+    },
+    {
+      "id": "401875546",
+      "home": "FC Groningen",
+      "away": "Heerenveen",
+      "date": "2026-11-21",
+      "minute": 66,
+      "score": "1:1",
+      "market": "FT",
+      "line": 3.5,
+      "odds": 2.8,
+      "league": "Dutch Eredivisie",
+      "sent_at": "2026-11-21T22:25:22.056243+01:00",
+      "delivery_status": "sent",
+      "telegram_message_id": 659
+    },
+    {
+      "id": "401933755",
+      "home": "Argentinos Juniors",
+      "away": "Independiente",
+      "date": "2026-11-21",
+      "minute": 66,
+      "score": "1:1",
+      "market": "FT",
+      "line": 2.5,
+      "odds": 1.75,
+      "league": "Argentine Liga Profesional de Fútbol",
+      "sent_at": "2026-11-21T22:25:23.246900+01:00",
+      "delivery_status": "sent",
+      "telegram_message_id": 660
+    },
+    {
+      "id": "401878333",
+      "home": "Motherwell",
+      "away": "Rangers",
+      "date": "2026-11-21",
+      "minute": 66,
+      "score": "1:1",
+      "market": "FT",
+      "line": 3.5,
+      "odds": 2.95,
+      "league": "Scottish Premiership",
+      "sent_at": "2026-11-21T22:25:24.039967+01:00",
+      "delivery_status": "sent",
+      "telegram_message_id": 661
     }
   ]
 }
