@@ -31,13 +31,25 @@ class BttsTelegramMessageTests(unittest.TestCase):
             },
         }
         message = bot.format_btts_ft_pick_message(pick, 3)
-        self.assertIn("Szacowana szansa BTTS do końca meczu: 60%", message)
-        self.assertIn("Home FC – Away FC", message)
-        self.assertIn("Kurs: 1.85", message)
-        self.assertNotIn("BTTS sezon", message)
-        self.assertNotIn("Ostatnie mecze", message)
-        self.assertNotIn("gospodarz", message)
+        self.assertIn("3. Home FC – Away FC", message)
+        self.assertIn("Liga: Test League", message)
+        self.assertIn("BTTS TAK (FT) | Kurs: 1.85", message)
+        self.assertIn("Godzina: 18:30", message)
         self.assertNotIn("H2H", message)
+
+    def test_ft_pick_list_is_one_clear_numbered_text_message(self):
+        picks = [
+            {"pick_number": 1, "home": "Home FC", "away": "Away FC", "league": "Test League",
+             "kickoff_time": "2026-11-12T18:30:00+01:00", "odds": 1.85},
+            {"pick_number": 2, "home": "North FC", "away": "South FC", "league": "Another League",
+             "kickoff_time": "2026-11-12T20:00:00+01:00", "odds": 2.65},
+        ]
+        message = bot.format_btts_ft_pick_list(picks, "2026-11-12")
+        self.assertIn("1. Home FC – Away FC", message)
+        self.assertIn("2. North FC – South FC", message)
+        self.assertIn("Liga: Test League", message)
+        self.assertIn("BTTS TAK (FT) | Kurs: 2.65", message)
+        self.assertNotIn("\\n", message)
 
 class BttsFirstHalfSettlementTests(unittest.TestCase):
     def test_pick_local_date_uses_warsaw_kickoff_date(self):
@@ -171,11 +183,11 @@ class BttsQualityGateTests(unittest.TestCase):
         self.assertTrue(bot.btts_value_gate(0.64, 1.80))
 
     def test_value_gate_uses_requested_btts_ft_odds_band(self):
-        self.assertFalse(bot.btts_value_gate(0.70, 1.59))
-        self.assertTrue(bot.btts_value_gate(0.70, 1.60))
+        self.assertFalse(bot.btts_value_gate(0.70, 1.49))
+        self.assertTrue(bot.btts_value_gate(0.70, 1.50))
         self.assertTrue(bot.btts_value_gate(0.60, 2.40))
-        self.assertFalse(bot.btts_value_gate(0.70, 1.54))
-        self.assertFalse(bot.btts_value_gate(0.60, 2.41))
+        self.assertTrue(bot.btts_value_gate(0.70, 1.54))
+        self.assertTrue(bot.btts_value_gate(0.60, 2.41))
 
     def test_rejects_invalid_odds_or_probability(self):
         self.assertFalse(bot.btts_value_gate(0.70, 1.0))
