@@ -18,6 +18,106 @@ ALLOWED_WINDOWS = ((26, 38), (60, 78))
 MARKET = "OVER_LIVE_FT"
 MAX_EVENT_DETAILS_PER_RUN = 30
 
+# Public ESPN soccer scoreboard (no API key). This supplements SportScore
+# where its live board has limited competition coverage.
+ESPN_LEAGUES = (
+    "eng.1", "eng.2", "eng.3", "eng.fa", "esp.1", "esp.2",
+    "ger.1", "ger.2", "ita.1", "ita.2", "fra.1", "fra.2",
+    "ned.1", "por.1", "usa.1", "mex.1", "bra.1", "arg.1",
+    "uefa.champions", "uefa.europa", "uefa.europa.conf",
+    "uefa.nations", "sco.1", "bel.1", "tur.1", "jpn.1", "aus.1",
+)
+ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer"
+ESPN_HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; OVER-LIVE/1.0)", "Accept": "application/json"}
+
+def espn_get(url, params=None, timeout=12):
+    import requests
+    response = requests.get(url, params=params, headers=ESPN_HEADERS, timeout=timeout)
+    response.raise_for_status()
+    payload = response.json()
+    return payload if isinstance(payload, dict) else {}
+
+def espn_live_matches():
+    """Collect in-progress fixtures from multiple public ESPN league scoreboards."""
+    from datetime import datetime, timezone
+    day = datetime.now(timezone.utc).strftime("%Y%m%d")
+    found = {}
+    errors = 0
+    for league in ESPN_LEAGUES:
+        try:
+            payload = espn_get(f"{ESPN_BASE}/{league}/scoreboard", {"dates": day})
+            league_name = next((x.get("name") for x in payload.get("leagues", []) if isinstance(x, dict) and x.get("name")), league)
+            for event in payload.get("events", []):
+                if not isinstance(event, dict):
+                    continue
+                competitions = event.get("competitions") or []
+                if not competitions:
+                    continue
+                comp = competitions[0]
+                status = event.get("status") or comp.get("status") or {}
+                status_type = status.get("type") or {}
+                if str(status_type.get("state") or "").lower() != "in":
+                    continue
+                competitors = comp.get("competitors") or []
+                home = next((x for x in competitors if x.get("homeAway") == "home"), {})
+                away = next((x for x in competitors if x.get("homeAway") == "away"), {})
+                hteam, ateam = home.get("team") or {}, away.get("team") or {}
+                home_name, away_name = hteam.get("displayName"), ateam.get("displayName")
+                if not home_name or not away_name:
+                    continue
+                clock = str(status.get("displayClock") or status_type.get("shortDetail") or "")
+                import re
+                mm = re.search(r"(\d{1,3})", clock)
+                minute = int(mm.group(1)) if mm else None
+                if minute is None or not 1 <= minute <= 130:
+                    continue
+                match = {
+                    "id": str(event.get("id")), "slug": str(event.get("id")),
+                    "home": home_name, "away": away_name,
+                    "home_score": home.get("score"), "away_score": away.get("score"),
+                    "minute": minute, "status": "in_progress",
+                    "status_text": clock, "competition_name": league_name,
+                    "_espn_league": league, "_espn_event_id": str(event.get("id")),
+                }
+                found[str(event.get("id"))] = match
+        except Exception as exc:
+            errors += 1
+            print(f"ESPN {league}: {type(exc).__name__}: {exc}", flush=True)
+    result = list(found.values())
+    print(f"ESPN: {len(result)} meczów LIVE z {len(ESPN_LEAGUES)} lig; błędy feedów={errors}.", flush=True)
+    return result
+
+def espn_enrich_live_match(match):
+    """Fetch in-play match summary and convert ESPN team stats to common metrics."""
+    league, event_id = match.get("_espn_league"), match.get("_espn_event_id")
+    if not league or not event_id:
+        return match
+    try:
+        payload = espn_get(f"{ESPN_BASE}/{league}/summary", {"event": event_id})
+        box = payload.get("boxscore") or {}
+        teams = box.get("teams") or []
+        stats = {}
+        for side in teams:
+            team = side.get("team") or {}
+            side_name = team.get("displayName") or team.get("name")
+            key = "home" if core.normalized_team_name(side_name) == core.normalized_team_name(match["home"]) else "away"
+            for item in side.get("statistics") or []:
+                if not isinstance(item, dict):
+                    continue
+                name = str(item.get("name") or item.get("label") or "").lower().replace(" ", "_")
+                value = item.get("displayValue", item.get("value"))
+                try:
+                    number = float(str(value).replace("%", ""))
+                except (TypeError, ValueError):
+                    continue
+                stats.setdefault(name, {})[key] = number
+        if stats:
+            match["statistics"] = stats
+        match["_espn_summary_received"] = True
+    except Exception as exc:
+        print(f"ESPN summary {event_id}: {type(exc).__name__}: {exc}", flush=True)
+    return match
+
 
 def in_send_window(minute):
     return minute is not None and any(start <= minute <= end for start, end in ALLOWED_WINDOWS)
@@ -145,6 +245,11 @@ def main():
     state = load_live_state()
     save_live_state(state)  # ensure the workflow can persist an empty first-run state
     live = core.current_live_matches()
+    espn_live = espn_live_matches()
+    known = {str(core.match_identifier(m) or core.match_slug(m)) for m in live}
+    for item in espn_live:
+        if str(item.get("id")) not in known:
+            live.append(item)
     candidates = []
     for match in live:
         h, a, minute, _ = core.score_and_minute(match)
@@ -153,6 +258,8 @@ def main():
             continue
         if already_sent(state, match, home, away):
             continue
+        if match.get("_espn_event_id"):
+            match = espn_enrich_live_match(match)
         promising, metrics, signals = core.match_stats_look_promising(match, "FT")
         if not metrics:
             # The live board often omits stats; request the match's own live detail.
