@@ -1153,7 +1153,7 @@ def superbet_event_detail(event_id):
     return records[0]
 
 
-def extract_superbet_live_over_odds(event_detail, market, min_line):
+def extract_superbet_live_over_odds(event_detail, market, min_line, min_odds=1.0):
     """Choose the lowest currently open match-total Over line in the accepted odds band."""
     def normalize_market_text(value):
         # Polish ł/Ł does not decompose under NFKD; transliterate it before
@@ -1348,7 +1348,9 @@ def extract_superbet_live_over_odds(event_detail, market, min_line):
             )
             continue
         price = price_values[0]
-        # No minimum-odds threshold: publish the actual open Superbet quote.
+        # Skip short prices and continue to the next higher valid Over line.
+        if price < float(min_odds):
+            continue
 
         candidates.append({
             "odds": price,
