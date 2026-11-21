@@ -9544,12 +9544,16 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "SCO_1_premiership"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 10,
       "telegram_batch_message": true,
       "telegram_message_id": 649,
-      "sent_at": "2026-11-21T09:05:40.848290+01:00"
+      "sent_at": "2026-11-21T09:05:40.848290+01:00",
+      "won": false,
+      "settled_score": "0-4",
+      "settled_period": "FT",
+      "settled_at": "2026-11-21T18:59:32.040812+01:00"
     }
   ],
   "reports_sent": [],
