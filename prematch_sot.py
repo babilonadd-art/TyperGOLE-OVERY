@@ -106,7 +106,7 @@ def collect_price_rows(node, inherited=""):
     local = " ".join(str(node[k]) for k in keys if node.get(k) not in (None, "") and not isinstance(node.get(k), (dict, list)))
     context = " ".join(x for x in (inherited, local) if x).strip()
     has_price = any(node.get(k) not in (None, "") for k in ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec"))
-    has_sel = any(node.get(k) not in (None, "") for k in ("selectionName", "selection_name", "oddName", "outcomeName", "label", "displayName"))
+    has_sel = any(node.get(k) not in (None, "") for k in ("name", "selectionName", "selection_name", "oddName", "outcomeName", "label", "displayName"))
     if has_price and has_sel:
         row = dict(node)
         row["_market_context"] = context
@@ -127,7 +127,7 @@ def parse_superbet_sot_quotes(detail, event):
         status = str(core.first(row, "status", "oddStatus", "state", default="")).strip().lower()
         if status not in {"active", "opened", "open", "1", "true"}:
             continue
-        selection = str(core.first(row, "selectionName", "selection_name", "oddName",
+        selection = str(core.first(row, "name", "selectionName", "selection_name", "oddName",
                                    "outcomeName", "label", "displayName", default="")).strip()
         combined = norm_text(market + " " + selection)
         over = re.search(r"\b(?:powyzej|over)\s*(\d+(?:[.,]\d+)?)\b", combined)
@@ -175,7 +175,8 @@ def parse_superbet_sot_quotes(detail, event):
 
 def already_sent(state, day, event_id, side):
     key = f"{day}:{event_id}:{side}"
-    return any(item.get("key") == key for item in state["sent"])
+    return any(item.get("key") == key and item.get("delivery_status") in {"pending", "sent"}
+               for item in state["sent"])
 
 def publish(state, event, analysis, quote, league):
     side = quote["team_side"]
