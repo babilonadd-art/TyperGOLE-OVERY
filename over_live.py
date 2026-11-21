@@ -143,6 +143,7 @@ def main():
     if not core.TELEGRAM_TOKEN or not core.CHAT_ID:
         raise RuntimeError("Brak sekretów TELEGRAM_BOT_TOKEN lub TELEGRAM_CHAT_ID")
     state = load_live_state()
+    save_live_state(state)  # ensure the workflow can persist an empty first-run state
     live = core.current_live_matches()
     candidates = []
     for match in live:
