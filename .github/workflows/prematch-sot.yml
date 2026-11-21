@@ -1,4 +1,4 @@
-name: TyperGOLE-OVERY — PREMATCH TEAM SHOTS ON TARGET
+name: TyperGOLE-OVERY — PREMATCH GOALKEEPER SAVES
 
 on:
   push:
@@ -16,11 +16,11 @@ permissions:
   contents: write
 
 concurrency:
-  group: typergole-prematch-sot
+  group: typergole-prematch-saves
   cancel-in-progress: true
 
 jobs:
-  prematch-sot:
+  prematch-saves:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -39,20 +39,20 @@ jobs:
         run: pip install -r requirements.txt
       - name: Compile modules
         run: python -m py_compile bot.py prematch_sot.py
-      - name: Scan prematch team shots on target
+      - name: Scan prematch goalkeeper saves
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TZ: Europe/Warsaw
         run: python prematch_sot.py
-      - name: Save SOT duplicate protection state
+      - name: Save saves duplicate protection state
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -f data/prematch_sot_state.json ]; then
-            git add data/prematch_sot_state.json
+          if [ -f data/prematch_saves_state.json ]; then
+            git add data/prematch_saves_state.json
           fi
           if ! git diff --cached --quiet; then
-            git commit -m "Persist prematch SOT sent-match state"
+            git commit -m "Persist prematch goalkeeper saves state"
             git push
           fi
