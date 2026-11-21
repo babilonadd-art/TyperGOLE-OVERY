@@ -2800,10 +2800,18 @@ def current_live_matches():
     jeśli pierwszy endpoint zwróci rekordy, ale filtr lokalny nie znajdzie LIVE,
     sprawdzamy także feed widgetowy i pełniejszą listę fixtures.
     """
+    utc_day = datetime.now(timezone.utc).date().isoformat()
     sources = [
-        ("fixtures/live", "/api/v1/fixtures/", {"sport": "football", "status": "live", "limit": 200}),
-        ("widget/matches", "/api/widget/matches/", {"sport": "football", "limit": 200}),
-        ("fixtures/all", "/api/v1/fixtures/", {"sport": "football", "limit": 200}),
+        # SportScore's documented fixtures endpoint requires a UTC date.
+        ("fixtures/live", "/api/v1/fixtures/", {
+            "sport": "football", "date": utc_day, "status": "live", "limit": 200
+        }),
+        ("widget/matches", "/api/widget/matches/", {
+            "sport": "football", "limit": 200
+        }),
+        ("fixtures/all", "/api/v1/fixtures/", {
+            "sport": "football", "date": utc_day, "limit": 200
+        }),
     ]
 
     def is_live_fixture(match):
