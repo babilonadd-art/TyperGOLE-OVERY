@@ -9,13 +9,13 @@ class BttsOvernightWindowTests(unittest.TestCase):
     def setUp(self):
         self.tz = ZoneInfo("Europe/Warsaw")
 
-    def test_before_six_scans_tonight(self):
+    def test_early_today_scans_today(self):
         now = datetime(2026, 11, 21, 0, 15, tzinfo=self.tz)
         self.assertEqual(bot.btts_overnight_scan_date(now).isoformat(), "2026-11-21")
 
-    def test_after_six_scans_the_following_night(self):
+    def test_evening_scans_remaining_fixtures_today(self):
         now = datetime(2026, 11, 21, 18, 30, tzinfo=self.tz)
-        self.assertEqual(bot.btts_overnight_scan_date(now).isoformat(), "2026-11-22")
+        self.assertEqual(bot.btts_overnight_scan_date(now).isoformat(), "2026-11-21")
 
     def test_two_am_is_a_night_match(self):
         kickoff = datetime(2026, 11, 22, 2, 0, tzinfo=self.tz)
