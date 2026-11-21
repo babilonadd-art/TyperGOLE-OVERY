@@ -6270,8 +6270,162 @@ def btts_new_day_scan_gate(state, current=None):
     return True, f"poprzedni dzień {previous_day} rozliczony i zamknięty"
 
 
+
+def extract_superbet_match_offsides_over(event_detail):
+    """Return a real open FT total-match offsides Over quote; never team totals."""
+    rows = []
+    market_keys = (
+        "marketName", "market_name", "marketGroupName", "market_group_name",
+        "marketTitle", "market_title", "market", "marketGroup", "market_group", "title",
+    )
+    selection_keys = ("name", "selectionName", "selection_name", "oddName",
+                      "outcomeName", "label", "displayName")
+    price_keys = ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
+
+    def norm(value):
+        value = str(value or "").replace("ł", "l").replace("Ł", "L")
+        value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
+        value = re.sub(r"(?<=\d),(?=\d)", ".", value)
+        return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9.]+", " ", value)).strip()
+
+    def walk(node, inherited=""):
+        if isinstance(node, list):
+            for child in node:
+                walk(child, inherited)
+            return
+        if not isinstance(node, dict):
+            return
+        labels = [str(node.get(k)) for k in market_keys
+                  if node.get(k) not in (None, "") and not isinstance(node.get(k), (dict, list))]
+        context = " ".join(x for x in (inherited, " ".join(labels)) if x).strip()
+        if any(node.get(k) not in (None, "") for k in price_keys) and any(
+            node.get(k) not in (None, "") for k in selection_keys
+        ):
+            row = dict(node)
+            row["_market_context"] = context
+            rows.append(row)
+        for child in node.values():
+            if isinstance(child, (dict, list)):
+                walk(child, context)
+
+    walk(event_detail)
+    found = {}
+    for row in rows:
+        status = str(first(row, "status", "oddStatus", "state", default="")).lower()
+        if status not in {"active", "opened", "open", "1", "true"}:
+            continue
+        market = norm(" ".join(
+            [str(first(row, k, default="")) for k in market_keys]
+            + [str(row.get("_market_context") or "")]
+        ))
+        # The market itself must clearly describe total-match offsides.
+        if not any(x in market for x in ("spalone", "offsides", "offside")):
+            continue
+        if any(x in market for x in ("druzyn", "team", "gospodarz", "gosci", "home", "away")):
+            continue
+        if not any(x in market for x in ("liczba", "suma", "total", "caly mecz", "full match", "full time", "ft")):
+            continue
+        if any(x in market for x in ("1 pol", "pierwsza polowa", "first half", "2 pol", "second half", "dogryw", "extra time")):
+            continue
+        selection = str(first(row, *selection_keys, default="")).strip()
+        match = re.search(r"\b(?:over|powyzej)\s*(\d+(?:\.\d+)?)\b", norm(selection))
+        if not match:
+            continue
+        line = float(match.group(1))
+        prices = []
+        invalid = False
+        for key in price_keys:
+            raw = row.get(key)
+            if raw in (None, ""):
+                continue
+            try:
+                value = float(str(raw).replace(",", "."))
+            except (TypeError, ValueError):
+                invalid = True
+                break
+            if not 1.01 <= value <= 1000:
+                invalid = True
+                break
+            prices.append(value)
+        if invalid or not prices or max(prices) - min(prices) > 0.005:
+            continue
+        price = prices[0]
+        if line not in found:
+            found[line] = set()
+        found[line].add(price)
+    valid = [(line, next(iter(prices))) for line, prices in found.items() if len(prices) == 1]
+    if not valid:
+        return None
+    line, odds = sorted(valid, key=lambda item: item[0])[0]
+    return {"line": line, "odds": odds, "market": "Suma spalonych — cały mecz FT", "source": "Superbet"}
+
+
+def send_daily_offsides_list(state):
+    """Publish up to ten verified full-time match offsides Over quotes as one list."""
+    current = now_local().astimezone(TZ)
+    day = current.date().isoformat()
+    sent_days = state.setdefault("offsides_list_sent_days", [])
+    if day in sent_days:
+        print(f"SPALONE FT: lista na {day} została już wysłana.", flush=True)
+        return
+    events = superbet_prematch_event_links(target_date=current.date())
+    picks = []
+    seen = set()
+    for event in events:
+        if len(picks) >= 10:
+            break
+        kickoff = superbet_event_kickoff({
+            "fixture": {"utc_date": event.get("time")}
+        })
+        if not kickoff or kickoff <= current:
+            continue
+        home, away = event.get("home", ""), event.get("away", "")
+        event_id = str(event.get("event_id") or "")
+        fixture_key = re.sub(r"\W+", "", (home + away).lower())
+        if not event_id or fixture_key in seen:
+            continue
+        try:
+            detail = superbet_event_detail(event_id)
+            quote = extract_superbet_match_offsides_over(detail)
+        except Exception as exc:
+            print(f"SPALONE FT {home} - {away}: {type(exc).__name__}: {exc}", flush=True)
+            continue
+        if not quote:
+            continue
+        seen.add(fixture_key)
+        picks.append({
+            "home": home, "away": away, "kickoff": kickoff,
+            "line": quote["line"], "odds": quote["odds"],
+            "league": event.get("competition_name") or "",
+            "url": event.get("url") or "",
+        })
+        time.sleep(0.08)
+
+    if not picks:
+        print("SPALONE FT: brak potwierdzonych, otwartych kursów na sumę spalonych. Nie wysyłam fikcyjnych typów.", flush=True)
+        return
+    lines = ["⚽ SPALONE — CAŁY MECZ (FT)", f"📅 {current.strftime('%d.%m.%Y')}", ""]
+    for idx, pick in enumerate(picks, 1):
+        lines.append(
+            f"{idx}. **{pick['home']} – {pick['away']}**\n"
+            f"📅 {pick['kickoff'].strftime('%d.%m.%Y')}  🕒 {pick['kickoff'].strftime('%H:%M')}\n"
+            f"➡️ Over {pick['line']:g} spalonych | kurs {pick['odds']:.2f}"
+        )
+        if pick.get("url"):
+            lines.append(f"🔗 {pick['url']}")
+        lines.append("")
+    result = telegram("\n".join(lines))
+    if result:
+        sent_days.append(day)
+        state["offsides_daily_sent_count"] = len(picks)
+        state["offsides_last_list"] = [
+            {**p, "kickoff": p["kickoff"].isoformat()} for p in picks
+        ]
+        save_state(state)
+        print(f"SPALONE FT: wysłano listę {len(picks)}/10 typów.", flush=True)
+
 def main():
-    print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS FT START {now_local().isoformat()} ===", flush=True)
+    print(f"=== TyperGOLE-OVERY PRE-MATCH OFFSIDES FT START {now_local().isoformat()} ===", flush=True)
     print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
     state = load_state()
     # One-time correction of the already published Atletico Balboa - CD Inca pick.
@@ -6314,30 +6468,20 @@ def main():
         save_state(state)
     print(f"Historia typów: {len(state['picks'])}; nierozliczone: {sum(1 for p in state['picks'] if not p.get('settled'))}", flush=True)
 
-    # New bot is FT BTTS only. Historical BTTS picks remain available for settlement.
+    # Historical BTTS picks are retained for settlement; new publishing is offsides FT only.
     settle_picks(state, allowed_markets={BTTS_FT_MARKET})
     retry_pending_settlement_notifications(state)
 
-    # Close the previous BTTS day before considering any new-day picks.
     try:
-        send_daily_btts_closers(state)
+        send_daily_offsides_list(state)
     except Exception as exc:
-        print(f"Daily BTTS closer error: {type(exc).__name__}: {exc}", flush=True)
-
-    # Scan at every scheduled run; unresolved prior-day picks do not block new picks.
-    scan_allowed, scan_reason = btts_new_day_scan_gate(state)
-    print(f"BRAMKA NOWEGO DNIA: {'OTWARTA' if scan_allowed else 'ZAMKNIĘTA'} — {scan_reason}", flush=True)
-    if scan_allowed:
-        try:
-            send_prematch_superbet_btts_picks(state)
-        except Exception as exc:
-            print(f"Superbet BTTS FT scanner error: {type(exc).__name__}: {exc}", flush=True)
+        print(f"SPALONE FT scanner error: {type(exc).__name__}: {exc}", flush=True)
     try:
         send_monthly_reports(state)
     except Exception as exc:
         print(f"Monthly report error: {type(exc).__name__}: {exc}", flush=True)
     save_state(state)
-    print("=== TyperGOLE-OVERY PRE-MATCH BTTS FT END ===", flush=True)
+    print("=== TyperGOLE-OVERY PRE-MATCH OFFSIDES FT END ===", flush=True)
 
 
 if __name__ == "__main__":
