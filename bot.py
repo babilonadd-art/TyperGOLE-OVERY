@@ -59,9 +59,9 @@ def now_local():
     return datetime.now(TZ)
 
 
-# Limit 4 typów BTTS FT na każdy dzień kalendarzowy (Europe/Warsaw).
+# Limit 10 typów BTTS FT na każdy dzień kalendarzowy (Europe/Warsaw).
 # Licznik resetuje się automatycznie po zmianie daty; historia pozostaje zachowana.
-MAX_DAILY_BTTS_FT_PICKS = 4
+MAX_DAILY_BTTS_FT_PICKS = 10
 
 
 def daily_sent_match_count(state, day):
@@ -588,11 +588,7 @@ def telegram_edit_btts_pick(message, message_id):
 def format_btts_ft_pick_message(pick, pick_number):
     """Create a short, user-friendly BTTS FT pick caption."""
     kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
-    analysis = pick.get("analysis") or {}
-    metrics = analysis.get("metrics") or {}
     odds = float(pick.get("odds") or 0)
-    stake = float(pick.get("stake") or STAKE)
-    payout = calculate_bet_result(stake, odds)
     home = pick.get("home") or "Gospodarze"
     away = pick.get("away") or "Goście"
     league = str(pick.get("league") or pick.get("competition") or "").strip()
@@ -600,39 +596,13 @@ def format_btts_ft_pick_message(pick, pick_number):
         raise ValueError(
             f"Nie wysyłam BTTS bez potwierdzonej nazwy ligi: {home} - {away}"
         )
-
-    probability = metrics.get("model_probability")
-    if probability is None:
-        probability = analysis.get("probability")
-    try:
-        probability_text = f"{float(probability):.0%}" if probability is not None else "—"
-    except (TypeError, ValueError):
-        probability_text = "—"
-
-    market_only = analysis.get("method") == "market_only_no_open_matchday_history"
-    probability_line = (
-        f"📊 Prawdopodobieństwo wynikające z kursu BTTS: {probability_text} (bez historii drużyn)\n"
-        if market_only else
-        f"📊 Szacowana szansa BTTS do końca meczu: {probability_text}\n"
-    )
-    confidence_line = (
-        "⚠️ Analiza awaryjna — brak historii w Open Matchday; niższa pewność, decyzja oparta na rynku.\n"
-        if market_only else ""
-    )
     message = (
-        f"🎯 𝗧𝗬𝗣 𝗡𝗥. {pick_number} — BTTS TAK (FT)\n\n"
-        f"⚽ {home} – {away}\n"
-        f"📅 {kickoff.strftime('%d.%m.%Y')} | 🕒 {kickoff.strftime('%H:%M')} (Polska)\n"
-        + f"🏆 Liga: {league}\n"
-        + probability_line
-        + confidence_line
-        + f"💰 Kurs: {odds:.2f}\n"
-        + f"💵 Stawka: {stake:.2f} zł | Możliwa wypłata po podatku: {payout['payout']:.2f} zł\n"
-        + f"🔗 Mecz: {pick.get('bet_url') or ''}\n"
-        + "📡 Football data by BSD: https://sports.bzzoiro.com\n\n"
-        + "Typ dotyczy obu drużyn ze strzelonym golem po 90 minutach + doliczony czas. Bez dogrywki."
+        f"{pick_number}. {home} – {away}\\n"
+        f"Liga: {league}\\n"
+        f"BTTS TAK (FT) | Kurs: {odds:.2f}\\n"
+        f"Godzina: {kickoff.strftime('%H:%M')} | {kickoff.strftime('%d.%m.%Y')}\\n"
+        "Źródło kursu: konsensus BSD"
     )
-    return message
 
 
 def btts_ft_sent_picks_on_day(state, day):
@@ -2265,7 +2235,7 @@ def extract_bsd_btts_ft_quote(payload):
         odds = float(odds_block.get("btts_yes"))
     except (TypeError, ValueError):
         return None
-    if not 1.60 <= odds <= 2.40:
+    if odds < 1.50:
         return None
     return {
         "odds": odds,
@@ -2298,7 +2268,7 @@ def extract_moviodds_btts_ft_quote(match):
             odds = float(quote.get("odds_dec"))
         except (TypeError, ValueError):
             continue
-        if not 1.60 <= odds <= 2.40:
+        if odds < 1.50:
             continue
         candidates.append({
             "odds": odds, "market": "Both Teams to Score — Yes",
@@ -2462,7 +2432,7 @@ def bsd_btts_candidates(state, now=None, target_date=None):
         print(
             f"BSD: {len(events)} meczów z 60+ darmowych rozgrywek, "
             f"{checked_odds} sprawdzonych rynków BTTS, "
-            f"{len(raw_candidates)} kursów konsensusowych 1.60–2.40.",
+            f"{len(raw_candidates)} kursów konsensusowych od 1.50 bez górnego limitu.",
             flush=True,
         )
 
@@ -5117,7 +5087,7 @@ def send_prematch_over_15_ht_picks(state):
 
 
 
-MAX_DAILY_BTTS_FT_PICKS = 4
+MAX_DAILY_BTTS_FT_PICKS = 10
 
 
 def btts_value_gate(model_probability, odds, min_probability=0.60, min_edge=0.04):
@@ -5127,7 +5097,7 @@ def btts_value_gate(model_probability, odds, min_probability=0.60, min_edge=0.04
         price = float(odds)
     except (TypeError, ValueError):
         return False
-    if not (0.0 < probability < 1.0 and 1.60 <= price <= 2.40):
+    if not (0.0 < probability < 1.0 and price >= 1.50):
         return False
     implied_probability = 1.0 / price
     return probability >= min_probability and probability - implied_probability >= min_edge
@@ -5793,7 +5763,7 @@ def btts_prematch_odds_gate(btts_quote):
         btts_odds = float(btts_quote.get("odds"))
     except (TypeError, ValueError):
         return False
-    return 1.60 <= btts_odds <= 2.40
+    return btts_odds >= 1.50
 
 
 def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
@@ -5849,7 +5819,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
     eligible.sort(key=lambda item: (
         -item["analysis"]["score"], item["kickoff"], item["home"], item["away"]
     ))
-    print(f"BSD BTTS FT: {len(eligible)} kandydatów po analizie; kursy konsensusowe 1.60–2.40.", flush=True)
+    print(f"BSD BTTS FT: {len(eligible)} kandydatów po analizie; kursy konsensusowe od 1.50 bez górnego limitu.", flush=True)
 
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     for corrected_number, old_pick in enumerate(sent_today, 1):
@@ -5929,9 +5899,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
         save_state(state)
         message = format_btts_ft_pick_message(pick, pick_number)
         try:
-            image_cursor = int(state.get("btts_image_cursor", 0)) % len(BTTS_IMAGE_POOL)
-            response = telegram_btts_ft(message, image_cursor)
-            state["btts_image_cursor"] = (image_cursor + 1) % len(BTTS_IMAGE_POOL)
+            response = telegram(message)
             result = response.get("result", []) if isinstance(response, dict) else []
             if isinstance(result, list) and result:
                 pick["telegram_message_id"] = result[0].get("message_id")
@@ -5960,7 +5928,7 @@ def send_prematch_superbet_btts_picks(state):
     for scan_date in scan_dates:
         print(
             f"BTTS FT: nocny skan {scan_date.isoformat()} "
-            f"(tylko start 00:00–05:59 czasu polskiego; limit 4 typów).",
+            f"(tylko start 00:00–05:59 czasu polskiego; limit 10 typów).",
             flush=True,
         )
         try:
