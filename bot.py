@@ -6323,6 +6323,7 @@ def extract_superbet_match_offsides_over(event_detail):
                 "line_raw": line_raw,
                 "price_values": [node.get(k) for k in price_keys if node.get(k) not in (None, "")],
                 "metadata": metadata,
+                "display": first(node, "display", "isDisplayed", default=metadata.get("display")),
             })
 
         for key, child in node.items():
@@ -6336,7 +6337,7 @@ def extract_superbet_match_offsides_over(event_detail):
         status = row["status"]
         # Accept known active states; a missing state is allowed only when
         # Superbet provides an explicit display flag on the outcome.
-        display = row["metadata"].get("display")
+        display = row.get("display")
         if status:
             if status not in {"active", "opened", "open", "1", "true", "available"}:
                 rejected["status"] += 1
@@ -6433,6 +6434,19 @@ def send_daily_offsides_list(state):
     picks = []
     details_checked = 0
 
+    # Scan a rotating daily slice. The complete fixture list can contain
+    # 1,000+ matches; rotating slices let the 5-minute workflow cover all
+    # leagues without making one Actions job run for an excessive time.
+    if candidates:
+        cursor = int(state.get("offsides_scan_cursor", 0) or 0) % len(candidates)
+        scan_limit = min(100, len(candidates))
+        ordered_candidates = candidates[cursor:] + candidates[:cursor]
+        scan_batch = ordered_candidates[:scan_limit]
+        next_cursor = (cursor + scan_limit) % len(candidates)
+    else:
+        scan_batch = []
+        next_cursor = 0
+
     def fetch_quote(indexed_candidate):
         index, candidate = indexed_candidate
         event, kickoff, home, away, event_id = candidate
@@ -6456,12 +6470,10 @@ def send_daily_offsides_list(state):
         except Exception as exc:
             return candidate, None, None, f"{type(exc).__name__}: {exc}"
 
-    # Small parallel batches avoid waiting 15 seconds per event while keeping
-    # request volume controlled and preserving event order inside each batch.
-    for offset in range(0, len(candidates), 20):
+    for offset in range(0, len(scan_batch), 20):
         if len(picks) >= 10:
             break
-        batch = candidates[offset:offset + 20]
+        batch = scan_batch[offset:offset + 20]
         with ThreadPoolExecutor(max_workers=8) as executor:
             results = list(executor.map(fetch_quote, enumerate(batch, start=offset)))
         for candidate, quote, debug, error in results:
@@ -6482,6 +6494,13 @@ def send_daily_offsides_list(state):
             })
             if len(picks) >= 10:
                 break
+
+    state["offsides_scan_cursor"] = next_cursor
+    print(
+        f"SPALONE FT: sprawdzono {details_checked}/{len(candidates)} meczów "
+        f"w tej turze; kolejny fragment od pozycji {next_cursor}.",
+        flush=True,
+    )
 
     if not picks:
         print(
