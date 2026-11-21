@@ -1130,27 +1130,51 @@ def find_superbet_event(home, away, events, womens=None):
 
 
 def superbet_event_detail(event_id):
-    """Fetch current Superbet prices for one event from its public event endpoint."""
+    """Fetch event data and retry the Superbet offer identifier if the first
+    response contains only fixture metadata and no markets."""
     base = "https://production-superbet-offer-pl.freetls.fastly.net"
-    response = requests.get(
-        f"{base}/v2/pl-PL/events/{event_id}",
-        params={"_": str(datetime.now(timezone.utc).timestamp())},
-        headers={
-            **HEADERS,
-            "Origin": "https://superbet.pl",
-            "Referer": "https://superbet.pl/",
-            "Accept": "application/json, text/plain, */*",
-            "Cache-Control": "no-cache, no-store, max-age=0",
-            "Pragma": "no-cache",
-        },
-        timeout=15,
-    )
-    response.raise_for_status()
-    payload = response.json()
-    records = payload.get("data", []) if isinstance(payload, dict) else []
-    if not records or not isinstance(records[0], dict):
+    headers = {
+        **HEADERS,
+        "Origin": "https://superbet.pl",
+        "Referer": "https://superbet.pl/",
+        "Accept": "application/json, text/plain, */*",
+        "Cache-Control": "no-cache, no-store, max-age=0",
+        "Pragma": "no-cache",
+    }
+
+    def request(identifier):
+        response = requests.get(
+            f"{base}/v2/pl-PL/events/{identifier}",
+            params={"_": str(datetime.now(timezone.utc).timestamp())},
+            headers=headers,
+            timeout=15,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        records = payload.get("data", []) if isinstance(payload, dict) else []
+        if isinstance(records, dict):
+            records = [records]
+        return records[0] if records and isinstance(records[0], dict) else {}
+
+    detail = request(event_id)
+    if not detail:
         return {}
-    return records[0]
+    # The public event calendar exposes event_id, while the detailed offer
+    # object also carries offerId. Some Superbet deployments resolve markets
+    # against that offer identifier rather than the calendar event id.
+    if not any(isinstance(detail.get(key), (list, dict)) for key in ("markets", "marketGroups", "odds")):
+        offer_id = detail.get("offerId") or detail.get("offer_id")
+        if offer_id and str(offer_id) != str(event_id):
+            try:
+                offer_detail = request(offer_id)
+                if offer_detail and any(
+                    isinstance(offer_detail.get(key), (list, dict))
+                    for key in ("markets", "marketGroups", "odds")
+                ):
+                    return offer_detail
+            except requests.RequestException as exc:
+                print(f"Superbet offerId fallback {offer_id}: {type(exc).__name__}: {exc}", flush=True)
+    return detail
 
 
 def extract_superbet_live_over_odds(event_detail, market, min_line, min_odds=1.0):
@@ -6420,11 +6444,10 @@ def send_daily_offsides_list(state):
         print(f"SPALONE FT: lista na {day} została już wysłana.", flush=True)
         return
 
-    # Include fixtures after midnight as part of the current overnight search.
-    # This matters when the local calendar day is almost over.
+    # User requested a dedicated scan for tomorrow (Warsaw calendar date).
+    target_day = current.date() + timedelta(days=1)
     events_by_id = {}
-    for target_day in (current.date(), current.date() + timedelta(days=1)):
-        for event in superbet_prematch_event_links(target_date=target_day):
+    for event in superbet_prematch_event_links(target_date=target_day):
             event_id = str(event.get("event_id") or "")
             if event_id:
                 events_by_id[event_id] = event
@@ -6433,7 +6456,7 @@ def send_daily_offsides_list(state):
     seen = set()
     for event in events:
         kickoff = superbet_event_kickoff({"fixture": {"utc_date": event.get("time")}})
-        if not kickoff or kickoff <= current or kickoff > current + timedelta(hours=30):
+        if not kickoff or kickoff.date() != target_day or kickoff <= current:
             continue
         home, away = event.get("home", ""), event.get("away", "")
         event_id = str(event.get("event_id") or "")
@@ -6444,22 +6467,14 @@ def send_daily_offsides_list(state):
         candidates.append((event, kickoff, home, away, event_id))
 
     candidates.sort(key=lambda item: item[1])
-    print(f"SPALONE FT: {len(candidates)} przyszłych meczów (dziś + noc do 30 h) do sprawdzenia.", flush=True)
+    print(f"SPALONE FT: {len(candidates)} przyszłych meczów na jutro ({target_day.isoformat()}) do sprawdzenia.", flush=True)
     picks = []
     details_checked = 0
 
-    # Scan a rotating daily slice. The complete fixture list can contain
-    # 1,000+ matches; rotating slices let the 5-minute workflow cover all
-    # leagues without making one Actions job run for an excessive time.
-    if candidates:
-        cursor = int(state.get("offsides_scan_cursor", 0) or 0) % len(candidates)
-        scan_limit = min(100, len(candidates))
-        ordered_candidates = candidates[cursor:] + candidates[:cursor]
-        scan_batch = ordered_candidates[:scan_limit]
-        next_cursor = (cursor + scan_limit) % len(candidates)
-    else:
-        scan_batch = []
-        next_cursor = 0
+    # Tomorrow-only search: inspect the complete fixture list in one run.
+    # Requests are parallelized below; never silently skip 600+ matches.
+    scan_batch = list(enumerate(candidates))
+    next_cursor = 0
 
     def fetch_quote(indexed_candidate):
         index, candidate = indexed_candidate
