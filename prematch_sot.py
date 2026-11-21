@@ -80,7 +80,7 @@ def analyze_team(home_rows, away_rows):
     home_for, home_allowed = [x[1] for x in home_rows], [x[2] for x in home_rows]
     away_for, away_allowed = [x[1] for x in away_rows], [x[2] for x in away_rows]
     picks = []
-    for side, own, allowed in (("home", home_for, away_for), ("away", away_for, home_for)):
+    for side, own, allowed in (("home", home_for, [x[2] for x in away_rows]), ("away", away_for, [x[2] for x in home_rows])):
         if len(own) < MIN_SAMPLE or len(allowed) < MIN_SAMPLE:
             continue
         expected = 0.60 * (sum(own) / len(own)) + 0.40 * (sum(allowed) / len(allowed))
