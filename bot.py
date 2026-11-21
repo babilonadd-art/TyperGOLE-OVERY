@@ -610,13 +610,13 @@ def format_btts_ft_pick_list(picks, day_key):
     """Format all newly selected BTTS FT tips as one clear Telegram text post."""
     day_label = datetime.fromisoformat(str(day_key)).strftime("%d.%m.%Y")
     entries = [
-        f"{int(pick.get('pick_number') or index)}. {pick.get('home')} – {pick.get('away')}\\n"
-        f"Liga: {pick.get('league')}\\n"
-        f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}\\n"
+        f"{int(pick.get('pick_number') or index)}. {pick.get('home')} – {pick.get('away')}\n"
+        f"Liga: {pick.get('league')}\n"
+        f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}\n"
         f"Godzina: {(kickoff_datetime({'kickoff_time': pick.get('kickoff_time')}) or now_local()).strftime('%H:%M')}"
         for index, pick in enumerate(picks, 1)
     ]
-    return f"⚽ BTTS TAK — LISTA TYPÓW\\n📅 {day_label}\\n\\n" + "\\n\\n".join(entries)
+    return f"⚽ BTTS TAK — LISTA TYPÓW\n📅 {day_label}\n\n" + "\n\n".join(entries)
 
 
 def btts_ft_sent_picks_on_day(state, day):
