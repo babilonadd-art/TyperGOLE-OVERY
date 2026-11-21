@@ -9275,12 +9275,16 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "ITA_2_serie-b"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 7,
       "telegram_batch_message": true,
       "telegram_message_id": 649,
-      "sent_at": "2026-11-21T09:05:40.848290+01:00"
+      "sent_at": "2026-11-21T09:05:40.848290+01:00",
+      "won": true,
+      "settled_score": "3-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-21T20:30:46.406783+01:00"
     },
     {
       "key": "224729:BTTS_FT",
@@ -19565,136 +19569,8 @@
   "bsd_btts_cache": {
     "date": "2026-11-21",
     "window": "all_day",
-    "fetched_at": "2026-11-21T19:41:45.630463+01:00",
+    "fetched_at": "2026-11-21T20:30:48.028395+01:00",
     "items": [
-      {
-        "id": "654793",
-        "home": "Técnico Universitario",
-        "away": "Deportivo Cuenca",
-        "league": "",
-        "kickoff": "2026-11-21T20:00:00+01:00",
-        "quote": {
-          "odds": 1.91,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": null,
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "654250",
-        "home": "New England Revolution",
-        "away": "Philadelphia Union",
-        "league": "",
-        "kickoff": "2026-11-21T20:00:00+01:00",
-        "quote": {
-          "odds": 1.54,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": null,
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "603949",
-        "home": "RFC Seraing",
-        "away": "Patro Eisden Maasmechelen",
-        "league": "",
-        "kickoff": "2026-11-21T20:00:00+01:00",
-        "quote": {
-          "odds": 1.69,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": null,
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "580586",
-        "home": "Stade de Reims",
-        "away": "Saint-Étienne",
-        "league": "",
-        "kickoff": "2026-11-21T20:00:00+01:00",
-        "quote": {
-          "odds": 1.68,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "211963",
-        "home": "Radomiak Radom",
-        "away": "Wisła Kraków",
-        "league": "",
-        "kickoff": "2026-11-21T20:15:00+01:00",
-        "quote": {
-          "odds": 1.53,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "602727",
-        "home": "FC St. Pauli",
-        "away": "VfL Bochum 1848",
-        "league": "",
-        "kickoff": "2026-11-21T20:30:00+01:00",
-        "quote": {
-          "odds": 1.59,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "602359",
-        "home": "FC Sion",
-        "away": "Servette FC",
-        "league": "",
-        "kickoff": "2026-11-21T20:30:00+01:00",
-        "quote": {
-          "odds": 1.63,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
-      {
-        "id": "7351",
-        "home": "Palmeiras",
-        "away": "Flamengo",
-        "league": "",
-        "kickoff": "2026-11-21T20:30:00+01:00",
-        "quote": {
-          "odds": 1.65,
-          "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
-          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
-          "source": "BSD"
-        },
-        "url": "",
-        "competition_category": ""
-      },
       {
         "id": "212825",
         "home": "SV Zulte Waregem",
@@ -19704,7 +19580,7 @@
         "quote": {
           "odds": 1.61,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
+          "updated_at": "2026-11-21T19:20:11Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -19720,7 +19596,7 @@
         "quote": {
           "odds": 1.56,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
+          "updated_at": "2026-11-21T19:20:11Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -19736,7 +19612,7 @@
         "quote": {
           "odds": 1.65,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
+          "updated_at": "2026-11-21T19:20:11Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -19752,7 +19628,7 @@
         "quote": {
           "odds": 1.64,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
+          "updated_at": "2026-11-21T19:20:11Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -19768,7 +19644,7 @@
         "quote": {
           "odds": 1.82,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
+          "updated_at": "2026-11-21T19:20:11Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -19784,7 +19660,7 @@
         "quote": {
           "odds": 1.85,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
+          "updated_at": "2026-11-21T19:20:11Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -19800,7 +19676,7 @@
         "quote": {
           "odds": 1.81,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
+          "updated_at": "2026-11-21T19:20:11Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -19832,7 +19708,7 @@
         "quote": {
           "odds": 2.01,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
+          "updated_at": "2026-11-21T19:20:11Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -19848,7 +19724,7 @@
         "quote": {
           "odds": 1.95,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
+          "updated_at": "2026-11-21T19:20:11Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -19864,7 +19740,7 @@
         "quote": {
           "odds": 1.57,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
+          "updated_at": "2026-11-21T19:20:11Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -19910,9 +19786,9 @@
         "league": "",
         "kickoff": "2026-11-21T21:30:00+01:00",
         "quote": {
-          "odds": 1.73,
+          "odds": 1.75,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T18:35:06Z",
+          "updated_at": "2026-11-21T19:20:11Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -19969,6 +19845,6 @@
       }
     ],
     "fixture_count": 226,
-    "odds_calls": 29
+    "odds_calls": 21
   }
 }
