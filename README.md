@@ -5,6 +5,7 @@ Przedmeczowy Telegram bot dla rynku **BTTS — obie drużyny strzelą gola w ca�
 ## Źródła danych
 - Terminarz, zakończone wyniki i historia drużyn: **Open Matchday** — publiczne pliki CSV, bez klucza API i bez rejestracji.
 - Kursy i aktywne rynki: **Superbet**. Bot nie zgaduje kursów; wysyła typ tylko po potwierdzeniu aktywnego kursu BTTS FT.
+- Dodatkowy, opcjonalny kontekst spalonych: **StatsBomb Open Data** — publiczne pliki JSON z GitHuba, bez API key, konta i płatnego planu. Bot próbuje dopasować ligę i ostatnie dostępne mecze; zapisuje liczbę spalonych obu drużyn w metrykach analizy BTTS. Zbiór StatsBomb obejmuje tylko wybrane rozgrywki i sezony, więc brak danych jest normalny. Spalone są na razie informacją pomocniczą i **nie zmieniają procentu ani decyzji o wysłaniu typu BTTS**.
 - Open Matchday publikuje dane raz dziennie. Czas w plikach CSV używa stałej konwencji CET (UTC+1); bot przelicza go na czas polski.
 
 ## Strategia
@@ -33,4 +34,4 @@ Wymagane są wyłącznie:
 **Open Matchday nie wymaga żadnego klucza API.**
 
 ## Atrybucja
-Dane meczowe: [Open Matchday](https://github.com/oladeeayo/open-matchday). Zbiór jest udostępniony do użytku niekomercyjnego; projekt wykorzystuje go do prywatnego bota.
+Dane meczowe: [Open Matchday](https://github.com/oladeeayo/open-matchday). Dodatkowe dane zdarzeń: [StatsBomb Open Data](https://github.com/hudl/open-data). Przy publikowaniu analiz opartych na danych StatsBomb należy wskazać StatsBomb jako źródło i użyć ich logo zgodnie z warunkami zbioru. Open Matchday jest udostępniony do użytku niekomercyjnego; projekt wykorzystuje go do prywatnego bota.
