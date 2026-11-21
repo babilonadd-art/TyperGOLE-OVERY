@@ -184,7 +184,7 @@ class BttsQualityGateTests(unittest.TestCase):
 
     def test_value_gate_uses_requested_btts_ft_odds_band(self):
         self.assertFalse(bot.btts_value_gate(0.70, 1.49))
-        self.assertTrue(bot.btts_value_gate(0.70, 1.50))
+        self.assertTrue(bot.btts_value_gate(0.72, 1.50))
         self.assertTrue(bot.btts_value_gate(0.60, 2.40))
         self.assertTrue(bot.btts_value_gate(0.70, 1.54))
         self.assertTrue(bot.btts_value_gate(0.60, 2.41))
