@@ -6420,12 +6420,20 @@ def send_daily_offsides_list(state):
         print(f"SPALONE FT: lista na {day} została już wysłana.", flush=True)
         return
 
-    events = superbet_prematch_event_links(target_date=current.date())
+    # Include fixtures after midnight as part of the current overnight search.
+    # This matters when the local calendar day is almost over.
+    events_by_id = {}
+    for target_day in (current.date(), current.date() + timedelta(days=1)):
+        for event in superbet_prematch_event_links(target_date=target_day):
+            event_id = str(event.get("event_id") or "")
+            if event_id:
+                events_by_id[event_id] = event
+    events = list(events_by_id.values())
     candidates = []
     seen = set()
     for event in events:
         kickoff = superbet_event_kickoff({"fixture": {"utc_date": event.get("time")}})
-        if not kickoff or kickoff <= current:
+        if not kickoff or kickoff <= current or kickoff > current + timedelta(hours=30):
             continue
         home, away = event.get("home", ""), event.get("away", "")
         event_id = str(event.get("event_id") or "")
@@ -6435,7 +6443,8 @@ def send_daily_offsides_list(state):
         seen.add(fixture_key)
         candidates.append((event, kickoff, home, away, event_id))
 
-    print(f"SPALONE FT: {len(candidates)} przyszłych meczów do sprawdzenia.", flush=True)
+    candidates.sort(key=lambda item: item[1])
+    print(f"SPALONE FT: {len(candidates)} przyszłych meczów (dziś + noc do 30 h) do sprawdzenia.", flush=True)
     picks = []
     details_checked = 0
 
