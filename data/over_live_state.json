@@ -145,6 +145,21 @@
       "sent_at": "2026-11-21T23:04:50.242250+01:00",
       "delivery_status": "sent",
       "telegram_message_id": 662
+    },
+    {
+      "id": "401933732",
+      "home": "FC Dallas",
+      "away": "Portland Timbers",
+      "date": "2026-11-21",
+      "minute": 73,
+      "score": "2:0",
+      "market": "FT",
+      "line": 2.5,
+      "odds": 1.62,
+      "league": "MLS",
+      "sent_at": "2026-11-21T23:42:11.700920+01:00",
+      "delivery_status": "sent",
+      "telegram_message_id": 665
     }
   ]
 }
