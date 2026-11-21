@@ -8816,12 +8816,16 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "FRA_1_ligue-1"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 2,
       "telegram_batch_message": true,
       "telegram_message_id": 649,
-      "sent_at": "2026-11-21T09:05:40.848290+01:00"
+      "sent_at": "2026-11-21T09:05:40.848290+01:00",
+      "won": true,
+      "settled_score": "1-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-21T23:46:39.880999+01:00"
     },
     {
       "key": "210534:BTTS_FT",
@@ -9188,12 +9192,16 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "SCO_1_premiership"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 6,
       "telegram_batch_message": true,
       "telegram_message_id": 649,
-      "sent_at": "2026-11-21T09:05:40.848290+01:00"
+      "sent_at": "2026-11-21T09:05:40.848290+01:00",
+      "won": false,
+      "settled_score": "0-8",
+      "settled_period": "FT",
+      "settled_at": "2026-11-21T23:46:41.659763+01:00"
     },
     {
       "key": "605713:BTTS_FT",
@@ -9465,12 +9473,16 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "NED_1_eredivisie"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 9,
       "telegram_batch_message": true,
       "telegram_message_id": 649,
-      "sent_at": "2026-11-21T09:05:40.848290+01:00"
+      "sent_at": "2026-11-21T09:05:40.848290+01:00",
+      "won": true,
+      "settled_score": "1-3",
+      "settled_period": "FT",
+      "settled_at": "2026-11-21T23:46:43.526476+01:00"
     },
     {
       "key": "211186:BTTS_FT",
@@ -19850,5 +19862,6 @@
     ],
     "fixture_count": 226,
     "odds_calls": 21
-  }
+  },
+  "offsides_list_sent_days": []
 }
