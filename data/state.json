@@ -17918,7 +17918,7 @@
   "btts_daily_limit_reset_reason": "Manual reset requested by user on 2026-11-20",
   "bsd_btts_cache": {
     "date": "2026-11-21",
-    "fetched_at": "2026-11-21T00:11:17.809626+01:00",
+    "fetched_at": "2026-11-21T01:28:44.007426+01:00",
     "items": [
       {
         "id": "655421",
@@ -17927,9 +17927,9 @@
         "league": "",
         "kickoff": "2026-11-21T02:40:00+01:00",
         "quote": {
-          "odds": 1.82,
+          "odds": 1.87,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-20T23:05:09Z",
+          "updated_at": "2026-11-21T00:20:12Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -17943,9 +17943,9 @@
         "league": "",
         "kickoff": "2026-11-21T04:00:00+01:00",
         "quote": {
-          "odds": 1.8,
+          "odds": 1.81,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-20T23:05:09Z",
+          "updated_at": "2026-11-21T00:20:12Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
