@@ -255,9 +255,13 @@ def main():
     live = core.current_live_matches()
     espn_live = espn_live_matches()
     known = {str(core.match_identifier(m) or core.match_slug(m)) for m in live}
+    known_pairs = {(core.normalized_team_name(core.teams(m)[0]), core.normalized_team_name(core.teams(m)[1])) for m in live}
     for item in espn_live:
-        if str(item.get("id")) not in known:
+        pair = (core.normalized_team_name(item.get("home")), core.normalized_team_name(item.get("away")))
+        if str(item.get("id")) not in known and pair not in known_pairs:
             live.append(item)
+            known.add(str(item.get("id")))
+            known_pairs.add(pair)
     candidates = []
     for match in live:
         h, a, minute, _ = core.score_and_minute(match)
