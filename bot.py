@@ -2806,8 +2806,9 @@ def current_live_matches():
         ("fixtures/live", "/api/v1/fixtures/", {
             "sport": "football", "date": utc_day, "status": "live", "limit": 200
         }),
+        # Public widget feed accepts at most 50 matches.
         ("widget/matches", "/api/widget/matches/", {
-            "sport": "football", "limit": 200
+            "sport": "football", "limit": 50
         }),
         ("fixtures/all", "/api/v1/fixtures/", {
             "sport": "football", "date": utc_day, "limit": 200
