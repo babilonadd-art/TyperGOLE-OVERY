@@ -6504,7 +6504,7 @@ def send_daily_offsides_list(state):
             break
         batch = scan_batch[offset:offset + 20]
         with ThreadPoolExecutor(max_workers=8) as executor:
-            results = list(executor.map(fetch_quote, enumerate(batch, start=offset)))
+            results = list(executor.map(fetch_quote, batch))
         for candidate, quote, debug, error in results:
             event, kickoff, home, away, event_id = candidate
             details_checked += 1
