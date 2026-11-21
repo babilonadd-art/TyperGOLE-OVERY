@@ -43,14 +43,12 @@ jobs:
           python -m py_compile bot.py over_live.py
           if [ -d tests ]; then python -m unittest discover -s tests -v; fi
       - name: Run OVER LIVE scanner
-        if: github.event_name != 'push'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TZ: Europe/Warsaw
         run: python over_live.py
       - name: Save duplicate protection state
-        if: github.event_name != 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
