@@ -130,6 +130,21 @@
       "sent_at": "2026-11-21T22:25:24.039967+01:00",
       "delivery_status": "sent",
       "telegram_message_id": 661
+    },
+    {
+      "id": "401841327",
+      "home": "Bahia",
+      "away": "Coritiba",
+      "date": "2026-11-21",
+      "minute": 72,
+      "score": "0:0",
+      "market": "FT",
+      "line": 1.5,
+      "odds": 3.45,
+      "league": "Brazilian Serie A",
+      "sent_at": "2026-11-21T23:04:50.242250+01:00",
+      "delivery_status": "sent",
+      "telegram_message_id": 662
     }
   ]
 }
