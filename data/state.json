@@ -17918,7 +17918,7 @@
   "btts_daily_limit_reset_reason": "Manual reset requested by user on 2026-11-20",
   "bsd_btts_cache": {
     "date": "2026-11-22",
-    "fetched_at": "2026-11-21T07:23:16.900849+01:00",
+    "fetched_at": "2026-11-21T08:21:55.443231+01:00",
     "items": [
       {
         "id": "7348",
@@ -17929,7 +17929,7 @@
         "quote": {
           "odds": 1.65,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T06:20:09Z",
+          "updated_at": "2026-11-21T07:20:09Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -17945,7 +17945,23 @@
         "quote": {
           "odds": 1.64,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T06:20:09Z",
+          "updated_at": "2026-11-21T07:20:09Z",
+          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
+          "source": "BSD"
+        },
+        "url": "",
+        "competition_category": ""
+      },
+      {
+        "id": "211647",
+        "home": "Pumas UNAM",
+        "away": "CF Monterrey",
+        "league": "",
+        "kickoff": "2026-11-22T02:00:00+01:00",
+        "quote": {
+          "odds": 1.5,
+          "market": "BTTS — Yes (FT)",
+          "updated_at": "2026-11-21T07:20:09Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -17961,7 +17977,7 @@
         "quote": {
           "odds": 1.68,
           "market": "BTTS — Yes (FT)",
-          "updated_at": "2026-11-21T06:20:09Z",
+          "updated_at": "2026-11-21T07:20:09Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
@@ -17978,6 +17994,22 @@
           "odds": 1.64,
           "market": "BTTS — Yes (FT)",
           "updated_at": null,
+          "bookmaker": "Konsensus BSD (wielu bukmacherów)",
+          "source": "BSD"
+        },
+        "url": "",
+        "competition_category": ""
+      },
+      {
+        "id": "211648",
+        "home": "Tigres UANL",
+        "away": "Club América",
+        "league": "",
+        "kickoff": "2026-11-22T04:00:00+01:00",
+        "quote": {
+          "odds": 1.54,
+          "market": "BTTS — Yes (FT)",
+          "updated_at": "2026-11-21T07:20:09Z",
           "bookmaker": "Konsensus BSD (wielu bukmacherów)",
           "source": "BSD"
         },
