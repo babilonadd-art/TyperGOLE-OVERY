@@ -1,0 +1,56 @@
+name: TyperGOLE-OVERY — PREMATCH TEAM SHOTS ON TARGET
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "prematch_sot.py"
+      - "bot.py"
+      - "requirements.txt"
+      - ".github/workflows/prematch-sot.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: typergole-prematch-sot
+  cancel-in-progress: true
+
+jobs:
+  prematch-sot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout main and persistent state
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Compile modules
+        run: python -m py_compile bot.py prematch_sot.py
+      - name: Scan prematch team shots on target
+        env:
+          TELEGRAM_BOT_TOKEN: \${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: \${{ secrets.TELEGRAM_CHAT_ID }}
+          TZ: Europe/Warsaw
+        run: python prematch_sot.py
+      - name: Save SOT duplicate protection state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/prematch_sot_state.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Persist prematch SOT sent-match state"
+            git push
+          fi
