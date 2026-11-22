@@ -6830,6 +6830,50 @@ def send_daily_offsides_list(state):
     print(f"SPALONE FT: wysłano listę {len(picks)}/10 typów.", flush=True)
 
 
+
+def repair_sent_btts_batch_league_caption(state):
+    """Repair the combined Telegram BTTS list after verifying all competition names."""
+    message_id = 672
+    leagues = {
+        ("asteras tripolis (k)", "paok saloniki (k)"): "Grecka Division A Kobiet",
+        ("bangu rj u20", "madureira u20"): "Brazylijska Carioca U20 — Série A1",
+        ("ac milan u23", "tritium"): "Włoska Serie D — grupa B",
+        ("brescia (k)", "san marino ac (k)"): "Włoska Serie B Kobiet",
+        ("union sportive cap d ail u19", "bastia u19"): "Francuska U19 National",
+        ("getafe u19", "r. majadahonda u19"): "Hiszpańska División de Honor Juvenil — grupa 5",
+        ("uniao de leiria u19", "casa pia u19"): "Portugalskie Campeonato Nacional U19",
+        ("tenerife (k)", "madryt ccf (k)"): "Hiszpańska Liga F Moeve",
+        ("rayo ci alcobendas u19", "leganes u19"): "Hiszpańska División de Honor Juvenil — grupa 5",
+        ("fc porto (k)", "sporting lizbona (k)"): "Portugalska Liga BPI",
+    }
+    picks = [
+        p for p in state.get("picks", [])
+        if p.get("market") == BTTS_FT_MARKET
+        and p.get("telegram_batch_message")
+        and int(p.get("telegram_message_id") or 0) == message_id
+    ]
+    if len(picks) != 10:
+        print(f"Naprawa listy BTTS 672: oczekiwano 10 pozycji, znaleziono {len(picks)}; pomijam.", flush=True)
+        return
+    for pick in picks:
+        key = (str(pick.get("home") or "").strip().casefold(),
+               str(pick.get("away") or "").strip().casefold())
+        league = leagues.get(key)
+        if not league:
+            print(f"Naprawa listy BTTS 672: brak potwierdzonej ligi dla {key}; nie edytuję.", flush=True)
+            return
+        pick["league"] = league
+        pick["competition"] = league
+    picks.sort(key=lambda p: int(p.get("pick_number") or 0))
+    message = format_btts_ft_pick_list(picks, picks[0].get("date") or now_local().date().isoformat())
+    telegram_edit_btts_pick(message, message_id)
+    for pick in picks:
+        pick["league_caption_repaired_at"] = now_local().isoformat()
+    state["btts_batch_league_repair_672_done"] = now_local().isoformat()
+    save_state(state)
+    print("POPRAWIONO LISTĘ BTTS NA TELEGRAMIE: wszystkie 10 lig; message_id=672", flush=True)
+
+
 def main():
     print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS FT START {now_local().isoformat()} ===", flush=True)
     print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
