@@ -6,7 +6,7 @@
       "slug": "corinthians-k-vs-rb-bragantino-k",
       "home": "Corinthians (K)",
       "away": "RB Bragantino (K)",
-      "league": "Liga nieznana (K)",
+      "league": "Brazylijski Campeonato Paulista Feminino",
       "competition_category": {
         "gender": "WOMEN",
         "age_group": "SENIOR"
@@ -28,7 +28,9 @@
       "pick_number": 1,
       "telegram_batch_message": true,
       "telegram_message_id": 671,
-      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+      "sent_at": "2026-11-22T13:37:49.405573+01:00",
+      "competition": "Brazylijski Campeonato Paulista Feminino",
+      "league_caption_repaired_at": "2026-11-22T13:49:43.118815+01:00"
     },
     {
       "key": "superbet:15829740:BTTS_FT",
@@ -36,7 +38,7 @@
       "slug": "charlton-athletic-k-vs-aston-villa-k",
       "home": "Charlton Athletic (K)",
       "away": "Aston Villa (K)",
-      "league": "Liga nieznana (K)",
+      "league": "Angielska FA Women's Super League",
       "competition_category": {
         "gender": "WOMEN",
         "age_group": "SENIOR"
@@ -58,7 +60,9 @@
       "pick_number": 2,
       "telegram_batch_message": true,
       "telegram_message_id": 671,
-      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+      "sent_at": "2026-11-22T13:37:49.405573+01:00",
+      "competition": "Angielska FA Women's Super League",
+      "league_caption_repaired_at": "2026-11-22T13:49:43.118832+01:00"
     },
     {
       "key": "superbet:15829739:BTTS_FT",
@@ -66,7 +70,7 @@
       "slug": "everton-k-vs-brighton-k",
       "home": "Everton (K)",
       "away": "Brighton (K)",
-      "league": "Liga nieznana (K)",
+      "league": "Angielska Barclays Women's Super League",
       "competition_category": {
         "gender": "WOMEN",
         "age_group": "SENIOR"
@@ -88,7 +92,9 @@
       "pick_number": 3,
       "telegram_batch_message": true,
       "telegram_message_id": 671,
-      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+      "sent_at": "2026-11-22T13:37:49.405573+01:00",
+      "competition": "Angielska Barclays Women's Super League",
+      "league_caption_repaired_at": "2026-11-22T13:49:43.118835+01:00"
     },
     {
       "key": "superbet:15829748:BTTS_FT",
@@ -96,7 +102,7 @@
       "slug": "ipswich-k-vs-southampton-k",
       "home": "Ipswich (K)",
       "away": "Southampton (K)",
-      "league": "Liga nieznana (K)",
+      "league": "Angielski Subway Players Cup — kobiety",
       "competition_category": {
         "gender": "WOMEN",
         "age_group": "SENIOR"
@@ -118,7 +124,9 @@
       "pick_number": 4,
       "telegram_batch_message": true,
       "telegram_message_id": 671,
-      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+      "sent_at": "2026-11-22T13:37:49.405573+01:00",
+      "competition": "Angielski Subway Players Cup — kobiety",
+      "league_caption_repaired_at": "2026-11-22T13:49:43.118837+01:00"
     },
     {
       "key": "superbet:15829747:BTTS_FT",
@@ -126,7 +134,7 @@
       "slug": "newcastle-k-vs-nottingham-k",
       "home": "Newcastle (K)",
       "away": "Nottingham (K)",
-      "league": "Liga nieznana (K)",
+      "league": "Angielski Subway Players Cup — kobiety",
       "competition_category": {
         "gender": "WOMEN",
         "age_group": "SENIOR"
@@ -148,7 +156,9 @@
       "pick_number": 5,
       "telegram_batch_message": true,
       "telegram_message_id": 671,
-      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+      "sent_at": "2026-11-22T13:37:49.405573+01:00",
+      "competition": "Angielski Subway Players Cup — kobiety",
+      "league_caption_repaired_at": "2026-11-22T13:49:43.118839+01:00"
     },
     {
       "key": "superbet:15997314:BTTS_FT",
@@ -156,7 +166,7 @@
       "slug": "cruzeiro-k-vs-atletico-mg-k",
       "home": "Cruzeiro (K)",
       "away": "Atletico MG (K)",
-      "league": "Liga nieznana (K)",
+      "league": "Brazylijski Campeonato Mineiro Sicoob Feminino",
       "competition_category": {
         "gender": "WOMEN",
         "age_group": "SENIOR"
@@ -178,7 +188,9 @@
       "pick_number": 6,
       "telegram_batch_message": true,
       "telegram_message_id": 671,
-      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+      "sent_at": "2026-11-22T13:37:49.405573+01:00",
+      "competition": "Brazylijski Campeonato Mineiro Sicoob Feminino",
+      "league_caption_repaired_at": "2026-11-22T13:49:43.118840+01:00"
     },
     {
       "key": "superbet:15724669:BTTS_FT",
@@ -186,7 +198,7 @@
       "slug": "valadares-gaia-k-vs-torreense-k",
       "home": "Valadares Gaia (K)",
       "away": "Torreense (K)",
-      "league": "Liga nieznana (K)",
+      "league": "Portugalska 1ª Divisão Feminina",
       "competition_category": {
         "gender": "WOMEN",
         "age_group": "SENIOR"
@@ -208,7 +220,9 @@
       "pick_number": 7,
       "telegram_batch_message": true,
       "telegram_message_id": 671,
-      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+      "sent_at": "2026-11-22T13:37:49.405573+01:00",
+      "competition": "Portugalska 1ª Divisão Feminina",
+      "league_caption_repaired_at": "2026-11-22T13:49:43.118842+01:00"
     },
     {
       "key": "superbet:15829855:BTTS_FT",
@@ -216,7 +230,7 @@
       "slug": "guadalajara-u21-vs-cruz-azul-u21",
       "home": "Guadalajara U21",
       "away": "Cruz Azul U21",
-      "league": "Liga nieznana U21",
+      "league": "Meksykańska Liga MX U21 — Apertura",
       "competition_category": {
         "gender": "MEN",
         "age_group": "U21"
@@ -238,7 +252,9 @@
       "pick_number": 8,
       "telegram_batch_message": true,
       "telegram_message_id": 671,
-      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+      "sent_at": "2026-11-22T13:37:49.405573+01:00",
+      "competition": "Meksykańska Liga MX U21 — Apertura",
+      "league_caption_repaired_at": "2026-11-22T13:49:43.118843+01:00"
     },
     {
       "key": "superbet:15813937:BTTS_FT",
@@ -246,7 +262,7 @@
       "slug": "braga-b-k-vs-rio-tinto-k",
       "home": "Braga B (K)",
       "away": "Rio Tinto (K)",
-      "league": "Liga nieznana (K)",
+      "league": "Portugalskie Campeonato Nacional II Feminino",
       "competition_category": {
         "gender": "WOMEN",
         "age_group": "SENIOR"
@@ -268,7 +284,9 @@
       "pick_number": 9,
       "telegram_batch_message": true,
       "telegram_message_id": 671,
-      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+      "sent_at": "2026-11-22T13:37:49.405573+01:00",
+      "competition": "Portugalskie Campeonato Nacional II Feminino",
+      "league_caption_repaired_at": "2026-11-22T13:49:43.118845+01:00"
     },
     {
       "key": "superbet:15829858:BTTS_FT",
@@ -276,7 +294,7 @@
       "slug": "feirense-u19-vs-braga-u19",
       "home": "Feirense U19",
       "away": "Braga U19",
-      "league": "Liga nieznana U19",
+      "league": "Portugalskie Campeonato Nacional Juniores A U19",
       "competition_category": {
         "gender": "MEN",
         "age_group": "U19"
@@ -298,7 +316,9 @@
       "pick_number": 10,
       "telegram_batch_message": true,
       "telegram_message_id": 671,
-      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+      "sent_at": "2026-11-22T13:37:49.405573+01:00",
+      "competition": "Portugalskie Campeonato Nacional Juniores A U19",
+      "league_caption_repaired_at": "2026-11-22T13:49:43.118846+01:00"
     },
     {
       "key": "superbet:15829201:BTTS_FT",
@@ -1338,5 +1358,6 @@
       "url": "https://superbet.pl/kursy/pilka-nozna/nashville-vs-cincinnati-16033193"
     }
   ],
-  "btts_batch_league_repair_672_done": "2026-11-22T13:47:47.690884+01:00"
+  "btts_batch_league_repair_672_done": "2026-11-22T13:47:47.690884+01:00",
+  "btts_batch_league_repair_671_done": "2026-11-22T13:49:43.118848+01:00"
 }
