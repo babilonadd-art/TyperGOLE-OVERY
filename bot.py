@@ -1170,8 +1170,16 @@ def superbet_event_detail(event_id):
                 return True
             if isinstance(rows, dict) and rows:
                 return True
-        # Do not treat the calendar's odds metadata dictionary as a market:
-        # it is commonly present but contains no priced selections.
+        # The actual Superbet v2 event detail exposes priced selections directly
+        # in odds[] (marketName, name, info, price, status).
+        odds_rows = value.get("odds")
+        if isinstance(odds_rows, list) and any(
+            isinstance(row, dict) and row.get("price") not in (None, "")
+            and row.get("marketName") not in (None, "")
+            for row in odds_rows
+        ):
+            return True
+        # Do not treat metadata-only odds dictionaries as actual market rows.
         for key in ("oddsResults", "odds_results", "selections", "outcomes"):
             rows = value.get(key)
             if isinstance(rows, list) and rows and all(isinstance(row, dict) for row in rows):
@@ -6352,7 +6360,88 @@ def btts_new_day_scan_gate(state, current=None):
 
 
 def extract_superbet_match_offsides_over(event_detail):
-    """Extract a real open full-match total-offsides Over quote from Superbet v2 data."""
+    """Extract a real open full-match total-offsides Over 2.5 quote."""
+    def norm(value):
+        value = str(value or "").replace("ł", "l").replace("Ł", "L")
+        value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
+        value = re.sub(r"(?<=\\d),(?=\\d)", ".", value)
+        return re.sub(r"\\s+", " ", re.sub(r"[^a-z0-9.]+", " ", value)).strip()
+
+    def valid_price(raw):
+        try:
+            value = float(str(raw).replace(",", "."))
+        except (TypeError, ValueError):
+            return None
+        return value if 1.60 <= value <= 3.00 else None
+
+    # Superbet's event endpoint returns the actual market rows in a FLAT
+    # "odds" array (marketName/name/info/price), not in "markets".
+    # Parse that native shape first; the old recursive parser missed it.
+    flat_rows = event_detail.get("odds") if isinstance(event_detail, dict) else None
+    flat_matches = {}
+    if isinstance(flat_rows, list):
+        for row in flat_rows:
+            if not isinstance(row, dict):
+                continue
+            market_name = str(first(row, "marketName", "market_name", "marketGroupName", "market_group_name", default=""))
+            selection_name = str(first(row, "name", "selectionName", "selection_name", "code", default=""))
+            info = str(first(row, "info", "description", "selectionInfo", default=""))
+            market_text = norm(market_name)
+            combined = norm(" ".join((market_name, selection_name, info)))
+            if not any(token in combined for token in ("spalone", "offsides", "offside")):
+                continue
+            # Only the match total: reject team, half, minute and extra-time markets.
+            if any(token in market_text for token in (
+                "druzyn", "team", "gospodarz", "gosci", "home", "away",
+                "1 pol", "pierwsza polowa", "first half", "1st half",
+                "2 pol", "druga polowa", "second half", "2nd half",
+                "minute", "minuta", "dogryw", "extra time",
+            )):
+                continue
+            # When the market label itself is generic, reject team/half qualifiers
+            # anywhere in the market's descriptive text as well.
+            if any(token in combined for token in (
+                "spalone druzyny", "spalone gospodarza", "spalone gosci",
+                "team offsides", "home offsides", "away offsides",
+                "first half", "second half", "1 polowa", "2 polowa",
+            )):
+                continue
+            status = str(first(row, "status", "oddStatus", "state", default="")).strip().lower()
+            if status and status not in {"active", "opened", "open", "1", "true", "available"}:
+                continue
+            if not status and first(row, "offerStateId", default=1) not in (1, "1", True):
+                continue
+
+            line_raw = first(
+                row, "specialBetValue", "special_bet_value", "line", "total",
+                "handicap", "specifier", "value", default=None,
+            )
+            selection_text = norm(" ".join((selection_name, info, str(line_raw or ""))))
+            over_match = re.search(r"\\b(?:over|powyzej|wiecej niz|more than)\\s*(\\d+(?:\\.\\d+)?)\\b", selection_text)
+            line = float(over_match.group(1)) if over_match else None
+            if line is None and line_raw not in (None, ""):
+                try:
+                    line = float(str(line_raw).replace(",", "."))
+                except (TypeError, ValueError):
+                    line = None
+            if line is None or abs(line - 2.5) > 0.001:
+                continue
+            if not re.search(r"\\b(?:over|powyzej|wiecej niz|more than)\\b", selection_text):
+                continue
+            price = valid_price(row.get("price"))
+            if price is None:
+                continue
+            flat_matches.setdefault(line, set()).add(price)
+
+    valid = [(line, next(iter(prices))) for line, prices in flat_matches.items() if len(prices) == 1]
+    if valid:
+        line, odds = sorted(valid, key=lambda item: item[0])[0]
+        return {
+            "line": line, "odds": odds,
+            "market": "Suma spalonych — cały mecz FT", "source": "Superbet",
+        }
+
+    # Compatibility fallback for nested market payloads used by other versions.
     candidates = []
     market_keys = (
         "marketName", "market_name", "marketGroupName", "market_group_name",
@@ -6361,12 +6450,6 @@ def extract_superbet_match_offsides_over(event_detail):
     )
     price_keys = ("price", "odds", "oddValue", "odd_value", "oddsValue", "odds_dec")
 
-    def norm(value):
-        value = str(value or "").replace("ł", "l").replace("Ł", "L")
-        value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
-        value = re.sub(r"(?<=\d),(?=\d)", ".", value)
-        return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9.]+", " ", value)).strip()
-
     def walk(node, inherited_market="", inherited_status=""):
         if isinstance(node, list):
             for child in node:
@@ -6374,18 +6457,13 @@ def extract_superbet_match_offsides_over(event_detail):
             return
         if not isinstance(node, dict):
             return
-
-        # Superbet v2 nests outcomes under market objects. Keep the parent
-        # market name and status when descending into the odds/selections.
-        local_labels = []
-        for key in market_keys:
-            value = node.get(key)
-            if value not in (None, "") and not isinstance(value, (dict, list)):
-                local_labels.append(str(value))
+        local_labels = [
+            str(node.get(key)) for key in market_keys
+            if node.get(key) not in (None, "") and not isinstance(node.get(key), (dict, list))
+        ]
         local_market = " ".join(x for x in (inherited_market, " ".join(local_labels)) if x)
         status_value = first(node, "status", "oddStatus", "state", "isActive", default=None)
         status = str(status_value).strip().lower() if status_value is not None else inherited_status
-
         if any(node.get(k) not in (None, "") for k in price_keys):
             metadata = node.get("metadata") if isinstance(node.get("metadata"), dict) else {}
             selection = first(node, "selectionName", "selection_name", "oddName",
@@ -6393,91 +6471,50 @@ def extract_superbet_match_offsides_over(event_detail):
             if selection in (None, ""):
                 selection = first(metadata, "name", "info", "label", default="")
             specifiers = metadata.get("specifiers") if isinstance(metadata.get("specifiers"), dict) else {}
-            line_raw = first(node, "line", "total", "handicap", "specifier", default=None)
+            line_raw = first(node, "line", "total", "handicap", "specifier", "specialBetValue", default=None)
             if line_raw in (None, ""):
                 line_raw = first(specifiers, "total", "line", "handicap", default=None)
             candidates.append({
-                "market": local_market,
-                "status": status,
-                "selection": str(selection or ""),
+                "market": local_market, "status": status, "selection": str(selection or ""),
                 "line_raw": line_raw,
-                "price_values": [node.get(k) for k in price_keys if node.get(k) not in (None, "")],
-                "metadata": metadata,
-                "display": first(node, "display", "isDisplayed", default=metadata.get("display")),
+                "price_values": [node.get(key) for key in price_keys if node.get(key) not in (None, "")],
+                "metadata": metadata, "display": first(node, "display", "isDisplayed", default=metadata.get("display")),
             })
-
-        for key, child in node.items():
+        for child in node.values():
             if isinstance(child, (dict, list)):
                 walk(child, local_market, status)
 
     walk(event_detail)
     found = {}
-    rejected = {"status": 0, "market": 0, "selection": 0, "price": 0}
     for row in candidates:
         status = row["status"]
-        # Accept known active states; a missing state is allowed only when
-        # Superbet provides an explicit display flag on the outcome.
         display = row.get("display")
-        if status:
-            if status not in {"active", "opened", "open", "1", "true", "available"}:
-                rejected["status"] += 1
-                continue
-        elif display not in (True, 1, "1", "true", "True"):
-            rejected["status"] += 1
+        if status and status not in {"active", "opened", "open", "1", "true", "available"}:
             continue
-
+        if not status and display not in (True, 1, "1", "true", "True"):
+            continue
         market = norm(row["market"])
         if not any(token in market for token in ("spalone", "offsides", "offside")):
-            rejected["market"] += 1
             continue
-        # Reject team, half, minute and extra-time markets. A plain
-        # "Total Offsides" market is the standard match-total market.
         if any(token in market for token in (
             "druzyn", "team", "gospodarz", "gosci", "home", "away",
             "1 pol", "pierwsza polowa", "first half", "1st half",
             "2 pol", "druga polowa", "second half", "2nd half",
             "minute", "minuta", "dogryw", "extra time",
         )):
-            rejected["market"] += 1
             continue
-        if not any(token in market for token in (
-            "liczba", "suma", "total", "caly mecz", "full match", "full time", "ft",
-        )):
-            rejected["market"] += 1
-            continue
-
         selection = norm(row["selection"])
-        match = re.search(r"\b(?:over|powyzej)\s*(\d+(?:\.\d+)?)\b", selection)
+        match = re.search(r"\\b(?:over|powyzej)\\s*(\\d+(?:\\.\\d+)?)\\b", selection)
         line = float(match.group(1)) if match else None
         if line is None and row["line_raw"] not in (None, ""):
             try:
                 line = float(str(row["line_raw"]).replace(",", "."))
             except (TypeError, ValueError):
                 line = None
-        # User filter: exact match-total line Over 2.5 only.
-        if line is None or abs(line - 2.5) > 0.001:
-            rejected["selection"] += 1
+        if line is None or abs(line - 2.5) > 0.001 or not re.search(r"\\b(?:over|powyzej)\\b", selection):
             continue
-        if selection and not re.search(r"\b(?:over|powyzej)\b", selection):
-            rejected["selection"] += 1
-            continue
-
-        prices = []
-        try:
-            for raw in row["price_values"]:
-                value = float(str(raw).replace(",", "."))
-                if not 1.01 <= value <= 1000:
-                    raise ValueError("kurs poza zakresem")
-                prices.append(value)
-        except (TypeError, ValueError):
-            rejected["price"] += 1
-            continue
-        if not prices or max(prices) - min(prices) > 0.005:
-            rejected["price"] += 1
-            continue
-        # User filter: decimal odds from 1.60 through 3.00 inclusive.
-        if not 1.60 <= prices[0] <= 3.00:
-            rejected["price"] += 1
+        prices = [valid_price(raw) for raw in row["price_values"]]
+        if not prices or any(price is None for price in prices) or max(prices) - min(prices) > 0.005:
             continue
         found.setdefault(line, set()).add(prices[0])
 
@@ -6485,11 +6522,7 @@ def extract_superbet_match_offsides_over(event_detail):
     if not valid:
         return None
     line, odds = sorted(valid, key=lambda item: item[0])[0]
-    return {
-        "line": line, "odds": odds,
-        "market": "Suma spalonych — cały mecz FT", "source": "Superbet",
-    }
-
+    return {"line": line, "odds": odds, "market": "Suma spalonych — cały mecz FT", "source": "Superbet"}
 
 def send_daily_offsides_list(state):
     """Publish up to ten verified full-time match offsides Over quotes as one list."""
@@ -6555,7 +6588,8 @@ def send_daily_offsides_list(state):
                     "; odds_type=" + type(detail.get("odds")).__name__ +
                     "; odds_sample=" + repr(detail.get("odds"))[:1200] +
                     "; oddsResults_type=" + type(detail.get("oddsResults")).__name__ +
-                    "; oddsResults_sample=" + repr(detail.get("oddsResults"))[:1600]
+                    "; oddsResults_sample=" + repr(detail.get("oddsResults"))[:1600] +
+                    "; offsides_rows=" + repr([row for row in (detail.get("odds") or []) if isinstance(row, dict) and re.search(r"spalon|offside", str(row.get("marketName", "") + " " + row.get("info", "")).lower())][:8])
                 )
             return candidate, quote, debug, None
         except Exception as exc:
