@@ -3,9 +3,11 @@
 The scanner deliberately does not invent bookmaker prices. It publishes only
 verified live candidates and labels unavailable market prices as unavailable.
 """
+import json
 import os
 import re
 import time
+from pathlib import Path
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -21,6 +23,7 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "").strip()
 MINUTE_MIN = 68
 MINUTE_MAX = 82
 MAX_POSTS_PER_RUN = 5
+STATE_PATH = Path("data/over_live_state.json")
 SESSION = requests.Session()
 SESSION.headers.update(HEADERS)
 
@@ -44,7 +47,7 @@ def fotmob_matches():
     day = datetime.now(TZ).date().isoformat()
     payload = get_json("https://www.fotmob.com/api/data/matches", {"date": day})
     rows = []
-    for league in payload.get(" leagues", payload.get("leagues", [])):
+    for league in payload.get("leagues", []):
         for match in league.get("matches", []):
             if isinstance(match, dict):
                 match["_league_name"] = league.get("name") or league.get("ccode") or "Liga niepodana"
@@ -103,7 +106,6 @@ def normalize_match(match):
     if match.get("_source") == "ESPN":
         return match
     status = match.get("status") or {}
-    score = match.get("status") or {}
     home = match.get("home") or {}
     away = match.get("away") or {}
     return {
@@ -203,6 +205,19 @@ def fetch_fotmob_detail(match_id):
     return get_json("https://www.fotmob.com/api/data/matchDetails", {"matchId": match_id})
 
 
+def load_state():
+    try:
+        data = json.loads(STATE_PATH.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {"sent": []}
+    except (OSError, ValueError):
+        return {"sent": []}
+
+
+def save_state(state):
+    STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    STATE_PATH.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 def send_telegram(message):
     if not TELEGRAM_TOKEN or not CHAT_ID:
         raise RuntimeError("Brak TELEGRAM_BOT_TOKEN lub TELEGRAM_CHAT_ID w GitHub Secrets.")
@@ -241,6 +256,9 @@ def run():
     ]
     print(f"{source}: live={len(live)}, minute/score candidates={len(filtered)}", flush=True)
 
+    state = load_state()
+    today = datetime.now(TZ).date().isoformat()
+    sent = set(state.get("sent", []))
     picks = []
     for match in filtered:
         stats = {}
@@ -256,9 +274,12 @@ def run():
         market, reason = candidate_score(match, stats)
         if not market:
             continue
+        identity = f"{today}:{match.get('id')}:{market}"
+        if identity in sent:
+            continue
         # Odds are intentionally not fabricated: this data feed does not supply
         # a verified bookmaker quote for either requested market.
-        picks.append((match, market, reason))
+        picks.append((match, market, reason, identity))
         if len(picks) >= MAX_POSTS_PER_RUN:
             break
         time.sleep(3)
@@ -268,7 +289,7 @@ def run():
         return
 
     lines = ["⚽ OVER LIVE — KANDYDACI", f"🕒 {datetime.now(TZ).strftime('%d.%m.%Y %H:%M')} (Europe/Warsaw)", ""]
-    for match, market, reason in picks:
+    for match, market, reason, identity in picks:
         market_label = "Over 0.5 FT" if market == "OVER_0_5_FT" else "Over 1.5 FT"
         lines.extend([
             f"{match.get('home')} — {match.get('away')}",
