@@ -6834,3 +6834,5 @@ if __name__ == "__main__":
 
 # Manual Telegram close-day trigger: 2026-11-13
 # Manual live BTTS FT scan trigger: 2026-11-20
+
+# BTTS history reset: start fresh from the cleared persistent state.
