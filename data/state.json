@@ -247,14 +247,18 @@
       "analysis": {
         "method": "market_odds_only"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 8,
       "telegram_batch_message": true,
       "telegram_message_id": 671,
       "sent_at": "2026-11-22T13:37:49.405573+01:00",
       "competition": "Meksykańska Liga MX U21 — Apertura",
-      "league_caption_repaired_at": "2026-11-22T13:49:43.118843+01:00"
+      "league_caption_repaired_at": "2026-11-22T13:49:43.118843+01:00",
+      "won": true,
+      "settled_score": "2-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-22T19:22:12.614663+01:00"
     },
     {
       "key": "superbet:15813937:BTTS_FT",
@@ -311,14 +315,18 @@
       "analysis": {
         "method": "market_odds_only"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 10,
       "telegram_batch_message": true,
       "telegram_message_id": 671,
       "sent_at": "2026-11-22T13:37:49.405573+01:00",
       "competition": "Portugalskie Campeonato Nacional Juniores A U19",
-      "league_caption_repaired_at": "2026-11-22T13:49:43.118846+01:00"
+      "league_caption_repaired_at": "2026-11-22T13:49:43.118846+01:00",
+      "won": false,
+      "settled_score": "0-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-22T19:22:14.006999+01:00"
     },
     {
       "key": "superbet:15829201:BTTS_FT",
@@ -503,14 +511,18 @@
       "analysis": {
         "method": "market_odds_only"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 16,
       "telegram_batch_message": true,
       "telegram_message_id": 672,
       "sent_at": "2026-11-22T13:40:16.051610+01:00",
       "competition": "Hiszpańska División de Honor Juvenil — grupa 5",
-      "league_caption_repaired_at": "2026-11-22T13:47:47.690878+01:00"
+      "league_caption_repaired_at": "2026-11-22T13:47:47.690878+01:00",
+      "won": false,
+      "settled_score": "0-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-22T19:22:18.870964+01:00"
     },
     {
       "key": "superbet:15829860:BTTS_FT",
@@ -599,14 +611,18 @@
       "analysis": {
         "method": "market_odds_only"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 19,
       "telegram_batch_message": true,
       "telegram_message_id": 672,
       "sent_at": "2026-11-22T13:40:16.051610+01:00",
       "competition": "Hiszpańska División de Honor Juvenil — grupa 5",
-      "league_caption_repaired_at": "2026-11-22T13:47:47.690882+01:00"
+      "league_caption_repaired_at": "2026-11-22T13:47:47.690882+01:00",
+      "won": false,
+      "settled_score": "0-0",
+      "settled_period": "FT",
+      "settled_at": "2026-11-22T19:22:21.394735+01:00"
     },
     {
       "key": "superbet:15724666:BTTS_FT",
