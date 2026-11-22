@@ -146,16 +146,20 @@ def stat_rows(payload):
     return output
 
 
-def metric(stats, aliases):
-    for label, value in stats.items():
-        normalized = re.sub(r"[^a-z0-9]+", " ", label.lower()).strip()
-        if any(alias in normalized for alias in aliases):
-            return value
+def metric(stats, aliases, exclude=()):
+    normalized_items = [
+        (re.sub(r"[^a-z0-9]+", " ", label.lower()).strip(), value)
+        for label, value in stats.items()
+    ]
+    for alias in aliases:
+        for label, value in normalized_items:
+            if alias in label and not any(term in label for term in exclude):
+                return value
     return None
 
 
 def extract_pressure(stats):
-    shots = metric(stats, ("total shots", "shots"))
+    shots = metric(stats, ("total shots", "shots"), exclude=("on target", "blocked"))
     corners = metric(stats, ("corners", "corner kicks"))
     shots_on_target = metric(stats, ("shots on target", "on target"))
     return {
@@ -221,7 +225,7 @@ def process_match(match, state, today):
         "baseline": None,
     })
 
-    if minute > LOCK_AFTER:
+    if minute >= LOCK_AFTER:
         record["locked"] = True
         return
     if record.get("locked") or record.get("alert_wyslany"):
