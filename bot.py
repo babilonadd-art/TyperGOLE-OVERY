@@ -6729,7 +6729,7 @@ def send_daily_offsides_list(state):
 
 
 def main():
-    print(f"=== TyperGOLE-OVERY PRE-MATCH OFFSIDES FT START {now_local().isoformat()} ===", flush=True)
+    print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS FT START {now_local().isoformat()} ===", flush=True)
     print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
     state = load_state()
     # One-time correction of the already published Atletico Balboa - CD Inca pick.
@@ -6772,20 +6772,20 @@ def main():
         save_state(state)
     print(f"Historia typów: {len(state['picks'])}; nierozliczone: {sum(1 for p in state['picks'] if not p.get('settled'))}", flush=True)
 
-    # Historical BTTS picks are retained for settlement; new publishing is offsides FT only.
+    # Wznawiamy publikowanie nowych typów BTTS FT; rozliczamy wyłącznie rynek BTTS FT.
     settle_picks(state, allowed_markets={BTTS_FT_MARKET})
     retry_pending_settlement_notifications(state)
 
     try:
-        send_daily_offsides_list(state)
+        send_prematch_superbet_btts_picks(state)
     except Exception as exc:
-        print(f"SPALONE FT scanner error: {type(exc).__name__}: {exc}", flush=True)
+        print(f"BTTS FT scanner error: {type(exc).__name__}: {exc}", flush=True)
     try:
         send_monthly_reports(state)
     except Exception as exc:
         print(f"Monthly report error: {type(exc).__name__}: {exc}", flush=True)
     save_state(state)
-    print("=== TyperGOLE-OVERY PRE-MATCH OFFSIDES FT END ===", flush=True)
+    print("=== TyperGOLE-OVERY PRE-MATCH BTTS FT END ===", flush=True)
 
 
 if __name__ == "__main__":
