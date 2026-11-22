@@ -1,10 +1,6 @@
 name: Verify Superbet live football goal odds
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/superbet-live-goals-probe.yml"
   workflow_dispatch:
 
 permissions:
