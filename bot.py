@@ -6906,13 +6906,13 @@ def main():
         print(f"Nie udało się poprawić podpisu kolejnego dnia BTTS: {type(exc).__name__}: {exc}", flush=True)
     try:
         repair_sent_btts_league_captions(state)
+    except Exception as exc:
+        print(f"Błąd poprawiania nazw lig w już wysłanych typach: {type(exc).__name__}: {exc}", flush=True)
     try:
         if not state.get("btts_batch_league_repair_672_done"):
             repair_sent_btts_batch_league_caption(state)
     except Exception as exc:
         print(f"Błąd poprawiania zbiorczej listy BTTS 672: {type(exc).__name__}: {exc}", flush=True)
-    except Exception as exc:
-        print(f"Błąd poprawiania nazw lig w już wysłanych typach: {type(exc).__name__}: {exc}", flush=True)
     try:
         send_manual_archive_resend(state)
     except Exception as exc:
