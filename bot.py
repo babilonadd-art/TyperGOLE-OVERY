@@ -1190,6 +1190,44 @@ def superbet_event_detail(event_id):
             )
         except requests.RequestException as exc:
             print(f"Superbet offerId fallback {offer_id}: {type(exc).__name__}: {exc}", flush=True)
+
+    # Probe observed subscription routes once per run; only accept actual markets.
+    global _SUPERBET_OFFSIDES_ENDPOINT_PROBED
+    try:
+        probed = _SUPERBET_OFFSIDES_ENDPOINT_PROBED
+    except NameError:
+        _SUPERBET_OFFSIDES_ENDPOINT_PROBED = False
+        probed = False
+    if not has_real_market_rows(detail) and not probed:
+        _SUPERBET_OFFSIDES_ENDPOINT_PROBED = True
+        candidates = (
+            f"{base}/subscription/v2/pl-PL/events/{event_id}",
+            f"{base}/v3/subscription/pl-PL/events/{event_id}",
+            f"{base}/v2/pl-PL/events/{event_id}/markets",
+            f"{base}/v2/pl-PL/events/{event_id}/odds",
+            f"{base}/v3/pl-PL/events/{event_id}",
+        )
+        for url in candidates:
+            try:
+                response = requests.get(url, headers=headers, timeout=12)
+                status = response.status_code
+                try:
+                    payload = response.json() if response.ok else {}
+                except ValueError:
+                    payload = {}
+                rows = payload.get("data", payload) if isinstance(payload, dict) else payload
+                if isinstance(rows, list):
+                    rows = rows[0] if rows and isinstance(rows[0], dict) else {}
+                if isinstance(rows, dict) and has_real_market_rows(rows):
+                    print(f"SPALONE FT API: znaleziono odpowiedź z rynkami pod {url}", flush=True)
+                    return rows
+                print(
+                    f"SPALONE FT API PROBE: {url.rsplit('/', 2)[-2:]}, HTTP {status}, "
+                    f"keys={list(rows.keys())[:12] if isinstance(rows, dict) else type(rows).__name__}",
+                    flush=True,
+                )
+            except requests.RequestException as exc:
+                print(f"SPALONE FT API PROBE: {url.rsplit('/', 2)[-2:]}, {type(exc).__name__}", flush=True)
     return detail
 
 
