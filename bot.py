@@ -4181,11 +4181,14 @@ def kickoff_datetime(match):
 
 
 def extract_superbet_competition_name(event):
-    """Return the actual competition/league name from Superbet event metadata."""
+    """Extract the actual league/tournament label from Superbet's nested event metadata."""
     preferred = (
         "competition_name", "competitionName", "league_name", "leagueName",
         "tournament_name", "tournamentName", "championship_name",
-        "championshipName", "competition", "tournament", "league",
+        "championshipName", "event_group_name", "eventGroupName",
+        "competition_data", "competitionData", "league_data", "leagueData",
+        "tournament_data", "tournamentData", "championship",
+        "competition", "tournament", "league", "event_group", "eventGroup",
     )
     generic = ("name", "title", "display_name", "displayName", "label")
 
@@ -4202,13 +4205,21 @@ def extract_superbet_competition_name(event):
 
     if not isinstance(event, dict):
         return None
-    for key in preferred:
-        name = read_name(event.get(key))
-        if name:
-            return name
 
-    # Competition data can be nested under fixture/category metadata.
-    queue = [event]
+    # First check the event and its fixture directly; these are the most reliable fields.
+    roots = [event]
+    fixture = event.get("fixture")
+    if isinstance(fixture, dict):
+        roots.insert(0, fixture)
+    for root in roots:
+        for key in preferred:
+            name = read_name(root.get(key))
+            if name:
+                return name
+
+    # Then walk nested Superbet metadata (fixture -> tournament/category -> competition).
+    # Do not use a bare country/category name as a league.
+    queue = list(roots)
     seen = set()
     while queue:
         node = queue.pop(0)
@@ -4217,10 +4228,16 @@ def extract_superbet_competition_name(event):
         seen.add(id(node))
         for key in preferred:
             if key in node:
-                name = read_name(node.get(key))
+                value = node.get(key)
+                name = read_name(value)
                 if name:
                     return name
-        for value in node.values():
+                if isinstance(value, dict):
+                    for nested_key in preferred:
+                        nested_name = read_name(value.get(nested_key))
+                        if nested_name:
+                            return nested_name
+        for key, value in node.items():
             if isinstance(value, dict):
                 queue.append(value)
             elif isinstance(value, list):
