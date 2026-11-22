@@ -6494,14 +6494,15 @@ def extract_superbet_match_offsides_over(event_detail):
 def send_daily_offsides_list(state):
     """Publish up to ten verified full-time match offsides Over quotes as one list."""
     current = now_local().astimezone(TZ)
-    target_day = current.date() + timedelta(days=1)
+    # Scan today's remaining fixtures in Europe/Warsaw, never tomorrow.
+    target_day = current.date()
     day = target_day.isoformat()
     sent_days = state.setdefault("offsides_list_sent_days", [])
     if day in sent_days:
         print(f"SPALONE FT: lista na {day} została już wysłana.", flush=True)
         return
 
-    # User requested a dedicated scan for tomorrow (Warsaw calendar date).
+    # User requested today's remaining matches (Warsaw calendar date).
     events_by_id = {}
     for event in superbet_prematch_event_links(target_date=target_day):
         event_id = str(event.get("event_id") or "")
@@ -6523,11 +6524,11 @@ def send_daily_offsides_list(state):
         candidates.append((event, kickoff, home, away, event_id))
 
     candidates.sort(key=lambda item: item[1])
-    print(f"SPALONE FT: {len(candidates)} przyszłych meczów na jutro ({target_day.isoformat()}) do sprawdzenia.", flush=True)
+    print(f"SPALONE FT: {len(candidates)} meczów na dziś ({target_day.isoformat()}) z rozpoczęciem po bieżącej godzinie do sprawdzenia.", flush=True)
     picks = []
     details_checked = 0
 
-    # Tomorrow-only search: inspect the complete fixture list in one run.
+    # Today-only search: inspect the complete remaining fixture list in one run.
     # Requests are parallelized below; never silently skip 600+ matches.
     scan_batch = list(enumerate(candidates))
     next_cursor = 0
@@ -6594,7 +6595,7 @@ def send_daily_offsides_list(state):
 
     if not picks:
         print(
-            f"SPALONE FT: sprawdzono {details_checked}/{len(candidates)} przyszłych meczów; "
+            f"SPALONE FT: sprawdzono {details_checked}/{len(candidates)} pozostałych meczów na dziś; "
             "brak potwierdzonych, otwartych kursów na sumę spalonych. Nie wysyłam fikcyjnych typów.",
             flush=True,
         )
