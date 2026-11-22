@@ -1328,7 +1328,7 @@
   "btts_image_cursor": 0,
   "daily_headers_sent": [],
   "daily_header_messages": {},
-  "btts_daily_limit_reset_at": "2026-11-22T20:23:30.619Z",
+  "btts_daily_limit_reset_at": "2026-11-22T23:56:00+01:00",
   "daily_btts_closers_sent": [],
   "daily_btts_force_close": [],
   "daily_btts_closer_messages": {},
@@ -1337,7 +1337,7 @@
   "manual_archive_caption_repaired_at": null,
   "manual_archive_caption_repaired_message_id": null,
   "manual_pick_number_repairs": [],
-  "btts_daily_limit_reset_reason": "Ręczny reset licznika na prośbę użytkownika; nowy limit 20 BTTS FT dziennie. Historia typów zachowana.",
+  "btts_daily_limit_reset_reason": "manual_reset_before_overnight_btts_scan",
   "bsd_btts_cache": {},
   "offsides_list_sent_days": [
     "2026-11-22"
@@ -1440,5 +1440,6 @@
   "btts_batch_league_repair_671_done": "2026-11-22T13:49:43.118848+01:00",
   "btts_night_scan_target_date": "2026-11-23",
   "btts_night_scan_requested_at": "2026-11-22T20:23:30.619Z",
-  "btts_night_heading_677_done": "2026-11-22T21:26:09.832503+01:00"
+  "btts_night_heading_677_done": "2026-11-22T21:26:09.832503+01:00",
+  "btts_night_pattern_analysis_enabled": true
 }
