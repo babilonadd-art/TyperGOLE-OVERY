@@ -17,12 +17,12 @@ permissions:
 
 concurrency:
   group: typergole-over-live
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   over-live:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
