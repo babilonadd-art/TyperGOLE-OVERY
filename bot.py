@@ -6087,9 +6087,9 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
         if isinstance(league_source, dict):
             league_source = first(league_source, "name", "title", default="")
         league = format_fixture_competition(str(league_source or ""), home, away)
+        # Nie pobieramy historii drużyn do ustalania ligi ani oceny meczu.
+        # Używamy wyłącznie nazwy rozgrywek przekazanej przez Superbet.
         if not league or league.casefold() in {"unknown", "unknown league", "liga nieznana"}:
-            league, _ = resolve_btts_competition(home, away, kickoff, str(league_source or ""))
-        if not league:
             print(f"Superbet BTTS FT: brak potwierdzonej ligi dla {home} - {away}; pomijam.", flush=True)
             continue
         identifier = str(match.get("id") or match_identifier(match) or match.get("_bot_slug") or "")
@@ -6134,21 +6134,17 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
             if quote:
                 print(f"Superbet BTTS FT: kurs {quote.get('odds')} poniżej minimum 1.60 — {item['home']} - {item['away']}.", flush=True)
             continue
-        analysis = btts_recent_form_analysis(
-            item["home"], item["away"], item["kickoff"], item["league"],
-            quote["odds"], None
-        )
-        if not analysis:
-            continue
-        eligible.append({**item, "quote": quote, "analysis": analysis})
+        # Tryb kursowy: bez historii, formy, statystyk ani modelu drużyn.
+        eligible.append({**item, "quote": quote})
 
+    # Najpierw najwcześniejsze mecze; każdy kurs BTTS FT >= 1.60 kwalifikuje się.
     eligible.sort(key=lambda item: (
-        -float(item["analysis"].get("score") or 0),
-        item["kickoff"], item["home"], item["away"],
+        item["kickoff"], -float(item["quote"].get("odds") or 0),
+        item["home"], item["away"],
     ))
     print(
         f"Superbet BTTS FT: terminarz={len(fixtures)}, "
-        f"rynek BTTS FT i analiza potwierdzone={len(eligible)}; "
+        f"rynek BTTS FT z kursem >= 1.60={len(eligible)}; "
         f"źródło kursów=Superbet public feed (bez BSD_API_TOKEN).",
         flush=True,
     )
@@ -6194,7 +6190,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
             "odds_market": quote.get("market"),
             "odds_updated_at": quote.get("updated_at"),
             "bet_url": bet_url or candidate["event"].get("url") or "",
-            "analysis": candidate["analysis"], "settled": False,
+            "analysis": {"method": "market_odds_only"}, "settled": False,
             "delivery_status": "pending", "pick_number": next_number,
             "telegram_batch_message": True,
         }
