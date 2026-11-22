@@ -6113,7 +6113,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         league = format_fixture_competition(str(league_source or ""), home, away)
         # Nie pobieramy historii drużyn do ustalania ligi ani oceny meczu.
         # Używamy wyłącznie nazwy rozgrywek przekazanej przez Superbet.
-        if not league or league.casefold() in {"unknown", "unknown league", "liga nieznana"}:
+        if not league or "unknown" in league.casefold() or "liga nieznana" in league.casefold():
             print(f"Superbet BTTS FT: brak potwierdzonej ligi dla {home} - {away}; pomijam.", flush=True)
             continue
         identifier = str(match.get("id") or match_identifier(match) or match.get("_bot_slug") or "")
@@ -6386,6 +6386,7 @@ def repair_sent_btts_league_captions(state):
         ("aurora fc", "mixco"): "Gwatemalska Liga Narodowa",
         ("colon santa fe (r)", "central cordoba (r)"): "Argentyńska Liga Rezerw — Torneo Proyección",
         ("ceara b", "atletico ce"): "Brazylijski Puchar Fares Lopes",
+        ("albirex niigata (k)", "sanfrecce hiroshima (k)"): "Japońska WE League — kobiety",
     }
     for pick in state.get("picks", []):
         if pick.get("market") != BTTS_FT_MARKET or pick.get("delivery_status") != "sent":
