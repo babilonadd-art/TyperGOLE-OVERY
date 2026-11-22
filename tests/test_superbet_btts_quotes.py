@@ -4,13 +4,14 @@ from bot import extract_superbet_btts_full_time, btts_prematch_odds_gate
 
 
 class SuperbetFullTimeBttsQuoteTests(unittest.TestCase):
-    def test_prematch_gate_accepts_minimum_and_higher_odds(self):
-        self.assertTrue(btts_prematch_odds_gate({"odds": 1.50}))
+    def test_prematch_gate_accepts_only_the_configured_range(self):
+        self.assertTrue(btts_prematch_odds_gate({"odds": 1.55}))
         self.assertTrue(btts_prematch_odds_gate({"odds": 2.40}))
-        self.assertTrue(btts_prematch_odds_gate({"odds": 3.10}))
 
-    def test_prematch_gate_rejects_only_prices_below_minimum(self):
-        self.assertFalse(btts_prematch_odds_gate({"odds": 1.49}))
+    def test_prematch_gate_rejects_prices_outside_the_configured_range(self):
+        self.assertFalse(btts_prematch_odds_gate({"odds": 1.54}))
+        self.assertFalse(btts_prematch_odds_gate({"odds": 2.41}))
+        self.assertFalse(btts_prematch_odds_gate({"odds": 3.10}))
         self.assertFalse(btts_prematch_odds_gate({"odds": None}))
 
     def test_reads_yes_price_from_full_time_btts_group_only(self):

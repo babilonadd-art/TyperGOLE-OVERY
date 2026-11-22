@@ -6094,14 +6094,14 @@ def btts_1x2_risk_gate(one_x_two, metrics):
 
 
 def btts_prematch_odds_gate(btts_quote):
-    """Require standalone FT BTTS YES odds of at least 1.60."""
+    """Require standalone FT BTTS YES odds from 1.55 through 2.40."""
     if not isinstance(btts_quote, dict):
         return False
     try:
         btts_odds = float(btts_quote.get("odds"))
     except (TypeError, ValueError):
         return False
-    return btts_odds >= 1.60
+    return 1.55 <= btts_odds <= 2.40
 
 
 def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only=False):
@@ -6192,7 +6192,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         quote = extract_superbet_btts_full_time(detail)
         if not quote or not btts_prematch_odds_gate(quote):
             if quote:
-                print(f"Superbet BTTS FT: kurs {quote.get('odds')} poniżej minimum 1.60 — {item['home']} - {item['away']}.", flush=True)
+                print(f"Superbet BTTS FT: kurs {quote.get('odds')} poza zakresem 1.55–2.40 — {item['home']} - {item['away']}.", flush=True)
             continue
         one_x_two = extract_superbet_1x2_full_time(detail)
         risk_ok, risk_reason = btts_1x2_market_gate(one_x_two)
@@ -6226,7 +6226,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
     ))
     print(
         f"Superbet BTTS FT: terminarz={len(fixtures)}, "
-        f"rynek BTTS FT z kursem >= 1.60={len(eligible)}; "
+        f"rynek BTTS FT z kursem 1.55–2.40={len(eligible)}; "
         f"źródło kursów=Superbet public feed (bez BSD_API_TOKEN).",
         flush=True,
     )

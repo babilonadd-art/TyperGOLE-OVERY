@@ -6,6 +6,7 @@ on:
     paths:
       - "bot.py"
       - "requirements.txt"
+      - "tests/test_superbet_btts_quotes.py"
       - ".github/workflows/btts-ft.yml"
   workflow_dispatch:
   schedule:
@@ -38,6 +39,8 @@ jobs:
         run: pip install -r requirements.txt
       - name: Compile BTTS bot
         run: python -m py_compile bot.py
+      - name: Test standalone BTTS FT market and odds range
+        run: python -m unittest discover -s tests -p "test_superbet_btts_quotes.py"
       - name: Run BTTS FT scanner
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
