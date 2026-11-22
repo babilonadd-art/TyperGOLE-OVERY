@@ -1,10 +1,6 @@
 name: Superbet public data diagnostic
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/superbet-inspect.yml"
   workflow_dispatch:
 
 permissions:
