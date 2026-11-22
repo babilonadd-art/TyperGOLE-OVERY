@@ -5194,7 +5194,7 @@ def send_prematch_over_15_ht_picks(state):
 MAX_DAILY_BTTS_FT_PICKS = 10
 
 
-def btts_value_gate(model_probability, odds, min_probability=0.55, min_edge=0.025):
+def btts_value_gate(model_probability, odds, min_probability=0.52, min_edge=0.015):
     """Relaxed BTTS value gate: >=55% model probability and >=2.5pp edge."""
     try:
         probability = float(model_probability)
@@ -5747,27 +5747,27 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
     # while retaining minimum evidence from both teams and their home/away venues.
     if min(home_all["played"], away_all["played"]) < 3:
         return reject("za mała próba: potrzeba min. 3 zakończonych meczów na zespół")
-    if min(home_venue["played"], away_venue["played"]) < 2:
+    if min(home_venue["played"], away_venue["played"]) < 1:
         return reject("za mała próba dom/wyjazd: potrzeba min. 2 meczów")
     if min(home_all["last5_played"], away_all["last5_played"]) < 3:
         return reject("potrzeba min. 3 ostatnich meczów na zespół")
-    if min(home_all["btts"], away_all["btts"]) < 0.50:
+    if min(home_all["btts"], away_all["btts"]) < 0.40:
         return reject("BTTS sezonowe poniżej 50% u jednej z drużyn")
-    if min(home_venue["btts"], away_venue["btts"]) < 0.40:
+    if min(home_venue["btts"], away_venue["btts"]) < 0.30:
         return reject("BTTS dom/wyjazd poniżej 40%")
-    if min(home_all["last5"], away_all["last5"]) < 3:
+    if min(home_all["last5"], away_all["last5"]) < 2:
         return reject("mniej niż 3 BTTS w ostatnich maks. 5 meczach jednej z drużyn")
     if min(home_venue["last3_btts_count"], away_venue["last3_btts_count"]) < 1:
         return reject("brak choć jednego BTTS w ostatnich 3 meczach na odpowiednim terenie")
-    if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.60:
+    if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.50:
         return reject("jedna z drużyn strzelała w mniej niż 60% meczów")
-    if min(home_venue["scored_rate"], away_venue["scored_rate"]) < 0.60:
+    if min(home_venue["scored_rate"], away_venue["scored_rate"]) < 0.45:
         return reject("skuteczność strzelania dom/wyjazd poniżej 60%")
-    if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.40:
+    if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.50:
         return reject("drużyna nie zdobywa gola w ponad 40% spotkań")
-    if max(home_all["clean_sheets"], away_all["clean_sheets"]) > 0.40:
+    if max(home_all["clean_sheets"], away_all["clean_sheets"]) > 0.50:
         return reject("rywal zachowuje czyste konto w ponad 40% spotkań")
-    if min(home_all["avg_goals"], away_all["avg_goals"]) < 2.0:
+    if min(home_all["avg_goals"], away_all["avg_goals"]) < 1.60:
         return reject("średnia goli w meczach jednej z drużyn poniżej 2.0")
 
     estimate = btts_probability_estimate(home_all, away_all, home_venue, away_venue)
@@ -5988,14 +5988,14 @@ def btts_1x2_risk_gate(one_x_two, metrics):
 
 
 def btts_prematch_odds_gate(btts_quote):
-    """Require standalone FT BTTS YES odds in the requested 1.60-2.40 range."""
+    """Require standalone FT BTTS YES odds of at least 1.60."""
     if not isinstance(btts_quote, dict):
         return False
     try:
         btts_odds = float(btts_quote.get("odds"))
     except (TypeError, ValueError):
         return False
-    return btts_odds >= 1.50
+    return btts_odds >= 1.60
 
 
 def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
