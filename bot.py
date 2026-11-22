@@ -6082,7 +6082,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
         quote = extract_superbet_btts_full_time(detail)
         if not quote or not btts_prematch_odds_gate(quote):
             if quote:
-                print(f"Superbet BTTS FT: kurs {quote.get('odds')} poniżej minimum 1.50 — {item['home']} - {item['away']}.", flush=True)
+                print(f"Superbet BTTS FT: kurs {quote.get('odds')} poniżej minimum 1.60 — {item['home']} - {item['away']}.", flush=True)
             continue
         analysis = btts_recent_form_analysis(
             item["home"], item["away"], item["kickoff"], item["league"],
