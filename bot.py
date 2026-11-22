@@ -629,6 +629,28 @@ def format_btts_ft_pick_list(picks, day_key):
     return f"{heading}\\n📅 {day_label}\\n\\n" + "\\n\\n".join(entries)
 
 
+def repair_night_btts_telegram_heading(state):
+    """Add the prominent overnight heading to the already delivered night batch."""
+    if state.get("btts_night_heading_677_done"):
+        return
+    message_id = 677
+    picks = [
+        p for p in state.get("picks", [])
+        if p.get("market") == BTTS_FT_MARKET
+        and p.get("delivery_status") == "sent"
+        and str(p.get("telegram_message_id")) == str(message_id)
+    ]
+    if not picks:
+        print("NOCNE TYPY: brak wysłanej paczki do poprawienia.", flush=True)
+        return
+    picks.sort(key=lambda p: int(p.get("pick_number") or 0))
+    message = format_btts_ft_pick_list(picks, picks[0].get("date") or "2026-11-23")
+    telegram_edit_btts_pick(message, message_id)
+    state["btts_night_heading_677_done"] = now_local().isoformat()
+    save_state(state)
+    print(f"DODANO DUŻY NAPIS NOCNE TYPY: message_id={message_id}", flush=True)
+
+
 def btts_ft_sent_picks_on_day(state, day):
     """Return BTTS FT picks delivered after the most recent daily-cap reset."""
     sent = []
@@ -6985,6 +7007,11 @@ def main():
         state["telegram_test_pending"] = False
         save_state(state)
     print(f"Historia typów: {len(state['picks'])}; nierozliczone: {sum(1 for p in state['picks'] if not p.get('settled'))}", flush=True)
+
+    try:
+        repair_night_btts_telegram_heading(state)
+    except Exception as exc:
+        print(f"Nie udało się dodać nagłówka NOCNE TYPY: {type(exc).__name__}: {exc}", flush=True)
 
     # Wznawiamy publikowanie nowych typów BTTS FT; rozliczamy wyłącznie rynek BTTS FT.
     settle_picks(state, allowed_markets={BTTS_FT_MARKET})
