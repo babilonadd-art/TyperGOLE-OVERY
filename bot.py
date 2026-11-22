@@ -59,9 +59,9 @@ def now_local():
     return datetime.now(TZ)
 
 
-# Limit 10 typów BTTS FT na każdy dzień kalendarzowy (Europe/Warsaw).
+# Limit 20 typów BTTS FT na każdy dzień kalendarzowy (Europe/Warsaw).
 # Licznik resetuje się automatycznie po zmianie daty; historia pozostaje zachowana.
-MAX_DAILY_BTTS_FT_PICKS = 10
+MAX_DAILY_BTTS_FT_PICKS = 20
 
 
 def daily_sent_match_count(state, day):
