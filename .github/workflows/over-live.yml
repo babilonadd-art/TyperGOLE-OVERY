@@ -13,7 +13,7 @@ on:
     - cron: "*/5 * * * *"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: typergole-over-live
@@ -44,3 +44,14 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TZ: Europe/Warsaw
         run: python bot.py
+      - name: Save Over Live duplicate guard
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -f data/over_live_state.json ]; then
+            git add data/over_live_state.json
+          fi
+          if ! git diff --cached --quiet; then
+            git commit -m "Persist Over Live sent fixtures"
+            git push
+          fi
