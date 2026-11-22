@@ -607,7 +607,7 @@ def format_btts_ft_pick_message(pick, pick_number):
 
 
 def format_btts_ft_pick_list(picks, day_key):
-    """Format all newly selected BTTS FT tips as one clear Telegram text post."""
+    """Format a BTTS FT list with a prominent overnight heading when appropriate."""
     day_label = datetime.fromisoformat(str(day_key)).strftime("%d.%m.%Y")
     entries = [
         f"{int(pick.get('pick_number') or index)}. {pick.get('home')} – {pick.get('away')}\n"
@@ -616,7 +616,17 @@ def format_btts_ft_pick_list(picks, day_key):
         f"Godzina: {(kickoff_datetime({'kickoff_time': pick.get('kickoff_time')}) or now_local()).strftime('%H:%M')}"
         for index, pick in enumerate(picks, 1)
     ]
-    return f"⚽ BTTS TAK — LISTA TYPÓW\n📅 {day_label}\n\n" + "\n\n".join(entries)
+    night_hours = []
+    for pick in picks:
+        kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")})
+        if kickoff:
+            night_hours.append(kickoff.hour)
+    is_night = bool(night_hours) and all(0 <= hour <= 5 for hour in night_hours)
+    if is_night:
+        heading = "🌙🌙🌙\\n🔥  N O C N E   T Y P Y  🔥\\n🌙🌙🌙"
+    else:
+        heading = "⚽ BTTS TAK — LISTA TYPÓW"
+    return f"{heading}\\n📅 {day_label}\\n\\n" + "\\n\\n".join(entries)
 
 
 def btts_ft_sent_picks_on_day(state, day):
