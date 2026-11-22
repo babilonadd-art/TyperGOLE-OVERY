@@ -21,7 +21,7 @@ concurrency:
 jobs:
   btts-ft:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 4
     steps:
       - name: Checkout main and persistent state
         uses: actions/checkout@v4
@@ -49,7 +49,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if [ -f data/state.json ]; then
-            git add data/state.json
+            git add data/state.json data/openfootball_cache.json
           fi
           if ! git diff --cached --quiet; then
             git commit -m "Persist BTTS FT bot state"
