@@ -655,6 +655,36 @@
       "sent_at": "2026-11-22T13:40:16.051610+01:00",
       "competition": "Portugalska Liga BPI",
       "league_caption_repaired_at": "2026-11-22T13:47:47.690883+01:00"
+    },
+    {
+      "key": "superbet:15845156:BTTS_FT",
+      "id": "superbet:15845156",
+      "slug": "albirex-niigata-k-vs-sanfrecce-hiroshima-k",
+      "home": "Albirex Niigata (K)",
+      "away": "Sanfrecce Hiroshima (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-23",
+      "kickoff_time": "2026-11-23T05:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.95,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/albirex-niigata-k-vs-sanfrecce-hiroshima-k-15845156?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 1,
+      "telegram_batch_message": true,
+      "telegram_message_id": 677,
+      "sent_at": "2026-11-22T21:23:57.711381+01:00"
     }
   ],
   "reports_sent": [],
@@ -1259,6 +1289,36 @@
       "telegram_batch_message": true,
       "telegram_message_id": 672,
       "sent_at": "2026-11-22T13:40:16.051610+01:00"
+    },
+    {
+      "key": "superbet:15845156:BTTS_FT",
+      "id": "superbet:15845156",
+      "slug": "albirex-niigata-k-vs-sanfrecce-hiroshima-k",
+      "home": "Albirex Niigata (K)",
+      "away": "Sanfrecce Hiroshima (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-23",
+      "kickoff_time": "2026-11-23T05:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.95,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/albirex-niigata-k-vs-sanfrecce-hiroshima-k-15845156?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 1,
+      "telegram_batch_message": true,
+      "telegram_message_id": 677,
+      "sent_at": "2026-11-22T21:23:57.711381+01:00"
     }
   ],
   "team_history_cache": {},
