@@ -70,7 +70,7 @@ def daily_sent_match_count(state, day):
     for pick in state.get("picks", []):
         if pick.get("date") != day or pick.get("delivery_status", "sent") != "sent":
             continue
-        if pick.get("market") != OVER_15_HT_MARKET or pick.get("counts_toward_daily_limit") is False:
+        if pick.get("market") != BTTS_FT_MARKET or pick.get("counts_toward_daily_limit") is False:
             continue
         fixture_id = pick.get("id") or pick.get("slug") or pick.get("key")
         if fixture_id:
@@ -6068,8 +6068,8 @@ def btts_prematch_odds_gate(btts_quote):
     return btts_odds >= 1.60
 
 
-def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
-    """Scan today's real Superbet football offer and publish verified standalone BTTS FT prices."""
+def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only=False):
+    """Scan Superbet football offer and publish verified standalone BTTS FT prices."""
     target_day = scan_date
     day_key = target_day.isoformat()
     if day_key in set(state.get("daily_btts_closers_sent", [])):
@@ -6085,6 +6085,9 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
     # Use the existing public, date-scoped Superbet event feed; no BSD token/API required.
     events = superbet_prematch_event_links(target_day)
     fixtures = scheduled_fixtures_today(events, [target_day])
+    if overnight_only:
+        fixtures = [m for m in fixtures if btts_is_overnight_kickoff(kickoff_datetime(m))]
+        print(f"BTTS FT NOC: po filtrze godzin 00:00–05:59 pozostało {len(fixtures)} meczów.", flush=True)
     if not fixtures:
         print(f"Superbet BTTS FT: brak przyszłych meczów na {day_key}.", flush=True)
         return
@@ -6262,15 +6265,15 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
 
 
 def send_prematch_superbet_btts_picks(state):
-    """Scan today's Warsaw-local fixtures and publish only verified Superbet BTTS FT picks."""
+    """Scan the next Warsaw-local calendar day for overnight BTTS FT fixtures only."""
     current = now_local().astimezone(TZ)
-    scan_date = current.date()
+    scan_date = current.date() + timedelta(days=1)
     print(
-        f"BTTS FT: skan Superbet na {scan_date.isoformat()} "
-        f"(od teraz do 23:59 czasu polskiego; limit {MAX_DAILY_BTTS_FT_PICKS} typów).",
+        f"BTTS FT NOC: skan Superbet na noc {scan_date.isoformat()}, "
+        f"starty 00:00–05:59 czasu polskiego; limit {MAX_DAILY_BTTS_FT_PICKS} typów.",
         flush=True,
     )
-    _send_prematch_superbet_btts_picks_for_date(state, scan_date)
+    _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only=True)
 
 
 def send_manual_archive_resend(state):
