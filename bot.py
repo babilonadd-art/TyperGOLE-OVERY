@@ -5228,7 +5228,7 @@ def send_prematch_over_15_ht_picks(state):
 
 
 
-MAX_DAILY_BTTS_FT_PICKS = 10
+MAX_DAILY_BTTS_FT_PICKS = 20
 
 
 def btts_value_gate(model_probability, odds, min_probability=0.52, min_edge=0.015):
