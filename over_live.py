@@ -301,6 +301,8 @@ def run():
             "",
         ])
     send_telegram("\n".join(lines))
+    state["sent"] = list(sent.union(identity for _, _, _, identity in picks))[-500:]
+    save_state(state)
     print(f"OVER LIVE: sent {len(picks)} candidate(s)", flush=True)
 
 
