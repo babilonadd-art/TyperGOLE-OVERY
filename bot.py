@@ -5999,176 +5999,201 @@ def btts_prematch_odds_gate(btts_quote):
 
 
 def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
-    """Scan and send BTTS FT picks using BSD consensus BTTS prices."""
+    """Scan today's real Superbet football offer and publish verified standalone BTTS FT prices."""
     target_day = scan_date
     day_key = target_day.isoformat()
     if day_key in set(state.get("daily_btts_closers_sent", [])):
         print(f"BTTS FT: dzień {day_key} ma już grafikę zamknięcia; nie dokładam nowych typów.", flush=True)
         return
 
-    try:
-        candidates = bsd_btts_candidates(
-            state, now=now_local(), target_date=target_day
-        )
-    except Exception as exc:
-        print(f"BSD: nie udało się pobrać terminarza lub kursów BTTS: {type(exc).__name__}: {exc}", flush=True)
+    sent_today = btts_ft_sent_picks_on_day(state, day_key)
+    remaining = max(0, MAX_DAILY_BTTS_FT_PICKS - len(sent_today))
+    if remaining <= 0:
+        print(f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {day_key}.", flush=True)
         return
-    eligible = []
-    for candidate in candidates:
-        kickoff = candidate["kickoff"]
-        league_source = candidate.get("league") or ""
-        league = ""
-        if league_source and league_source.casefold() not in {"unknown", "unknown league", "liga nieznana"}:
-            normalized = format_fixture_competition(league_source, candidate["home"], candidate["away"])
-            if normalized and normalized.casefold() not in {"unknown", "unknown league", "liga nieznana"}:
-                league = normalized
-        league_source_name = league
-        if not league:
-            league, league_source_name = resolve_btts_competition(
-                candidate["home"], candidate["away"], kickoff, league_source
-            )
-        if not league:
-            print(f"BSD BTTS FT: brak potwierdzonej ligi dla {candidate['home']} - {candidate['away']}; pomijam.", flush=True)
+
+    # Use the existing public, date-scoped Superbet event feed; no BSD token/API required.
+    events = superbet_prematch_event_links(target_day)
+    fixtures = scheduled_fixtures_today(events, [target_day])
+    if not fixtures:
+        print(f"Superbet BTTS FT: brak przyszłych meczów na {day_key}.", flush=True)
+        return
+
+    event_by_id = {
+        str(event.get("event_id")): event for event in events
+        if event.get("event_id") not in (None, "")
+    }
+    shortlist = []
+    for match in fixtures:
+        home, away = teams(match)
+        kickoff = kickoff_datetime(match)
+        event_id = str(match.get("id", "")).removeprefix("superbet:")
+        event = event_by_id.get(event_id)
+        if not event or not kickoff:
             continue
+        league_source = (
+            extract_superbet_competition_name(event)
+            or first(match, "competition_name", "competition", "league_name", default="")
+        )
+        if isinstance(league_source, dict):
+            league_source = first(league_source, "name", "title", default="")
+        league = format_fixture_competition(str(league_source or ""), home, away)
+        if not league or league.casefold() in {"unknown", "unknown league", "liga nieznana"}:
+            league, _ = resolve_btts_competition(home, away, kickoff, str(league_source or ""))
+        if not league:
+            print(f"Superbet BTTS FT: brak potwierdzonej ligi dla {home} - {away}; pomijam.", flush=True)
+            continue
+        identifier = str(match.get("id") or match_identifier(match) or match.get("_bot_slug") or "")
         if same_fixture_pick_exists(
-            state, candidate["id"], candidate["home"], candidate["away"],
-            day_key, BTTS_FT_MARKET, competition=league
+            state, identifier, home, away, day_key, BTTS_FT_MARKET,
+            slug=match.get("_bot_slug"), competition=league,
         ):
             continue
+        shortlist.append({
+            "match": match, "event": event, "event_id": event_id,
+            "id": identifier, "home": home, "away": away,
+            "kickoff": kickoff, "league": league,
+        })
+
+    if not shortlist:
+        print("Superbet BTTS FT: brak nowych spotkań po filtrze ligi i duplikatów.", flush=True)
+        return
+
+    # Fetch actual Superbet event markets in parallel. Only the standalone full-time
+    # BTTS YES selection is accepted; combination and half-time markets are rejected.
+    event_details = {}
+    def fetch_detail(item):
+        return item["event_id"], superbet_event_detail(item["event_id"])
+
+    with ThreadPoolExecutor(max_workers=16) as executor:
+        futures = [executor.submit(fetch_detail, item) for item in shortlist]
+        for future in as_completed(futures):
+            try:
+                event_id, detail = future.result()
+                event_details[str(event_id)] = detail
+            except Exception as exc:
+                print(f"Superbet BTTS FT: błąd pobierania rynku: {type(exc).__name__}: {exc}", flush=True)
+
+    eligible = []
+    for item in shortlist:
+        detail = event_details.get(item["event_id"])
+        if not detail:
+            continue
+        quote = extract_superbet_btts_full_time(detail)
+        if not quote or not btts_prematch_odds_gate(quote):
+            if quote:
+                print(f"Superbet BTTS FT: kurs {quote.get('odds')} poniżej minimum 1.50 — {item['home']} - {item['away']}.", flush=True)
+            continue
         analysis = btts_recent_form_analysis(
-            candidate["home"], candidate["away"], kickoff, league,
-            candidate["quote"]["odds"], None
+            item["home"], item["away"], item["kickoff"], item["league"],
+            quote["odds"], None
         )
         if not analysis:
             continue
-        eligible.append({
-            **candidate, "league": league, "analysis": analysis,
-            "competition_category": fixture_category_signature(
-                candidate["home"], candidate["away"], league
-            )
-        })
+        eligible.append({**item, "quote": quote, "analysis": analysis})
 
     eligible.sort(key=lambda item: (
-        -item["analysis"]["score"], item["kickoff"], item["home"], item["away"]
+        -float(item["analysis"].get("score") or 0),
+        item["kickoff"], item["home"], item["away"],
     ))
-    print(f"BSD BTTS FT: {len(eligible)} kandydatów po analizie; kursy konsensusowe od 1.50 bez górnego limitu.", flush=True)
-
-    sent_today = btts_ft_sent_picks_on_day(state, day_key)
-    for corrected_number, old_pick in enumerate(sent_today, 1):
-        if old_pick.get("telegram_batch_message"):
-            continue
-        target_number = int(old_pick.get("pick_number_override") or corrected_number)
-        if old_pick.get("pick_number") != target_number and old_pick.get("telegram_message_id"):
-            try:
-                telegram_edit_btts_pick(
-                    format_btts_ft_pick_message(old_pick, target_number),
-                    old_pick["telegram_message_id"],
-                )
-                old_pick["pick_number"] = target_number
-                save_state(state)
-            except Exception as exc:
-                print(f"Nie udało się poprawić numeru typu: {type(exc).__name__}: {exc}", flush=True)
+    print(
+        f"Superbet BTTS FT: terminarz={len(fixtures)}, "
+        f"rynek BTTS FT i analiza potwierdzone={len(eligible)}; "
+        f"źródło kursów=Superbet public feed (bez BSD_API_TOKEN).",
+        flush=True,
+    )
 
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     sent_count = len(sent_today)
     next_number = max((int(p.get("pick_number") or 0) for p in sent_today), default=0) + 1
-
     batch_picks = []
     for candidate in eligible:
         if sent_count + len(batch_picks) >= MAX_DAILY_BTTS_FT_PICKS:
-            print(f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {day_key}.", flush=True)
             break
-
-        # Refresh the BSD consensus BTTS price immediately before publication.
+        final_detail = None
         try:
-            final_quote = bsd_fixture_odds(candidate["id"])
+            final_detail = superbet_event_detail(candidate["event_id"])
+            final_quote = extract_superbet_btts_full_time(final_detail)
         except Exception as exc:
-            print(f"Końcowa kontrola kursu BSD nieudana: {type(exc).__name__}: {exc}", flush=True)
+            print(f"Końcowa kontrola Superbet BTTS FT nieudana: {type(exc).__name__}: {exc}", flush=True)
             continue
-
         if (not final_quote or not btts_prematch_odds_gate(final_quote)
                 or abs(float(final_quote["odds"]) - float(candidate["quote"]["odds"])) > 0.005):
-            print(f"BSD: kurs konsensusowy BTTS zmienił się lub rynek zniknął — pomijam {candidate['home']} - {candidate['away']}.", flush=True)
+            print(f"Superbet BTTS FT: kurs zmienił się lub rynek zniknął — pomijam {candidate['home']} - {candidate['away']}.", flush=True)
             continue
         if same_fixture_pick_exists(
             state, candidate["id"], candidate["home"], candidate["away"],
-            day_key, BTTS_FT_MARKET, competition=candidate["league"]
+            day_key, BTTS_FT_MARKET, competition=candidate["league"],
         ):
             continue
 
-        pick_number = next_number
+        quote = final_quote
+        kickoff = candidate["kickoff"]
+        bet_url = superbet_btts_full_time_url(candidate["event"].get("url"), quote)
         pick = {
             "key": f"{candidate['id']}:{BTTS_FT_MARKET}",
-            "id": candidate["id"], "slug": "",
+            "id": candidate["id"], "slug": candidate["match"].get("_bot_slug") or "",
             "home": candidate["home"], "away": candidate["away"],
             "league": candidate["league"],
-            "competition_category": candidate["competition_category"],
-            "date": day_key, "kickoff_time": candidate["kickoff"].isoformat(),
+            "competition_category": fixture_category_signature(
+                candidate["home"], candidate["away"], candidate["league"]
+            ),
+            "date": day_key, "kickoff_time": kickoff.isoformat(),
             "market": BTTS_FT_MARKET, "stake": STAKE,
-            "odds": float(final_quote["odds"]),
-            "odds_source": "BSD consensus (wielu bukmacherów)",
-            "odds_market": final_quote["market"],
-            "odds_updated_at": final_quote.get("updated_at"),
-            "bet_url": candidate.get("url") or "",
+            "odds": float(quote["odds"]), "odds_source": "Superbet",
+            "odds_market": quote.get("market"),
+            "odds_updated_at": quote.get("updated_at"),
+            "bet_url": bet_url or candidate["event"].get("url") or "",
             "analysis": candidate["analysis"], "settled": False,
-            "delivery_status": "pending", "pick_number": pick_number,
+            "delivery_status": "pending", "pick_number": next_number,
+            "telegram_batch_message": True,
         }
-        pick["telegram_batch_message"] = True
         state.setdefault("picks", []).append(pick)
         state.setdefault("duplicate_guard", []).append(pick)
         batch_picks.append(pick)
         next_number += 1
         save_state(state)
 
-    if batch_picks:
-        try:
-            message = format_btts_ft_pick_list(batch_picks, day_key)
-            response = telegram(message)
-            result = response.get("result", {}) if isinstance(response, dict) else {}
-            if isinstance(result, list):
-                result = result[0] if result else {}
-            message_id = result.get("message_id") if isinstance(result, dict) else None
-            sent_at = now_local().isoformat()
-            for pick in batch_picks:
-                pick["telegram_message_id"] = message_id
-                pick["delivery_status"] = "sent"
-                pick["sent_at"] = sent_at
-            save_state(state)
-            sent_count += len(batch_picks)
-            print(
-                f"WYSŁANO JEDNĄ LISTĘ BTTS FT: {len(batch_picks)} typów "
-                f"(numery {batch_picks[0]['pick_number']}–{batch_picks[-1]['pick_number']}); "
-                f"wiadomość Telegram ID={message_id}.",
-                flush=True,
-            )
-        except Exception as exc:
-            for pick in batch_picks:
-                pick["delivery_status"] = "failed"
-                pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
-            save_state(state)
-            print(f"Telegram BTTS FT — nie udało się wysłać zbiorczej listy: {type(exc).__name__}: {exc}", flush=True)
-            return
+    if not batch_picks:
+        print("Superbet BTTS FT: nie znaleziono kursów spełniających filtry; niczego nie wysyłam.", flush=True)
+        return
+
+    try:
+        message = format_btts_ft_pick_list(batch_picks, day_key)
+        response = telegram(message)
+        result = response.get("result", {}) if isinstance(response, dict) else {}
+        if isinstance(result, list):
+            result = result[0] if result else {}
+        message_id = result.get("message_id") if isinstance(result, dict) else None
+        sent_at = now_local().isoformat()
+        for pick in batch_picks:
+            pick["telegram_message_id"] = message_id
+            pick["delivery_status"] = "sent"
+            pick["sent_at"] = sent_at
+        save_state(state)
+        print(
+            f"WYSŁANO JEDNĄ LISTĘ BTTS FT: {len(batch_picks)} typów "
+            f"(Superbet, kursy rzeczywiste); Telegram ID={message_id}.",
+            flush=True,
+        )
+    except Exception as exc:
+        for pick in batch_picks:
+            pick["delivery_status"] = "failed"
+            pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
+        save_state(state)
+        print(f"Telegram BTTS FT — nie udało się wysłać listy: {type(exc).__name__}: {exc}", flush=True)
 
 
 def send_prematch_superbet_btts_picks(state):
-    """Scan the rest of today's fixtures and publish verified BSD consensus prices."""
+    """Scan today's Warsaw-local fixtures and publish only verified Superbet BTTS FT picks."""
     current = now_local().astimezone(TZ)
     scan_date = current.date()
-    scan_dates = (scan_date,)
-    for scan_date in scan_dates:
-        print(
-            f"BTTS FT: skan całego dnia {scan_date.isoformat()} "
-            f"(od teraz do 23:59 czasu polskiego; limit 10 typów).",
-            flush=True,
-        )
-        try:
-            _send_prematch_superbet_btts_picks_for_date(state, scan_date)
-        except Exception as exc:
-            print(
-                f"BTTS FT: błąd skanowania daty {scan_date.isoformat()}: "
-                f"{type(exc).__name__}: {exc}",
-                flush=True,
-            )
+    print(
+        f"BTTS FT: skan Superbet na {scan_date.isoformat()} "
+        f"(od teraz do 23:59 czasu polskiego; limit {MAX_DAILY_BTTS_FT_PICKS} typów).",
+        flush=True,
+    )
+    _send_prematch_superbet_btts_picks_for_date(state, scan_date)
 
 
 def send_manual_archive_resend(state):
