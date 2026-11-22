@@ -1,10 +1,6 @@
 name: Superbet live feed probe
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/superbet-feed-probe.yml"
   workflow_dispatch:
 
 permissions:
