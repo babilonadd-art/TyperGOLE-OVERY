@@ -601,7 +601,7 @@ def format_btts_ft_pick_message(pick, pick_number):
         f"Liga: {league}\\n"
         f"BTTS TAK (FT) | Kurs: {odds:.2f}\\n"
         f"Godzina: {kickoff.strftime('%H:%M')} | {kickoff.strftime('%d.%m.%Y')}\\n"
-        "Źródło kursu: konsensus BSD"
+        "Źródło kursu: Superbet"
     )
     return message
 
@@ -612,8 +612,12 @@ def format_btts_ft_pick_list(picks, day_key):
     entries = [
         f"{int(pick.get('pick_number') or index)}. {pick.get('home')} – {pick.get('away')}\n"
         f"Liga: {pick.get('league')}\n"
-        f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}\n"
-        f"Godzina: {(kickoff_datetime({'kickoff_time': pick.get('kickoff_time')}) or now_local()).strftime('%H:%M')}"
+        f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}"
+        + (
+            f" | Model: {float((pick.get('analysis') or {}).get('metrics', {}).get('model_probability')):.0%}"
+            if (pick.get('analysis') or {}).get('metrics', {}).get('model_probability') is not None else ""
+        )
+        + f"\nGodzina: {(kickoff_datetime({'kickoff_time': pick.get('kickoff_time')}) or now_local()).strftime('%H:%M')}"
         for index, pick in enumerate(picks, 1)
     ]
     night_hours = []
@@ -6195,13 +6199,30 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         if not risk_ok:
             print(f"Superbet BTTS FT: {item['home']} - {item['away']} — {risk_reason}.", flush=True)
             continue
-        # BTTS FT only when the real 1X2 market does not show an extreme mismatch.
-        eligible.append({**item, "quote": quote, "one_x_two": one_x_two})
+        # Breaker-style historical pattern check: recent BTTS recurrence,
+        # season/venue splits, scoring and conceding rates, plus a conservative
+        # probability/value estimate. Odds alone never qualify a fixture.
+        history_analysis = btts_recent_form_analysis(
+            item["home"], item["away"], item["kickoff"],
+            league=item["league"], odds=quote.get("odds"), one_x_two=one_x_two,
+        )
+        if not history_analysis:
+            print(
+                f"BTTS FT: odrzut historyczny {item['home']} - {item['away']} "
+                "(brak wystarczających/powtarzalnych danych BTTS).",
+                flush=True,
+            )
+            continue
+        eligible.append({
+            **item, "quote": quote, "one_x_two": one_x_two,
+            "history_analysis": history_analysis,
+        })
 
-    # Najpierw najwcześniejsze mecze; każdy kurs BTTS FT >= 1.60 kwalifikuje się.
+    # Rankuj najpierw jakość wzorca historycznego, potem przewagę modelu i kurs.
     eligible.sort(key=lambda item: (
-        item["kickoff"], -float(item["quote"].get("odds") or 0),
-        item["home"], item["away"],
+        -float(item["history_analysis"].get("score") or 0),
+        -float(item["history_analysis"].get("metrics", {}).get("value_edge") or 0),
+        item["kickoff"], item["home"], item["away"],
     ))
     print(
         f"Superbet BTTS FT: terminarz={len(fixtures)}, "
@@ -6256,7 +6277,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             "odds_market": quote.get("market"),
             "odds_updated_at": quote.get("updated_at"),
             "bet_url": bet_url or candidate["event"].get("url") or "",
-            "analysis": {"method": "market_odds_only"}, "settled": False,
+            "analysis": candidate["history_analysis"], "settled": False,
             "delivery_status": "pending", "pick_number": next_number,
             "telegram_batch_message": True,
         }
