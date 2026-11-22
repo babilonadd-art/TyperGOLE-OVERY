@@ -4717,6 +4717,27 @@ def extract_superbet_1x2_full_time(event_detail):
 
 
 
+def btts_1x2_market_gate(one_x_two):
+    """Reject BTTS fixtures with a heavily priced underdog; fail closed without 1X2."""
+    if not isinstance(one_x_two, dict):
+        return False, "brak kompletnego, aktywnego rynku 1X2 Superbet"
+    try:
+        home_price = float(one_x_two["home"])
+        away_price = float(one_x_two["away"])
+    except (KeyError, TypeError, ValueError):
+        return False, "nieprawidłowy rynek 1X2 Superbet"
+    if home_price <= 1.0 or away_price <= 1.0:
+        return False, "nieprawidłowe kursy 1X2 Superbet"
+    underdog_price = max(home_price, away_price)
+    underdog_side = "gospodarzy" if home_price > away_price else "gości"
+    if underdog_price >= 6.00:
+        return False, (
+            f"odrzut 1X2: kurs na {underdog_side} {underdog_price:.2f} "
+            ">= 6.00 — zbyt duża dysproporcja; nie typuję BTTS"
+        )
+    return True, ""
+
+
 def extract_superbet_btts_full_time(event_detail):
     """Return one verified active YES quote from the full-match BTTS market only."""
     def norm(value):
@@ -6134,8 +6155,13 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
             if quote:
                 print(f"Superbet BTTS FT: kurs {quote.get('odds')} poniżej minimum 1.60 — {item['home']} - {item['away']}.", flush=True)
             continue
-        # Tryb kursowy: bez historii, formy, statystyk ani modelu drużyn.
-        eligible.append({**item, "quote": quote})
+        one_x_two = extract_superbet_1x2_full_time(detail)
+        risk_ok, risk_reason = btts_1x2_market_gate(one_x_two)
+        if not risk_ok:
+            print(f"Superbet BTTS FT: {item['home']} - {item['away']} — {risk_reason}.", flush=True)
+            continue
+        # BTTS FT only when the real 1X2 market does not show an extreme mismatch.
+        eligible.append({**item, "quote": quote, "one_x_two": one_x_two})
 
     # Najpierw najwcześniejsze mecze; każdy kurs BTTS FT >= 1.60 kwalifikuje się.
     eligible.sort(key=lambda item: (
@@ -6160,12 +6186,17 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
         try:
             final_detail = superbet_event_detail(candidate["event_id"], probe_subscription=False)
             final_quote = extract_superbet_btts_full_time(final_detail)
+            final_1x2 = extract_superbet_1x2_full_time(final_detail)
         except Exception as exc:
             print(f"Końcowa kontrola Superbet BTTS FT nieudana: {type(exc).__name__}: {exc}", flush=True)
             continue
         if (not final_quote or not btts_prematch_odds_gate(final_quote)
                 or abs(float(final_quote["odds"]) - float(candidate["quote"]["odds"])) > 0.005):
             print(f"Superbet BTTS FT: kurs zmienił się lub rynek zniknął — pomijam {candidate['home']} - {candidate['away']}.", flush=True)
+            continue
+        final_risk_ok, final_risk_reason = btts_1x2_market_gate(final_1x2)
+        if not final_risk_ok:
+            print(f"Końcowa kontrola BTTS FT: {candidate['home']} - {candidate['away']} — {final_risk_reason}; pomijam.", flush=True)
             continue
         if same_fixture_pick_exists(
             state, candidate["id"], candidate["home"], candidate["away"],
