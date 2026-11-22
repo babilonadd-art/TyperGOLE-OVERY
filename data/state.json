@@ -1,8 +1,610 @@
 {
-  "picks": [],
+  "picks": [
+    {
+      "key": "superbet:15830213:BTTS_FT",
+      "id": "superbet:15830213",
+      "slug": "elche-u19-vs-kelme-cf-u19",
+      "home": "Elche U19",
+      "away": "Kelme CF U19",
+      "league": "Liga nieznana U19",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U19"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T13:45:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 2.25,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/elche-u19-vs-kelme-cf-u19-15830213?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 1,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829409:BTTS_FT",
+      "id": "superbet:15829409",
+      "slug": "al-jazira-u23-vs-khorfakkan-u23",
+      "home": "AL Jazira U23",
+      "away": "Khorfakkan U23",
+      "league": "Liga nieznana U23",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U23"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T13:45:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.63,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/al-jazira-u23-vs-khorfakkan-u23-15829409?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 2,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829201:BTTS_FT",
+      "id": "superbet:15829201",
+      "slug": "asteras-tripolis-k-vs-paok-saloniki-k",
+      "home": "Asteras Tripolis (K)",
+      "away": "PAOK Saloniki (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T14:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.72,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": "1795331746033951371",
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/asteras-tripolis-k-vs-paok-saloniki-k-15829201?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 3,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15981653:BTTS_FT",
+      "id": "superbet:15981653",
+      "slug": "bangu-rj-u20-vs-madureira-u20",
+      "home": "Bangu RJ U20",
+      "away": "Madureira U20",
+      "league": "Liga nieznana U20",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U20"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T14:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.72,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/bangu-rj-u20-vs-madureira-u20-15981653?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 4,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829628:BTTS_FT",
+      "id": "superbet:15829628",
+      "slug": "ac-milan-u23-vs-tritium",
+      "home": "AC Milan U23",
+      "away": "Tritium",
+      "league": "Liga nieznana U23",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U23"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T14:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.82,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/ac-milan-u23-vs-tritium-15829628?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 5,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829249:BTTS_FT",
+      "id": "superbet:15829249",
+      "slug": "cesena-k-vs-calcio-catania-k",
+      "home": "Cesena (K)",
+      "away": "Calcio Catania (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T14:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.72,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/cesena-k-vs-calcio-catania-k-15829249?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 6,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829552:BTTS_FT",
+      "id": "superbet:15829552",
+      "slug": "valenciennes-u19-vs-versailles-78-u19",
+      "home": "Valenciennes U19",
+      "away": "Versailles 78 U19",
+      "league": "Liga nieznana U19",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U19"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T14:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.68,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/valenciennes-u19-vs-versailles-78-u19-15829552?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 7,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829248:BTTS_FT",
+      "id": "superbet:15829248",
+      "slug": "brescia-k-vs-san-marino-ac-k",
+      "home": "Brescia (K)",
+      "away": "San Marino AC (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T14:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.61,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/brescia-k-vs-san-marino-ac-k-15829248?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 8,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829568:BTTS_FT",
+      "id": "superbet:15829568",
+      "slug": "union-sportive-cap-d-ail-u19-vs-bastia-u19",
+      "home": "Union Sportive Cap D Ail U19",
+      "away": "Bastia U19",
+      "league": "Liga nieznana U19",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U19"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T14:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.6,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": "1795349816756614670",
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/union-sportive-cap-d-ail-u19-vs-bastia-u19-15829568?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 9,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829715:BTTS_FT",
+      "id": "superbet:15829715",
+      "slug": "olympique-lyon-k-vs-strasbourg-k",
+      "home": "Olympique Lyon (K)",
+      "away": "Strasbourg (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T15:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 2.47,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/olympique-lyon-k-vs-strasbourg-k-15829715?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 10,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    }
+  ],
   "reports_sent": [],
   "telegram_test_pending": false,
-  "duplicate_guard": [],
+  "duplicate_guard": [
+    {
+      "key": "superbet:15830213:BTTS_FT",
+      "id": "superbet:15830213",
+      "slug": "elche-u19-vs-kelme-cf-u19",
+      "home": "Elche U19",
+      "away": "Kelme CF U19",
+      "league": "Liga nieznana U19",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U19"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T13:45:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 2.25,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/elche-u19-vs-kelme-cf-u19-15830213?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 1,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829409:BTTS_FT",
+      "id": "superbet:15829409",
+      "slug": "al-jazira-u23-vs-khorfakkan-u23",
+      "home": "AL Jazira U23",
+      "away": "Khorfakkan U23",
+      "league": "Liga nieznana U23",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U23"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T13:45:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.63,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/al-jazira-u23-vs-khorfakkan-u23-15829409?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 2,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829201:BTTS_FT",
+      "id": "superbet:15829201",
+      "slug": "asteras-tripolis-k-vs-paok-saloniki-k",
+      "home": "Asteras Tripolis (K)",
+      "away": "PAOK Saloniki (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T14:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.72,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": "1795331746033951371",
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/asteras-tripolis-k-vs-paok-saloniki-k-15829201?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 3,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15981653:BTTS_FT",
+      "id": "superbet:15981653",
+      "slug": "bangu-rj-u20-vs-madureira-u20",
+      "home": "Bangu RJ U20",
+      "away": "Madureira U20",
+      "league": "Liga nieznana U20",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U20"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T14:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.72,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/bangu-rj-u20-vs-madureira-u20-15981653?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 4,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829628:BTTS_FT",
+      "id": "superbet:15829628",
+      "slug": "ac-milan-u23-vs-tritium",
+      "home": "AC Milan U23",
+      "away": "Tritium",
+      "league": "Liga nieznana U23",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U23"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T14:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.82,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/ac-milan-u23-vs-tritium-15829628?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 5,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829249:BTTS_FT",
+      "id": "superbet:15829249",
+      "slug": "cesena-k-vs-calcio-catania-k",
+      "home": "Cesena (K)",
+      "away": "Calcio Catania (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T14:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.72,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/cesena-k-vs-calcio-catania-k-15829249?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 6,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829552:BTTS_FT",
+      "id": "superbet:15829552",
+      "slug": "valenciennes-u19-vs-versailles-78-u19",
+      "home": "Valenciennes U19",
+      "away": "Versailles 78 U19",
+      "league": "Liga nieznana U19",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U19"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T14:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.68,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/valenciennes-u19-vs-versailles-78-u19-15829552?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 7,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829248:BTTS_FT",
+      "id": "superbet:15829248",
+      "slug": "brescia-k-vs-san-marino-ac-k",
+      "home": "Brescia (K)",
+      "away": "San Marino AC (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T14:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.61,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/brescia-k-vs-san-marino-ac-k-15829248?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 8,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829568:BTTS_FT",
+      "id": "superbet:15829568",
+      "slug": "union-sportive-cap-d-ail-u19-vs-bastia-u19",
+      "home": "Union Sportive Cap D Ail U19",
+      "away": "Bastia U19",
+      "league": "Liga nieznana U19",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U19"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T14:30:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.6,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": "1795349816756614670",
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/union-sportive-cap-d-ail-u19-vs-bastia-u19-15829568?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 9,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15829715:BTTS_FT",
+      "id": "superbet:15829715",
+      "slug": "olympique-lyon-k-vs-strasbourg-k",
+      "home": "Olympique Lyon (K)",
+      "away": "Strasbourg (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T15:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 2.47,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/olympique-lyon-k-vs-strasbourg-k-15829715?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 10,
+      "telegram_batch_message": true,
+      "telegram_message_id": 670,
+      "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    }
+  ],
   "team_history_cache": {},
   "last_manual_archive_resend": null,
   "btts_image_cursor": 0,
