@@ -6976,78 +6976,20 @@ def repair_sent_btts_batch_league_caption_671(state):
 
 
 def main():
-    print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS FT START {now_local().isoformat()} ===", flush=True)
-    print(f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, chat_id={'OK' if CHAT_ID else 'BRAK'}", flush=True)
-    state = load_state()
-    # One-time correction of the already published Atletico Balboa - CD Inca pick.
-    for historical_pick in state.get("picks", []):
-        if historical_pick.get("telegram_result_caption_pending"):
-            corrected_caption = (
-                format_btts_ft_pick_message(
-                    historical_pick, historical_pick.get("pick_number") or 4
-                )
-                + "\n\n🟢 BTTS SPEŁNIONE W I POŁOWIE"
-                + "\n🏁 Wynik w I połowie (HT): 3:1"
-                + "\n⏳ To nie jest wynik końcowy (FT). Mecz nie został jeszcze zakończony."
-            )
-            telegram_edit_btts_pick(
-                corrected_caption, historical_pick.get("telegram_message_id")
-            )
-            historical_pick["telegram_result_caption_pending"] = False
-            historical_pick["telegram_result_caption_edited_at"] = now_local().isoformat()
-            save_state(state)
-            print(
-                f"POPRAWIONO OPIS WYSŁANEGO TYPU: {historical_pick.get('home')} - "
-                f"{historical_pick.get('away')}; message_id={historical_pick.get('telegram_message_id')}",
-                flush=True,
-            )
+    """Run only the Over Live scanner; legacy BTTS/HT routines stay dormant."""
+    print(f"=== TyperGOLE-OVERY OVER LIVE START {now_local().isoformat()} ===", flush=True)
+    print(
+        f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, "
+        f"chat_id={'OK' if CHAT_ID else 'BRAK'}",
+        flush=True,
+    )
     try:
-        repair_manual_archive_caption(state)
+        from over_live import run as run_over_live
+        run_over_live()
     except Exception as exc:
-        print(f"Nie udało się poprawić podpisu kolejnego dnia BTTS: {type(exc).__name__}: {exc}", flush=True)
-    try:
-        repair_sent_btts_league_captions(state)
-    except Exception as exc:
-        print(f"Błąd poprawiania nazw lig w już wysłanych typach: {type(exc).__name__}: {exc}", flush=True)
-    try:
-        if not state.get("btts_batch_league_repair_672_done"):
-            repair_sent_btts_batch_league_caption(state)
-    except Exception as exc:
-        print(f"Błąd poprawiania zbiorczej listy BTTS 672: {type(exc).__name__}: {exc}", flush=True)
-    try:
-        if not state.get("btts_batch_league_repair_671_done"):
-            repair_sent_btts_batch_league_caption_671(state)
-    except Exception as exc:
-        print(f"Błąd poprawiania zbiorczej listy BTTS 671: {type(exc).__name__}: {exc}", flush=True)
-    try:
-        send_manual_archive_resend(state)
-    except Exception as exc:
-        print(f"Nie udało się wysłać archiwalnego testu: {type(exc).__name__}: {exc}", flush=True)
-    if state.get("telegram_test_pending"):
-        telegram("🧪 TEST TELEGRAM — TyperGOLE-OVERY. To nie jest typ.")
-        state["telegram_test_pending"] = False
-        save_state(state)
-    print(f"Historia typów: {len(state['picks'])}; nierozliczone: {sum(1 for p in state['picks'] if not p.get('settled'))}", flush=True)
-
-    try:
-        repair_night_btts_telegram_heading(state)
-    except Exception as exc:
-        print(f"Nie udało się dodać nagłówka NOCNE TYPY: {type(exc).__name__}: {exc}", flush=True)
-
-    # Wznawiamy publikowanie nowych typów BTTS FT; rozliczamy wyłącznie rynek BTTS FT.
-    settle_picks(state, allowed_markets={BTTS_FT_MARKET})
-    retry_pending_settlement_notifications(state)
-
-    try:
-        send_prematch_superbet_btts_picks(state)
-    except Exception as exc:
-        print(f"BTTS FT scanner error: {type(exc).__name__}: {exc}", flush=True)
-    try:
-        send_monthly_reports(state)
-    except Exception as exc:
-        print(f"Monthly report error: {type(exc).__name__}: {exc}", flush=True)
-    save_state(state)
-    print("=== TyperGOLE-OVERY PRE-MATCH BTTS FT END ===", flush=True)
+        print(f"OVER LIVE scanner error: {type(exc).__name__}: {exc}", flush=True)
+        raise
+    print("=== TyperGOLE-OVERY OVER LIVE END ===", flush=True)
 
 
 if __name__ == "__main__":
