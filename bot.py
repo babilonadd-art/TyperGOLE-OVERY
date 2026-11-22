@@ -5448,20 +5448,39 @@ def openfootball_btts_results(force_refresh=False):
     return results
 
 def merge_openfootball_history(base_rows, extra_rows):
-    """Append OpenFootball scores without duplicating Open Matchday matches."""
-    merged = list(base_rows or []); added = 0
+    """Append OpenFootball scores; compare only matches on adjacent dates."""
+    merged = list(base_rows or [])
+    by_day = {}
+    for old in merged:
+        try:
+            day = datetime.fromisoformat(str(old.get("date", ""))[:10]).date()
+        except (TypeError, ValueError):
+            continue
+        by_day.setdefault(day, []).append(old)
+
+    added = 0
     for extra in extra_rows or []:
-        try: extra_day = datetime.fromisoformat(str(extra.get("date", ""))[:10]).date()
-        except ValueError: continue
+        try:
+            extra_day = datetime.fromisoformat(str(extra.get("date", ""))[:10]).date()
+        except (TypeError, ValueError):
+            continue
         duplicate = False
-        for old in merged:
-            try: old_day = datetime.fromisoformat(str(old.get("date", ""))[:10]).date()
-            except ValueError: continue
-            if abs((old_day - extra_day).days) > 1: continue
-            if team_name_similarity(old.get("home"), extra.get("home")) >= 0.88 and team_name_similarity(old.get("away"), extra.get("away")) >= 0.88:
-                duplicate = True; break
-        if not duplicate: merged.append(extra); added += 1
-    if added: print(f"BTTS: OpenFootball dodał {added} wyników do historii.", flush=True)
+        for offset in (-1, 0, 1):
+            for old in by_day.get(extra_day + timedelta(days=offset), ()):
+                if (
+                    team_name_similarity(old.get("home"), extra.get("home")) >= 0.88
+                    and team_name_similarity(old.get("away"), extra.get("away")) >= 0.88
+                ):
+                    duplicate = True
+                    break
+            if duplicate:
+                break
+        if not duplicate:
+            merged.append(extra)
+            by_day.setdefault(extra_day, []).append(extra)
+            added += 1
+    if added:
+        print(f"BTTS: OpenFootball dodał {added} wyników do historii.", flush=True)
     return merged
 
 # StatsBomb Open Data: bezpłatne, publiczne pliki JSON; bez API key.
@@ -5575,17 +5594,31 @@ def statsbomb_offside_history(home, away, kickoff, league, sample_size=5):
         return None
 
 
+_BTTS_ANALYSIS_RESULTS_CACHE = None
+
+
 def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_two=None):
-    """Evaluate prematch BTTS FT using Open Matchday enriched with OpenFootball scores."""
+    """Evaluate prematch BTTS FT using one shared, cached match-history merge."""
+    global _BTTS_ANALYSIS_RESULTS_CACHE
     try:
         data = open_matchday_data()
     except Exception as exc:
         print(f"BTTS: Open Matchday niedostępny: {type(exc).__name__}: {exc}", flush=True)
         data = {"fixtures": [], "results": []}
-    try:
-        data["results"] = merge_openfootball_history(data.get("results", []), openfootball_btts_results())
-    except Exception as exc:
-        print(f"BTTS: OpenFootball niedostępny: {type(exc).__name__}: {exc}", flush=True)
+    if _BTTS_ANALYSIS_RESULTS_CACHE is None:
+        try:
+            _BTTS_ANALYSIS_RESULTS_CACHE = merge_openfootball_history(
+                data.get("results", []), openfootball_btts_results()
+            )
+            print(
+                f"BTTS: wspólna baza analizy gotowa ({len(_BTTS_ANALYSIS_RESULTS_CACHE)} wyników); "
+                "nie będzie scalana ponownie dla kolejnych meczów.",
+                flush=True,
+            )
+        except Exception as exc:
+            print(f"BTTS: OpenFootball niedostępny: {type(exc).__name__}: {exc}", flush=True)
+            _BTTS_ANALYSIS_RESULTS_CACHE = list(data.get("results", []))
+    data = {"fixtures": data.get("fixtures", []), "results": _BTTS_ANALYSIS_RESULTS_CACHE}
 
     def reject(reason):
         print(f"BTTS ANALYSIS REJECT: {home} - {away}: {reason}", flush=True)
