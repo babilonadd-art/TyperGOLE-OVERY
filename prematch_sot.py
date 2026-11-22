@@ -39,7 +39,10 @@ def recent_keeper_rows(results,team,venue):
         conceded=core.as_int(r.get("ft_away" if side=="home" else "ft_home"))
         date=str(r.get("date") or "")
         if sot is None or conceded is None or not date or sot<conceded: continue
-        own_sot=core.as_int(r.get("home_target" if side=="home" else "away_target"))\n        goals_for=core.as_int(r.get("ft_home" if side=="home" else "ft_away"))\n        if own_sot is None or goals_for is None: continue\n        found.append((date,sot-conceded,own_sot,goals_for))
+        own_sot=core.as_int(r.get("home_target" if side=="home" else "away_target"))
+        goals_for=core.as_int(r.get("ft_home" if side=="home" else "ft_away"))
+        if own_sot is None or goals_for is None: continue
+        found.append((date,sot-conceded,own_sot,goals_for))
     found.sort(key=lambda x:x[0],reverse=True)
     return found[:SAMPLE_SIZE]
 
