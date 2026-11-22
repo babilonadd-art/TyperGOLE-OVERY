@@ -16,12 +16,12 @@ permissions:
 
 concurrency:
   group: typergole-btts-ft
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   btts-ft:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 8
     steps:
       - name: Checkout main and persistent state
         uses: actions/checkout@v4
