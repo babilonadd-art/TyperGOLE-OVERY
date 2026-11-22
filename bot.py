@@ -1170,11 +1170,13 @@ def superbet_event_detail(event_id):
                 return True
             if isinstance(rows, dict) and rows:
                 return True
-        odds = value.get("odds")
-        if isinstance(odds, list) and odds:
-            return True
-        if isinstance(odds, dict) and any(isinstance(v, (list, dict)) and v for v in odds.values()):
-            return True
+        # Do not treat the calendar's odds metadata dictionary as a market:
+        # it is commonly present but contains no priced selections.
+        for key in ("oddsResults", "odds_results", "selections", "outcomes"):
+            rows = value.get(key)
+            if isinstance(rows, list) and rows and all(isinstance(row, dict) for row in rows):
+                if any(any(k in row for k in ("price", "oddValue", "oddsValue", "odds")) for row in rows):
+                    return True
         return False
 
     offer_id = detail.get("offerId") or detail.get("offer_id")
@@ -6547,7 +6549,12 @@ def send_daily_offsides_list(state):
                     "; market_keys=" + str(list(sample_market.keys())[:18] if isinstance(sample_market, dict) else []) +
                     "; market_name=" + str(sample_market.get("name") if isinstance(sample_market, dict) else None) +
                     "; odd_keys=" + str(list(sample_odd.keys())[:18] if isinstance(sample_odd, dict) else []) +
-                    "; odd_metadata=" + str(sample_odd.get("metadata") if isinstance(sample_odd, dict) else None)
+                    "; odd_metadata=" + str(sample_odd.get("metadata") if isinstance(sample_odd, dict) else None) +
+                    "; marketCount=" + str(detail.get("marketCount")) +
+                    "; odds_type=" + type(detail.get("odds")).__name__ +
+                    "; odds_sample=" + repr(detail.get("odds"))[:1200] +
+                    "; oddsResults_type=" + type(detail.get("oddsResults")).__name__ +
+                    "; oddsResults_sample=" + repr(detail.get("oddsResults"))[:1600]
                 )
             return candidate, quote, debug, None
         except Exception as exc:
