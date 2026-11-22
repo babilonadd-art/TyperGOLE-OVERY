@@ -9,7 +9,7 @@ on:
       - ".github/workflows/btts-ft.yml"
   workflow_dispatch:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/10 * * * *"
 
 permissions:
   contents: write
