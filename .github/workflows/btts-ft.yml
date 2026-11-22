@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: typergole-btts-ft
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   btts-ft:
