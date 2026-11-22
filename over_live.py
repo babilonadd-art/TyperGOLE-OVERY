@@ -327,7 +327,7 @@ def run():
                 item for item in matches
                 if is_live(item)
                 and item["minute"] is not None
-                and BASELINE_FROM <= int(item["minute"]) <= LOCK_AFTER
+                and BASELINE_FROM <= int(item["minute"]) <= 130
                 and item["home_score"] is not None
                 and item["away_score"] is not None
                 and abs(item["home_score"] - item["away_score"]) <= 1
