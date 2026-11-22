@@ -6359,13 +6359,80 @@ def btts_new_day_scan_gate(state, current=None):
 
 
 
+_SUPERBET_OFFSIDES_MARKET_IDS = None
+
+def superbet_offsides_market_catalog():
+    """Resolve numeric Superbet marketIds to their public market labels."""
+    global _SUPERBET_OFFSIDES_MARKET_IDS
+    if _SUPERBET_OFFSIDES_MARKET_IDS is not None:
+        return _SUPERBET_OFFSIDES_MARKET_IDS
+    _SUPERBET_OFFSIDES_MARKET_IDS = {}
+    base = "https://production-superbet-offer-pl.freetls.fastly.net"
+    headers = {
+        **HEADERS, "Origin": "https://superbet.pl",
+        "Referer": "https://superbet.pl/",
+        "Accept": "application/json, text/plain, */*",
+    }
+    urls = (
+        f"{base}/v2/pl-PL/struct",
+        f"{base}/subscription/v2/pl-PL/structure",
+    )
+    def walk(node):
+        if isinstance(node, list):
+            for item in node:
+                walk(item)
+            return
+        if not isinstance(node, dict):
+            return
+        labels = []
+        for key in ("marketName", "market_name", "name", "label", "title",
+                    "description", "displayName", "marketTitle"):
+            value = node.get(key)
+            if isinstance(value, str) and value.strip():
+                labels.append(value.strip())
+        label = " ".join(labels)
+        normalized = label.lower().replace("ł", "l")
+        if any(term in normalized for term in ("spalone", "offside")):
+            for key in ("marketId", "market_id", "id", "code"):
+                value = node.get(key)
+                if value not in (None, "") and not isinstance(value, (dict, list)):
+                    _SUPERBET_OFFSIDES_MARKET_IDS[str(value)] = label
+            # Some catalogues use the numeric market id as the object's key.
+            for key, value in node.items():
+                if str(key).isdigit():
+                    _SUPERBET_OFFSIDES_MARKET_IDS.setdefault(str(key), label)
+        for key, value in node.items():
+            if isinstance(value, dict):
+                # A keyed catalogue may store market records as { "123": {...} }.
+                if str(key).isdigit():
+                    child_labels = [
+                        str(value.get(k)) for k in ("marketName", "market_name", "name", "label", "title")
+                        if value.get(k) not in (None, "")
+                    ]
+                    child_label = " ".join(child_labels)
+                    if any(term in child_label.lower().replace("ł", "l") for term in ("spalone", "offside")):
+                        _SUPERBET_OFFSIDES_MARKET_IDS[str(key)] = child_label
+                walk(value)
+            elif isinstance(value, list):
+                walk(value)
+    for url in urls:
+        try:
+            response = requests.get(url, headers=headers, timeout=18)
+            response.raise_for_status()
+            walk(response.json())
+        except Exception as exc:
+            print(f"Superbet market catalog {url.rsplit('/', 1)[-1]}: {type(exc).__name__}: {exc}", flush=True)
+    print(f"Superbet market catalog: rozpoznane identyfikatory spalonych: {_SUPERBET_OFFSIDES_MARKET_IDS}", flush=True)
+    return _SUPERBET_OFFSIDES_MARKET_IDS
+
+
 def extract_superbet_match_offsides_over(event_detail):
     """Extract a real open full-match total-offsides Over 2.5 quote."""
     def norm(value):
         value = str(value or "").replace("ł", "l").replace("Ł", "L")
         value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode().lower()
-        value = re.sub(r"(?<=\\d),(?=\\d)", ".", value)
-        return re.sub(r"\\s+", " ", re.sub(r"[^a-z0-9.]+", " ", value)).strip()
+        value = re.sub(r"(?<=\d),(?=\d)", ".", value)
+        return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9.]+", " ", value)).strip()
 
     def valid_price(raw):
         try:
@@ -6384,10 +6451,13 @@ def extract_superbet_match_offsides_over(event_detail):
             if not isinstance(row, dict):
                 continue
             market_name = str(first(row, "marketName", "market_name", "marketGroupName", "market_group_name", default=""))
+            market_id = str(first(row, "marketId", "market_id", default=""))
+            catalog_label = superbet_offsides_market_catalog().get(market_id, "")
+            market_label = catalog_label or market_name
             selection_name = str(first(row, "name", "selectionName", "selection_name", "code", default=""))
             info = str(first(row, "info", "description", "selectionInfo", default=""))
-            market_text = norm(market_name)
-            combined = norm(" ".join((market_name, selection_name, info)))
+            market_text = norm(market_label)
+            combined = norm(" ".join((market_label, market_name, selection_name, info)))
             if not any(token in combined for token in ("spalone", "offsides", "offside")):
                 continue
             # Only the match total: reject team, half, minute and extra-time markets.
@@ -6417,7 +6487,7 @@ def extract_superbet_match_offsides_over(event_detail):
                 "handicap", "specifier", "value", default=None,
             )
             selection_text = norm(" ".join((selection_name, info, str(line_raw or ""))))
-            over_match = re.search(r"\\b(?:over|powyzej|wiecej niz|more than)\\s*(\\d+(?:\\.\\d+)?)\\b", selection_text)
+            over_match = re.search(r"\b(?:over|powyzej|wiecej niz|more than)\s*(\d+(?:\.\d+)?)\b", selection_text)
             line = float(over_match.group(1)) if over_match else None
             if line is None and line_raw not in (None, ""):
                 try:
@@ -6426,7 +6496,7 @@ def extract_superbet_match_offsides_over(event_detail):
                     line = None
             if line is None or abs(line - 2.5) > 0.001:
                 continue
-            if not re.search(r"\\b(?:over|powyzej|wiecej niz|more than)\\b", selection_text):
+            if not re.search(r"\b(?:over|powyzej|wiecej niz|more than)\b", selection_text):
                 continue
             price = valid_price(row.get("price"))
             if price is None:
@@ -6504,14 +6574,14 @@ def extract_superbet_match_offsides_over(event_detail):
         )):
             continue
         selection = norm(row["selection"])
-        match = re.search(r"\\b(?:over|powyzej)\\s*(\\d+(?:\\.\\d+)?)\\b", selection)
+        match = re.search(r"\b(?:over|powyzej)\s*(\d+(?:\.\d+)?)\b", selection)
         line = float(match.group(1)) if match else None
         if line is None and row["line_raw"] not in (None, ""):
             try:
                 line = float(str(row["line_raw"]).replace(",", "."))
             except (TypeError, ValueError):
                 line = None
-        if line is None or abs(line - 2.5) > 0.001 or not re.search(r"\\b(?:over|powyzej)\\b", selection):
+        if line is None or abs(line - 2.5) > 0.001 or not re.search(r"\b(?:over|powyzej)\b", selection):
             continue
         prices = [valid_price(raw) for raw in row["price_values"]]
         if not prices or any(price is None for price in prices) or max(prices) - min(prices) > 0.005:
