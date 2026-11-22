@@ -299,6 +299,306 @@
       "telegram_batch_message": true,
       "telegram_message_id": 670,
       "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15830663:BTTS_FT",
+      "id": "superbet:15830663",
+      "slug": "corinthians-k-vs-rb-bragantino-k",
+      "home": "Corinthians (K)",
+      "away": "RB Bragantino (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T15:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.83,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/corinthians-k-vs-rb-bragantino-k-15830663?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 1,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15829740:BTTS_FT",
+      "id": "superbet:15829740",
+      "slug": "charlton-athletic-k-vs-aston-villa-k",
+      "home": "Charlton Athletic (K)",
+      "away": "Aston Villa (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T15:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.77,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/charlton-athletic-k-vs-aston-villa-k-15829740?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 2,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15829739:BTTS_FT",
+      "id": "superbet:15829739",
+      "slug": "everton-k-vs-brighton-k",
+      "home": "Everton (K)",
+      "away": "Brighton (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T15:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.73,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/everton-k-vs-brighton-k-15829739?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 3,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15829748:BTTS_FT",
+      "id": "superbet:15829748",
+      "slug": "ipswich-k-vs-southampton-k",
+      "home": "Ipswich (K)",
+      "away": "Southampton (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T15:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.68,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/ipswich-k-vs-southampton-k-15829748?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 4,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15829747:BTTS_FT",
+      "id": "superbet:15829747",
+      "slug": "newcastle-k-vs-nottingham-k",
+      "home": "Newcastle (K)",
+      "away": "Nottingham (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T15:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.63,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/newcastle-k-vs-nottingham-k-15829747?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 5,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15997314:BTTS_FT",
+      "id": "superbet:15997314",
+      "slug": "cruzeiro-k-vs-atletico-mg-k",
+      "home": "Cruzeiro (K)",
+      "away": "Atletico MG (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T15:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.6,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": "1795351007866493001",
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/cruzeiro-k-vs-atletico-mg-k-15997314?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 6,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15724669:BTTS_FT",
+      "id": "superbet:15724669",
+      "slug": "valadares-gaia-k-vs-torreense-k",
+      "home": "Valadares Gaia (K)",
+      "away": "Torreense (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T16:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.88,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/valadares-gaia-k-vs-torreense-k-15724669?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 7,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15829855:BTTS_FT",
+      "id": "superbet:15829855",
+      "slug": "guadalajara-u21-vs-cruz-azul-u21",
+      "home": "Guadalajara U21",
+      "away": "Cruz Azul U21",
+      "league": "Liga nieznana U21",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U21"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T16:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.73,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": "1795346332554108352",
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/guadalajara-u21-vs-cruz-azul-u21-15829855?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 8,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15813937:BTTS_FT",
+      "id": "superbet:15813937",
+      "slug": "braga-b-k-vs-rio-tinto-k",
+      "home": "Braga B (K)",
+      "away": "Rio Tinto (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T16:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.67,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/braga-b-k-vs-rio-tinto-k-15813937?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 9,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15829858:BTTS_FT",
+      "id": "superbet:15829858",
+      "slug": "feirense-u19-vs-braga-u19",
+      "home": "Feirense U19",
+      "away": "Braga U19",
+      "league": "Liga nieznana U19",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U19"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T16:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.65,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": "1795331541965659059",
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/feirense-u19-vs-braga-u19-15829858?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 10,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
     }
   ],
   "reports_sent": [],
@@ -603,6 +903,306 @@
       "telegram_batch_message": true,
       "telegram_message_id": 670,
       "sent_at": "2026-11-22T13:25:19.855067+01:00"
+    },
+    {
+      "key": "superbet:15830663:BTTS_FT",
+      "id": "superbet:15830663",
+      "slug": "corinthians-k-vs-rb-bragantino-k",
+      "home": "Corinthians (K)",
+      "away": "RB Bragantino (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T15:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.83,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/corinthians-k-vs-rb-bragantino-k-15830663?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 1,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15829740:BTTS_FT",
+      "id": "superbet:15829740",
+      "slug": "charlton-athletic-k-vs-aston-villa-k",
+      "home": "Charlton Athletic (K)",
+      "away": "Aston Villa (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T15:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.77,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/charlton-athletic-k-vs-aston-villa-k-15829740?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 2,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15829739:BTTS_FT",
+      "id": "superbet:15829739",
+      "slug": "everton-k-vs-brighton-k",
+      "home": "Everton (K)",
+      "away": "Brighton (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T15:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.73,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/everton-k-vs-brighton-k-15829739?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 3,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15829748:BTTS_FT",
+      "id": "superbet:15829748",
+      "slug": "ipswich-k-vs-southampton-k",
+      "home": "Ipswich (K)",
+      "away": "Southampton (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T15:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.68,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/ipswich-k-vs-southampton-k-15829748?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 4,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15829747:BTTS_FT",
+      "id": "superbet:15829747",
+      "slug": "newcastle-k-vs-nottingham-k",
+      "home": "Newcastle (K)",
+      "away": "Nottingham (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T15:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.63,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/newcastle-k-vs-nottingham-k-15829747?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 5,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15997314:BTTS_FT",
+      "id": "superbet:15997314",
+      "slug": "cruzeiro-k-vs-atletico-mg-k",
+      "home": "Cruzeiro (K)",
+      "away": "Atletico MG (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T15:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.6,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": "1795351007866493001",
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/cruzeiro-k-vs-atletico-mg-k-15997314?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 6,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15724669:BTTS_FT",
+      "id": "superbet:15724669",
+      "slug": "valadares-gaia-k-vs-torreense-k",
+      "home": "Valadares Gaia (K)",
+      "away": "Torreense (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T16:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.88,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/valadares-gaia-k-vs-torreense-k-15724669?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 7,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15829855:BTTS_FT",
+      "id": "superbet:15829855",
+      "slug": "guadalajara-u21-vs-cruz-azul-u21",
+      "home": "Guadalajara U21",
+      "away": "Cruz Azul U21",
+      "league": "Liga nieznana U21",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U21"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T16:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.73,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": "1795346332554108352",
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/guadalajara-u21-vs-cruz-azul-u21-15829855?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 8,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15813937:BTTS_FT",
+      "id": "superbet:15813937",
+      "slug": "braga-b-k-vs-rio-tinto-k",
+      "home": "Braga B (K)",
+      "away": "Rio Tinto (K)",
+      "league": "Liga nieznana (K)",
+      "competition_category": {
+        "gender": "WOMEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T16:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.67,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/braga-b-k-vs-rio-tinto-k-15813937?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 9,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
+    },
+    {
+      "key": "superbet:15829858:BTTS_FT",
+      "id": "superbet:15829858",
+      "slug": "feirense-u19-vs-braga-u19",
+      "home": "Feirense U19",
+      "away": "Braga U19",
+      "league": "Liga nieznana U19",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U19"
+      },
+      "date": "2026-11-22",
+      "kickoff_time": "2026-11-22T16:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.65,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": "1795331541965659059",
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/feirense-u19-vs-braga-u19-15829858?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "method": "market_odds_only"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 10,
+      "telegram_batch_message": true,
+      "telegram_message_id": 671,
+      "sent_at": "2026-11-22T13:37:49.405573+01:00"
     }
   ],
   "team_history_cache": {},
