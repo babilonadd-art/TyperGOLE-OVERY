@@ -662,7 +662,7 @@
       "slug": "albirex-niigata-k-vs-sanfrecce-hiroshima-k",
       "home": "Albirex Niigata (K)",
       "away": "Sanfrecce Hiroshima (K)",
-      "league": "Liga nieznana (K)",
+      "league": "Japońska WE League — kobiety",
       "competition_category": {
         "gender": "WOMEN",
         "age_group": "SENIOR"
@@ -670,7 +670,7 @@
       "date": "2026-11-23",
       "kickoff_time": "2026-11-23T05:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.95,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
@@ -684,7 +684,9 @@
       "pick_number": 1,
       "telegram_batch_message": true,
       "telegram_message_id": 677,
-      "sent_at": "2026-11-22T21:23:57.711381+01:00"
+      "sent_at": "2026-11-22T21:23:57.711381+01:00",
+      "competition": "Japońska WE League — kobiety",
+      "league_caption_repair_pending": true
     }
   ],
   "reports_sent": [],
@@ -1304,7 +1306,7 @@
       "date": "2026-11-23",
       "kickoff_time": "2026-11-23T05:00:00+01:00",
       "market": "BTTS_FT",
-      "stake": 10.0,
+      "stake": 10,
       "odds": 1.95,
       "odds_source": "Superbet",
       "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
