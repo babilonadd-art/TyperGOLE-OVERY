@@ -104,7 +104,7 @@ def open_matchday_data(force_refresh=False):
     global _OPEN_MATCHDAY_CACHE
     if _OPEN_MATCHDAY_CACHE is not None and not force_refresh:
         return _OPEN_MATCHDAY_CACHE
-    response = requests.get(OPEN_MATCHDAY_ZIP, headers=HEADERS, timeout=90)
+    response = requests.get(OPEN_MATCHDAY_ZIP, headers=HEADERS, timeout=25)
     response.raise_for_status()
     fixtures, results, league_names = [], [], {}
     with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
@@ -1129,9 +1129,8 @@ def find_superbet_event(home, away, events, womens=None):
 
 
 
-def superbet_event_detail(event_id):
-    """Fetch event data and retry the Superbet offer identifier if the first
-    response contains only fixture metadata and no markets."""
+def superbet_event_detail(event_id, probe_subscription=True):
+    """Fetch event markets; optional legacy subscription probing is disabled for BTTS speed."""
     base = "https://production-superbet-offer-pl.freetls.fastly.net"
     headers = {
         **HEADERS,
@@ -1147,7 +1146,7 @@ def superbet_event_detail(event_id):
             f"{base}/v2/pl-PL/events/{identifier}",
             params={"_": str(datetime.now(timezone.utc).timestamp())},
             headers=headers,
-            timeout=15,
+            timeout=8,
         )
         response.raise_for_status()
         payload = response.json()
@@ -1208,7 +1207,7 @@ def superbet_event_detail(event_id):
     except NameError:
         _SUPERBET_OFFSIDES_ENDPOINT_PROBED = False
         probed = False
-    if not has_real_market_rows(detail) and not probed:
+    if probe_subscription and not has_real_market_rows(detail) and not probed:
         _SUPERBET_OFFSIDES_ENDPOINT_PROBED = True
         candidates = (
             f"{base}/subscription/v2/pl-PL/events/{event_id}",
@@ -5392,7 +5391,7 @@ def openfootball_btts_results(force_refresh=False):
     results, errors = [], []
     for filename in OPENFOOTBALL_FILES:
         try:
-            response = requests.get(f"{OPENFOOTBALL_BASE}/{season}/{filename}", headers=HEADERS, timeout=25)
+            response = requests.get(f"{OPENFOOTBALL_BASE}/{season}/{filename}", headers=HEADERS, timeout=8)
             if response.status_code == 404: continue
             response.raise_for_status()
             payload = response.json()
@@ -6063,9 +6062,10 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
     # BTTS YES selection is accepted; combination and half-time markets are rejected.
     event_details = {}
     def fetch_detail(item):
-        return item["event_id"], superbet_event_detail(item["event_id"])
+        return item["event_id"], superbet_event_detail(item["event_id"], probe_subscription=False)
 
-    with ThreadPoolExecutor(max_workers=16) as executor:
+    print(f"Superbet BTTS FT: sprawdzam rynki dla {len(shortlist)} spotkań równolegle.", flush=True)
+    with ThreadPoolExecutor(max_workers=24) as executor:
         futures = [executor.submit(fetch_detail, item) for item in shortlist]
         for future in as_completed(futures):
             try:
@@ -6112,7 +6112,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date):
             break
         final_detail = None
         try:
-            final_detail = superbet_event_detail(candidate["event_id"])
+            final_detail = superbet_event_detail(candidate["event_id"], probe_subscription=False)
             final_quote = extract_superbet_btts_full_time(final_detail)
         except Exception as exc:
             print(f"Końcowa kontrola Superbet BTTS FT nieudana: {type(exc).__name__}: {exc}", flush=True)
