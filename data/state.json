@@ -1067,13 +1067,17 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "ITA_1_serie-a"
       },
-      "settled": false,
+      "settled": true,
       "delivery_status": "sent",
       "pick_number": 3,
       "telegram_batch_message": true,
       "telegram_format_version": 2,
       "telegram_message_id": 679,
-      "sent_at": "2026-11-23T16:48:07.466626+01:00"
+      "sent_at": "2026-11-23T16:48:07.466626+01:00",
+      "won": false,
+      "settled_score": "3-0",
+      "settled_period": "FT",
+      "settled_at": "2026-11-23T23:31:13.971442+01:00"
     }
   ],
   "reports_sent": [],
