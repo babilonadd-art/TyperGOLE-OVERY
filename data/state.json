@@ -686,7 +686,9 @@
       "telegram_message_id": 677,
       "sent_at": "2026-11-22T21:23:57.711381+01:00",
       "competition": "Japońska WE League — kobiety",
-      "league_caption_repair_pending": true
+      "league_caption_repair_pending": true,
+      "telegram_format_version": 2,
+      "telegram_format_updated_at": "2026-11-23T13:16:07.538677+01:00"
     },
     {
       "key": "superbet:15845224:BTTS_FT",
@@ -838,7 +840,9 @@
       "pick_number": 1,
       "telegram_batch_message": true,
       "telegram_message_id": 678,
-      "sent_at": "2026-11-23T13:11:18.371729+01:00"
+      "sent_at": "2026-11-23T13:11:18.371729+01:00",
+      "telegram_format_version": 2,
+      "telegram_format_updated_at": "2026-11-23T13:16:08.200804+01:00"
     },
     {
       "key": "superbet:15877499:BTTS_FT",
@@ -931,7 +935,9 @@
       "pick_number": 2,
       "telegram_batch_message": true,
       "telegram_message_id": 678,
-      "sent_at": "2026-11-23T13:11:18.371729+01:00"
+      "sent_at": "2026-11-23T13:11:18.371729+01:00",
+      "telegram_format_version": 2,
+      "telegram_format_updated_at": "2026-11-23T13:16:08.200823+01:00"
     }
   ],
   "reports_sent": [],
