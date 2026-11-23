@@ -6146,9 +6146,12 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         )
         if isinstance(league_source, dict):
             league_source = first(league_source, "name", "title", default="")
-        league = format_fixture_competition(str(league_source or ""), home, away)
-        # Nie pobieramy historii drużyn do ustalania ligi ani oceny meczu.
-        # Używamy wyłącznie nazwy rozgrywek przekazanej przez Superbet.
+        # The public Superbet event list often omits its competition label.
+        # Resolve it from the exact Open Matchday fixture or a shared verified
+        # league history; never publish a generic or guessed league name.
+        league, league_source_name = resolve_btts_competition(
+            home, away, kickoff, preferred=league_source
+        )
         if not league or "unknown" in league.casefold() or "liga nieznana" in league.casefold():
             print(f"Superbet BTTS FT: brak potwierdzonej ligi dla {home} - {away}; pomijam.", flush=True)
             continue
