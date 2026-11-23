@@ -6327,6 +6327,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             "analysis": candidate["history_analysis"], "settled": False,
             "delivery_status": "pending", "pick_number": next_number,
             "telegram_batch_message": True,
+            "telegram_format_version": 2,
         }
         state.setdefault("picks", []).append(pick)
         state.setdefault("duplicate_guard", []).append(pick)
