@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import csv
 import difflib
 import io
+import html
 from html.parser import HTMLParser
 import json
 import math
@@ -552,12 +553,14 @@ def telegram_btts_ft(message, image_index=None):
     return telegram(message)
 
 
-def telegram_edit_btts_pick(message, message_id):
+def telegram_edit_btts_pick(message, message_id, parse_mode=None):
     """Edit the original BTTS post when correcting its daily pick number."""
     if not TELEGRAM_TOKEN or not CHAT_ID or not message_id:
         raise RuntimeError("Brak danych do edycji oryginalnego typu BTTS.")
     base = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/"
     common = {"chat_id": CHAT_ID, "message_id": int(message_id)}
+    if parse_mode:
+        common["parse_mode"] = parse_mode
     caption_response = requests.post(
         base + "editMessageCaption",
         json={**common, "caption": message},
@@ -612,9 +615,14 @@ def format_btts_ft_pick_list(picks, day_key):
     for index, pick in enumerate(picks, 1):
         number = int(pick.get("pick_number") or index)
         kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
+        home = html.escape(str(pick.get("home") or "Gospodarze"))
+        away = html.escape(str(pick.get("away") or "Goście"))
+        league = html.escape(str(pick.get("league") or ""))
+        # Telegram text cannot set font colour. Red-circle markers plus bold
+        # team names make both sides stand out clearly in the list.
         line = (
-            f"{number}. {pick.get('home')} – {pick.get('away')}\n"
-            f"Liga: {pick.get('league')}\n"
+            f"{number}. 🔴 <b>{home}</b> – 🔴 <b>{away}</b>\n"
+            f"Liga: {league}\n"
             f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}"
         )
         probability = (pick.get("analysis") or {}).get("metrics", {}).get("model_probability")
@@ -653,6 +661,40 @@ def repair_night_btts_telegram_heading(state):
     state["btts_night_heading_677_done"] = now_local().isoformat()
     save_state(state)
     print(f"DODANO DUŻY NAPIS NOCNE TYPY: message_id={message_id}", flush=True)
+
+
+def repair_today_btts_batch_team_highlight(state):
+    """Reformat already-delivered BTTS batch posts with bold team names and red markers."""
+    today = now_local().date().isoformat()
+    groups = {}
+    for pick in state.get("picks", []):
+        if pick.get("market") != BTTS_FT_MARKET:
+            continue
+        if pick.get("delivery_status") != "sent" or not pick.get("telegram_batch_message"):
+            continue
+        if str(pick.get("date") or "")[:10] != today:
+            continue
+        message_id = pick.get("telegram_message_id")
+        if not message_id:
+            continue
+        if int(pick.get("telegram_format_version") or 1) >= 2:
+            continue
+        groups.setdefault(str(message_id), []).append(pick)
+
+    for message_id, picks in groups.items():
+        picks.sort(key=lambda item: int(item.get("pick_number") or 0))
+        day_key = picks[0].get("date") or today
+        message = format_btts_ft_pick_list(picks, day_key)
+        telegram_edit_btts_pick(message, message_id, parse_mode="HTML")
+        for pick in picks:
+            pick["telegram_format_version"] = 2
+            pick["telegram_format_updated_at"] = now_local().isoformat()
+        save_state(state)
+        print(
+            f"POPRAWIONO WYGLĄD LISTY BTTS: czerwone znaczniki i pogrubione drużyny; "
+            f"typów={len(picks)}, Telegram ID={message_id}.",
+            flush=True,
+        )
 
 
 def btts_ft_sent_picks_on_day(state, day):
@@ -2177,12 +2219,14 @@ def same_fixture_pick_exists(state, identifier, home, away, match_date, market, 
 
 
 
-def telegram(message, reply_to_message_id=None):
+def telegram(message, reply_to_message_id=None, parse_mode=None):
     """Send Telegram messages; a requested reply must never fall back to a new post."""
     if not TELEGRAM_TOKEN or not CHAT_ID:
         raise RuntimeError("Missing GitHub Secrets: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID")
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     payload = {"chat_id": CHAT_ID, "text": message, "disable_web_page_preview": True}
+    if parse_mode:
+        payload["parse_mode"] = parse_mode
     if reply_to_message_id is not None:
         try:
             reply_id = int(reply_to_message_id)
@@ -6296,7 +6340,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
 
     try:
         message = format_btts_ft_pick_list(batch_picks, day_key)
-        response = telegram(message)
+        response = telegram(message, parse_mode="HTML")
         result = response.get("result", {}) if isinstance(response, dict) else {}
         if isinstance(result, list):
             result = result[0] if result else {}
@@ -6991,6 +7035,10 @@ def run_btts_ft():
     if not TELEGRAM_TOKEN or not CHAT_ID:
         raise RuntimeError("Brak TELEGRAM_BOT_TOKEN lub TELEGRAM_CHAT_ID w GitHub Secrets.")
     state = load_state()
+    try:
+        repair_today_btts_batch_team_highlight(state)
+    except Exception as exc:
+        print(f"BTTS FT format repair error: {type(exc).__name__}: {exc}", flush=True)
     try:
         settle_picks(state, allowed_markets={BTTS_FT_MARKET})
     except Exception as exc:
