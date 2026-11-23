@@ -608,29 +608,30 @@ def format_btts_ft_pick_message(pick, pick_number):
 def format_btts_ft_pick_list(picks, day_key):
     """Format a BTTS FT list with a prominent overnight heading when appropriate."""
     day_label = datetime.fromisoformat(str(day_key)).strftime("%d.%m.%Y")
-    entries = [
-        f"{int(pick.get('pick_number') or index)}. {pick.get('home')} – {pick.get('away')}\n"
-        f"Liga: {pick.get('league')}\n"
-        f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}"
-        + (
-            f" | Model: {float((pick.get('analysis') or {}).get('metrics', {}).get('model_probability')):.0%}"
-            if (pick.get('analysis') or {}).get('metrics', {}).get('model_probability') is not None else ""
+    entries = []
+    for index, pick in enumerate(picks, 1):
+        number = int(pick.get("pick_number") or index)
+        kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
+        line = (
+            f"{number}. {pick.get('home')} – {pick.get('away')}\n"
+            f"Liga: {pick.get('league')}\n"
+            f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}"
         )
-        + f"\nGodzina: {(kickoff_datetime({'kickoff_time': pick.get('kickoff_time')}) or now_local()).strftime('%H:%M')}"
-        for index, pick in enumerate(picks, 1)
+        probability = (pick.get("analysis") or {}).get("metrics", {}).get("model_probability")
+        if probability is not None:
+            line += f" | Model: {float(probability):.0%}"
+        line += f"\nGodzina: {kickoff.strftime('%H:%M')}"
+        entries.append(line)
+
+    night_hours = [
+        (kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()).hour
+        for pick in picks
     ]
-    night_hours = []
-    for pick in picks:
-        kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")})
-        if kickoff:
-            night_hours.append(kickoff.hour)
-    is_night = bool(night_hours) and all(0 <= hour <= 5 for hour in night_hours)
-    if is_night:
-        heading = "🌙🌙🌙\\n🔥  N O C N E   T Y P Y  🔥\\n🌙🌙🌙"
+    if night_hours and all(0 <= hour <= 5 for hour in night_hours):
+        heading = "\n".join(("🌙🌙🌙", "🔥  N O C N E   T Y P Y  🔥", "🌙🌙🌙"))
     else:
         heading = "⚽ BTTS TAK — LISTA TYPÓW"
-    return f"{heading}\\n📅 {day_label}\\n\\n" + "\\n\\n".join(entries)
-
+    return "\n".join((heading, f"📅 {day_label}", "", *entries))
 
 def repair_night_btts_telegram_heading(state):
     """Add the prominent overnight heading to the already delivered night batch."""
