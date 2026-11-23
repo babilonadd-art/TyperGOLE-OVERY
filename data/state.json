@@ -687,6 +687,251 @@
       "sent_at": "2026-11-22T21:23:57.711381+01:00",
       "competition": "Japońska WE League — kobiety",
       "league_caption_repair_pending": true
+    },
+    {
+      "key": "superbet:15845224:BTTS_FT",
+      "id": "superbet:15845224",
+      "slug": "torino-fc-u20-vs-bologna-u20",
+      "home": "Torino FC U20",
+      "away": "Bologna U20",
+      "league": "Serie A U20",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U20"
+      },
+      "date": "2026-11-23",
+      "kickoff_time": "2026-11-23T17:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.6,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/torino-fc-u20-vs-bologna-u20-15845224?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.669032872144867,
+        "metrics": {
+          "home_btts": 0.6666666666666666,
+          "away_btts": 0.6666666666666666,
+          "home_venue_btts": 0.8333333333333334,
+          "away_venue_btts": 0.5,
+          "home_btts_played": 12,
+          "away_btts_played": 12,
+          "home_venue_played": 6,
+          "away_venue_played": 6,
+          "home_recent_played": 5,
+          "away_recent_played": 5,
+          "home_recent_btts": 3,
+          "away_recent_btts": 4,
+          "home_last5_clean_sheets": 0,
+          "away_last5_clean_sheets": 1,
+          "home_clean_sheets": 0.08333333333333333,
+          "away_clean_sheets": 0.08333333333333333,
+          "home_failed_to_score": 0.25,
+          "away_failed_to_score": 0.25,
+          "home_avg_goals": 2.75,
+          "away_avg_goals": 2.6666666666666665,
+          "home_scored_rate": 0.75,
+          "away_scored_rate": 0.75,
+          "home_venue_scored_rate": 0.8333333333333334,
+          "away_venue_scored_rate": 0.6666666666666666,
+          "home_venue_goals_for_avg": 1.3333333333333333,
+          "away_venue_goals_for_avg": 1.6666666666666667,
+          "home_last3_venue_btts_count": 3,
+          "away_last3_venue_btts_count": 2,
+          "model_probability": 0.6650298837680608,
+          "raw_model_probability": 0.6586738231620002,
+          "implied_probability": 0.625,
+          "value_edge": 0.040029883768060825,
+          "poisson_probability": 0.5689365988577787,
+          "expected_home_goals": 1.1666666666666665,
+          "expected_away_goals": 1.75,
+          "sample_reliability": 1.0,
+          "home_shots_avg": 10.636363636363637,
+          "away_shots_avg": 13.545454545454545,
+          "home_shots_on_target_avg": 3.5454545454545454,
+          "away_shots_on_target_avg": 4.545454545454546,
+          "home_corners_avg": 3.9166666666666665,
+          "away_corners_avg": 5.25,
+          "shots_sample": 11,
+          "shots_on_target_sample": 11,
+          "corners_sample": 12,
+          "shots_stats_available": true,
+          "shots_total_stats_available": true,
+          "corners_stats_available": true,
+          "league": "Serie A U20",
+          "xg_available": false,
+          "lineups_available": false,
+          "offside_stats": {
+            "source": "StatsBomb Open Data",
+            "competition": "Serie A",
+            "season": "2015/2016",
+            "home": {
+              "matches": 5,
+              "offsides_total": 12,
+              "offsides_avg": 2.4,
+              "last_matches": [
+                {
+                  "date": "2016-05-15",
+                  "offsides": 3
+                },
+                {
+                  "date": "2016-05-08",
+                  "offsides": 3
+                },
+                {
+                  "date": "2016-04-30",
+                  "offsides": 4
+                },
+                {
+                  "date": "2016-04-24",
+                  "offsides": 1
+                },
+                {
+                  "date": "2016-04-20",
+                  "offsides": 1
+                }
+              ]
+            },
+            "away": {
+              "matches": 5,
+              "offsides_total": 8,
+              "offsides_avg": 1.6,
+              "last_matches": [
+                {
+                  "date": "2016-05-15",
+                  "offsides": 1
+                },
+                {
+                  "date": "2016-05-07",
+                  "offsides": 2
+                },
+                {
+                  "date": "2016-05-01",
+                  "offsides": 3
+                },
+                {
+                  "date": "2016-04-24",
+                  "offsides": 2
+                },
+                {
+                  "date": "2016-04-19",
+                  "offsides": 0
+                }
+              ]
+            },
+            "affects_btts_score": false
+          },
+          "offside_stats_available": true
+        },
+        "samples": {
+          "home": 12,
+          "away": 12,
+          "home_venue": 6,
+          "away_venue": 6
+        },
+        "method": "open_matchday_btts_ft_value_v5",
+        "league_folder": "ITA_1_serie-a"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 1,
+      "telegram_batch_message": true,
+      "telegram_message_id": 678,
+      "sent_at": "2026-11-23T13:11:18.371729+01:00"
+    },
+    {
+      "key": "superbet:15877499:BTTS_FT",
+      "id": "superbet:15877499",
+      "slug": "gimnasia-la-plata-vs-newell-s-old-boys",
+      "home": "Gimnasia La Plata",
+      "away": "Newell's Old Boys",
+      "league": "Liga Profesional",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-23",
+      "kickoff_time": "2026-11-23T21:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.92,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/gimnasia-la-plata-vs-newell-s-old-boys-15877499?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.5672952355790725,
+        "metrics": {
+          "home_btts": 0.5588235294117647,
+          "away_btts": 0.53125,
+          "home_venue_btts": 0.5625,
+          "away_venue_btts": 0.5,
+          "home_btts_played": 34,
+          "away_btts_played": 32,
+          "home_venue_played": 16,
+          "away_venue_played": 16,
+          "home_recent_played": 5,
+          "away_recent_played": 5,
+          "home_recent_btts": 4,
+          "away_recent_btts": 3,
+          "home_last5_clean_sheets": 1,
+          "away_last5_clean_sheets": 1,
+          "home_clean_sheets": 0.2647058823529412,
+          "away_clean_sheets": 0.25,
+          "home_failed_to_score": 0.20588235294117646,
+          "away_failed_to_score": 0.34375,
+          "home_avg_goals": 2.5294117647058822,
+          "away_avg_goals": 2.21875,
+          "home_scored_rate": 0.7941176470588235,
+          "away_scored_rate": 0.65625,
+          "home_venue_scored_rate": 0.875,
+          "away_venue_scored_rate": 0.5625,
+          "home_venue_goals_for_avg": 1.5625,
+          "away_venue_goals_for_avg": 0.875,
+          "home_last3_venue_btts_count": 2,
+          "away_last3_venue_btts_count": 1,
+          "model_probability": 0.5630714262840053,
+          "raw_model_probability": 0.5630714262840053,
+          "implied_probability": 0.5208333333333334,
+          "value_edge": 0.042238092950671935,
+          "poisson_probability": 0.4954149007168981,
+          "expected_home_goals": 1.53125,
+          "expected_away_goals": 1.0,
+          "sample_reliability": 1.0,
+          "home_shots_avg": null,
+          "away_shots_avg": null,
+          "home_shots_on_target_avg": null,
+          "away_shots_on_target_avg": null,
+          "home_corners_avg": null,
+          "away_corners_avg": null,
+          "shots_sample": 0,
+          "shots_on_target_sample": 0,
+          "corners_sample": 0,
+          "shots_stats_available": false,
+          "shots_total_stats_available": false,
+          "corners_stats_available": false,
+          "league": "Liga Profesional",
+          "xg_available": false,
+          "lineups_available": false,
+          "offside_stats": null,
+          "offside_stats_available": false
+        },
+        "samples": {
+          "home": 34,
+          "away": 32,
+          "home_venue": 16,
+          "away_venue": 16
+        },
+        "method": "open_matchday_btts_ft_value_v5",
+        "league_folder": "ARG_1_liga-profesional"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 2,
+      "telegram_batch_message": true,
+      "telegram_message_id": 678,
+      "sent_at": "2026-11-23T13:11:18.371729+01:00"
     }
   ],
   "reports_sent": [],
@@ -1321,6 +1566,251 @@
       "telegram_batch_message": true,
       "telegram_message_id": 677,
       "sent_at": "2026-11-22T21:23:57.711381+01:00"
+    },
+    {
+      "key": "superbet:15845224:BTTS_FT",
+      "id": "superbet:15845224",
+      "slug": "torino-fc-u20-vs-bologna-u20",
+      "home": "Torino FC U20",
+      "away": "Bologna U20",
+      "league": "Serie A U20",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "U20"
+      },
+      "date": "2026-11-23",
+      "kickoff_time": "2026-11-23T17:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.6,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/torino-fc-u20-vs-bologna-u20-15845224?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.669032872144867,
+        "metrics": {
+          "home_btts": 0.6666666666666666,
+          "away_btts": 0.6666666666666666,
+          "home_venue_btts": 0.8333333333333334,
+          "away_venue_btts": 0.5,
+          "home_btts_played": 12,
+          "away_btts_played": 12,
+          "home_venue_played": 6,
+          "away_venue_played": 6,
+          "home_recent_played": 5,
+          "away_recent_played": 5,
+          "home_recent_btts": 3,
+          "away_recent_btts": 4,
+          "home_last5_clean_sheets": 0,
+          "away_last5_clean_sheets": 1,
+          "home_clean_sheets": 0.08333333333333333,
+          "away_clean_sheets": 0.08333333333333333,
+          "home_failed_to_score": 0.25,
+          "away_failed_to_score": 0.25,
+          "home_avg_goals": 2.75,
+          "away_avg_goals": 2.6666666666666665,
+          "home_scored_rate": 0.75,
+          "away_scored_rate": 0.75,
+          "home_venue_scored_rate": 0.8333333333333334,
+          "away_venue_scored_rate": 0.6666666666666666,
+          "home_venue_goals_for_avg": 1.3333333333333333,
+          "away_venue_goals_for_avg": 1.6666666666666667,
+          "home_last3_venue_btts_count": 3,
+          "away_last3_venue_btts_count": 2,
+          "model_probability": 0.6650298837680608,
+          "raw_model_probability": 0.6586738231620002,
+          "implied_probability": 0.625,
+          "value_edge": 0.040029883768060825,
+          "poisson_probability": 0.5689365988577787,
+          "expected_home_goals": 1.1666666666666665,
+          "expected_away_goals": 1.75,
+          "sample_reliability": 1.0,
+          "home_shots_avg": 10.636363636363637,
+          "away_shots_avg": 13.545454545454545,
+          "home_shots_on_target_avg": 3.5454545454545454,
+          "away_shots_on_target_avg": 4.545454545454546,
+          "home_corners_avg": 3.9166666666666665,
+          "away_corners_avg": 5.25,
+          "shots_sample": 11,
+          "shots_on_target_sample": 11,
+          "corners_sample": 12,
+          "shots_stats_available": true,
+          "shots_total_stats_available": true,
+          "corners_stats_available": true,
+          "league": "Serie A U20",
+          "xg_available": false,
+          "lineups_available": false,
+          "offside_stats": {
+            "source": "StatsBomb Open Data",
+            "competition": "Serie A",
+            "season": "2015/2016",
+            "home": {
+              "matches": 5,
+              "offsides_total": 12,
+              "offsides_avg": 2.4,
+              "last_matches": [
+                {
+                  "date": "2016-05-15",
+                  "offsides": 3
+                },
+                {
+                  "date": "2016-05-08",
+                  "offsides": 3
+                },
+                {
+                  "date": "2016-04-30",
+                  "offsides": 4
+                },
+                {
+                  "date": "2016-04-24",
+                  "offsides": 1
+                },
+                {
+                  "date": "2016-04-20",
+                  "offsides": 1
+                }
+              ]
+            },
+            "away": {
+              "matches": 5,
+              "offsides_total": 8,
+              "offsides_avg": 1.6,
+              "last_matches": [
+                {
+                  "date": "2016-05-15",
+                  "offsides": 1
+                },
+                {
+                  "date": "2016-05-07",
+                  "offsides": 2
+                },
+                {
+                  "date": "2016-05-01",
+                  "offsides": 3
+                },
+                {
+                  "date": "2016-04-24",
+                  "offsides": 2
+                },
+                {
+                  "date": "2016-04-19",
+                  "offsides": 0
+                }
+              ]
+            },
+            "affects_btts_score": false
+          },
+          "offside_stats_available": true
+        },
+        "samples": {
+          "home": 12,
+          "away": 12,
+          "home_venue": 6,
+          "away_venue": 6
+        },
+        "method": "open_matchday_btts_ft_value_v5",
+        "league_folder": "ITA_1_serie-a"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 1,
+      "telegram_batch_message": true,
+      "telegram_message_id": 678,
+      "sent_at": "2026-11-23T13:11:18.371729+01:00"
+    },
+    {
+      "key": "superbet:15877499:BTTS_FT",
+      "id": "superbet:15877499",
+      "slug": "gimnasia-la-plata-vs-newell-s-old-boys",
+      "home": "Gimnasia La Plata",
+      "away": "Newell's Old Boys",
+      "league": "Liga Profesional",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-23",
+      "kickoff_time": "2026-11-23T21:00:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.92,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/gimnasia-la-plata-vs-newell-s-old-boys-15877499?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.5672952355790725,
+        "metrics": {
+          "home_btts": 0.5588235294117647,
+          "away_btts": 0.53125,
+          "home_venue_btts": 0.5625,
+          "away_venue_btts": 0.5,
+          "home_btts_played": 34,
+          "away_btts_played": 32,
+          "home_venue_played": 16,
+          "away_venue_played": 16,
+          "home_recent_played": 5,
+          "away_recent_played": 5,
+          "home_recent_btts": 4,
+          "away_recent_btts": 3,
+          "home_last5_clean_sheets": 1,
+          "away_last5_clean_sheets": 1,
+          "home_clean_sheets": 0.2647058823529412,
+          "away_clean_sheets": 0.25,
+          "home_failed_to_score": 0.20588235294117646,
+          "away_failed_to_score": 0.34375,
+          "home_avg_goals": 2.5294117647058822,
+          "away_avg_goals": 2.21875,
+          "home_scored_rate": 0.7941176470588235,
+          "away_scored_rate": 0.65625,
+          "home_venue_scored_rate": 0.875,
+          "away_venue_scored_rate": 0.5625,
+          "home_venue_goals_for_avg": 1.5625,
+          "away_venue_goals_for_avg": 0.875,
+          "home_last3_venue_btts_count": 2,
+          "away_last3_venue_btts_count": 1,
+          "model_probability": 0.5630714262840053,
+          "raw_model_probability": 0.5630714262840053,
+          "implied_probability": 0.5208333333333334,
+          "value_edge": 0.042238092950671935,
+          "poisson_probability": 0.4954149007168981,
+          "expected_home_goals": 1.53125,
+          "expected_away_goals": 1.0,
+          "sample_reliability": 1.0,
+          "home_shots_avg": null,
+          "away_shots_avg": null,
+          "home_shots_on_target_avg": null,
+          "away_shots_on_target_avg": null,
+          "home_corners_avg": null,
+          "away_corners_avg": null,
+          "shots_sample": 0,
+          "shots_on_target_sample": 0,
+          "corners_sample": 0,
+          "shots_stats_available": false,
+          "shots_total_stats_available": false,
+          "corners_stats_available": false,
+          "league": "Liga Profesional",
+          "xg_available": false,
+          "lineups_available": false,
+          "offside_stats": null,
+          "offside_stats_available": false
+        },
+        "samples": {
+          "home": 34,
+          "away": 32,
+          "home_venue": 16,
+          "away_venue": 16
+        },
+        "method": "open_matchday_btts_ft_value_v5",
+        "league_folder": "ARG_1_liga-profesional"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 2,
+      "telegram_batch_message": true,
+      "telegram_message_id": 678,
+      "sent_at": "2026-11-23T13:11:18.371729+01:00"
     }
   ],
   "team_history_cache": {},
