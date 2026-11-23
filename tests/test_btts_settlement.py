@@ -45,8 +45,8 @@ class BttsTelegramMessageTests(unittest.TestCase):
              "kickoff_time": "2026-11-12T20:00:00+01:00", "odds": 2.65},
         ]
         message = bot.format_btts_ft_pick_list(picks, "2026-11-12")
-        self.assertIn("1. Home FC – Away FC", message)
-        self.assertIn("2. North FC – South FC", message)
+        self.assertIn("1. 🔴 <b>Home FC</b> – 🔴 <b>Away FC</b>", message)
+        self.assertIn("2. 🔴 <b>North FC</b> – 🔴 <b>South FC</b>", message)
         self.assertIn("Liga: Test League", message)
         self.assertIn("BTTS TAK (FT) | Kurs: 2.65", message)
         self.assertNotIn("\\n", message)
