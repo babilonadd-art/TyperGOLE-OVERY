@@ -1,4 +1,6 @@
 import unittest
+from datetime import datetime
+from unittest.mock import patch
 
 from bot import (
     fixture_category_signature,
@@ -7,6 +9,7 @@ from bot import (
     normalized_team_name,
     same_fixture_pick_exists,
     settlement_fixture_matches_pick,
+    resolve_btts_competition,
 )
 
 
@@ -101,6 +104,30 @@ class FixtureCategorySafetyTests(unittest.TestCase):
             state, "youth-new", "Club A U19", "Club B U19",
             "2026-11-07", "BTTS_FT", competition="National U19 League",
         ))
+
+
+    def test_missing_superbet_league_resolves_from_exact_open_matchday_fixture(self):
+        fixture = {
+            "home": "Arsenal FC", "away": "Borussia Dortmund",
+            "date": "2026-11-24", "time": "20:00",
+            "_league": "UEFA Champions League",
+        }
+        kickoff = datetime.fromisoformat("2026-11-24T20:00:00+01:00")
+        with patch("bot.open_matchday_data", return_value={"fixtures": [fixture], "results": []}):
+            league, source = resolve_btts_competition(
+                "Arsenal", "Borussia Dortmund", kickoff, preferred=""
+            )
+        self.assertEqual(league, "UEFA Champions League")
+        self.assertEqual(source, "Open Matchday — terminarz")
+
+    def test_missing_superbet_league_fails_closed_when_no_verified_match_exists(self):
+        kickoff = datetime.fromisoformat("2026-11-24T20:00:00+01:00")
+        with patch("bot.open_matchday_data", return_value={"fixtures": [], "results": []}):
+            league, source = resolve_btts_competition(
+                "Unknown Home", "Unknown Away", kickoff, preferred=""
+            )
+        self.assertEqual(league, "")
+        self.assertEqual(source, "")
 
     def test_settlement_rejects_same_teams_from_wrong_age_group(self):
         match = {
