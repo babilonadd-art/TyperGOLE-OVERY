@@ -57,10 +57,17 @@ def parse_minute(value):
 
 
 def fotmob_minute(match):
-    status = match.get("status") or {}
+    if not isinstance(match, dict):
+        return None
+    status = match.get("status")
+    if not isinstance(status, dict):
+        status = {}
+    reason = status.get("reason")
+    if not isinstance(reason, dict):
+        reason = {}
     for value in (
         status.get("liveTime"),
-        (status.get("reason") or {}).get("short"),
+        reason.get("short"),
         status.get("short"),
     ):
         minute = parse_minute(value)
@@ -74,9 +81,19 @@ def fotmob_matches():
         "https://www.fotmob.com/api/data/matches",
         {"date": now_local().date().isoformat()},
     )
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"FotMob matches: oczekiwano obiektu JSON, otrzymano {type(payload).__name__}")
+    leagues = payload.get("leagues")
+    if not isinstance(leagues, list):
+        raise RuntimeError("FotMob matches: brak poprawnej listy leagues")
     rows = []
-    for league in payload.get("leagues", []):
-        for match in league.get("matches", []):
+    for league in leagues:
+        if not isinstance(league, dict):
+            continue
+        matches = league.get("matches")
+        if not isinstance(matches, list):
+            continue
+        for match in matches:
             if isinstance(match, dict):
                 match["_league_name"] = league.get("name") or league.get("ccode") or "Liga niepodana"
                 rows.append(match)
@@ -121,9 +138,17 @@ def is_womens_match(match):
     return has_womens_flag(match)
 
 def normalize_match(match):
-    status = match.get("status") or {}
-    home = match.get("home") or {}
-    away = match.get("away") or {}
+    if not isinstance(match, dict):
+        raise ValueError("FotMob match nie jest obiektem")
+    status = match.get("status")
+    home = match.get("home")
+    away = match.get("away")
+    if not isinstance(status, dict):
+        status = {}
+    if not isinstance(home, dict):
+        home = {}
+    if not isinstance(away, dict):
+        away = {}
     return {
         "id": str(match.get("id") or match.get("matchId") or ""),
         "home": home.get("name") or (match.get("homeTeam") or {}).get("name") or "Gospodarze",
@@ -152,7 +177,11 @@ def is_live(match):
 
 def stat_rows(payload):
     """Extract cumulative match totals; never substitute missing stats with zero."""
+    if not isinstance(payload, dict):
+        return {}
     content = payload.get("content") or {}
+    if not isinstance(content, dict):
+        content = {}
     stats = content.get("stats") or payload.get("stats") or {}
     output = {}
 
