@@ -59,9 +59,8 @@ def now_local():
     return datetime.now(TZ)
 
 
-# Limit 20 typów BTTS FT na każdy dzień kalendarzowy (Europe/Warsaw).
-# Licznik resetuje się automatycznie po zmianie daty; historia pozostaje zachowana.
-MAX_DAILY_BTTS_FT_PICKS = 20
+# Maksymalnie 4 nowe typy BTTS FT na dzień (Europe/Warsaw); historia zostaje zachowana.
+MAX_DAILY_BTTS_FT_PICKS = 4
 
 
 def daily_sent_match_count(state, day):
@@ -6318,15 +6317,17 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
 
 
 def send_prematch_superbet_btts_picks(state):
-    """Scan the next Warsaw-local calendar day for overnight BTTS FT fixtures only."""
+    """Scan today's remaining FT BTTS fixtures and the next overnight window."""
     current = now_local().astimezone(TZ)
-    scan_date = current.date() + timedelta(days=1)
+    today = current.date()
+    tomorrow = today + timedelta(days=1)
     print(
-        f"BTTS FT NOC: skan Superbet na noc {scan_date.isoformat()}, "
-        f"starty 00:00–05:59 czasu polskiego; limit {MAX_DAILY_BTTS_FT_PICKS} typów.",
+        f"BTTS FT: skan całego pozostałego dnia {today.isoformat()} oraz nocy "
+        f"{tomorrow.isoformat()} (00:00–05:59); limit {MAX_DAILY_BTTS_FT_PICKS} typów/dzień.",
         flush=True,
     )
-    _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only=True)
+    _send_prematch_superbet_btts_picks_for_date(state, today, overnight_only=False)
+    _send_prematch_superbet_btts_picks_for_date(state, tomorrow, overnight_only=True)
 
 
 def send_manual_archive_resend(state):
@@ -6975,8 +6976,39 @@ def repair_sent_btts_batch_league_caption_671(state):
     print("POPRAWIONO LISTĘ BTTS NA TELEGRAMIE: wszystkie 10 lig; message_id=671", flush=True)
 
 
+def run_btts_ft():
+    """Run the independent pre-match BTTS FT scanner and settlement only."""
+    print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS FT START {now_local().isoformat()} ===", flush=True)
+    print(
+        f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, "
+        f"chat_id={'OK' if CHAT_ID else 'BRAK'}",
+        flush=True,
+    )
+    if not TELEGRAM_TOKEN or not CHAT_ID:
+        raise RuntimeError("Brak TELEGRAM_BOT_TOKEN lub TELEGRAM_CHAT_ID w GitHub Secrets.")
+    state = load_state()
+    try:
+        settle_picks(state, allowed_markets={BTTS_FT_MARKET})
+    except Exception as exc:
+        print(f"BTTS FT settlement error: {type(exc).__name__}: {exc}", flush=True)
+    try:
+        retry_pending_settlement_notifications(state)
+    except Exception as exc:
+        print(f"BTTS FT pending settlement notification error: {type(exc).__name__}: {exc}", flush=True)
+    try:
+        send_prematch_superbet_btts_picks(state)
+    except Exception as exc:
+        print(f"BTTS FT scanner error: {type(exc).__name__}: {exc}", flush=True)
+    try:
+        send_monthly_reports(state)
+    except Exception as exc:
+        print(f"BTTS FT monthly report error: {type(exc).__name__}: {exc}", flush=True)
+    save_state(state)
+    print("=== TyperGOLE-OVERY PRE-MATCH BTTS FT END ===", flush=True)
+
+
 def main():
-    """Run only the Over Live scanner; legacy BTTS/HT routines stay dormant."""
+    """Run only the Over Live scanner; BTTS FT has its own scheduled workflow."""
     print(f"=== TyperGOLE-OVERY OVER LIVE START {now_local().isoformat()} ===", flush=True)
     print(
         f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, "
