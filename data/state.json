@@ -938,6 +938,138 @@
       "sent_at": "2026-11-23T13:11:18.371729+01:00",
       "telegram_format_version": 2,
       "telegram_format_updated_at": "2026-11-23T13:16:08.200823+01:00"
+    },
+    {
+      "key": "superbet:14656244:BTTS_FT",
+      "id": "superbet:14656244",
+      "slug": "monza-vs-fiorentina",
+      "home": "Monza",
+      "away": "Fiorentina",
+      "league": "Serie A",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-23",
+      "kickoff_time": "2026-11-23T20:45:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.58,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/monza-vs-fiorentina-14656244?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.7753526796210586,
+        "metrics": {
+          "home_btts": 0.8181818181818182,
+          "away_btts": 0.8181818181818182,
+          "home_venue_btts": 0.6,
+          "away_venue_btts": 0.8,
+          "home_btts_played": 11,
+          "away_btts_played": 11,
+          "home_venue_played": 5,
+          "away_venue_played": 5,
+          "home_recent_played": 5,
+          "away_recent_played": 5,
+          "home_recent_btts": 3,
+          "away_recent_btts": 5,
+          "home_last5_clean_sheets": 1,
+          "away_last5_clean_sheets": 0,
+          "home_clean_sheets": 0.09090909090909091,
+          "away_clean_sheets": 0.0,
+          "home_failed_to_score": 0.09090909090909091,
+          "away_failed_to_score": 0.18181818181818182,
+          "home_avg_goals": 3.8181818181818183,
+          "away_avg_goals": 3.8181818181818183,
+          "home_scored_rate": 0.9090909090909091,
+          "away_scored_rate": 0.8181818181818182,
+          "home_venue_scored_rate": 0.8,
+          "away_venue_scored_rate": 0.8,
+          "home_venue_goals_for_avg": 1.8,
+          "away_venue_goals_for_avg": 2.0,
+          "home_last3_venue_btts_count": 1,
+          "away_last3_venue_btts_count": 3,
+          "model_probability": 0.7703526796210586,
+          "raw_model_probability": 0.7564890432574222,
+          "implied_probability": 0.6329113924050632,
+          "value_edge": 0.13744128721599536,
+          "poisson_probability": 0.7462905914131173,
+          "expected_home_goals": 2.1,
+          "expected_away_goals": 1.9,
+          "sample_reliability": 1.0,
+          "home_shots_avg": 13.363636363636363,
+          "away_shots_avg": 15.818181818181818,
+          "home_shots_on_target_avg": 5.545454545454546,
+          "away_shots_on_target_avg": 5.090909090909091,
+          "home_corners_avg": 4.090909090909091,
+          "away_corners_avg": 4.909090909090909,
+          "shots_sample": 11,
+          "shots_on_target_sample": 11,
+          "corners_sample": 11,
+          "shots_stats_available": true,
+          "shots_total_stats_available": true,
+          "corners_stats_available": true,
+          "league": "Serie A",
+          "xg_available": false,
+          "lineups_available": false,
+          "offside_stats": {
+            "source": "StatsBomb Open Data",
+            "competition": "Serie A",
+            "season": "2015/2016",
+            "home": {
+              "matches": 0,
+              "offsides_total": 0,
+              "offsides_avg": null,
+              "last_matches": []
+            },
+            "away": {
+              "matches": 5,
+              "offsides_total": 3,
+              "offsides_avg": 0.6,
+              "last_matches": [
+                {
+                  "date": "2016-05-15",
+                  "offsides": 0
+                },
+                {
+                  "date": "2016-05-08",
+                  "offsides": 1
+                },
+                {
+                  "date": "2016-04-30",
+                  "offsides": 0
+                },
+                {
+                  "date": "2016-04-24",
+                  "offsides": 1
+                },
+                {
+                  "date": "2016-04-20",
+                  "offsides": 1
+                }
+              ]
+            },
+            "affects_btts_score": false
+          },
+          "offside_stats_available": true
+        },
+        "samples": {
+          "home": 11,
+          "away": 11,
+          "home_venue": 5,
+          "away_venue": 5
+        },
+        "method": "open_matchday_btts_ft_value_v5",
+        "league_folder": "ITA_1_serie-a"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 3,
+      "telegram_batch_message": true,
+      "telegram_format_version": 2,
+      "telegram_message_id": 679,
+      "sent_at": "2026-11-23T16:48:07.466626+01:00"
     }
   ],
   "reports_sent": [],
@@ -1817,6 +1949,138 @@
       "telegram_batch_message": true,
       "telegram_message_id": 678,
       "sent_at": "2026-11-23T13:11:18.371729+01:00"
+    },
+    {
+      "key": "superbet:14656244:BTTS_FT",
+      "id": "superbet:14656244",
+      "slug": "monza-vs-fiorentina",
+      "home": "Monza",
+      "away": "Fiorentina",
+      "league": "Serie A",
+      "competition_category": {
+        "gender": "MEN",
+        "age_group": "SENIOR"
+      },
+      "date": "2026-11-23",
+      "kickoff_time": "2026-11-23T20:45:00+01:00",
+      "market": "BTTS_FT",
+      "stake": 10.0,
+      "odds": 1.58,
+      "odds_source": "Superbet",
+      "odds_market": "obie druzyny strzela obie druzyny strzela gola w meczu obie druzyny strzela obie druzyny strzela gola w meczu",
+      "odds_updated_at": null,
+      "bet_url": "https://superbet.pl/kursy/pilka-nozna/monza-vs-fiorentina-14656244?t=offer-prematch-102&mdt=o",
+      "analysis": {
+        "score": 0.7753526796210586,
+        "metrics": {
+          "home_btts": 0.8181818181818182,
+          "away_btts": 0.8181818181818182,
+          "home_venue_btts": 0.6,
+          "away_venue_btts": 0.8,
+          "home_btts_played": 11,
+          "away_btts_played": 11,
+          "home_venue_played": 5,
+          "away_venue_played": 5,
+          "home_recent_played": 5,
+          "away_recent_played": 5,
+          "home_recent_btts": 3,
+          "away_recent_btts": 5,
+          "home_last5_clean_sheets": 1,
+          "away_last5_clean_sheets": 0,
+          "home_clean_sheets": 0.09090909090909091,
+          "away_clean_sheets": 0.0,
+          "home_failed_to_score": 0.09090909090909091,
+          "away_failed_to_score": 0.18181818181818182,
+          "home_avg_goals": 3.8181818181818183,
+          "away_avg_goals": 3.8181818181818183,
+          "home_scored_rate": 0.9090909090909091,
+          "away_scored_rate": 0.8181818181818182,
+          "home_venue_scored_rate": 0.8,
+          "away_venue_scored_rate": 0.8,
+          "home_venue_goals_for_avg": 1.8,
+          "away_venue_goals_for_avg": 2.0,
+          "home_last3_venue_btts_count": 1,
+          "away_last3_venue_btts_count": 3,
+          "model_probability": 0.7703526796210586,
+          "raw_model_probability": 0.7564890432574222,
+          "implied_probability": 0.6329113924050632,
+          "value_edge": 0.13744128721599536,
+          "poisson_probability": 0.7462905914131173,
+          "expected_home_goals": 2.1,
+          "expected_away_goals": 1.9,
+          "sample_reliability": 1.0,
+          "home_shots_avg": 13.363636363636363,
+          "away_shots_avg": 15.818181818181818,
+          "home_shots_on_target_avg": 5.545454545454546,
+          "away_shots_on_target_avg": 5.090909090909091,
+          "home_corners_avg": 4.090909090909091,
+          "away_corners_avg": 4.909090909090909,
+          "shots_sample": 11,
+          "shots_on_target_sample": 11,
+          "corners_sample": 11,
+          "shots_stats_available": true,
+          "shots_total_stats_available": true,
+          "corners_stats_available": true,
+          "league": "Serie A",
+          "xg_available": false,
+          "lineups_available": false,
+          "offside_stats": {
+            "source": "StatsBomb Open Data",
+            "competition": "Serie A",
+            "season": "2015/2016",
+            "home": {
+              "matches": 0,
+              "offsides_total": 0,
+              "offsides_avg": null,
+              "last_matches": []
+            },
+            "away": {
+              "matches": 5,
+              "offsides_total": 3,
+              "offsides_avg": 0.6,
+              "last_matches": [
+                {
+                  "date": "2016-05-15",
+                  "offsides": 0
+                },
+                {
+                  "date": "2016-05-08",
+                  "offsides": 1
+                },
+                {
+                  "date": "2016-04-30",
+                  "offsides": 0
+                },
+                {
+                  "date": "2016-04-24",
+                  "offsides": 1
+                },
+                {
+                  "date": "2016-04-20",
+                  "offsides": 1
+                }
+              ]
+            },
+            "affects_btts_score": false
+          },
+          "offside_stats_available": true
+        },
+        "samples": {
+          "home": 11,
+          "away": 11,
+          "home_venue": 5,
+          "away_venue": 5
+        },
+        "method": "open_matchday_btts_ft_value_v5",
+        "league_folder": "ITA_1_serie-a"
+      },
+      "settled": false,
+      "delivery_status": "sent",
+      "pick_number": 3,
+      "telegram_batch_message": true,
+      "telegram_format_version": 2,
+      "telegram_message_id": 679,
+      "sent_at": "2026-11-23T16:48:07.466626+01:00"
     }
   ],
   "team_history_cache": {},
