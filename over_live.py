@@ -83,6 +83,43 @@ def fotmob_matches():
     return rows
 
 
+WOMENS_MARKERS = (
+    "women", "woman", "women's", "womens", "female", "ladies",
+    "feminino", "feminina", "feminine", "frauen", "damen",
+    "damallsvenskan", "liga f", "nwsl", "wsl", "feminin",
+)
+
+
+def is_womens_match(match):
+    """Reject women's competitions using league/team labels and FotMob flags."""
+    league = str(match.get("_league_name") or "")
+    home = match.get("home") or match.get("homeTeam") or {}
+    away = match.get("away") or match.get("awayTeam") or {}
+    searchable = " ".join((
+        league,
+        str(home.get("name") or ""),
+        str(away.get("name") or ""),
+    )).lower()
+    if any(marker in searchable for marker in WOMENS_MARKERS):
+        return True
+
+    # Some feed entries expose competition/team gender as explicit metadata.
+    def has_womens_flag(node):
+        if isinstance(node, dict):
+            for key, value in node.items():
+                key_norm = re.sub(r"[^a-z]", "", str(key).lower())
+                if key_norm in {"iswomen", "iswomens", "isfemale", "womencompetition"} and value is True:
+                    return True
+                if key_norm in {"gender", "sex"} and str(value).strip().lower() in {"female", "women", "woman"}:
+                    return True
+                if isinstance(value, (dict, list)) and has_womens_flag(value):
+                    return True
+        elif isinstance(node, list):
+            return any(has_womens_flag(item) for item in node)
+        return False
+
+    return has_womens_flag(match)
+
 def normalize_match(match):
     status = match.get("status") or {}
     home = match.get("home") or {}
@@ -322,7 +359,9 @@ def run():
         cycle_started = time.monotonic()
         try:
             raw_matches = fotmob_matches()
-            matches = [normalize_match(item) for item in raw_matches]
+            excluded_womens = sum(1 for item in raw_matches if is_womens_match(item))
+            matches = [normalize_match(item) for item in raw_matches if not is_womens_match(item)]
+            print(f"Women's matches excluded: {excluded_womens}", flush=True)
             live = [
                 item for item in matches
                 if is_live(item)
