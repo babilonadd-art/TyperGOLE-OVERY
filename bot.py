@@ -6421,9 +6421,7 @@ def send_prematch_superbet_btts_picks(state):
     current = now_local().astimezone(TZ)
     today = current.date()
     tomorrow = today + timedelta(days=1)
-    if current.hour < 10 or (current.hour == 10 and current.minute < 30):
-        print("BTTS FT: dzienny ranking wystartuje o 10:30 czasu Europe/Warsaw.", flush=True)
-        return
+    # Dzienny skan może publikować typy od północy czasu Europe/Warsaw.
     print(
         f"BTTS FT: skan całego pozostałego dnia {today.isoformat()} oraz nocy "
         f"{tomorrow.isoformat()} (00:00–05:59); limit {MAX_DAILY_BTTS_FT_PICKS} typów/dzień.",
