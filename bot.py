@@ -5872,6 +5872,8 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
             "goals_against_avg": sum(item["goals_against"] for item in selected) / len(selected),
             "last5": sum(item["btts"] for item in last5),
             "last5_played": len(last5),
+            "last5_scored": sum(item["goals_for"] > 0 for item in last5),
+            "last5_conceded": sum(item["goals_against"] > 0 for item in last5),
             "btts_count": sum(item["btts"] for item in selected),
             "last5_clean_sheets": sum(item["clean_sheet"] for item in last5),
             "last3_btts_count": sum(item["btts"] for item in last3),
@@ -5892,33 +5894,12 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
     if min(home_all["played"], away_all["played"]) == 0:
         return reject("brak historii jednej z drużyn — bez typowania na podstawie samego kursu")
 
-    # Przywrócone mocniejsze wymagania sprzed ostatniego poluzowania.
-    # Relaxed discovery profile: allow smaller samples and more varied BTTS form,
-    # while retaining minimum evidence from both teams and their home/away venues.
-    if min(home_all["played"], away_all["played"]) < 3:
-        return reject("za mała próba: potrzeba min. 3 zakończonych meczów na zespół")
-    if min(home_venue["played"], away_venue["played"]) < 1:
-        return reject("za mała próba dom/wyjazd: potrzeba min. 2 meczów")
-    if min(home_all["last5_played"], away_all["last5_played"]) < 3:
-        return reject("potrzeba min. 3 ostatnich meczów na zespół")
-    if min(home_all["btts"], away_all["btts"]) < 0.40:
-        return reject("BTTS sezonowe poniżej 50% u jednej z drużyn")
-    if min(home_venue["btts"], away_venue["btts"]) < 0.30:
-        return reject("BTTS dom/wyjazd poniżej 40%")
-    if min(home_all["last5"], away_all["last5"]) < 2:
-        return reject("mniej niż 3 BTTS w ostatnich maks. 5 meczach jednej z drużyn")
-    if min(home_venue["last3_btts_count"], away_venue["last3_btts_count"]) < 1:
-        return reject("brak choć jednego BTTS w ostatnich 3 meczach na odpowiednim terenie")
-    if min(home_all["scored_rate"], away_all["scored_rate"]) < 0.50:
-        return reject("jedna z drużyn strzelała w mniej niż 60% meczów")
-    if min(home_venue["scored_rate"], away_venue["scored_rate"]) < 0.45:
-        return reject("skuteczność strzelania dom/wyjazd poniżej 60%")
-    if max(home_all["failed_to_score"], away_all["failed_to_score"]) > 0.50:
-        return reject("drużyna nie zdobywa gola w ponad 40% spotkań")
-    if max(home_all["clean_sheets"], away_all["clean_sheets"]) > 0.50:
-        return reject("rywal zachowuje czyste konto w ponad 40% spotkań")
-    if min(home_all["avg_goals"], away_all["avg_goals"]) < 1.60:
-        return reject("średnia goli w meczach jednej z drużyn poniżej 2.0")
+    # Twardy warunek próby: min. 4 mecze gospodarza u siebie i gościa na wyjeździe.
+    if home_venue["played"] < 4 or away_venue["played"] < 4:
+        return reject(
+            f"za mała próba dom/wyjazd: gospodarz {home_venue['played']}/4, "
+            f"gość {away_venue['played']}/4"
+        )
 
     estimate = btts_probability_estimate(home_all, away_all, home_venue, away_venue)
     probability = estimate["probability"]
@@ -5928,11 +5909,56 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
         return reject("brak prawidłowego kursu BTTS")
     implied_probability = 1.0 / price if price > 1.0 else 1.0
     edge = probability - implied_probability
-    if not btts_value_gate(probability, price):
-        return reject(
-            f"brak przewagi modelu: model={probability:.1%}, "
-            f"kurs={price:.2f}, implied={implied_probability:.1%}, edge={edge:.1%}"
-        )
+    # Punktacja 100 + maksymalnie 5 pkt bonusu H2H.
+    recent_btts = int(home_venue["last5"]) + int(away_venue["last5"])
+    form_points = min(35.0, 3.5 * recent_btts)
+    attack_defence_events = (
+        int(home_venue["last5_scored"]) + int(home_venue["last5_conceded"])
+        + int(away_venue["last5_scored"]) + int(away_venue["last5_conceded"])
+    )
+    attack_defence_points = min(25.0, 1.25 * attack_defence_events)
+    favourite_price = None
+    try:
+        if isinstance(one_x_two, dict):
+            favourite_price = min(float(one_x_two["home"]), float(one_x_two["away"]))
+            if favourite_price <= 1.0:
+                favourite_price = None
+    except (KeyError, TypeError, ValueError):
+        favourite_price = None
+    if favourite_price is None:
+        balance_points = 0.0
+    elif favourite_price >= 1.75:
+        balance_points = 15.0
+    elif favourite_price >= 1.55:
+        balance_points = 8.0
+    else:
+        balance_points = 0.0
+    stat_matches = home_venue["last5_played"] + away_venue["last5_played"]
+    stat_btts_rate = recent_btts / stat_matches if stat_matches else 0.0
+    value_edge = stat_btts_rate - implied_probability
+    value_points = 15.0 if value_edge >= 0.10 else 0.0
+    # Nie ma w bocie potwierdzonego feedu absencji — brak danych = 0 pkt.
+    injury_points = 0.0
+    goalkeeper_bonus = 0.0
+    h2h_rows = []
+    for row in team_rows:
+        if not valid_result(row):
+            continue
+        if (
+            (matches_team(row, home, "home") and matches_team(row, away, "away"))
+            or (matches_team(row, home, "away") and matches_team(row, away, "home"))
+        ):
+            h2h_rows.append(row)
+    h2h_rows.sort(key=lambda row: str(row.get("date") or ""), reverse=True)
+    last_h2h = h2h_rows[:3]
+    h2h_btts = sum(
+        as_int(row.get("ft_home")) > 0 and as_int(row.get("ft_away")) > 0
+        for row in last_h2h
+    )
+    h2h_points = 5.0 if len(last_h2h) >= 3 and h2h_btts >= 2 else 0.0
+    base_points = min(100.0, form_points + attack_defence_points
+                      + balance_points + value_points + injury_points)
+    total_points = min(105.0, base_points + h2h_points + goalkeeper_bonus)
 
     league_name = str(league or "").strip()
     if not league_name:
@@ -5995,11 +6021,23 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
     offside_data = statsbomb_offside_history(home, away, kickoff, league)
     metrics["offside_stats"] = offside_data
     metrics["offside_stats_available"] = bool(offside_data)
-    risk_ok, risk_reason = btts_1x2_risk_gate(one_x_two, metrics)
-    if not risk_ok:
-        return reject(risk_reason)
-
-    score = min(1.0, probability + max(0.0, min(0.05, edge)) * 0.10)
+    metrics.update({
+        "score_points": round(total_points, 1),
+        "base_points": round(base_points, 1),
+        "form_points": round(form_points, 1),
+        "attack_defence_points": round(attack_defence_points, 1),
+        "balance_points": round(balance_points, 1),
+        "value_points": round(value_points, 1),
+        "injury_points": round(injury_points, 1),
+        "h2h_points": round(h2h_points, 1),
+        "h2h_recent_count": len(last_h2h),
+        "h2h_btts_count": h2h_btts,
+        "favourite_1x2_odds": favourite_price,
+        "stat_btts_rate": stat_btts_rate,
+        "stat_value_edge": value_edge,
+        "injury_data_available": False,
+    })
+    score = total_points / 105.0
     return {
         "score": score,
         "metrics": metrics,
@@ -6138,14 +6176,14 @@ def btts_1x2_risk_gate(one_x_two, metrics):
 
 
 def btts_prematch_odds_gate(btts_quote):
-    """Require standalone FT BTTS YES odds from 1.55 through 2.40."""
+    """Require standalone FT BTTS YES odds from 1.48 through 2.15."""
     if not isinstance(btts_quote, dict):
         return False
     try:
         btts_odds = float(btts_quote.get("odds"))
     except (TypeError, ValueError):
         return False
-    return 1.55 <= btts_odds <= 2.40
+    return 1.48 <= btts_odds <= 2.15
 
 
 def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only=False):
@@ -6239,16 +6277,11 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         quote = extract_superbet_btts_full_time(detail)
         if not quote or not btts_prematch_odds_gate(quote):
             if quote:
-                print(f"Superbet BTTS FT: kurs {quote.get('odds')} poza zakresem 1.55–2.40 — {item['home']} - {item['away']}.", flush=True)
+                print(f"Superbet BTTS FT: kurs {quote.get('odds')} poza zakresem 1.48–2.15 — {item['home']} - {item['away']}.", flush=True)
             continue
         one_x_two = extract_superbet_1x2_full_time(detail)
-        risk_ok, risk_reason = btts_1x2_market_gate(one_x_two)
-        if not risk_ok:
-            print(f"Superbet BTTS FT: {item['home']} - {item['away']} — {risk_reason}.", flush=True)
-            continue
-        # Breaker-style historical pattern check: recent BTTS recurrence,
-        # season/venue splits, scoring and conceding rates, plus a conservative
-        # probability/value estimate. Odds alone never qualify a fixture.
+        # Kurs 1X2 jest kryterium punktowym, a nie twardym filtrem.
+        # Brak danych 1X2 oznacza 0 punktów w tym kryterium.
         history_analysis = btts_recent_form_analysis(
             item["home"], item["away"], item["kickoff"],
             league=item["league"], odds=quote.get("odds"), one_x_two=one_x_two,
@@ -6265,15 +6298,31 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             "history_analysis": history_analysis,
         })
 
-    # Rankuj najpierw jakość wzorca historycznego, potem przewagę modelu i kurs.
-    eligible.sort(key=lambda item: (
-        -float(item["history_analysis"].get("score") or 0),
-        -float(item["history_analysis"].get("metrics", {}).get("value_edge") or 0),
+    # Ranking dnia: wynik punktowy 0–105.
+    ranked_candidates = sorted(eligible, key=lambda item: (
+        -float(item["history_analysis"].get("metrics", {}).get("score_points") or 0),
+        -float(item["history_analysis"].get("metrics", {}).get("stat_value_edge") or 0),
         item["kickoff"], item["home"], item["away"],
     ))
+    strong = [x for x in ranked_candidates if float(x["history_analysis"]["metrics"].get("score_points") or 0) >= 60]
+    if len(strong) >= 4:
+        eligible = strong[:4]
+        print("BTTS FT: tryb normalny — TOP 4 z wynikiem co najmniej 60/105.", flush=True)
+    else:
+        eligible = [x for x in ranked_candidates if float(x["history_analysis"]["metrics"].get("score_points") or 0) >= 52][:2]
+        for candidate in eligible:
+            candidate["risk_tier"] = (
+                "MAIN" if float(candidate["history_analysis"]["metrics"].get("score_points") or 0) >= 60
+                else "LOW_DAY"
+            )
+        print(
+            f"BTTS FT: elastyczny próg — {len(eligible)} mecze w trybie słabszego dnia "
+            "(minimum 52/105); bez wciskania drugiego dubla.",
+            flush=True,
+        )
     print(
         f"Superbet BTTS FT: terminarz={len(fixtures)}, "
-        f"rynek BTTS FT z kursem 1.55–2.40={len(eligible)}; "
+        f"rynek BTTS FT z kursem 1.48–2.15={len(eligible)}; "
         f"źródło kursów=Superbet public feed (bez BSD_API_TOKEN).",
         flush=True,
     )
@@ -6296,10 +6345,6 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         if (not final_quote or not btts_prematch_odds_gate(final_quote)
                 or abs(float(final_quote["odds"]) - float(candidate["quote"]["odds"])) > 0.005):
             print(f"Superbet BTTS FT: kurs zmienił się lub rynek zniknął — pomijam {candidate['home']} - {candidate['away']}.", flush=True)
-            continue
-        final_risk_ok, final_risk_reason = btts_1x2_market_gate(final_1x2)
-        if not final_risk_ok:
-            print(f"Końcowa kontrola BTTS FT: {candidate['home']} - {candidate['away']} — {final_risk_reason}; pomijam.", flush=True)
             continue
         if same_fixture_pick_exists(
             state, candidate["id"], candidate["home"], candidate["away"],
