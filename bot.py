@@ -630,7 +630,7 @@ def format_btts_ft_pick_list(picks, day_key):
             line += f" | Model: {float(probability):.0%}"
         points = (pick.get("analysis") or {}).get("metrics", {}).get("score_points")
         if points is not None:
-            line += f" | Ocena: {float(points):.1f}/105 pkt"
+            line += f" | Ocena: {float(points):.1f}/100 pkt"
         if pick.get("risk_tier") == "LOW_DAY":
             line += "\n⚠️ TRYB SŁABSZEGO DNIA — niższa pewność"
         line += f"\nGodzina: {kickoff.strftime('%H:%M')}"
@@ -5914,14 +5914,14 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
         return reject("brak prawidłowego kursu BTTS")
     implied_probability = 1.0 / price if price > 1.0 else 1.0
     edge = probability - implied_probability
-    # Punktacja 100 + maksymalnie 5 pkt bonusu H2H.
+    # Punktacja dokładnie 100 pkt łącznie z H2H.
     recent_btts = int(home_venue["last5"]) + int(away_venue["last5"])
     form_points = min(35.0, 3.5 * recent_btts)
     attack_defence_events = (
         int(home_venue["last5_scored"]) + int(home_venue["last5_conceded"])
         + int(away_venue["last5_scored"]) + int(away_venue["last5_conceded"])
     )
-    attack_defence_points = min(25.0, 1.25 * attack_defence_events)
+    attack_defence_points = min(20.0, 1.0 * attack_defence_events)
     favourite_price = None
     try:
         if isinstance(one_x_two, dict):
@@ -5942,7 +5942,9 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
     stat_btts_rate = recent_btts / stat_matches if stat_matches else 0.0
     value_edge = stat_btts_rate - implied_probability
     value_points = 15.0 if value_edge >= 0.10 else 0.0
-    # Nie ma w bocie potwierdzonego feedu absencji — brak danych = 0 pkt.
+    # Brak potwierdzonego feedu absencji: brak danych = 0 pkt (nie zakładamy zdrowego składu).
+    # Gdy feed zostanie podłączony: brak kluczowych absencji +10, brak kluczowego
+    # strzelca -10; brak podstawowego bramkarza +5, łączny bonus maks. 10 pkt.
     injury_points = 0.0
     goalkeeper_bonus = 0.0
     h2h_rows = []
@@ -5961,9 +5963,9 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
         for row in last_h2h
     )
     h2h_points = 5.0 if len(last_h2h) >= 3 and h2h_btts >= 2 else 0.0
-    base_points = min(100.0, form_points + attack_defence_points
-                      + balance_points + value_points + injury_points)
-    total_points = min(105.0, base_points + h2h_points + goalkeeper_bonus)
+    base_points = min(95.0, form_points + attack_defence_points
+                      + balance_points + value_points + injury_points + goalkeeper_bonus)
+    total_points = min(100.0, base_points + h2h_points)
 
     league_name = str(league or "").strip()
     if not league_name:
@@ -6042,7 +6044,7 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
         "stat_value_edge": value_edge,
         "injury_data_available": False,
     })
-    score = total_points / 105.0
+    score = total_points / 100.0
     return {
         "score": score,
         "metrics": metrics,
@@ -6303,7 +6305,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             "history_analysis": history_analysis,
         })
 
-    # Ranking dnia: wynik punktowy 0–105.
+    # Ranking dnia: wynik punktowy 0–100.
     ranked_candidates = sorted(eligible, key=lambda item: (
         -float(item["history_analysis"].get("metrics", {}).get("score_points") or 0),
         -float(item["history_analysis"].get("metrics", {}).get("stat_value_edge") or 0),
@@ -6312,7 +6314,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
     strong = [x for x in ranked_candidates if float(x["history_analysis"]["metrics"].get("score_points") or 0) >= 60]
     if len(strong) >= 4:
         eligible = strong[:4]
-        print("BTTS FT: tryb normalny — TOP 4 z wynikiem co najmniej 60/105.", flush=True)
+        print("BTTS FT: tryb normalny — TOP 4 z wynikiem co najmniej 60/100.", flush=True)
     else:
         eligible = [x for x in ranked_candidates if float(x["history_analysis"]["metrics"].get("score_points") or 0) >= 52][:2]
         for candidate in eligible:
@@ -6322,7 +6324,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             )
         print(
             f"BTTS FT: elastyczny próg — {len(eligible)} mecze w trybie słabszego dnia "
-            "(minimum 52/105); bez wciskania drugiego dubla.",
+            "(minimum 52/100); bez wciskania drugiego dubla.",
             flush=True,
         )
     print(
