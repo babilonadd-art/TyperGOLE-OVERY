@@ -628,6 +628,11 @@ def format_btts_ft_pick_list(picks, day_key):
         probability = (pick.get("analysis") or {}).get("metrics", {}).get("model_probability")
         if probability is not None:
             line += f" | Model: {float(probability):.0%}"
+        points = (pick.get("analysis") or {}).get("metrics", {}).get("score_points")
+        if points is not None:
+            line += f" | Ocena: {float(points):.1f}/105 pkt"
+        if pick.get("risk_tier") == "LOW_DAY":
+            line += "\n⚠️ TRYB SŁABSZEGO DNIA — niższa pewność"
         line += f"\nGodzina: {kickoff.strftime('%H:%M')}"
         entries.append(line)
 
@@ -6370,6 +6375,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             "odds_updated_at": quote.get("updated_at"),
             "bet_url": bet_url or candidate["event"].get("url") or "",
             "analysis": candidate["history_analysis"], "settled": False,
+            "risk_tier": candidate.get("risk_tier", "MAIN"),
             "delivery_status": "pending", "pick_number": next_number,
             "telegram_batch_message": True,
             "telegram_format_version": 2,
@@ -6415,6 +6421,9 @@ def send_prematch_superbet_btts_picks(state):
     current = now_local().astimezone(TZ)
     today = current.date()
     tomorrow = today + timedelta(days=1)
+    if current.hour < 10 or (current.hour == 10 and current.minute < 30):
+        print("BTTS FT: dzienny ranking wystartuje o 10:30 czasu Europe/Warsaw.", flush=True)
+        return
     print(
         f"BTTS FT: skan całego pozostałego dnia {today.isoformat()} oraz nocy "
         f"{tomorrow.isoformat()} (00:00–05:59); limit {MAX_DAILY_BTTS_FT_PICKS} typów/dzień.",
