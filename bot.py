@@ -61,6 +61,7 @@ def now_local():
 
 
 # Maksymalnie 4 nowe typy BTTS FT na dzień (Europe/Warsaw); historia zostaje zachowana.
+# Ręczne ponowne uruchomienie skanowania po resecie historii typów.
 MAX_DAILY_BTTS_FT_PICKS = 4
 
 
