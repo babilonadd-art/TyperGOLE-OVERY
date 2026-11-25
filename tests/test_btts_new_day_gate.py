@@ -69,5 +69,10 @@ class BttsNewDayScanGateTests(unittest.TestCase):
         self.assertTrue(allowed)
 
 
+    def test_btts_and_over15_ht_daily_caps_are_separate(self):
+        self.assertEqual(bot.MAX_DAILY_BTTS_FT_PICKS, 4)
+        self.assertEqual(bot.MAX_DAILY_OVER_15_HT_PICKS, 20)
+
+
 if __name__ == "__main__":
     unittest.main()

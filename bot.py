@@ -5044,7 +5044,7 @@ def send_prematch_over_15_ht_picks(state):
     # New picks are restricted strictly to the current Warsaw-local calendar day.
     scan_dates = [today_date]
     print(
-        f"Limit Over 1.5 HT: dziś {daily_sent_match_count(state, today)}/{MAX_DAILY_BTTS_FT_PICKS}; "
+        f"Limit Over 1.5 HT: dziś {daily_sent_match_count(state, today)}/{MAX_DAILY_OVER_15_HT_PICKS}; "
         f"zakres kursu: {MIN_OVER_15_HT_ODDS:.2f}–{MAX_OVER_15_HT_ODDS:.2f}. Skanuję wyłącznie dzisiaj.",
         flush=True,
     )
@@ -5215,9 +5215,9 @@ def send_prematch_over_15_ht_picks(state):
     for candidate in candidates:
         candidate_day = candidate["kickoff"].date().isoformat()
         day_count = daily_sent_match_count(state, candidate_day)
-        if day_count >= MAX_DAILY_BTTS_FT_PICKS:
+        if day_count >= MAX_DAILY_OVER_15_HT_PICKS:
             print(
-                f"Limit {MAX_DAILY_BTTS_FT_PICKS} Over 1.5 HT osiągnięty dla {candidate_day}; "
+                f"Limit {MAX_DAILY_OVER_15_HT_PICKS} Over 1.5 HT osiągnięty dla {candidate_day}; "
                 f"pomijam {candidate['home']} - {candidate['away']}.",
                 flush=True,
             )
@@ -5312,7 +5312,8 @@ def send_prematch_over_15_ht_picks(state):
 
 
 
-MAX_DAILY_BTTS_FT_PICKS = 20
+# Separate quota for the independent Over 1.5 HT scanner; BTTS FT keeps its own four-pick cap.
+MAX_DAILY_OVER_15_HT_PICKS = 20
 
 
 def btts_value_gate(model_probability, odds, min_probability=0.52, min_edge=0.015):
