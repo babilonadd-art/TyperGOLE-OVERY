@@ -610,41 +610,38 @@ def format_btts_ft_pick_message(pick, pick_number):
 
 
 def format_btts_ft_pick_list(picks, day_key):
-    """Format a BTTS FT list with a prominent overnight heading when appropriate."""
+    """Format BTTS FT selections as up to two complete two-match doubles."""
     day_label = datetime.fromisoformat(str(day_key)).strftime("%d.%m.%Y")
     entries = []
-    for index, pick in enumerate(picks, 1):
-        number = int(pick.get("pick_number") or index)
-        kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
-        home = html.escape(str(pick.get("home") or "Gospodarze"))
-        away = html.escape(str(pick.get("away") or "Goście"))
-        league = html.escape(str(pick.get("league") or ""))
-        # Telegram text cannot set font colour. Red-circle markers plus bold
-        # team names make both sides stand out clearly in the list.
-        line = (
-            f"{number}. 🔴 <b>{home}</b> – 🔴 <b>{away}</b>\n"
-            f"Liga: {league}\n"
-            f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}"
-        )
-        probability = (pick.get("analysis") or {}).get("metrics", {}).get("model_probability")
-        if probability is not None:
-            line += f" | Model: {float(probability):.0%}"
-        points = (pick.get("analysis") or {}).get("metrics", {}).get("score_points")
-        if points is not None:
-            line += f" | Ocena: {float(points):.1f}/100 pkt"
-        if pick.get("risk_tier") == "LOW_DAY":
-            line += "\n⚠️ TRYB SŁABSZEGO DNIA — niższa pewność"
-        line += f"\nGodzina: {kickoff.strftime('%H:%M')}"
-        entries.append(line)
-
-    night_hours = [
-        (kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()).hour
-        for pick in picks
-    ]
+    for double_no in range(len(picks) // 2):
+        pair = picks[double_no * 2:double_no * 2 + 2]
+        entries.append(f"💥 <b>DUBEL {double_no + 1}</b>")
+        for index, pick in enumerate(pair, 1):
+            number = int(pick.get("pick_number") or (double_no * 2 + index))
+            kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
+            home = html.escape(str(pick.get("home") or "Gospodarze"))
+            away = html.escape(str(pick.get("away") or "Goście"))
+            league = html.escape(str(pick.get("league") or ""))
+            line = (
+                f"{number}. 🔴 <b>{home}</b> – 🔴 <b>{away}</b>\n"
+                f"Liga: {league}\n"
+                f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}"
+            )
+            probability = (pick.get("analysis") or {}).get("metrics", {}).get("model_probability")
+            if probability is not None:
+                line += f" | Model: {float(probability):.0%}"
+            points = (pick.get("analysis") or {}).get("metrics", {}).get("score_points")
+            if points is not None:
+                line += f" | Ocena: {float(points):.1f}/100 pkt"
+            if pick.get("risk_tier") == "LOW_DAY":
+                line += "\n⚠️ TRYB SŁABSZEGO DNIA — niższa pewność"
+            line += f"\nGodzina: {kickoff.strftime('%H:%M')}"
+            entries.append(line)
+    night_hours = [(kickoff_datetime({"kickoff_time": p.get("kickoff_time")}) or now_local()).hour for p in picks]
     if night_hours and all(0 <= hour <= 5 for hour in night_hours):
-        heading = "\n".join(("🌙🌙🌙", "🔥  N O C N E   T Y P Y  🔥", "🌙🌙🌙"))
+        heading = "\n".join(("🌙🌙🌙", "🔥  N O C N E   D U B L E  🔥", "🌙🌙🌙"))
     else:
-        heading = "⚽ BTTS TAK — LISTA TYPÓW"
+        heading = "⚽ BTTS TAK — DUBLE DNIA"
     return "\n".join((heading, f"📅 {day_label}", "", *entries))
 
 def repair_night_btts_telegram_heading(state):
@@ -6204,7 +6201,8 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
 
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     remaining = max(0, MAX_DAILY_BTTS_FT_PICKS - len(sent_today))
-    if remaining <= 0:
+    remaining -= remaining % 2
+    if remaining < 2:
         print(f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {day_key}.", flush=True)
         return
 
@@ -6318,6 +6316,8 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         print("BTTS FT: tryb normalny — TOP 4 z wynikiem co najmniej 60/100.", flush=True)
     else:
         eligible = [x for x in ranked_candidates if float(x["history_analysis"]["metrics"].get("score_points") or 0) >= 52][:2]
+        if len(eligible) < 2:
+            eligible = []
         for candidate in eligible:
             candidate["risk_tier"] = (
                 "MAIN" if float(candidate["history_analysis"]["metrics"].get("score_points") or 0) >= 60
@@ -6339,6 +6339,8 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
     sent_count = len(sent_today)
     next_number = max((int(p.get("pick_number") or 0) for p in sent_today), default=0) + 1
     batch_picks = []
+    eligible = eligible[:remaining]
+    eligible = eligible[:len(eligible) - (len(eligible) % 2)]
     for candidate in eligible:
         if sent_count + len(batch_picks) >= MAX_DAILY_BTTS_FT_PICKS:
             break
