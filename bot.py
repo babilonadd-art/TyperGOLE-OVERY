@@ -5899,11 +5899,13 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
     if min(home_all["played"], away_all["played"]) == 0:
         return reject("brak historii jednej z drużyn — bez typowania na podstawie samego kursu")
 
-    # Twardy warunek próby: min. 4 mecze gospodarza u siebie i gościa na wyjeździe.
-    if home_venue["played"] < 4 or away_venue["played"] < 4:
+    # Elastyczna próba: minimum 2 mecze gospodarza u siebie i gościa na wyjeździe.
+    # Nie odrzucaj automatycznie europejskich pucharów i lig z mniejszą historią;
+    # mniejsza próba obniża wiarygodność przez reliability w btts_probability_estimate.
+    if home_venue["played"] < 2 or away_venue["played"] < 2:
         return reject(
-            f"za mała próba dom/wyjazd: gospodarz {home_venue['played']}/4, "
-            f"gość {away_venue['played']}/4"
+            f"za mała próba dom/wyjazd: gospodarz {home_venue['played']}/2, "
+            f"gość {away_venue['played']}/2"
         )
 
     estimate = btts_probability_estimate(home_all, away_all, home_venue, away_venue)
