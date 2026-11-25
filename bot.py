@@ -6420,18 +6420,16 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
 
 
 def send_prematch_superbet_btts_picks(state):
-    """Scan today's remaining FT BTTS fixtures and the next overnight window."""
+    """Scan and publish FT BTTS picks for today's Warsaw-local date only."""
     current = now_local().astimezone(TZ)
     today = current.date()
-    tomorrow = today + timedelta(days=1)
-    # Dzienny skan może publikować typy od północy czasu Europe/Warsaw.
+    # Zawsze tylko bieżąca data w Europe/Warsaw — nigdy jutro.
     print(
-        f"BTTS FT: skan całego pozostałego dnia {today.isoformat()} oraz nocy "
-        f"{tomorrow.isoformat()} (00:00–05:59); limit {MAX_DAILY_BTTS_FT_PICKS} typów/dzień.",
+        f"BTTS FT: skan wyłącznie meczów na dziś {today.isoformat()} "
+        f"(Europe/Warsaw); limit {MAX_DAILY_BTTS_FT_PICKS} typów/dzień.",
         flush=True,
     )
     _send_prematch_superbet_btts_picks_for_date(state, today, overnight_only=False)
-    _send_prematch_superbet_btts_picks_for_date(state, tomorrow, overnight_only=True)
 
 
 def send_manual_archive_resend(state):
