@@ -6191,6 +6191,113 @@ def btts_prematch_odds_gate(btts_quote):
     return 1.55 <= btts_odds <= 2.40
 
 
+def render_btts_double_graphic(pair):
+    """Render two verified BTTS FT picks on the user's crowned-bull double template."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    template_path = Path("assets/btts_double_template.jpg")
+    if not template_path.exists():
+        raise FileNotFoundError(f"Brak grafiki BTTS DUBLE: {template_path}")
+    image = Image.open(template_path).convert("RGB")
+    draw = ImageDraw.Draw(image)
+    scale = image.width / 720.0
+    font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    if not Path(font_path).exists():
+        font_path = "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf"
+
+    def font(size):
+        return ImageFont.truetype(font_path, max(9, int(size * scale)))
+
+    def fitted(text, max_width, size, minimum=12):
+        text = str(text or "").strip()
+        current = int(size * scale)
+        while current > max(8, int(minimum * scale)):
+            candidate = ImageFont.truetype(font_path, current)
+            if draw.textbbox((0, 0), text, font=candidate)[2] <= max_width:
+                return candidate
+            current -= 1
+        return ImageFont.truetype(font_path, max(8, current))
+
+    for row, pick in enumerate(pair):
+        yoff = row * 125
+        kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
+        league = str(pick.get("league") or pick.get("competition") or "").strip()
+        if not league or league.casefold() in {"unknown", "unknown league", "liga nieznana"}:
+            raise ValueError(f"Brak potwierdzonej ligi dla {pick.get('home')} - {pick.get('away')}")
+
+        # Mask only the placeholder text areas; preserve the original red/black artwork.
+        draw.rectangle((int(72*scale), int((357+yoff)*scale),
+                        int(415*scale), int((402+yoff)*scale)), fill=(5, 5, 7))
+        draw.rectangle((int(150*scale), int((322+yoff)*scale),
+                        int(418*scale), int((355+yoff)*scale)), fill=(5, 5, 7))
+        draw.rectangle((int(510*scale), int((320+yoff)*scale),
+                        int(700*scale), int((355+yoff)*scale)), fill=(5, 5, 7))
+        draw.rectangle((int(510*scale), int((370+yoff)*scale),
+                        int(700*scale), int((405+yoff)*scale)), fill=(5, 5, 7))
+
+        home = str(pick.get("home") or "Gospodarze").strip()
+        away = str(pick.get("away") or "Goście").strip()
+        draw.text((int(145*scale), int((380+yoff)*scale)), home,
+                  font=fitted(home, 128*scale, 25, 13), fill=(245, 245, 245), anchor="mm")
+        draw.text((int(240*scale), int((380+yoff)*scale)), "VS",
+                  font=font(25), fill=(255, 25, 25), anchor="mm")
+        draw.text((int(335*scale), int((380+yoff)*scale)), away,
+                  font=fitted(away, 128*scale, 25, 13), fill=(245, 245, 245), anchor="mm")
+        draw.text((int(155*scale), int((338+yoff)*scale)), league,
+                  font=fitted(league, 258*scale, 20, 11), fill=(255, 255, 255), anchor="lm")
+        draw.text((int(515*scale), int((338+yoff)*scale)), kickoff.strftime("%d.%m.%Y"),
+                  font=font(21), fill=(255, 25, 25), anchor="lm")
+        draw.text((int(515*scale), int((389+yoff)*scale)), kickoff.strftime("%H:%M"),
+                  font=font(22), fill=(255, 25, 25), anchor="lm")
+
+    output = io.BytesIO()
+    image.save(output, format="JPEG", quality=91, optimize=True)
+    output.seek(0)
+    return output
+
+
+def send_btts_double_photo(pair, double_number, total_doubles):
+    """Publish one complete two-match double as one poster image."""
+    lines = [f"🔥 DUBEL {double_number}/{total_doubles} — BTTS TAK (FT)"]
+    for index, pick in enumerate(pair, 1):
+        kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
+        odds = float(pick.get("odds") or 0)
+        metrics = (pick.get("analysis") or {}).get("metrics", {})
+        probability = metrics.get("model_probability")
+        line = (
+            f"{index}. {pick.get('home')} – {pick.get('away')} | "
+            f"{pick.get('league')} | {kickoff.strftime('%H:%M')} | kurs {odds:.2f}"
+        )
+        if probability is not None:
+            line += f" | model {float(probability):.0%}"
+        lines.append(line)
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
+    response = requests.post(
+        url,
+        data={"chat_id": CHAT_ID, "caption": "\n".join(lines)},
+        files={"photo": (f"btts-double-{double_number}.jpg", render_btts_double_graphic(pair), "image/jpeg")},
+        timeout=45,
+    )
+    if response.status_code == 429:
+        try:
+            retry_after = response.json().get("parameters", {}).get("retry_after", 300)
+        except Exception:
+            retry_after = 300
+        raise RuntimeError(f"Telegram rate limit 429; retry_after={retry_after}s")
+    response.raise_for_status()
+    payload = response.json()
+    if not payload.get("ok"):
+        raise RuntimeError(f"Telegram BTTS double sendPhoto error: {payload}")
+    result = payload.get("result") or {}
+    return result.get("message_id")
+
+
+def send_btts_double_spacer():
+    """Create a visibly tall Telegram gap between consecutive double posters."""
+    # U+3164 is an invisible Hangul filler, but unlike ordinary spaces Telegram keeps it.
+    telegram(("\u3164\n") * 8)
+
+
 def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only=False):
     """Scan Superbet football offer and publish verified standalone BTTS FT prices."""
     target_day = scan_date
@@ -6411,29 +6518,35 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         return
 
     try:
-        message = format_btts_ft_pick_list(batch_picks, day_key)
-        response = telegram(message, parse_mode="HTML")
-        result = response.get("result", {}) if isinstance(response, dict) else {}
-        if isinstance(result, list):
-            result = result[0] if result else {}
-        message_id = result.get("message_id") if isinstance(result, dict) else None
-        sent_at = now_local().isoformat()
-        for pick in batch_picks:
-            pick["telegram_message_id"] = message_id
-            pick["delivery_status"] = "sent"
-            pick["sent_at"] = sent_at
-        save_state(state)
-        print(
-            f"WYSŁANO JEDNĄ LISTĘ BTTS FT: {len(batch_picks)} typów "
-            f"(Superbet, kursy rzeczywiste); Telegram ID={message_id}.",
-            flush=True,
-        )
+        total_doubles = len(batch_picks) // 2
+        telegram("🔥 KOLEJNY DZIEŃ Z BTTS 🔥")
+        for double_index in range(total_doubles):
+            pair = batch_picks[double_index * 2:double_index * 2 + 2]
+            message_id = send_btts_double_photo(pair, double_index + 1, total_doubles)
+            sent_at = now_local().isoformat()
+            for pick in pair:
+                pick["telegram_message_id"] = message_id
+                pick["telegram_double_number"] = double_index + 1
+                pick["telegram_format_version"] = 3
+                pick["delivery_status"] = "sent"
+                pick["sent_at"] = sent_at
+            save_state(state)
+            print(
+                f"WYSŁANO BTTS DUBEL {double_index + 1}/{total_doubles}: "
+                f"{pair[0].get('home')} - {pair[0].get('away')} + "
+                f"{pair[1].get('home')} - {pair[1].get('away')}; Telegram ID={message_id}.",
+                flush=True,
+            )
+            if double_index + 1 < total_doubles:
+                send_btts_double_spacer()
+                time.sleep(1.2)
     except Exception as exc:
         for pick in batch_picks:
-            pick["delivery_status"] = "failed"
-            pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
+            if pick.get("delivery_status") != "sent":
+                pick["delivery_status"] = "failed"
+                pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
         save_state(state)
-        print(f"Telegram BTTS FT — nie udało się wysłać listy: {type(exc).__name__}: {exc}", flush=True)
+        print(f"Telegram BTTS DUBLE — nie udało się wysłać pełnej paczki: {type(exc).__name__}: {exc}", flush=True)
 
 
 def send_prematch_superbet_btts_picks(state):
