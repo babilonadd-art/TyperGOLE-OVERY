@@ -6200,6 +6200,8 @@ def render_btts_double_graphic(pair):
     if not template_path.exists():
         raise FileNotFoundError(f"Brak grafiki BTTS DUBLE: {template_path}")
     image = Image.open(io.BytesIO(base64.b64decode(template_path.read_text(encoding="ascii")))).convert("RGB")
+    if image.width < 720:
+        image = image.resize((720, 720), Image.Resampling.LANCZOS)
     draw = ImageDraw.Draw(image)
     scale = image.width / 720.0
     font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
