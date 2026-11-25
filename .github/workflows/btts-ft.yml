@@ -8,6 +8,7 @@ on:
       - "btts_ft.py"
       - "requirements.txt"
       - "tests/**"
+      - "assets/**"
       - ".github/workflows/btts-ft.yml"
   workflow_dispatch:
   schedule:
