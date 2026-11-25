@@ -318,14 +318,18 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "USA_1_mls"
       },
-      "settled": false,
+      "settled": true,
       "risk_tier": "MAIN",
       "delivery_status": "sent",
       "pick_number": 3,
       "telegram_batch_message": true,
       "telegram_format_version": 2,
       "telegram_message_id": 712,
-      "sent_at": "2026-11-25T01:09:29.577398+01:00"
+      "sent_at": "2026-11-25T01:09:29.577398+01:00",
+      "won": true,
+      "settled_score": "2-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-25T07:07:10.496282+01:00"
     },
     {
       "key": "superbet:16045203:BTTS_FT",
