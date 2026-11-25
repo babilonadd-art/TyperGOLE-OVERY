@@ -6196,112 +6196,97 @@ def btts_prematch_odds_gate(btts_quote):
 
 
 def render_btts_double_graphic(pair):
-    """Render two verified BTTS FT picks in the actual two-row crowned-bull template."""
+    """Build a clean BTTS double card, reusing only the original bull artwork."""
+    from decimal import Decimal, ROUND_HALF_UP
     from PIL import Image, ImageDraw, ImageFont
 
+    if len(pair) != 2:
+        raise ValueError("Plakat BTTS DUBLE wymaga dokładnie dwóch meczów.")
+
     template_path = Path("assets/btts_double_template.jpg.b64")
-    if not template_path.exists():
-        raise FileNotFoundError(f"Brak grafiki BTTS DUBLE: {template_path}")
-    image = Image.open(
+    if not template_path.is_file():
+        raise FileNotFoundError(f"Brak oryginalnej grafiki BTTS: {template_path}")
+
+    with Image.open(
         io.BytesIO(base64.b64decode(template_path.read_text(encoding="ascii")))
-    ).convert("RGB")
-    if image.width != 720:
-        scale = image.width / 720.0
-    else:
-        scale = 1.0
-    draw = ImageDraw.Draw(image)
+    ) as source:
+        source = source.convert("RGB")
+        # Reuse the bull/flame artwork from the supplied BTTS poster only.
+        # All match information is rendered on a fresh canvas; no old text is painted over.
+        bull = source.crop((300, 0, min(source.width, 690), min(source.height, 310))).copy()
+
+    W, H = 1080, 1420
+    BG, PANEL = (12, 5, 8), (31, 10, 15)
+    RED, WHITE, MUTED = (238, 35, 48), (250, 247, 247), (200, 185, 188)
+    im = Image.new("RGB", (W, H), BG)
+    draw = ImageDraw.Draw(im)
 
     font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
     if not Path(font_path).exists():
         font_path = "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf"
 
     def font(size):
-        return ImageFont.truetype(font_path, max(10, int(size * scale)))
+        return ImageFont.truetype(font_path, size)
 
-    def fitted(text, max_width, size, minimum):
-        text = str(text or "").strip()
-        current = int(size * scale)
-        floor = max(10, int(minimum * scale))
-        while current > floor:
-            candidate = ImageFont.truetype(font_path, current)
-            bounds = draw.textbbox((0, 0), text, font=candidate)
-            if bounds[2] - bounds[0] <= max_width:
-                return candidate
-            current -= 1
-        return ImageFont.truetype(font_path, floor)
+    def fit(value, max_width, high=40, low=18):
+        value = str(value)
+        for size in range(high, low - 1, -1):
+            selected = font(size)
+            box = draw.textbbox((0, 0), value, font=selected)
+            if box[2] - box[0] <= max_width:
+                return selected
+        return font(low)
 
-    if len(pair) != 2:
-        raise ValueError("Plakat BTTS DUBLE wymaga dokładnie dwóch meczów.")
+    def center(bounds, value, selected_font, color):
+        x1, y1, x2, y2 = bounds
+        box = draw.textbbox((0, 0), str(value), font=selected_font)
+        tw, th = box[2] - box[0], box[3] - box[1]
+        draw.text((x1 + (x2-x1-tw)/2, y1 + (y2-y1-th)/2 - box[1]),
+                  str(value), font=selected_font, fill=color)
 
-    for row, pick in enumerate(pair):
-        yoff = row * 125
-        kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
+    draw.rounded_rectangle((12, 12, W-12, H-12), radius=38, outline=RED, width=5)
+    bull.thumbnail((390, 242), Image.Resampling.LANCZOS)
+    im.paste(bull, ((W-bull.width)//2, 24))
+    draw = ImageDraw.Draw(im)
+    center((40, 245, W-40, 325), "BTTS DUBLE", font(66), RED)
+    center((40, 325, W-40, 378), "OBIE DRUŻYNY STRZELĄ GOLA • CAŁY MECZ (FT)", fit("OBIE DRUŻYNY STRZELĄ GOLA • CAŁY MECZ (FT)", 980, 30, 20), WHITE)
+
+    leg_odds = []
+    for index, pick in enumerate(pair, 1):
+        home = str(pick.get("home") or "").strip()
+        away = str(pick.get("away") or "").strip()
         league = str(pick.get("league") or pick.get("competition") or "").strip()
-        if not league or league.casefold() in {"unknown", "unknown league", "liga nieznana"}:
-            raise ValueError(
-                f"Brak potwierdzonej ligi dla {pick.get('home')} - {pick.get('away')}"
-            )
+        if not home or not away or not league or league.casefold() in {"unknown", "unknown league", "liga nieznana"}:
+            raise ValueError(f"Brak prawdziwych drużyn lub potwierdzonej ligi w meczu {index}.")
+        try:
+            odds = Decimal(str(pick.get("odds")))
+        except Exception as exc:
+            raise ValueError(f"Brak prawidłowego kursu BTTS w meczu {index}.") from exc
+        if odds <= Decimal("1.00"):
+            raise ValueError(f"Nieprawidłowy kurs BTTS w meczu {index}.")
+        leg_odds.append(odds)
+        kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
 
-        home = str(pick.get("home") or "Gospodarze").strip()
-        away = str(pick.get("away") or "Goście").strip()
+        y = 390 + (index-1)*440
+        draw.rounded_rectangle((38, y, W-38, y+390), radius=30, fill=PANEL, outline=RED, width=4)
+        draw.rounded_rectangle((58, y+18, W-58, y+78), radius=18, fill=(68, 12, 22), outline=RED, width=2)
+        center((70, y+18, W-70, y+78), f"MECZ {index}", font(34), WHITE)
+        fixture = f"{home} – {away}"
+        center((70, y+92, W-70, y+160), fixture, fit(fixture, 920, 43, 23), WHITE)
+        center((70, y+166, W-70, y+214), league, fit(league, 900, 29, 18), MUTED)
+        center((70, y+218, W-70, y+266), "ROZPOCZĘCIE: " + kickoff.strftime("%d.%m.%Y • %H:%M"), font(27), WHITE)
+        draw.rounded_rectangle((70, y+286, W-70, y+366), radius=18, fill=(48, 10, 17), outline=RED, width=3)
+        draw.text((98, y+306), "BTTS TAK (FT)", font=font(34), fill=RED)
+        odds_text = f"KURS {odds:.2f}"
+        box = draw.textbbox((0, 0), odds_text, font=font(35))
+        draw.text((W-98-(box[2]-box[0]), y+304), odds_text, font=font(35), fill=WHITE)
 
-        # Clear only the four text fields printed on the template.
-        # The team row spans almost the full poster width; it is NOT a narrow left-hand box.
-        draw.rectangle(
-            (int(78 * scale), int((357 + yoff) * scale),
-             int(650 * scale), int((402 + yoff) * scale)),
-            fill=(5, 5, 7),
-        )
-        draw.rectangle(
-            (int(145 * scale), int((320 + yoff) * scale),
-             int(475 * scale), int((355 + yoff) * scale)),
-            fill=(5, 5, 7),
-        )
-        draw.rectangle(
-            (int(505 * scale), int((320 + yoff) * scale),
-             int(700 * scale), int((355 + yoff) * scale)),
-            fill=(5, 5, 7),
-        )
-        draw.rectangle(
-            (int(505 * scale), int((370 + yoff) * scale),
-             int(700 * scale), int((405 + yoff) * scale)),
-            fill=(5, 5, 7),
-        )
-
-        # Two balanced, wide team columns with VS centered between them.
-        draw.text(
-            (int(220 * scale), int((380 + yoff) * scale)), home,
-            font=fitted(home, 245 * scale, 32, 21),
-            fill=(255, 255, 255), anchor="mm",
-        )
-        draw.text(
-            (int(360 * scale), int((380 + yoff) * scale)), "VS",
-            font=font(25), fill=(255, 25, 25), anchor="mm",
-        )
-        draw.text(
-            (int(510 * scale), int((380 + yoff) * scale)), away,
-            font=fitted(away, 245 * scale, 32, 21),
-            fill=(255, 255, 255), anchor="mm",
-        )
-
-        draw.text(
-            (int(155 * scale), int((338 + yoff) * scale)), league,
-            font=fitted(league, 310 * scale, 23, 17),
-            fill=(255, 255, 255), anchor="lm",
-        )
-        draw.text(
-            (int(515 * scale), int((338 + yoff) * scale)),
-            kickoff.strftime("%d.%m.%Y"),
-            font=font(23), fill=(255, 25, 25), anchor="lm",
-        )
-        draw.text(
-            (int(515 * scale), int((389 + yoff) * scale)),
-            kickoff.strftime("%H:%M"),
-            font=font(25), fill=(255, 25, 25), anchor="lm",
-        )
+    combined = (leg_odds[0] * leg_odds[1]).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    draw.rounded_rectangle((90, 1260, W-90, 1365), radius=30, fill=(0, 0, 0), outline=RED, width=4)
+    center((105, 1270, W-105, 1355), f"KURS ŁĄCZNY: {combined:.2f}", font(48), RED)
 
     output = io.BytesIO()
-    image.save(output, format="JPEG", quality=94, optimize=True)
+    im.save(output, format="PNG", optimize=True)
     output.seek(0)
     return output
 
@@ -6324,7 +6309,7 @@ def send_btts_double_photo(pair, double_number, total_doubles):
     response = requests.post(
         url,
         data={"chat_id": CHAT_ID, "caption": "\n".join(lines)},
-        files={"photo": (f"btts-double-{double_number}.jpg", render_btts_double_graphic(pair), "image/jpeg")},
+        files={"photo": (f"btts-double-{double_number}.png", render_btts_double_graphic(pair), "image/png")},
         timeout=45,
     )
     if response.status_code == 429:
