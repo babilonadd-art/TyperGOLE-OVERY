@@ -653,14 +653,18 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "ENG_5_national-league"
       },
-      "settled": false,
+      "settled": true,
       "risk_tier": "LOW_DAY",
       "delivery_status": "sent",
       "pick_number": 6,
       "telegram_batch_message": true,
       "telegram_format_version": 2,
       "telegram_message_id": 713,
-      "sent_at": "2026-11-25T01:13:43.648728+01:00"
+      "sent_at": "2026-11-25T01:13:43.648728+01:00",
+      "won": true,
+      "settled_score": "1-1",
+      "settled_period": "HT",
+      "settled_at": "2026-11-25T20:36:34.548593+01:00"
     },
     {
       "key": "superbet:14719689:BTTS_FT",
