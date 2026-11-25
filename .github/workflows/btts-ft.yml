@@ -10,7 +10,7 @@ on:
       - "tests/**"
       - "assets/**"
       - ".github/workflows/btts-ft.yml"
-  workflow_dispatch:
+  workflow_dispatch: # manual full rescan after state reset
   schedule:
     - cron: "*/5 * * * *" # Warsaw-day scanner
 
