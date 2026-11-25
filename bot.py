@@ -6196,73 +6196,114 @@ def btts_prematch_odds_gate(btts_quote):
 
 
 def render_btts_double_graphic(pair):
-    """Render two verified BTTS FT picks on the user's crowned-bull double template."""
+    """Render two verified BTTS FT picks in the actual two-row crowned-bull template."""
     from PIL import Image, ImageDraw, ImageFont
 
     template_path = Path("assets/btts_double_template.jpg.b64")
     if not template_path.exists():
         raise FileNotFoundError(f"Brak grafiki BTTS DUBLE: {template_path}")
-    image = Image.open(io.BytesIO(base64.b64decode(template_path.read_text(encoding="ascii")))).convert("RGB")
-    if image.width < 720:
-        image = image.resize((720, 720), Image.Resampling.LANCZOS)
+    image = Image.open(
+        io.BytesIO(base64.b64decode(template_path.read_text(encoding="ascii")))
+    ).convert("RGB")
+    if image.width != 720:
+        scale = image.width / 720.0
+    else:
+        scale = 1.0
     draw = ImageDraw.Draw(image)
-    scale = image.width / 720.0
+
     font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
     if not Path(font_path).exists():
         font_path = "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf"
 
     def font(size):
-        return ImageFont.truetype(font_path, max(9, int(size * scale)))
+        return ImageFont.truetype(font_path, max(10, int(size * scale)))
 
-    def fitted(text, max_width, size, minimum=12):
+    def fitted(text, max_width, size, minimum):
         text = str(text or "").strip()
         current = int(size * scale)
-        while current > max(8, int(minimum * scale)):
+        floor = max(10, int(minimum * scale))
+        while current > floor:
             candidate = ImageFont.truetype(font_path, current)
-            if draw.textbbox((0, 0), text, font=candidate)[2] <= max_width:
+            bounds = draw.textbbox((0, 0), text, font=candidate)
+            if bounds[2] - bounds[0] <= max_width:
                 return candidate
             current -= 1
-        return ImageFont.truetype(font_path, max(8, current))
+        return ImageFont.truetype(font_path, floor)
+
+    if len(pair) != 2:
+        raise ValueError("Plakat BTTS DUBLE wymaga dokładnie dwóch meczów.")
 
     for row, pick in enumerate(pair):
         yoff = row * 125
         kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
         league = str(pick.get("league") or pick.get("competition") or "").strip()
         if not league or league.casefold() in {"unknown", "unknown league", "liga nieznana"}:
-            raise ValueError(f"Brak potwierdzonej ligi dla {pick.get('home')} - {pick.get('away')}")
-
-        # Mask only the placeholder text areas; preserve the original red/black artwork.
-        draw.rectangle((int(72*scale), int((357+yoff)*scale),
-                        int(415*scale), int((402+yoff)*scale)), fill=(5, 5, 7))
-        draw.rectangle((int(150*scale), int((322+yoff)*scale),
-                        int(418*scale), int((355+yoff)*scale)), fill=(5, 5, 7))
-        draw.rectangle((int(510*scale), int((320+yoff)*scale),
-                        int(700*scale), int((355+yoff)*scale)), fill=(5, 5, 7))
-        draw.rectangle((int(510*scale), int((370+yoff)*scale),
-                        int(700*scale), int((405+yoff)*scale)), fill=(5, 5, 7))
+            raise ValueError(
+                f"Brak potwierdzonej ligi dla {pick.get('home')} - {pick.get('away')}"
+            )
 
         home = str(pick.get("home") or "Gospodarze").strip()
         away = str(pick.get("away") or "Goście").strip()
-        # Larger, legible typography: reserve separate wider columns for both teams.
-        # Keep a hard minimum so long club names do not collapse into tiny lettering.
-        draw.text((int(145*scale), int((380+yoff)*scale)), home,
-                  font=fitted(home, 155*scale, 29, 19), fill=(255, 255, 255), anchor="mm")
-        draw.text((int(240*scale), int((380+yoff)*scale)), "VS",
-                  font=font(27), fill=(255, 25, 25), anchor="mm")
-        draw.text((int(335*scale), int((380+yoff)*scale)), away,
-                  font=fitted(away, 155*scale, 29, 19), fill=(255, 255, 255), anchor="mm")
-        draw.text((int(155*scale), int((338+yoff)*scale)), league,
-                  font=fitted(league, 258*scale, 23, 16), fill=(255, 255, 255), anchor="lm")
-        draw.text((int(515*scale), int((338+yoff)*scale)), kickoff.strftime("%d.%m.%Y"),
-                  font=font(24), fill=(255, 25, 25), anchor="lm")
-        draw.text((int(515*scale), int((389+yoff)*scale)), kickoff.strftime("%H:%M"),
-                  font=font(25), fill=(255, 25, 25), anchor="lm")
+
+        # Clear only the four text fields printed on the template.
+        # The team row spans almost the full poster width; it is NOT a narrow left-hand box.
+        draw.rectangle(
+            (int(78 * scale), int((357 + yoff) * scale),
+             int(650 * scale), int((402 + yoff) * scale)),
+            fill=(5, 5, 7),
+        )
+        draw.rectangle(
+            (int(145 * scale), int((320 + yoff) * scale),
+             int(475 * scale), int((355 + yoff) * scale)),
+            fill=(5, 5, 7),
+        )
+        draw.rectangle(
+            (int(505 * scale), int((320 + yoff) * scale),
+             int(700 * scale), int((355 + yoff) * scale)),
+            fill=(5, 5, 7),
+        )
+        draw.rectangle(
+            (int(505 * scale), int((370 + yoff) * scale),
+             int(700 * scale), int((405 + yoff) * scale)),
+            fill=(5, 5, 7),
+        )
+
+        # Two balanced, wide team columns with VS centered between them.
+        draw.text(
+            (int(220 * scale), int((380 + yoff) * scale)), home,
+            font=fitted(home, 245 * scale, 32, 21),
+            fill=(255, 255, 255), anchor="mm",
+        )
+        draw.text(
+            (int(360 * scale), int((380 + yoff) * scale)), "VS",
+            font=font(25), fill=(255, 25, 25), anchor="mm",
+        )
+        draw.text(
+            (int(510 * scale), int((380 + yoff) * scale)), away,
+            font=fitted(away, 245 * scale, 32, 21),
+            fill=(255, 255, 255), anchor="mm",
+        )
+
+        draw.text(
+            (int(155 * scale), int((338 + yoff) * scale)), league,
+            font=fitted(league, 310 * scale, 23, 17),
+            fill=(255, 255, 255), anchor="lm",
+        )
+        draw.text(
+            (int(515 * scale), int((338 + yoff) * scale)),
+            kickoff.strftime("%d.%m.%Y"),
+            font=font(23), fill=(255, 25, 25), anchor="lm",
+        )
+        draw.text(
+            (int(515 * scale), int((389 + yoff) * scale)),
+            kickoff.strftime("%H:%M"),
+            font=font(25), fill=(255, 25, 25), anchor="lm",
+        )
 
     output = io.BytesIO()
-    image.save(output, format="JPEG", quality=91, optimize=True)
+    image.save(output, format="JPEG", quality=94, optimize=True)
     output.seek(0)
     return output
-
 
 def send_btts_double_photo(pair, double_number, total_doubles):
     """Publish one complete two-match double as one poster image."""
