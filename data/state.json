@@ -540,14 +540,18 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "JPN_1_j1-league"
       },
-      "settled": false,
+      "settled": true,
       "risk_tier": "MAIN",
       "delivery_status": "sent",
       "pick_number": 5,
       "telegram_batch_message": true,
       "telegram_format_version": 2,
       "telegram_message_id": 713,
-      "sent_at": "2026-11-25T01:13:43.648728+01:00"
+      "sent_at": "2026-11-25T01:13:43.648728+01:00",
+      "won": true,
+      "settled_score": "1-2",
+      "settled_period": "FT",
+      "settled_at": "2026-11-25T13:04:24.457252+01:00"
     },
     {
       "key": "superbet:15862890:BTTS_FT",
