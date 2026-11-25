@@ -6391,8 +6391,23 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         next_number += 1
         save_state(state)
 
+    # Never publish a single leftover fixture: BTTS output is doubles only.
+    if len(batch_picks) % 2:
+        orphan = batch_picks.pop()
+        orphan_key = orphan.get("key")
+        state["picks"] = [p for p in state.get("picks", []) if p.get("key") != orphan_key]
+        state["duplicate_guard"] = [
+            p for p in state.get("duplicate_guard", []) if p.get("key") != orphan_key
+        ]
+        save_state(state)
+        print(
+            f"BTTS FT: końcowa kontrola kursu zostawiła niepełną parę; "
+            f"pojedynczy mecz {orphan.get('home')} - {orphan.get('away')} pominięty.",
+            flush=True,
+        )
+
     if not batch_picks:
-        print("Superbet BTTS FT: nie znaleziono kursów spełniających filtry; niczego nie wysyłam.", flush=True)
+        print("Superbet BTTS FT: nie ma dwóch kompletnych typów do dubla; niczego nie wysyłam.", flush=True)
         return
 
     try:
