@@ -7153,3 +7153,5 @@ if __name__ == "__main__":
 # Manual live BTTS FT scan trigger: 2026-11-20
 
 # BTTS history reset: start fresh from the cleared persistent state.
+
+# BTTS FT: ręczne uruchomienie skanu po resecie historii 2026-11-25.
