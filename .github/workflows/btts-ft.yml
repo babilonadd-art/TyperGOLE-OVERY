@@ -23,9 +23,8 @@ concurrency:
 
 jobs:
   btts-ft:
-    if: false # temporary stop: cancel the stale run before resetting state
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 8
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
