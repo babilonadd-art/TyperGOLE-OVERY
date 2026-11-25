@@ -6243,18 +6243,20 @@ def render_btts_double_graphic(pair):
 
         home = str(pick.get("home") or "Gospodarze").strip()
         away = str(pick.get("away") or "Goście").strip()
+        # Larger, legible typography: reserve separate wider columns for both teams.
+        # Keep a hard minimum so long club names do not collapse into tiny lettering.
         draw.text((int(145*scale), int((380+yoff)*scale)), home,
-                  font=fitted(home, 128*scale, 25, 13), fill=(245, 245, 245), anchor="mm")
+                  font=fitted(home, 155*scale, 29, 19), fill=(255, 255, 255), anchor="mm")
         draw.text((int(240*scale), int((380+yoff)*scale)), "VS",
-                  font=font(25), fill=(255, 25, 25), anchor="mm")
+                  font=font(27), fill=(255, 25, 25), anchor="mm")
         draw.text((int(335*scale), int((380+yoff)*scale)), away,
-                  font=fitted(away, 128*scale, 25, 13), fill=(245, 245, 245), anchor="mm")
+                  font=fitted(away, 155*scale, 29, 19), fill=(255, 255, 255), anchor="mm")
         draw.text((int(155*scale), int((338+yoff)*scale)), league,
-                  font=fitted(league, 258*scale, 20, 11), fill=(255, 255, 255), anchor="lm")
+                  font=fitted(league, 258*scale, 23, 16), fill=(255, 255, 255), anchor="lm")
         draw.text((int(515*scale), int((338+yoff)*scale)), kickoff.strftime("%d.%m.%Y"),
-                  font=font(21), fill=(255, 25, 25), anchor="lm")
+                  font=font(24), fill=(255, 25, 25), anchor="lm")
         draw.text((int(515*scale), int((389+yoff)*scale)), kickoff.strftime("%H:%M"),
-                  font=font(22), fill=(255, 25, 25), anchor="lm")
+                  font=font(25), fill=(255, 25, 25), anchor="lm")
 
     output = io.BytesIO()
     image.save(output, format="JPEG", quality=91, optimize=True)
