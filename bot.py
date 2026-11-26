@@ -622,8 +622,8 @@ def format_btts_ft_pick_list(picks, day_key):
         away = html.escape(str(pick.get("away") or "Goście"))
         league = html.escape(str(pick.get("league") or ""))
         line = (
-            f"{number}. 🔴 <b>{home}</b> – 🔴 <b>{away}</b>\\n"
-            f"Liga: {league} | Godzina: {kickoff.strftime('%H:%M')}\\n"
+            f"{number}. 🔴 <b>{home}</b> – 🔴 <b>{away}</b>\n"
+            f"Liga: {league} | Godzina: {kickoff.strftime('%H:%M')}\n"
             f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}"
         )
         probability = (pick.get("analysis") or {}).get("metrics", {}).get("model_probability")
@@ -633,10 +633,10 @@ def format_btts_ft_pick_list(picks, day_key):
         if points is not None:
             line += f" | Ocena: {float(points):.1f}/100 pkt"
         if pick.get("risk_tier") == "LOW_DAY":
-            line += "\\n⚠️ Niższa pewność (ocena 52–59.9/100)"
+            line += "\n⚠️ Niższa pewność (ocena 52–59.9/100)"
         entries.append(line)
     heading = "⚽ <b>LISTA BTTS FT — TYPY DNIA</b>"
-    return "\\n".join((heading, f"📅 {day_label}", f"📋 Zweryfikowane typy: {len(picks)}/10", "", *entries))
+    return "\n".join((heading, f"📅 {day_label}", f"📋 Zweryfikowane typy: {len(picks)}/10", "", *entries))
 
 def repair_night_btts_telegram_heading(state):
     """Add the prominent overnight heading to the already delivered night batch."""
