@@ -5849,6 +5849,32 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
     def matches_team(row, team, side):
         return team_name_similarity(row.get(side), team) >= 0.88
 
+    # Uzupełniaj historię osobno dla każdej drużyny. Zdarza się, że w
+    # aktualnej bazie konkretnej ligi występuje tylko jeden z zespołów;
+    # nie wolno wtedy odrzucać całego meczu tylko z tego powodu.
+    home_same_league = any(
+        matches_team(row, home, "home") or matches_team(row, home, "away")
+        for row in team_rows
+    )
+    away_same_league = any(
+        matches_team(row, away, "home") or matches_team(row, away, "away")
+        for row in team_rows
+    )
+    if not home_same_league or not away_same_league:
+        missing = []
+        if not home_same_league:
+            missing.append(home)
+        if not away_same_league:
+            missing.append(away)
+        if league_rows:
+            team_rows = league_rows
+            print(
+                f"BTTS: {home} - {away}: brak historii ligowej dla "
+                f"{', '.join(missing)}; rozszerzam bazę o wcześniejsze mecze "
+                "tych drużyn z innych rozgrywek i obniżam wiarygodność.",
+                flush=True,
+            )
+
     def summarize(rows, team, venue=None):
         selected = []
         for row in rows:
