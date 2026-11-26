@@ -5779,13 +5779,17 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
     except (TypeError, ValueError):
         return reject("brak prawidłowej daty rozpoczęcia")
 
+    # Standard football season window (July–June): never mix last season's
+    # results into the current-season sample for this fixture.
+    season_start = datetime(cutoff.year if cutoff.month >= 7 else cutoff.year - 1, 7, 1).date()
+
     def valid_result(row):
         try:
             played = datetime.fromisoformat(str(row.get("date", ""))[:10]).date()
         except (TypeError, ValueError):
             return False
         return (
-            played < cutoff
+            season_start <= played < cutoff
             and as_int(row.get("ft_home")) is not None
             and as_int(row.get("ft_away")) is not None
             and row.get("home") and row.get("away")
@@ -5799,10 +5803,10 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
         row_league = str(row.get("_league") or "").strip().casefold()
         if row_league and row_league not in {"unknown", "liga nieznana"}:
             if (
-                team_name_similarity(row.get("home"), home) >= 0.88
-                or team_name_similarity(row.get("away"), home) >= 0.88
-                or team_name_similarity(row.get("home"), away) >= 0.88
-                or team_name_similarity(row.get("away"), away) >= 0.88
+                team_name_similarity(row.get("home"), home) >= 0.83
+                or team_name_similarity(row.get("away"), home) >= 0.83
+                or team_name_similarity(row.get("home"), away) >= 0.83
+                or team_name_similarity(row.get("away"), away) >= 0.83
             ):
                 league_rows.append(row)
 
@@ -5851,7 +5855,7 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
             return reject("brak jakiejkolwiek wiarygodnej historii obu drużyn")
 
     def matches_team(row, team, side):
-        return team_name_similarity(row.get(side), team) >= 0.88
+        return team_name_similarity(row.get(side), team) >= 0.83
 
     # Uzupełniaj historię osobno dla każdej drużyny. Zdarza się, że w
     # aktualnej bazie konkretnej ligi występuje tylko jeden z zespołów;
@@ -5925,8 +5929,12 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
                 "corners_avg": None, "corners_sample": 0,
             }
 
-        last5 = selected[-5:]
-        last3 = selected[-3:]
+        # Goal rates feeding Poisson are based on at most the latest 8
+        # current-season matches for this team/venue. BTTS season rates remain
+        # available separately for context.
+        recent8 = selected[-8:]
+        last5 = recent8[-5:]
+        last3 = recent8[-3:]
         shots = [item["shots_for"] for item in selected if item["shots_for"] is not None]
         shots_on_target = [
             item["shots_on_target_for"] for item in selected
@@ -5943,8 +5951,8 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
             "failed_to_score": sum(item["failed_to_score"] for item in selected) / len(selected),
             "scored_rate": sum(item["goals_for"] > 0 for item in selected) / len(selected),
             "avg_goals": sum(item["total_goals"] for item in selected) / len(selected),
-            "goals_for_avg": sum(item["goals_for"] for item in selected) / len(selected),
-            "goals_against_avg": sum(item["goals_against"] for item in selected) / len(selected),
+            "goals_for_avg": sum(item["goals_for"] for item in recent8) / len(recent8),
+            "goals_against_avg": sum(item["goals_against"] for item in recent8) / len(recent8),
             "last5": sum(item["btts"] for item in last5),
             "last5_played": len(last5),
             "last5_scored": sum(item["goals_for"] > 0 for item in last5),
@@ -6025,22 +6033,11 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
     # strzelca -10; brak podstawowego bramkarza +5, łączny bonus maks. 10 pkt.
     injury_points = 0.0
     goalkeeper_bonus = 0.0
-    h2h_rows = []
-    for row in team_rows:
-        if not valid_result(row):
-            continue
-        if (
-            (matches_team(row, home, "home") and matches_team(row, away, "away"))
-            or (matches_team(row, home, "away") and matches_team(row, away, "home"))
-        ):
-            h2h_rows.append(row)
-    h2h_rows.sort(key=lambda row: str(row.get("date") or ""), reverse=True)
-    last_h2h = h2h_rows[:3]
-    h2h_btts = sum(
-        as_int(row.get("ft_home")) > 0 and as_int(row.get("ft_away")) > 0
-        for row in last_h2h
-    )
-    h2h_points = 5.0 if len(last_h2h) >= 3 and h2h_btts >= 2 else 0.0
+    # H2H is deliberately excluded: missing or historical head-to-head
+    # data must never influence the current-season form/Poisson model.
+    h2h_points = 0.0
+    last_h2h = []
+    h2h_btts = 0
     base_points = min(95.0, form_points + attack_defence_points
                       + balance_points + value_points + injury_points + goalkeeper_bonus)
     total_points = min(100.0, base_points + h2h_points)
@@ -6139,8 +6136,8 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
         "league_folder": next((
             str(row.get("_folder") or "")
             for row in team_rows
-            if team_name_similarity(row.get("home"), home) >= 0.88
-            or team_name_similarity(row.get("away"), home) >= 0.88
+            if team_name_similarity(row.get("home"), home) >= 0.83
+            or team_name_similarity(row.get("away"), home) >= 0.83
         ), ""),
     }
 
@@ -6513,6 +6510,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         event_id = str(match.get("id", "")).removeprefix("superbet:")
         event = event_by_id.get(event_id)
         if not event or not kickoff:
+            print(f"BTTS DRY DIAG: odrzut fixture {home} - {away}: brak eventu Superbet lub godziny rozpoczęcia.", flush=True)
             continue
         league_source = (
             extract_superbet_competition_name(event)
@@ -6542,6 +6540,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             state, identifier, home, away, day_key, BTTS_FT_MARKET,
             slug=match.get("_bot_slug"), competition=league,
         ):
+            print(f"BTTS DRY DIAG: odrzut {home} - {away}: duplikat już zapisany dla {day_key}.", flush=True)
             continue
         shortlist.append({
             "match": match, "event": event, "event_id": event_id,
@@ -6577,11 +6576,14 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
     for item in shortlist:
         detail = event_details.get(item["event_id"])
         if not detail:
+            print(f"BTTS DRY DIAG: odrzut {item['home']} - {item['away']}: brak szczegółów rynku Superbet.", flush=True)
             continue
         quote = extract_superbet_btts_full_time(detail)
-        if not quote or not btts_prematch_odds_gate(quote):
-            if quote:
-                print(f"Superbet BTTS FT: kurs {quote.get('odds')} poza zakresem 1.55–2.40 — {item['home']} - {item['away']}.", flush=True)
+        if not quote:
+            print(f"BTTS DRY DIAG: odrzut {item['home']} - {item['away']}: brak rynku BTTS TAK FT.", flush=True)
+            continue
+        if not btts_prematch_odds_gate(quote):
+            print(f"BTTS DRY DIAG: odrzut {item['home']} - {item['away']}: kurs {quote.get('odds')} poza zakresem 1.60–2.40.", flush=True)
             continue
         market_quotes_in_range += 1
         one_x_two = extract_superbet_1x2_full_time(detail)
@@ -6651,6 +6653,21 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         f"źródło kursów=Superbet public feed (bez BSD_API_TOKEN).",
         flush=True,
     )
+
+    if os.getenv("BTTS_DRY_RUN", "").strip().lower() in {"1", "true", "yes", "on"}:
+        print("BTTS DRY RUN: zakończono skan. Nie zapisuję typów do state.json i nic nie wysyłam na Telegram.", flush=True)
+        for rank, candidate in enumerate(eligible, 1):
+            metrics = candidate["history_analysis"].get("metrics", {})
+            print(
+                f"DRY RUN #{rank}: {candidate['home']} - {candidate['away']} | "
+                f"{candidate['league']} | {candidate['kickoff'].isoformat()} | "
+                f"Superbet BTTS={candidate['quote'].get('odds')} | "
+                f"Poisson={metrics.get('poisson_probability')} | "
+                f"lambda={metrics.get('expected_home_goals')}/{metrics.get('expected_away_goals')} | "
+                f"score={metrics.get('score_points')} | H2H=OFF",
+                flush=True,
+            )
+        return
 
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     sent_count = len(sent_today)
@@ -7571,6 +7588,12 @@ def retry_failed_btts_double(state):
 def run_btts_ft():
     """Run the independent pre-match BTTS FT scanner and settlement only."""
     print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS FT START {now_local().isoformat()} ===", flush=True)
+    dry_run = os.getenv("BTTS_DRY_RUN", "").strip().lower() in {"1", "true", "yes", "on"}
+    if dry_run:
+        print("BTTS DRY RUN: tryb bez Telegrama i bez zmian w historii typów.", flush=True)
+        state = load_state()
+        send_prematch_superbet_btts_picks(state)
+        return
     print(
         f"Telegram secrets: token={'OK' if TELEGRAM_TOKEN else 'BRAK'}, "
         f"chat_id={'OK' if CHAT_ID else 'BRAK'}",
