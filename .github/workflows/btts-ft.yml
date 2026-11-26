@@ -56,7 +56,7 @@ jobs:
         if: github.event_name != 'schedule'
         run: python -m unittest discover -s tests -p "test_*.py"
       - name: Scan and publish BTTS FT
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.event.head_commit.message, 'Repair BTTS Telegram list'))
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && (contains(github.event.head_commit.message, 'Repair BTTS Telegram list') || contains(github.event.head_commit.message, 'Republish BTTS list with corrected layout')))
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -74,7 +74,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
       - name: Persist BTTS history
-        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.dry_run != true) || (github.event_name == 'push' && contains(github.event.head_commit.message, 'Repair BTTS Telegram list'))
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.dry_run != true) || (github.event_name == 'push' && (contains(github.event.head_commit.message, 'Repair BTTS Telegram list') || contains(github.event.head_commit.message, 'Republish BTTS list with corrected layout')))
         run: |
           if [ -f data/state.json ]; then
             git config user.name "github-actions[bot]"
