@@ -11,7 +11,13 @@ on:
       - "assets/**"
       - "data/state.json"
       - ".github/workflows/btts-ft.yml"
-  workflow_dispatch: # manual full rescan after state reset; push below triggers scan after state-only reset
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Skan diagnostyczny bez wysyłania typów na Telegram"
+        required: false
+        type: boolean
+        default: true
   schedule:
     - cron: "*/5 * * * *" # Warsaw-day scanner
 
@@ -49,7 +55,18 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TZ: Europe/Warsaw
-        run: python btts_ft.py
+          BTTS_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true && '1' || '0' }}
+        run: |
+          set -o pipefail
+          python btts_ft.py 2>&1 | tee btts_dry_run.log
+      - name: Upload BTTS diagnostic log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btts-dry-run-log-${{ github.run_id }}
+          path: btts_dry_run.log
+          if-no-files-found: warn
+          retention-days: 7
       - name: Persist BTTS history
         run: |
           if [ -f data/state.json ]; then
