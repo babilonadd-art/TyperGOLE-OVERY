@@ -7253,6 +7253,81 @@ def repair_sent_btts_batch_league_caption_671(state):
     print("POPRAWIONO LISTĘ BTTS NA TELEGRAMIE: wszystkie 10 lig; message_id=671", flush=True)
 
 
+def retry_failed_btts_double(state):
+    """Retry one complete failed BTTS double after rechecking kickoff and live Superbet prices."""
+    today = now_local().date().isoformat()
+    now = now_local()
+    failed = [
+        p for p in state.get("picks", [])
+        if p.get("market") == BTTS_FT_MARKET
+        and p.get("date") == today
+        and p.get("delivery_status") == "failed"
+        and not p.get("telegram_message_id")
+    ]
+    failed.sort(key=lambda p: p.get("kickoff_time") or "")
+    verified = []
+    for pick in failed:
+        kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")})
+        if not kickoff or kickoff <= now:
+            print(
+                f"BTTS FT retry: pomijam rozpoczęty/przeterminowany mecz "
+                f"{pick.get('home')} - {pick.get('away')}.",
+                flush=True,
+            )
+            continue
+        event_id = str(pick.get("id") or "").removeprefix("superbet:")
+        if not event_id:
+            continue
+        try:
+            detail = superbet_event_detail(event_id, probe_subscription=False)
+            quote = extract_superbet_btts_full_time(detail)
+            if not quote or not btts_prematch_odds_gate(quote):
+                print(
+                    f"BTTS FT retry: brak aktualnego rynku/kursu w zakresie dla "
+                    f"{pick.get('home')} - {pick.get('away')}.",
+                    flush=True,
+                )
+                continue
+            pick["odds"] = float(quote["odds"])
+            pick["odds_market"] = quote.get("market")
+            pick["odds_updated_at"] = quote.get("updated_at")
+            verified.append(pick)
+        except Exception as exc:
+            print(
+                f"BTTS FT retry: kontrola kursu nieudana dla {pick.get('home')} - "
+                f"{pick.get('away')}: {type(exc).__name__}: {exc}",
+                flush=True,
+            )
+    if len(verified) < 2:
+        print(f"BTTS FT retry: potwierdzono tylko {len(verified)}/2 mecze; nie wysyłam niepełnego dubla.", flush=True)
+        return
+    pair = verified[:2]
+    try:
+        message_id = send_btts_double_photo(pair, 1, 1)
+    except Exception as exc:
+        for pick in pair:
+            pick["delivery_status"] = "failed"
+            pick["delivery_error"] = f"{type(exc).__name__}: {exc}"
+        save_state(state)
+        print(f"BTTS FT retry: ponowna wysyłka nieudana: {type(exc).__name__}: {exc}", flush=True)
+        return
+    sent_at = now_local().isoformat()
+    for pick in pair:
+        pick["telegram_message_id"] = message_id
+        pick["telegram_double_number"] = 1
+        pick["telegram_format_version"] = 3
+        pick["delivery_status"] = "sent"
+        pick["sent_at"] = sent_at
+        pick.pop("delivery_error", None)
+    save_state(state)
+    print(
+        f"BTTS FT retry: WYSŁANO DUBEL 1/1: {pair[0].get('home')} - "
+        f"{pair[0].get('away')} + {pair[1].get('home')} - {pair[1].get('away')}; "
+        f"Telegram ID={message_id}.",
+        flush=True,
+    )
+
+
 def run_btts_ft():
     """Run the independent pre-match BTTS FT scanner and settlement only."""
     print(f"=== TyperGOLE-OVERY PRE-MATCH BTTS FT START {now_local().isoformat()} ===", flush=True)
@@ -7276,6 +7351,10 @@ def run_btts_ft():
         retry_pending_settlement_notifications(state)
     except Exception as exc:
         print(f"BTTS FT pending settlement notification error: {type(exc).__name__}: {exc}", flush=True)
+    try:
+        retry_failed_btts_double(state)
+    except Exception as exc:
+        print(f"BTTS FT retry error: {type(exc).__name__}: {exc}", flush=True)
     try:
         send_prematch_superbet_btts_picks(state)
     except Exception as exc:
