@@ -6658,6 +6658,16 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         # Remaining entries stay as individual selections in the list.
         double_picks = batch_picks[:4]
         total_doubles = len(double_picks) // 2
+        if total_doubles:
+            # A separate Telegram heading clearly separates the daily list
+            # from the double posters; no timed delay is used.
+            telegram(
+                "━━━━━━━━━━━━━━━━━━\n"
+                "🔥 <b>DUBLE DNIA BTTS</b> 🔥\n"
+                "━━━━━━━━━━━━━━━━━━",
+                parse_mode="HTML",
+            )
+            print("WYSŁANO ODDZIELNY NAGŁÓWEK: DUBLE DNIA BTTS.", flush=True)
         for double_index in range(total_doubles):
             pair = double_picks[double_index * 2:double_index * 2 + 2]
             double_message_id = send_btts_double_photo(pair, double_index + 1, total_doubles)
