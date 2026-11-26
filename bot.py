@@ -6196,108 +6196,110 @@ def btts_prematch_odds_gate(btts_quote):
 
 
 def render_btts_double_graphic(pair):
-    """Build a clean BTTS double card, reusing only the original bull artwork."""
+    """Write two BTTS selections into the three fields of the user's original poster."""
     from decimal import Decimal, ROUND_HALF_UP
     from PIL import Image, ImageDraw, ImageFont
 
     if len(pair) != 2:
         raise ValueError("Plakat BTTS DUBLE wymaga dokładnie dwóch meczów.")
 
-    template_path = Path("assets/btts_double_template.jpg.b64")
+    template_path = Path("assets/btts_original_poster.png")
     if not template_path.is_file():
-        raise FileNotFoundError(f"Brak oryginalnej grafiki BTTS: {template_path}")
+        raise FileNotFoundError(f"Brak oryginalnego plakatu BTTS: {template_path}")
 
-    with Image.open(
-        io.BytesIO(base64.b64decode(template_path.read_text(encoding="ascii")))
-    ) as source:
-        source = source.convert("RGB")
-        # Reuse the bull/flame artwork from the supplied BTTS poster only.
-        # Some uploaded poster variants are narrower than the old hard-coded x=300 crop.
-        # Clamp the crop to the real image bounds so Pillow never receives right < left.
-        crop_width = min(390, source.width)
-        crop_height = min(310, source.height)
-        crop_left = min(300, max(0, source.width - crop_width))
-        crop_top = 0
-        crop_right = crop_left + crop_width
-        crop_bottom = crop_top + crop_height
-        if crop_width < 1 or crop_height < 1 or crop_right <= crop_left or crop_bottom <= crop_top:
-            raise ValueError(
-                f"Nieprawidłowy rozmiar oryginalnej grafiki BTTS: {source.width}x{source.height}"
-            )
-        bull = source.crop((crop_left, crop_top, crop_right, crop_bottom)).copy()
+    with Image.open(template_path) as source:
+        poster = source.convert("RGB")
 
-    W, H = 1080, 1420
-    BG, PANEL = (12, 5, 8), (31, 10, 15)
-    RED, WHITE, MUTED = (238, 35, 48), (250, 247, 247), (200, 185, 188)
-    im = Image.new("RGB", (W, H), BG)
-    draw = ImageDraw.Draw(im)
+    if poster.size != (720, 1640):
+        raise ValueError(
+            f"Oryginalny plakat BTTS ma nieoczekiwany rozmiar: {poster.width}x{poster.height}"
+        )
 
+    draw = ImageDraw.Draw(poster)
     font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-    if not Path(font_path).exists():
+    if not Path(font_path).is_file():
         font_path = "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf"
 
     def font(size):
         return ImageFont.truetype(font_path, size)
 
-    def fit(value, max_width, high=40, low=18):
-        value = str(value)
+    def fitted_font(value, max_width, high, low):
         for size in range(high, low - 1, -1):
             selected = font(size)
-            box = draw.textbbox((0, 0), value, font=selected)
-            if box[2] - box[0] <= max_width:
+            bounds = draw.textbbox((0, 0), value, font=selected, stroke_width=0)
+            if bounds[2] - bounds[0] <= max_width:
                 return selected
         return font(low)
 
-    def center(bounds, value, selected_font, color):
+    def centered_text(bounds, value, selected_font, color):
         x1, y1, x2, y2 = bounds
-        box = draw.textbbox((0, 0), str(value), font=selected_font)
-        tw, th = box[2] - box[0], box[3] - box[1]
-        draw.text((x1 + (x2-x1-tw)/2, y1 + (y2-y1-th)/2 - box[1]),
-                  str(value), font=selected_font, fill=color)
+        text_bounds = draw.textbbox((0, 0), value, font=selected_font)
+        text_width = text_bounds[2] - text_bounds[0]
+        text_height = text_bounds[3] - text_bounds[1]
+        x = x1 + (x2 - x1 - text_width) / 2 - text_bounds[0]
+        y = y1 + (y2 - y1 - text_height) / 2 - text_bounds[1]
+        draw.text((int(x), int(y)), value, font=selected_font, fill=color)
 
-    draw.rounded_rectangle((12, 12, W-12, H-12), radius=38, outline=RED, width=5)
-    bull.thumbnail((390, 242), Image.Resampling.LANCZOS)
-    im.paste(bull, ((W-bull.width)//2, 24))
-    draw = ImageDraw.Draw(im)
-    center((40, 245, W-40, 325), "BTTS DUBLE", font(66), RED)
-    center((40, 325, W-40, 378), "OBIE DRUŻYNY STRZELĄ GOLA • CAŁY MECZ (FT)", fit("OBIE DRUŻYNY STRZELĄ GOLA • CAŁY MECZ (FT)", 980, 30, 20), WHITE)
-
+    # These are the three existing red-framed fields on the supplied 720x1640 poster.
+    # Do not resize, crop, redraw, or replace any part of the original artwork.
+    match_fields = ((24, 716, 696, 846), (24, 852, 696, 982))
+    total_odds_field = (24, 988, 696, 1120)
     leg_odds = []
-    for index, pick in enumerate(pair, 1):
+
+    for index, pick in enumerate(pair):
         home = str(pick.get("home") or "").strip()
         away = str(pick.get("away") or "").strip()
         league = str(pick.get("league") or pick.get("competition") or "").strip()
-        if not home or not away or not league or league.casefold() in {"unknown", "unknown league", "liga nieznana"}:
-            raise ValueError(f"Brak prawdziwych drużyn lub potwierdzonej ligi w meczu {index}.")
+        if not home or not away or not league or league.casefold() in {
+            "unknown", "unknown league", "liga nieznana"
+        }:
+            raise ValueError(
+                f"Brak prawdziwych nazw drużyn lub potwierdzonej ligi w meczu {index + 1}."
+            )
+
         try:
             odds = Decimal(str(pick.get("odds")))
         except Exception as exc:
-            raise ValueError(f"Brak prawidłowego kursu BTTS w meczu {index}.") from exc
+            raise ValueError(f"Brak prawidłowego kursu BTTS w meczu {index + 1}.") from exc
         if odds <= Decimal("1.00"):
-            raise ValueError(f"Nieprawidłowy kurs BTTS w meczu {index}.")
+            raise ValueError(f"Nieprawidłowy kurs BTTS w meczu {index + 1}.")
         leg_odds.append(odds)
-        kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
 
-        y = 390 + (index-1)*440
-        draw.rounded_rectangle((38, y, W-38, y+390), radius=30, fill=PANEL, outline=RED, width=4)
-        draw.rounded_rectangle((58, y+18, W-58, y+78), radius=18, fill=(68, 12, 22), outline=RED, width=2)
-        center((70, y+18, W-70, y+78), f"MECZ {index}", font(34), WHITE)
+        kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")})
+        if kickoff is None:
+            raise ValueError(f"Brak potwierdzonej godziny rozpoczęcia meczu {index + 1}.")
+
+        x1, y1, x2, y2 = match_fields[index]
         fixture = f"{home} – {away}"
-        center((70, y+92, W-70, y+160), fixture, fit(fixture, 920, 43, 23), WHITE)
-        center((70, y+166, W-70, y+214), league, fit(league, 900, 29, 18), MUTED)
-        center((70, y+218, W-70, y+266), "ROZPOCZĘCIE: " + kickoff.strftime("%d.%m.%Y • %H:%M"), font(27), WHITE)
-        draw.rounded_rectangle((70, y+286, W-70, y+366), radius=18, fill=(48, 10, 17), outline=RED, width=3)
-        draw.text((98, y+306), "BTTS TAK (FT)", font=font(34), fill=RED)
-        odds_text = f"KURS {odds:.2f}"
-        box = draw.textbbox((0, 0), odds_text, font=font(35))
-        draw.text((W-98-(box[2]-box[0]), y+304), odds_text, font=font(35), fill=WHITE)
+        centered_text(
+            (x1 + 20, y1 + 10, x2 - 20, y1 + 70),
+            fixture,
+            fitted_font(fixture, x2 - x1 - 40, 38, 23),
+            (255, 255, 255),
+        )
 
-    combined = (leg_odds[0] * leg_odds[1]).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    draw.rounded_rectangle((90, 1260, W-90, 1365), radius=30, fill=(0, 0, 0), outline=RED, width=4)
-    center((105, 1270, W-105, 1355), f"KURS ŁĄCZNY: {combined:.2f}", font(48), RED)
+        details = (
+            f"{league}  •  {kickoff.strftime('%d.%m %H:%M')}  •  KURS {odds:.2f}"
+        )
+        centered_text(
+            (x1 + 18, y1 + 72, x2 - 18, y2 - 8),
+            details,
+            fitted_font(details, x2 - x1 - 36, 20, 13),
+            (255, 218, 164),
+        )
+
+    combined = (leg_odds[0] * leg_odds[1]).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    centered_text(
+        total_odds_field,
+        f"KURS ŁĄCZNY: {combined:.2f}",
+        fitted_font(f"KURS ŁĄCZNY: {combined:.2f}", 630, 44, 28),
+        (255, 255, 255),
+    )
 
     output = io.BytesIO()
-    im.save(output, format="PNG", optimize=True)
+    poster.save(output, format="PNG", optimize=True)
     output.seek(0)
     return output
 
