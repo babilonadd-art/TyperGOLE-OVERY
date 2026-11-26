@@ -1,0 +1,30 @@
+name: Inspect original BTTS poster
+
+on:
+  push:
+    paths:
+      - ".github/workflows/inspect-btts-poster.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create compact visual preview
+        run: |
+          python -m pip install --quiet pillow
+          python - <<'PY'
+          from PIL import Image
+          import base64
+          im=Image.open("assets/btts_original_poster.png").convert("RGB")
+          im.thumbnail((360,820))
+          import io
+          b=io.BytesIO()
+          im.save(b,format="JPEG",quality=55,optimize=True)
+          print("POSTER_PREVIEW_B64_BEGIN")
+          print(base64.b64encode(b.getvalue()).decode())
+          print("POSTER_PREVIEW_B64_END")
+          PY
