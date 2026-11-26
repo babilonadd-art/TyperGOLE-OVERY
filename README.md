@@ -11,7 +11,7 @@ Przedmeczowy Telegram bot dla rynku **BTTS — obie drużyny strzelą gola w ca�
 ## Strategia
 - Wyłącznie spotkania, które jeszcze się nie rozpoczęły.
 - Tylko BTTS cały mecz — TAK. Bez BTTS 1. połowy i bez innych rynków.
-- Maksymalnie 4 typy dziennie.
+- Lista dzienna: do 10 zweryfikowanych typów BTTS FT. Z listy bot tworzy dwa duble dnia z czterech najwyżej ocenionych spotkań; pozostałe pozycje pozostają typami pojedynczymi. Minimum 52/100 pkt, przy czym oceny 52–59,9 są wyraźnie oznaczane jako niższa pewność. Bot nie wymyśla typów, jeśli nie ma 10 kandydatów spełniających warunki.
 - Zakres kursu Superbet BTTS FT: 1.55–2.40.
 - Statystyki BTTS są liczone z bezpłatnych plików CSV Open Matchday: forma sezonowa, dom/wyjazd, ostatnie 5 spotkań, gole zdobywane i tracone, czyste konta oraz mecze bez zdobytej bramki. Gdy dostawca udostępnia dane, model dodatkowo wykorzystuje strzały, strzały celne i rożne jako ograniczone sygnały aktywności ofensywnej. Puste pola statystyczne są traktowane jako brak danych, nigdy jako zero.
 - Model łączy wskaźniki BTTS z venue, formę ostatnich meczów i estymację Poissona opartą o gole zdobywane/tracone; ma korektę na wielkość próby. Typ przechodzi tylko przy estymacji co najmniej 60% i przewadze co najmniej 4 punktów procentowych nad prawdopodobieństwem wynikającym z kursu. Minimalna próba: 5 meczów ogółem na zespół i 3 na odpowiednim terenie. Dodatkowo obie drużyny muszą mieć co najmniej 60% BTTS w sezonie, minimum 4/5 BTTS w ostatnich pięciu meczach, co najmniej 50% BTTS w odpowiednim układzie dom/wyjazd, skuteczność strzelania min. 80%, maksymalnie 20% meczów bez gola, maksymalnie 25% czystych kont rywali oraz średnią co najmniej 2.5 gola na mecz.
