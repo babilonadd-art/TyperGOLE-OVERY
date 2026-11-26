@@ -25,7 +25,7 @@ jobs:
           b=io.BytesIO()
           im.save(b,format="JPEG",quality=55,optimize=True)
           print("POSTER_PREVIEW_B64_BEGIN")
-          print(base64.b64encode(b.getvalue()).decode())
+          payload=base64.b64encode(b.getvalue()).decode()\n          for i in range(0,len(payload),1800): print("CHUNK_"+str(i//1800)+"_"+payload[i:i+1800])
           print("POSTER_PREVIEW_B64_END")
           PY
 
