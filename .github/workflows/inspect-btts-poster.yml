@@ -14,3 +14,5 @@ jobs:
         run: |
           python -m pip install --quiet pillow
           python -c 'from PIL import Image; import base64,io; im=Image.open("assets/btts_original_poster.png").convert("RGB"); im.thumbnail((180,410)); b=io.BytesIO(); im.save(b,format="JPEG",quality=35,optimize=True); p=base64.b64encode(b.getvalue()).decode(); [print("CHUNK_"+str(i//1000)+"_"+p[i:i+1000]) for i in range(0,len(p),1000)]'
+
+# Trigger preview.
