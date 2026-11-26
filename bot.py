@@ -6617,21 +6617,20 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         -float(item["history_analysis"].get("metrics", {}).get("stat_value_edge") or 0),
         item["kickoff"], item["home"], item["away"],
     ))
-    # Publish up to ten ranked candidates that meet the existing minimum score.
-    # Scores >=60 are MAIN; scores 52–59.9 are visibly marked as lower confidence.
-    # Never manufacture picks to fill the requested ten slots.
-    eligible = [
-        x for x in ranked_candidates
-        if float(x["history_analysis"]["metrics"].get("score_points") or 0) >= 52
-    ][:10]
+    # Daily output is a ranked analysis list, not a hard-threshold shortlist.
+    # Send up to 10 genuinely analyzed fixtures; expose weaker scores through
+    # the risk tier instead of silently returning an empty list at 52 points.
+    eligible = ranked_candidates[:10]
     for candidate in eligible:
+        points = float(candidate["history_analysis"]["metrics"].get("score_points") or 0)
         candidate["risk_tier"] = (
-            "MAIN" if float(candidate["history_analysis"]["metrics"].get("score_points") or 0) >= 60
-            else "LOW_DAY"
+            "MAIN" if points >= 60
+            else "LOW_DAY" if points >= 40
+            else "WATCH"
         )
     print(
-        f"BTTS FT: lista dnia — {len(eligible)}/10 zweryfikowanych kandydatów "
-        "(minimum 52/100; pozycje 52–59.9 oznaczone niższą pewnością).",
+        f"BTTS FT: lista dnia — {len(eligible)}/10 najwyżej ocenionych, "
+        "przeanalizowanych kandydatów; poziom ryzyka oznaczony przy każdym.",
         flush=True,
     )
 
@@ -6642,7 +6641,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         f"potwierdzone kursy BTTS FT 1.55–2.40={market_quotes_in_range}, "
         f"odrzuty z braku historii={history_rejected}, "
         f"z historią do oceny={len(ranked_candidates)}, "
-        f"wynik minimum 52/100={len(eligible)}; "
+        f"wybrane do listy TOP10={len(eligible)}; "
         f"źródło kursów=Superbet public feed (bez BSD_API_TOKEN).",
         flush=True,
     )
@@ -6707,7 +6706,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
     # Send the daily singles list even if fewer than two picks are available.
     # Double creation below is optional and uses only complete pairs.
     if not batch_picks:
-        print("Superbet BTTS FT: brak typów spełniających minimum 52/100; lista pozostaje pusta.", flush=True)
+        print("Superbet BTTS FT: brak przeanalizowanych meczów do listy dnia.", flush=True)
         return
 
     try:
