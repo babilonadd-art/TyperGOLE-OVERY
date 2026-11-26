@@ -22,6 +22,7 @@ jobs:
             "https://github.com/user-attachments/assets/f879a56c-d93e-4c11-abb5-c8fe38aa6691" \
             --output assets/btts_original_poster.png
           file assets/btts_original_poster.png
+          python -m pip install --quiet pillow
           python - <<'PY'
           from PIL import Image
           image = Image.open("assets/btts_original_poster.png")
