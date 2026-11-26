@@ -6482,8 +6482,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
 
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
     remaining = max(0, MAX_DAILY_BTTS_FT_PICKS - len(sent_today))
-    remaining -= remaining % 2
-    if remaining < 2:
+    if remaining < 1:
         print(f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {day_key}.", flush=True)
         return
 
@@ -6515,15 +6514,23 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         )
         if isinstance(league_source, dict):
             league_source = first(league_source, "name", "title", default="")
-        # The public Superbet event list often omits its competition label.
-        # Resolve it from the exact Open Matchday fixture or a shared verified
-        # league history; never publish a generic or guessed league name.
+        # Missing competition metadata is NOT a reason to discard a fixture.
+        # Use a verified label when available; otherwise mark it explicitly and
+        # analyze each team's broader verified match history (without guessing a league).
         league, league_source_name = resolve_btts_competition(
             home, away, kickoff, preferred=league_source
         )
-        if not league or "unknown" in league.casefold() or "liga nieznana" in league.casefold():
-            print(f"Superbet BTTS FT: brak potwierdzonej ligi dla {home} - {away}; pomijam.", flush=True)
-            continue
+        league_confirmed = bool(
+            league and "unknown" not in league.casefold()
+            and "liga nieznana" not in league.casefold()
+        )
+        if not league_confirmed:
+            league = "Rozgrywki niepotwierdzone"
+            print(
+                f"Superbet BTTS FT: brak etykiety rozgrywek dla {home} - {away}; "
+                "mecz pozostaje w analizie na podstawie historii obu drużyn.",
+                flush=True,
+            )
         identifier = str(match.get("id") or match_identifier(match) or match.get("_bot_slug") or "")
         if same_fixture_pick_exists(
             state, identifier, home, away, day_key, BTTS_FT_MARKET,
@@ -6534,6 +6541,8 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             "match": match, "event": event, "event_id": event_id,
             "id": identifier, "home": home, "away": away,
             "kickoff": kickoff, "league": league,
+            "analysis_league": league if league_confirmed else "",
+            "league_confirmed": league_confirmed,
         })
 
     if not shortlist:
@@ -6574,7 +6583,8 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         # Brak danych 1X2 oznacza 0 punktów w tym kryterium.
         history_analysis = btts_recent_form_analysis(
             item["home"], item["away"], item["kickoff"],
-            league=item["league"], odds=quote.get("odds"), one_x_two=one_x_two,
+            league=item.get("analysis_league", item["league"]),
+            odds=quote.get("odds"), one_x_two=one_x_two,
         )
         if not history_analysis:
             history_rejected += 1
@@ -6641,8 +6651,9 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
     sent_count = len(sent_today)
     next_number = max((int(p.get("pick_number") or 0) for p in sent_today), default=0) + 1
     batch_picks = []
+    # Daily list is independent of doubles: keep every qualifying single,
+    # including an odd final pick. Doubles are built separately from the first four.
     eligible = eligible[:remaining]
-    eligible = eligible[:len(eligible) - (len(eligible) % 2)]
     for candidate in eligible:
         if sent_count + len(batch_picks) >= MAX_DAILY_BTTS_FT_PICKS:
             break
@@ -6693,23 +6704,10 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         next_number += 1
         save_state(state)
 
-    # Never publish a single leftover fixture: BTTS output is doubles only.
-    if len(batch_picks) % 2:
-        orphan = batch_picks.pop()
-        orphan_key = orphan.get("key")
-        state["picks"] = [p for p in state.get("picks", []) if p.get("key") != orphan_key]
-        state["duplicate_guard"] = [
-            p for p in state.get("duplicate_guard", []) if p.get("key") != orphan_key
-        ]
-        save_state(state)
-        print(
-            f"BTTS FT: końcowa kontrola kursu zostawiła niepełną parę; "
-            f"pojedynczy mecz {orphan.get('home')} - {orphan.get('away')} pominięty.",
-            flush=True,
-        )
-
+    # Send the daily singles list even if fewer than two picks are available.
+    # Double creation below is optional and uses only complete pairs.
     if not batch_picks:
-        print("Superbet BTTS FT: nie ma dwóch kompletnych typów do dubla; niczego nie wysyłam.", flush=True)
+        print("Superbet BTTS FT: brak typów spełniających minimum 52/100; lista pozostaje pusta.", flush=True)
         return
 
     try:
@@ -6737,8 +6735,8 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             flush=True,
         )
 
-        # Two doubles use the four highest-ranked picks from the daily list.
-        # Remaining entries stay as individual selections in the list.
+        # Up to two doubles use the four highest-ranked picks from the daily list.
+        # If there are fewer than two picks, the list is still sent on its own.
         double_picks = batch_picks[:4]
         total_doubles = len(double_picks) // 2
         if total_doubles:
