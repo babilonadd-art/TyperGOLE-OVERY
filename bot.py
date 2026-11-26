@@ -623,9 +623,8 @@ def format_btts_ft_pick_list(picks, day_key):
         away = html.escape(str(pick.get("away") or "Goście"))
         league = html.escape(str(pick.get("league") or ""))
         line = (
-            f"{number}. 🔴 <b>{home}</b> – 🔴 <b>{away}</b>\n"
-            f"Liga: {league} | Godzina: {kickoff.strftime('%H:%M')}\n"
-            f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}"
+            f"<b>{number}.  {kickoff.strftime('%H:%M')}  |  {home} – {away}</b>\n"
+            f"{league}  •  BTTS TAK (FT)  •  Kurs: {float(pick.get('odds') or 0):.2f}"
         )
         probability = (pick.get("analysis") or {}).get("metrics", {}).get("model_probability")
         if probability is not None:
@@ -634,7 +633,7 @@ def format_btts_ft_pick_list(picks, day_key):
         if points is not None:
             line += f" | Ocena: {float(points):.1f}/100 pkt"
         if pick.get("risk_tier") == "LOW_DAY":
-            line += "\n⚠️ Niższa pewność (ocena 52–59.9/100)"
+            line += "\n⚠️ Niższa ocena modelu — typ podwyższonego ryzyka"
         entries.append(line)
     heading = "⚽ <b>LISTA BTTS FT — TYPY DNIA</b>"
     return "\n".join((heading, f"📅 {day_label}", f"📋 Zweryfikowane typy: {len(picks)}/10", "", *entries))
@@ -6710,6 +6709,16 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         return
 
     try:
+        # The public daily list is always chronological, regardless of the
+        # internal quality ranking used to select the candidates.
+        batch_picks.sort(key=lambda pick: (
+            kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local(),
+            str(pick.get("home") or ""),
+            str(pick.get("away") or ""),
+        ))
+        for index, pick in enumerate(batch_picks, 1):
+            pick["pick_number"] = index
+
         # Publish the complete numbered daily list first. Its message ID is
         # canonical for settlement follow-ups and edits.
         list_response = telegram(
@@ -6734,9 +6743,16 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             flush=True,
         )
 
-        # Up to two doubles use the four highest-ranked picks from the daily list.
+        # Doubles remain based on the four strongest analyzed picks,
+        # independently of the chronological order used in the public list.
         # If there are fewer than two picks, the list is still sent on its own.
-        double_picks = batch_picks[:4]
+        double_picks = sorted(
+            batch_picks,
+            key=lambda pick: (
+                -float((pick.get("analysis") or {}).get("metrics", {}).get("score_points") or 0),
+                kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local(),
+            ),
+        )[:4]
         total_doubles = len(double_picks) // 2
         if total_doubles:
             # A separate Telegram heading clearly separates the daily list
