@@ -622,8 +622,8 @@ def format_btts_ft_pick_list(picks, day_key):
         away = html.escape(str(pick.get("away") or "Goście"))
         league = html.escape(str(pick.get("league") or ""))
         line = (
-            f"{number}. <b>{home} – {away}</b>\\n"
-            f"🏆 {league} | 🕒 {kickoff.strftime('%H:%M')}\\n"
+            f"{number}. 🔴 <b>{home}</b> – 🔴 <b>{away}</b>\\n"
+            f"Liga: {league} | Godzina: {kickoff.strftime('%H:%M')}\\n"
             f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}"
         )
         probability = (pick.get("analysis") or {}).get("metrics", {}).get("model_probability")
