@@ -51,6 +51,7 @@ jobs:
       - name: Run automated tests
         run: python -m unittest discover -s tests -p "test_*.py"
       - name: Scan and publish BTTS FT
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -68,6 +69,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
       - name: Persist BTTS history
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.dry_run != true)
         run: |
           if [ -f data/state.json ]; then
             git config user.name "github-actions[bot]"
