@@ -5341,10 +5341,10 @@ def btts_probability_estimate(home_all, away_all, home_venue, away_venue):
     away_recent = away_all["last5"] / max(1, away_all["last5_played"])
     recent_rate = (home_recent + away_recent) / 2.0
     # Give recent goals a 60% weight while retaining 40% broader competition form.
-    home_attack = 0.40 * home_venue["goals_for_avg"] + 0.60 * home_all["last5_goals_for_avg"]
-    away_attack = 0.40 * away_venue["goals_for_avg"] + 0.60 * away_all["last5_goals_for_avg"]
-    home_defence = 0.40 * home_venue["goals_against_avg"] + 0.60 * home_all["last5_goals_against_avg"]
-    away_defence = 0.40 * away_venue["goals_against_avg"] + 0.60 * away_all["last5_goals_against_avg"]
+    home_attack = 0.40 * home_venue["goals_for_avg"] + 0.60 * home_all.get("last5_goals_for_avg", home_all["goals_for_avg"])
+    away_attack = 0.40 * away_venue["goals_for_avg"] + 0.60 * away_all.get("last5_goals_for_avg", away_all["goals_for_avg"])
+    home_defence = 0.40 * home_venue["goals_against_avg"] + 0.60 * home_all.get("last5_goals_against_avg", home_all["goals_against_avg"])
+    away_defence = 0.40 * away_venue["goals_against_avg"] + 0.60 * away_all.get("last5_goals_against_avg", away_all["goals_against_avg"])
     lambda_home = max(0.05, (home_attack + away_defence) / 2.0)
     lambda_away = max(0.05, (away_attack + home_defence) / 2.0)
     poisson_rate = (1.0 - math.exp(-lambda_home)) * (1.0 - math.exp(-lambda_away))
