@@ -653,7 +653,7 @@ def repair_night_btts_telegram_heading(state):
 
 
 def repair_today_btts_batch_team_highlight(state):
-    """Repair recent delivered BTTS batches, including batches crossing Warsaw midnight."""
+    """Republish recent BTTS batches as a fresh clean list, preserving the exact picks."""
     now = now_local()
     repair_cutoff = now - timedelta(hours=48)
     groups = {}
@@ -663,7 +663,7 @@ def repair_today_btts_batch_team_highlight(state):
         if pick.get("delivery_status") != "sent" or not pick.get("telegram_batch_message"):
             continue
         message_id = pick.get("telegram_message_id")
-        if not message_id or int(pick.get("telegram_format_version") or 1) >= 5:
+        if not message_id or int(pick.get("telegram_format_version") or 1) >= 6:
             continue
         sent_at = pick.get("sent_at") or pick.get("date")
         try:
@@ -677,18 +677,28 @@ def repair_today_btts_batch_team_highlight(state):
             continue
         groups.setdefault(str(message_id), []).append(pick)
 
-    for message_id, picks in groups.items():
+    for old_message_id, picks in groups.items():
         picks.sort(key=lambda item: int(item.get("pick_number") or 0))
         day_key = picks[0].get("date") or now.date().isoformat()
         message = format_btts_ft_pick_list(picks, day_key)
-        telegram_edit_btts_pick(message, message_id, parse_mode="HTML")
+        response = telegram(message, parse_mode="HTML")
+        result = response.get("result", {}) if isinstance(response, dict) else {}
+        if isinstance(result, list):
+            result = result[0] if result else {}
+        new_message_id = result.get("message_id")
+        if not new_message_id:
+            raise RuntimeError("Telegram nie zwrócił message_id dla poprawionej listy BTTS.")
+        updated_at = now_local().isoformat()
         for pick in picks:
-            pick["telegram_format_version"] = 5
-            pick["telegram_format_updated_at"] = now_local().isoformat()
+            pick["telegram_previous_message_id"] = old_message_id
+            pick["telegram_message_id"] = new_message_id
+            pick["telegram_list_message_id"] = new_message_id
+            pick["telegram_format_version"] = 6
+            pick["telegram_format_updated_at"] = updated_at
         save_state(state)
         print(
-            f"POPRAWIONO CZYTELNOŚĆ LISTY BTTS: prosty układ bez diagnostyki modelu; "
-            f"typów={len(picks)}, Telegram ID={message_id}.",
+            f"WYSŁANO NOWĄ, POPRAWIONĄ LISTĘ BTTS: zachowano {len(picks)} tych samych typów; "
+            f"stara wiadomość ID={old_message_id}, nowa wiadomość ID={new_message_id}.",
             flush=True,
         )
 
