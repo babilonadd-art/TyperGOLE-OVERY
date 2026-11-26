@@ -603,17 +603,17 @@ def format_btts_ft_pick_message(pick, pick_number):
             f"Nie wysyłam BTTS bez potwierdzonej nazwy ligi: {home} - {away}"
         )
     message = (
-        f"{pick_number}. {home} – {away}\\n"
-        f"Liga: {league}\\n"
-        f"BTTS TAK (FT) | Kurs: {odds:.2f}\\n"
-        f"Godzina: {kickoff.strftime('%H:%M')} | {kickoff.strftime('%d.%m.%Y')}\\n"
+        f"{pick_number}. {home} – {away}\n"
+        f"Liga: {league}\n"
+        f"BTTS TAK (FT) | Kurs: {odds:.2f}\n"
+        f"Godzina: {kickoff.strftime('%H:%M')} | {kickoff.strftime('%d.%m.%Y')}\n"
         "Źródło kursu: Superbet"
     )
     return message
 
 
 def format_btts_ft_pick_list(picks, day_key):
-    """Format up to ten verified BTTS FT selections as one numbered daily list."""
+    """Format a clean, readable BTTS FT daily list without internal model diagnostics."""
     day_label = datetime.fromisoformat(str(day_key)).strftime("%d.%m.%Y")
     entries = []
     for index, pick in enumerate(picks, 1):
@@ -621,23 +621,15 @@ def format_btts_ft_pick_list(picks, day_key):
         kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
         home = html.escape(str(pick.get("home") or "Gospodarze"))
         away = html.escape(str(pick.get("away") or "Goście"))
-        league = html.escape(str(pick.get("league") or ""))
-        line = (
+        league = html.escape(str(pick.get("league") or pick.get("competition") or ""))
+        odds = float(pick.get("odds") or 0)
+        entries.append(
             f"<b>{number}.  {kickoff.strftime('%H:%M')}  |  {home} – {away}</b>\n"
-            f"{league}  •  BTTS TAK (FT)  •  Kurs: {float(pick.get('odds') or 0):.2f}"
+            f"{league}\n"
+            f"⚽ BTTS TAK (CAŁY MECZ)  |  Kurs: <b>{odds:.2f}</b>"
         )
-        probability = (pick.get("analysis") or {}).get("metrics", {}).get("model_probability")
-        if probability is not None:
-            line += f" | Model: {float(probability):.0%}"
-        points = (pick.get("analysis") or {}).get("metrics", {}).get("score_points")
-        if points is not None:
-            line += f" | Ocena: {float(points):.1f}/100 pkt"
-        if pick.get("risk_tier") == "LOW_DAY":
-            line += "\n⚠️ Niższa ocena modelu — typ podwyższonego ryzyka"
-        entries.append(line)
     heading = "⚽ <b>LISTA BTTS FT — TYPY DNIA</b>"
-    return "\n".join((heading, f"📅 {day_label}", f"📋 Zweryfikowane typy: {len(picks)}/10", "", *entries))
-
+    return "\n\n".join((heading, f"📅 {day_label}", f"Zweryfikowane typy: {len(picks)}", *entries))
 def repair_night_btts_telegram_heading(state):
     """Add the prominent overnight heading to the already delivered night batch."""
     if state.get("btts_night_heading_677_done"):
@@ -6884,12 +6876,12 @@ def send_manual_archive_resend(state):
         message = format_btts_ft_pick_message(item, int(item.get("pick_number") or 1))
     else:
         message = (
-            "🧪 ARCHIWALNY TEST WYSYŁKI — MECZ ZAKOŃCZONY\\n"
-            f"⚽ {home} – {away}\\n"
-            f"🏆 Liga: {item.get('league', 'Brazylia')}\\n"
-            f"🎯 Rynek: {item.get('market', 'typ archiwalny')}\\n"
-            f"📈 Kurs z wcześniejszego typu: {float(item.get('odds', 0)):.2f}\\n"
-            f"🏁 Wynik końcowy: {item.get('result', 'brak')}\\n"
+            "🧪 ARCHIWALNY TEST WYSYŁKI — MECZ ZAKOŃCZONY\n"
+            f"⚽ {home} – {away}\n"
+            f"🏆 Liga: {item.get('league', 'Brazylia')}\n"
+            f"🎯 Rynek: {item.get('market', 'typ archiwalny')}\n"
+            f"📈 Kurs z wcześniejszego typu: {float(item.get('odds', 0)):.2f}\n"
+            f"🏁 Wynik końcowy: {item.get('result', 'brak')}\n"
             "To wyłącznie test wysyłki i herbów — nie jest aktualnym typem."
         )
     response = telegram(message)
