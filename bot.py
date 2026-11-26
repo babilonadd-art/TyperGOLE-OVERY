@@ -5340,8 +5340,13 @@ def btts_probability_estimate(home_all, away_all, home_venue, away_venue):
     home_recent = home_all["last5"] / max(1, home_all["last5_played"])
     away_recent = away_all["last5"] / max(1, away_all["last5_played"])
     recent_rate = (home_recent + away_recent) / 2.0
-    lambda_home = max(0.05, (home_venue["goals_for_avg"] + away_venue["goals_against_avg"]) / 2.0)
-    lambda_away = max(0.05, (away_venue["goals_for_avg"] + home_venue["goals_against_avg"]) / 2.0)
+    # Give recent goals a 60% weight while retaining 40% broader competition form.
+    home_attack = 0.40 * home_venue["goals_for_avg"] + 0.60 * home_all["last5_goals_for_avg"]
+    away_attack = 0.40 * away_venue["goals_for_avg"] + 0.60 * away_all["last5_goals_for_avg"]
+    home_defence = 0.40 * home_venue["goals_against_avg"] + 0.60 * home_all["last5_goals_against_avg"]
+    away_defence = 0.40 * away_venue["goals_against_avg"] + 0.60 * away_all["last5_goals_against_avg"]
+    lambda_home = max(0.05, (home_attack + away_defence) / 2.0)
+    lambda_away = max(0.05, (away_attack + home_defence) / 2.0)
     poisson_rate = (1.0 - math.exp(-lambda_home)) * (1.0 - math.exp(-lambda_away))
     raw_probability = 0.40 * venue_rate + 0.25 * season_rate + 0.20 * recent_rate + 0.15 * poisson_rate
 
@@ -5944,6 +5949,8 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
             "last5_played": len(last5),
             "last5_scored": sum(item["goals_for"] > 0 for item in last5),
             "last5_conceded": sum(item["goals_against"] > 0 for item in last5),
+            "last5_goals_for_avg": sum(item["goals_for"] for item in last5) / len(last5),
+            "last5_goals_against_avg": sum(item["goals_against"] for item in last5) / len(last5),
             "btts_count": sum(item["btts"] for item in selected),
             "last5_clean_sheets": sum(item["clean_sheet"] for item in last5),
             "last3_btts_count": sum(item["btts"] for item in last3),
@@ -6257,14 +6264,14 @@ def btts_1x2_risk_gate(one_x_two, metrics):
 
 
 def btts_prematch_odds_gate(btts_quote):
-    """Require standalone FT BTTS YES odds from 1.55 through 2.40."""
+    """Require standalone FT BTTS YES odds from 1.60 through 2.40."""
     if not isinstance(btts_quote, dict):
         return False
     try:
         btts_odds = float(btts_quote.get("odds"))
     except (TypeError, ValueError):
         return False
-    return 1.55 <= btts_odds <= 2.40
+    return 1.60 <= btts_odds <= 2.40
 
 
 def render_btts_double_graphic(pair):
@@ -6753,11 +6760,12 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             probability = float(metrics.get("model_probability") or 0)
             edge = float(metrics.get("value_edge") or 0)
             reliability = float(metrics.get("sample_reliability") or 0)
+            # Temporary relaxed gate for broader coverage in smaller leagues.
             passed = (
-                score >= 60.0
-                and probability >= 0.57
-                and edge >= 0.025
-                and reliability >= 0.50
+                score >= 50.0
+                and probability >= 0.54
+                and edge >= 0.005
+                and reliability >= 0.35
             )
             return passed, score, probability, edge, reliability
 
