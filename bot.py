@@ -5796,12 +5796,12 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
     # named club teams as national-team form; use the explicit market-only
     # fallback below for this competition instead.
     if is_uefa_nations_league_competition(league):
-        team_rows = []
         print(
-            f"BTTS: {league} — brak dedykowanej historii reprezentacji w Open Matchday; "
-            "nie używam historii klubowej, przechodzę do jawnej analizy rynkowej.",
+            f"BTTS: {league} — brak dedykowanej historii reprezentacji; "
+            "odrzucam analizę statystyczną, nie używam historii klubowej.",
             flush=True,
         )
+        return reject("brak zweryfikowanej historii reprezentacji dla Ligi Narodów")
     else:
         team_rows = same_competition
     if not team_rows:
