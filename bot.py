@@ -666,7 +666,7 @@ def repair_today_btts_batch_team_highlight(state):
         message_id = pick.get("telegram_message_id")
         if not message_id:
             continue
-        if int(pick.get("telegram_format_version") or 1) >= 2:
+        if int(pick.get("telegram_format_version") or 1) >= 5:
             continue
         groups.setdefault(str(message_id), []).append(pick)
 
@@ -676,11 +676,11 @@ def repair_today_btts_batch_team_highlight(state):
         message = format_btts_ft_pick_list(picks, day_key)
         telegram_edit_btts_pick(message, message_id, parse_mode="HTML")
         for pick in picks:
-            pick["telegram_format_version"] = 2
+            pick["telegram_format_version"] = 5
             pick["telegram_format_updated_at"] = now_local().isoformat()
         save_state(state)
         print(
-            f"POPRAWIONO WYGLĄD LISTY BTTS: czerwone znaczniki i pogrubione drużyny; "
+            f"POPRAWIONO CZYTELNOŚĆ LISTY BTTS: prosty układ bez diagnostyki modelu; "
             f"typów={len(picks)}, Telegram ID={message_id}.",
             flush=True,
         )
