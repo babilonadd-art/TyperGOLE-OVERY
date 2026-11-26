@@ -6743,17 +6743,52 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             flush=True,
         )
 
-        # Doubles remain based on the four strongest analyzed picks,
-        # independently of the chronological order used in the public list.
-        # If there are fewer than two picks, the list is still sent on its own.
+        # Doubles have a separate quality gate. A candidate is NOT included
+        # just because it ranks in the daily TOP10: it must show a credible
+        # model probability, positive price edge, adequate sample reliability
+        # and a strong overall score. If fewer than two pass, publish no double.
+        def double_quality(pick):
+            metrics = (pick.get("analysis") or {}).get("metrics", {})
+            score = float(metrics.get("score_points") or 0)
+            probability = float(metrics.get("model_probability") or 0)
+            edge = float(metrics.get("value_edge") or 0)
+            reliability = float(metrics.get("sample_reliability") or 0)
+            passed = (
+                score >= 60.0
+                and probability >= 0.57
+                and edge >= 0.025
+                and reliability >= 0.50
+            )
+            return passed, score, probability, edge, reliability
+
+        double_pool = []
+        for pick in batch_picks:
+            passed, score, probability, edge, reliability = double_quality(pick)
+            print(
+                f"BTTS DUBLE GATE: {pick.get('home')} - {pick.get('away')}: "
+                f"{'PASS' if passed else 'REJECT'}; score={score:.1f}, "
+                f"P={probability:.1%}, edge={edge:.1%}, reliability={reliability:.2f}.",
+                flush=True,
+            )
+            if passed:
+                double_pool.append(pick)
+
         double_picks = sorted(
-            batch_picks,
+            double_pool,
             key=lambda pick: (
                 -float((pick.get("analysis") or {}).get("metrics", {}).get("score_points") or 0),
+                -float((pick.get("analysis") or {}).get("metrics", {}).get("model_probability") or 0),
+                -float((pick.get("analysis") or {}).get("metrics", {}).get("value_edge") or 0),
                 kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local(),
             ),
         )[:4]
         total_doubles = len(double_picks) // 2
+        if total_doubles == 0:
+            print(
+                f"BTTS DUBLE: tylko {len(double_picks)}/2 wymaganych mocnych kandydatów "
+                "przeszło osobny próg jakości; nie wysyłam słabego dubla.",
+                flush=True,
+            )
         if total_doubles:
             # A separate Telegram heading clearly separates the daily list
             # from the double posters; no timed delay is used.
