@@ -24,7 +24,7 @@ concurrency:
 jobs:
   btts-ft:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 9
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
