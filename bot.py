@@ -6214,7 +6214,7 @@ def btts_prematch_odds_gate(btts_quote):
 
 
 def render_btts_double_graphic(pair):
-    """Write two BTTS selections into the three fields of the user's original poster."""
+    """Place each BTTS match in the original poster: teams left, large match odds right."""
     from decimal import Decimal, ROUND_HALF_UP
     from PIL import Image, ImageDraw, ImageFont
 
@@ -6258,8 +6258,8 @@ def render_btts_double_graphic(pair):
         y = y1 + (y2 - y1 - text_height) / 2 - text_bounds[1]
         draw.text((int(x), int(y)), value, font=selected_font, fill=color)
 
-    # These are the three existing red-framed fields on the supplied 720x1640 poster.
-    # Do not resize, crop, redraw, or replace any part of the original artwork.
+    # Keep the original 720x1640 artwork intact; only fill its two match boxes
+    # and the combined-odds box.
     match_fields = ((24, 716, 696, 846), (24, 852, 696, 982))
     total_odds_field = (24, 988, 696, 1120)
     leg_odds = []
@@ -6288,31 +6288,53 @@ def render_btts_double_graphic(pair):
             raise ValueError(f"Brak potwierdzonej godziny rozpoczęcia meczu {index + 1}.")
 
         x1, y1, x2, y2 = match_fields[index]
+        divider_x = x2 - 164
+        left_bounds = (x1 + 14, y1 + 4, divider_x - 12, y2 - 4)
+        right_bounds = (divider_x + 8, y1 + 4, x2 - 8, y2 - 4)
+
+        # Competition stays readable, team names get the full left-hand area.
+        centered_text(
+            (left_bounds[0], y1 + 5, left_bounds[2], y1 + 29),
+            league,
+            fitted_font(league, left_bounds[2] - left_bounds[0], 18, 12),
+            (255, 218, 164),
+        )
         fixture = f"{home} – {away}"
         centered_text(
-            (x1 + 20, y1 + 10, x2 - 20, y1 + 70),
+            (left_bounds[0], y1 + 29, left_bounds[2], y1 + 82),
             fixture,
-            fitted_font(fixture, x2 - x1 - 40, 38, 23),
+            fitted_font(fixture, left_bounds[2] - left_bounds[0], 34, 17),
+            (255, 255, 255),
+        )
+        time_text = kickoff.strftime("%H:%M")
+        centered_text(
+            (left_bounds[0], y1 + 82, left_bounds[2], y2 - 5),
+            time_text,
+            fitted_font(time_text, left_bounds[2] - left_bounds[0], 34, 27),
             (255, 255, 255),
         )
 
-        details = (
-            f"{league}  •  {kickoff.strftime('%d.%m %H:%M')}  •  KURS {odds:.2f}"
+        # Clear vertical separator; the individual match price is prominent on its right.
+        draw.line(
+            (divider_x, y1 + 12, divider_x, y2 - 12),
+            fill=(255, 218, 164),
+            width=3,
         )
         centered_text(
-            (x1 + 18, y1 + 72, x2 - 18, y2 - 8),
-            details,
-            fitted_font(details, x2 - x1 - 36, 20, 13),
-            (255, 218, 164),
+            right_bounds,
+            f"{odds:.2f}",
+            fitted_font(f"{odds:.2f}", right_bounds[2] - right_bounds[0] - 8, 58, 38),
+            (255, 255, 255),
         )
 
     combined = (leg_odds[0] * leg_odds[1]).quantize(
         Decimal("0.01"), rounding=ROUND_HALF_UP
     )
+    total_text = f"KURS ŁĄCZNY: {combined:.2f}"
     centered_text(
         total_odds_field,
-        f"KURS ŁĄCZNY: {combined:.2f}",
-        fitted_font(f"KURS ŁĄCZNY: {combined:.2f}", 630, 44, 28),
+        total_text,
+        fitted_font(total_text, 630, 44, 28),
         (255, 255, 255),
     )
 
