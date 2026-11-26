@@ -6036,10 +6036,11 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
         "xg_available": False,
         "lineups_available": False,
     }
-    # Dodatkowa kontrola tendencji do spalonych (nie wpływa na model BTTS).
-    offside_data = statsbomb_offside_history(home, away, kickoff, league)
-    metrics["offside_stats"] = offside_data
-    metrics["offside_stats_available"] = bool(offside_data)
+    # StatsBomb offside history is unrelated to BTTS scoring and can require
+    # many slow event downloads. Keep this optional field empty; do not block
+    # the BTTS scan on a statistic that contributes zero points to this model.
+    metrics["offside_stats"] = None
+    metrics["offside_stats_available"] = False
     metrics.update({
         "score_points": round(total_points, 1),
         "base_points": round(base_points, 1),
