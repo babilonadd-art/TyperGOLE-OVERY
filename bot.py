@@ -6241,11 +6241,13 @@ def render_btts_double_graphic(pair):
     def font(size):
         return ImageFont.truetype(font_path, size)
 
-    def fitted_font(value, max_width, high, low):
+    def fitted_font(value, max_width, high, low, max_height=None):
         for size in range(high, low - 1, -1):
             selected = font(size)
             bounds = draw.textbbox((0, 0), value, font=selected)
-            if bounds[2] - bounds[0] <= max_width:
+            width = bounds[2] - bounds[0]
+            height = bounds[3] - bounds[1]
+            if width <= max_width and (max_height is None or height <= max_height):
                 return selected
         return font(low)
 
@@ -6295,39 +6297,53 @@ def render_btts_double_graphic(pair):
         # red divider as the only separation. The wider left area prioritizes teams.
         divider_x = x2 - 154
         left_x1, left_x2 = x1 + 18, divider_x - 8
-        # League and kickoff share the narrow top strip. The time is kept
-        # compact on the right; no separate bottom line can spill out of the
-        # original match frame.
+        # One compact header row: competition and kickoff both stay fully
+        # inside the left-hand match field. The kickoff gets a fixed, narrow
+        # cell and is reduced by both width AND height before drawing.
         time_text = kickoff.strftime("%H:%M")
-        league_bounds = (left_x1, y1 + 3, left_x2 - 82, y1 + 27)
-        time_bounds = (left_x2 - 80, y1 + 3, left_x2, y1 + 27)
+        league_bounds = (left_x1, y1 + 4, left_x2 - 78, y1 + 25)
+        time_bounds = (left_x2 - 76, y1 + 4, left_x2 - 2, y1 + 25)
         centered_text(
             league_bounds,
             league,
-            fitted_font(league, league_bounds[2] - league_bounds[0] - 4, 16, 10),
+            fitted_font(
+                league, league_bounds[2] - league_bounds[0] - 8,
+                14, 9, league_bounds[3] - league_bounds[1] - 4,
+            ),
             (255, 218, 164),
         )
         centered_text(
             time_bounds,
             time_text,
-            fitted_font(time_text, time_bounds[2] - time_bounds[0] - 4, 20, 16),
+            fitted_font(
+                time_text, time_bounds[2] - time_bounds[0] - 8,
+                15, 11, time_bounds[3] - time_bounds[1] - 4,
+            ),
             (255, 255, 255),
-            stroke_width=1,
+            stroke_width=0,
         )
 
-        # Separate team names onto two bold lines. Both stay inside the
-        # original frame, with no extra time row below them.
+        # Team names occupy the remaining two rows; cap font height as well
+        # as width so long names cannot protrude beyond the original frame.
+        home_bounds = (left_x1, y1 + 29, left_x2, y1 + 75)
+        away_bounds = (left_x1, y1 + 73, left_x2, y2 - 4)
         centered_text(
-            (left_x1, y1 + 30, left_x2, y1 + 75),
+            home_bounds,
             home,
-            fitted_font(home, left_x2 - left_x1 - 10, 34, 23),
+            fitted_font(
+                home, home_bounds[2] - home_bounds[0] - 10,
+                32, 20, home_bounds[3] - home_bounds[1] - 6,
+            ),
             (255, 255, 255),
             stroke_width=1,
         )
         centered_text(
-            (left_x1, y1 + 72, left_x2, y2 - 4),
+            away_bounds,
             away,
-            fitted_font(away, left_x2 - left_x1 - 10, 34, 23),
+            fitted_font(
+                away, away_bounds[2] - away_bounds[0] - 10,
+                32, 20, away_bounds[3] - away_bounds[1] - 6,
+            ),
             (255, 255, 255),
             stroke_width=1,
         )
