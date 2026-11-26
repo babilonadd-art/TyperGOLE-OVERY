@@ -61,10 +61,10 @@ def now_local():
     return datetime.now(TZ)
 
 
-# Maksymalnie 4 nowe typy BTTS FT na dzień (Europe/Warsaw); historia zostaje zachowana.
-# Ręczny reset limitu zapisuje counts_toward_daily_limit=False w dzisiejszych wpisach, nie kasując historii.
-# Ręczne ponowne uruchomienie skanowania po resecie historii typów.
-MAX_DAILY_BTTS_FT_PICKS = 4
+# Cel: lista do 10 zweryfikowanych typów BTTS FT dziennie (Europe/Warsaw).
+# Dwa duble są budowane z czterech najwyżej ocenionych pozycji z tej listy.
+# Nie wolno dopisywać fikcyjnych kursów ani obniżać jakości tylko dla osiągnięcia celu.
+MAX_DAILY_BTTS_FT_PICKS = 10
 
 
 def daily_sent_match_count(state, day):
@@ -612,39 +612,31 @@ def format_btts_ft_pick_message(pick, pick_number):
 
 
 def format_btts_ft_pick_list(picks, day_key):
-    """Format BTTS FT selections as up to two complete two-match doubles."""
+    """Format up to ten verified BTTS FT selections as one numbered daily list."""
     day_label = datetime.fromisoformat(str(day_key)).strftime("%d.%m.%Y")
     entries = []
-    for double_no in range(len(picks) // 2):
-        pair = picks[double_no * 2:double_no * 2 + 2]
-        entries.append(f"💥 <b>DUBEL {double_no + 1}</b>")
-        for index, pick in enumerate(pair, 1):
-            number = int(pick.get("pick_number") or (double_no * 2 + index))
-            kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
-            home = html.escape(str(pick.get("home") or "Gospodarze"))
-            away = html.escape(str(pick.get("away") or "Goście"))
-            league = html.escape(str(pick.get("league") or ""))
-            line = (
-                f"{number}. 🔴 <b>{home}</b> – 🔴 <b>{away}</b>\n"
-                f"Liga: {league}\n"
-                f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}"
-            )
-            probability = (pick.get("analysis") or {}).get("metrics", {}).get("model_probability")
-            if probability is not None:
-                line += f" | Model: {float(probability):.0%}"
-            points = (pick.get("analysis") or {}).get("metrics", {}).get("score_points")
-            if points is not None:
-                line += f" | Ocena: {float(points):.1f}/100 pkt"
-            if pick.get("risk_tier") == "LOW_DAY":
-                line += "\n⚠️ TRYB SŁABSZEGO DNIA — niższa pewność"
-            line += f"\nGodzina: {kickoff.strftime('%H:%M')}"
-            entries.append(line)
-    night_hours = [(kickoff_datetime({"kickoff_time": p.get("kickoff_time")}) or now_local()).hour for p in picks]
-    if night_hours and all(0 <= hour <= 5 for hour in night_hours):
-        heading = "\n".join(("🌙🌙🌙", "🔥  N O C N E   D U B L E  🔥", "🌙🌙🌙"))
-    else:
-        heading = "⚽ BTTS TAK — DUBLE DNIA"
-    return "\n".join((heading, f"📅 {day_label}", "", *entries))
+    for index, pick in enumerate(picks, 1):
+        number = int(pick.get("pick_number") or index)
+        kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")}) or now_local()
+        home = html.escape(str(pick.get("home") or "Gospodarze"))
+        away = html.escape(str(pick.get("away") or "Goście"))
+        league = html.escape(str(pick.get("league") or ""))
+        line = (
+            f"{number}. <b>{home} – {away}</b>\\n"
+            f"🏆 {league} | 🕒 {kickoff.strftime('%H:%M')}\\n"
+            f"BTTS TAK (FT) | Kurs: {float(pick.get('odds') or 0):.2f}"
+        )
+        probability = (pick.get("analysis") or {}).get("metrics", {}).get("model_probability")
+        if probability is not None:
+            line += f" | Model: {float(probability):.0%}"
+        points = (pick.get("analysis") or {}).get("metrics", {}).get("score_points")
+        if points is not None:
+            line += f" | Ocena: {float(points):.1f}/100 pkt"
+        if pick.get("risk_tier") == "LOW_DAY":
+            line += "\\n⚠️ Niższa pewność (ocena 52–59.9/100)"
+        entries.append(line)
+    heading = "⚽ <b>LISTA BTTS FT — TYPY DNIA</b>"
+    return "\\n".join((heading, f"📅 {day_label}", f"📋 Zweryfikowane typy: {len(picks)}/10", "", *entries))
 
 def repair_night_btts_telegram_heading(state):
     """Add the prominent overnight heading to the already delivered night batch."""
@@ -6536,24 +6528,25 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         -float(item["history_analysis"].get("metrics", {}).get("stat_value_edge") or 0),
         item["kickoff"], item["home"], item["away"],
     ))
-    strong = [x for x in ranked_candidates if float(x["history_analysis"]["metrics"].get("score_points") or 0) >= 60]
-    if len(strong) >= 4:
-        eligible = strong[:4]
-        print("BTTS FT: tryb normalny — TOP 4 z wynikiem co najmniej 60/100.", flush=True)
-    else:
-        eligible = [x for x in ranked_candidates if float(x["history_analysis"]["metrics"].get("score_points") or 0) >= 52][:2]
-        if len(eligible) < 2:
-            eligible = []
-        for candidate in eligible:
-            candidate["risk_tier"] = (
-                "MAIN" if float(candidate["history_analysis"]["metrics"].get("score_points") or 0) >= 60
-                else "LOW_DAY"
-            )
-        print(
-            f"BTTS FT: elastyczny próg — {len(eligible)} mecze w trybie słabszego dnia "
-            "(minimum 52/100); bez wciskania drugiego dubla.",
-            flush=True,
+    # Publish up to ten ranked candidates that meet the existing minimum score.
+    # Scores >=60 are MAIN; scores 52–59.9 are visibly marked as lower confidence.
+    # Never manufacture picks to fill the requested ten slots.
+    eligible = [
+        x for x in ranked_candidates
+        if float(x["history_analysis"]["metrics"].get("score_points") or 0) >= 52
+    ][:10]
+    for candidate in eligible:
+        candidate["risk_tier"] = (
+            "MAIN" if float(candidate["history_analysis"]["metrics"].get("score_points") or 0) >= 60
+            else "LOW_DAY"
         )
+    print(
+        f"BTTS FT: lista dnia — {len(eligible)}/10 zweryfikowanych kandydatów "
+        "(minimum 52/100; pozycje 52–59.9 oznaczone niższą pewnością).",
+        flush=True,
+    )
+
+
     print(
         f"Superbet BTTS FT: terminarz={len(fixtures)}, "
         f"rynek BTTS FT z kursem 1.55–2.40={len(eligible)}; "
@@ -6637,28 +6630,52 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         return
 
     try:
-        total_doubles = len(batch_picks) // 2
-        telegram("🔥 KOLEJNY DZIEŃ Z BTTS 🔥")
+        # Publish the complete numbered daily list first. Its message ID is
+        # canonical for settlement follow-ups and edits.
+        list_response = telegram(
+            format_btts_ft_pick_list(batch_picks, day_key), parse_mode="HTML"
+        )
+        list_result = list_response.get("result", {}) if isinstance(list_response, dict) else {}
+        if isinstance(list_result, list):
+            list_result = list_result[0] if list_result else {}
+        list_message_id = list_result.get("message_id")
+        if not list_message_id:
+            raise RuntimeError("Telegram nie zwrócił message_id dla listy BTTS.")
+        sent_at = now_local().isoformat()
+        for pick in batch_picks:
+            pick["telegram_message_id"] = list_message_id
+            pick["telegram_list_message_id"] = list_message_id
+            pick["telegram_format_version"] = 4
+            pick["delivery_status"] = "sent"
+            pick["sent_at"] = sent_at
+        save_state(state)
+        print(
+            f"WYSŁANO LISTĘ BTTS FT: {len(batch_picks)}/10 typów; Telegram ID={list_message_id}.",
+            flush=True,
+        )
+
+        # Two doubles use the four highest-ranked picks from the daily list.
+        # Remaining entries stay as individual selections in the list.
+        double_picks = batch_picks[:4]
+        total_doubles = len(double_picks) // 2
         for double_index in range(total_doubles):
-            pair = batch_picks[double_index * 2:double_index * 2 + 2]
-            message_id = send_btts_double_photo(pair, double_index + 1, total_doubles)
-            sent_at = now_local().isoformat()
+            pair = double_picks[double_index * 2:double_index * 2 + 2]
+            double_message_id = send_btts_double_photo(pair, double_index + 1, total_doubles)
             for pick in pair:
-                pick["telegram_message_id"] = message_id
                 pick["telegram_double_number"] = double_index + 1
-                pick["telegram_format_version"] = 3
-                pick["delivery_status"] = "sent"
-                pick["sent_at"] = sent_at
+                pick["telegram_double_message_id"] = double_message_id
+                pick["telegram_double_sent_at"] = now_local().isoformat()
             save_state(state)
             print(
                 f"WYSŁANO BTTS DUBEL {double_index + 1}/{total_doubles}: "
                 f"{pair[0].get('home')} - {pair[0].get('away')} + "
-                f"{pair[1].get('home')} - {pair[1].get('away')}; Telegram ID={message_id}.",
+                f"{pair[1].get('home')} - {pair[1].get('away')}; Telegram ID={double_message_id}.",
                 flush=True,
             )
             if double_index + 1 < total_doubles:
                 send_btts_double_spacer()
                 time.sleep(1.2)
+
     except Exception as exc:
         for pick in batch_picks:
             if pick.get("delivery_status") != "sent":
