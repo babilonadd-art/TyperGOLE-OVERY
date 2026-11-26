@@ -6214,7 +6214,7 @@ def btts_prematch_odds_gate(btts_quote):
 
 
 def render_btts_double_graphic(pair):
-    """Place each BTTS match in the original poster: teams left, large match odds right."""
+    """Fill the original BTTS poster fields with clear, balanced match details."""
     from decimal import Decimal, ROUND_HALF_UP
     from PIL import Image, ImageDraw, ImageFont
 
@@ -6244,22 +6244,25 @@ def render_btts_double_graphic(pair):
     def fitted_font(value, max_width, high, low):
         for size in range(high, low - 1, -1):
             selected = font(size)
-            bounds = draw.textbbox((0, 0), value, font=selected, stroke_width=0)
+            bounds = draw.textbbox((0, 0), value, font=selected)
             if bounds[2] - bounds[0] <= max_width:
                 return selected
         return font(low)
 
-    def centered_text(bounds, value, selected_font, color):
+    def centered_text(bounds, value, selected_font, color, stroke_width=0):
         x1, y1, x2, y2 = bounds
-        text_bounds = draw.textbbox((0, 0), value, font=selected_font)
+        text_bounds = draw.textbbox((0, 0), value, font=selected_font, stroke_width=stroke_width)
         text_width = text_bounds[2] - text_bounds[0]
         text_height = text_bounds[3] - text_bounds[1]
         x = x1 + (x2 - x1 - text_width) / 2 - text_bounds[0]
         y = y1 + (y2 - y1 - text_height) / 2 - text_bounds[1]
-        draw.text((int(x), int(y)), value, font=selected_font, fill=color)
+        draw.text(
+            (int(x), int(y)), value, font=selected_font, fill=color,
+            stroke_width=stroke_width, stroke_fill=(12, 12, 12),
+        )
 
-    # Keep the original 720x1640 artwork intact; only fill its two match boxes
-    # and the combined-odds box.
+    # Preserve the original artwork and its existing red divider. Do not draw
+    # an extra pale separator or create an editor-like overlay.
     match_fields = ((24, 716, 696, 846), (24, 852, 696, 982))
     total_odds_field = (24, 988, 696, 1120)
     leg_odds = []
@@ -6288,43 +6291,50 @@ def render_btts_double_graphic(pair):
             raise ValueError(f"Brak potwierdzonej godziny rozpoczęcia meczu {index + 1}.")
 
         x1, y1, x2, y2 = match_fields[index]
-        divider_x = x2 - 164
-        left_bounds = (x1 + 14, y1 + 4, divider_x - 12, y2 - 4)
-        right_bounds = (divider_x + 8, y1 + 4, x2 - 8, y2 - 4)
-
-        # Competition stays readable, team names get the full left-hand area.
+        # Keep the odds in the right-hand price field, using the poster's own
+        # red divider as the only separation. The wider left area prioritizes teams.
+        divider_x = x2 - 154
+        left_x1, left_x2 = x1 + 18, divider_x - 8
         centered_text(
-            (left_bounds[0], y1 + 5, left_bounds[2], y1 + 29),
+            (left_x1, y1 + 3, left_x2, y1 + 27),
             league,
-            fitted_font(league, left_bounds[2] - left_bounds[0], 18, 12),
+            fitted_font(league, left_x2 - left_x1, 17, 12),
             (255, 218, 164),
         )
-        fixture = f"{home} – {away}"
+
+        # Separate team names onto two bold lines instead of shrinking a long
+        # combined fixture string until it becomes hard to read.
         centered_text(
-            (left_bounds[0], y1 + 29, left_bounds[2], y1 + 82),
-            fixture,
-            fitted_font(fixture, left_bounds[2] - left_bounds[0], 34, 17),
+            (left_x1, y1 + 28, left_x2, y1 + 70),
+            home,
+            fitted_font(home, left_x2 - left_x1 - 10, 34, 23),
             (255, 255, 255),
+            stroke_width=1,
+        )
+        centered_text(
+            (left_x1, y1 + 66, left_x2, y1 + 108),
+            away,
+            fitted_font(away, left_x2 - left_x1 - 10, 34, 23),
+            (255, 255, 255),
+            stroke_width=1,
         )
         time_text = kickoff.strftime("%H:%M")
         centered_text(
-            (left_bounds[0], y1 + 82, left_bounds[2], y2 - 5),
+            (left_x1, y1 + 105, left_x2, y2 - 3),
             time_text,
-            fitted_font(time_text, left_bounds[2] - left_bounds[0], 34, 27),
+            fitted_font(time_text, left_x2 - left_x1 - 12, 25, 21),
             (255, 255, 255),
+            stroke_width=1,
         )
 
-        # Clear vertical separator; the individual match price is prominent on its right.
-        draw.line(
-            (divider_x, y1 + 12, divider_x, y2 - 12),
-            fill=(255, 218, 164),
-            width=3,
-        )
+        odds_bounds = (divider_x + 3, y1 + 5, x2 - 5, y2 - 5)
+        odds_text = f"{odds:.2f}"
         centered_text(
-            right_bounds,
-            f"{odds:.2f}",
-            fitted_font(f"{odds:.2f}", right_bounds[2] - right_bounds[0] - 8, 58, 38),
+            odds_bounds,
+            odds_text,
+            fitted_font(odds_text, odds_bounds[2] - odds_bounds[0] - 8, 54, 40),
             (255, 255, 255),
+            stroke_width=1,
         )
 
     combined = (leg_odds[0] * leg_odds[1]).quantize(
@@ -6336,6 +6346,7 @@ def render_btts_double_graphic(pair):
         total_text,
         fitted_font(total_text, 630, 44, 28),
         (255, 255, 255),
+        stroke_width=1,
     )
 
     output = io.BytesIO()
