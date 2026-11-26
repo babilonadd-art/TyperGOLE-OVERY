@@ -6494,6 +6494,8 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
                 print(f"Superbet BTTS FT: błąd pobierania rynku: {type(exc).__name__}: {exc}", flush=True)
 
     eligible = []
+    market_quotes_in_range = 0
+    history_rejected = 0
     for item in shortlist:
         detail = event_details.get(item["event_id"])
         if not detail:
@@ -6503,6 +6505,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             if quote:
                 print(f"Superbet BTTS FT: kurs {quote.get('odds')} poza zakresem 1.55–2.40 — {item['home']} - {item['away']}.", flush=True)
             continue
+        market_quotes_in_range += 1
         one_x_two = extract_superbet_1x2_full_time(detail)
         # Kurs 1X2 jest kryterium punktowym, a nie twardym filtrem.
         # Brak danych 1X2 oznacza 0 punktów w tym kryterium.
@@ -6511,12 +6514,25 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             league=item["league"], odds=quote.get("odds"), one_x_two=one_x_two,
         )
         if not history_analysis:
+            history_rejected += 1
             print(
                 f"BTTS FT: odrzut historyczny {item['home']} - {item['away']} "
                 "(brak wystarczających/powtarzalnych danych BTTS).",
                 flush=True,
             )
             continue
+        metrics = history_analysis.get("metrics", {})
+        print(
+            f"BTTS FT OCENA: {item['home']} - {item['away']}: "
+            f"{metrics.get('score_points', 0)}/100 "
+            f"(forma={metrics.get('form_points', 0)}, "
+            f"atak/obrona={metrics.get('attack_defence_points', 0)}, "
+            f"1X2={metrics.get('balance_points', 0)}, "
+            f"value={metrics.get('value_points', 0)}, "
+            f"H2H={metrics.get('h2h_points', 0)}); "
+            f"kurs BTTS={quote.get('odds')}.",
+            flush=True,
+        )
         eligible.append({
             **item, "quote": quote, "one_x_two": one_x_two,
             "history_analysis": history_analysis,
@@ -6548,8 +6564,12 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
 
 
     print(
-        f"Superbet BTTS FT: terminarz={len(fixtures)}, "
-        f"rynek BTTS FT z kursem 1.55–2.40={len(eligible)}; "
+        f"Superbet BTTS FT DIAGNOSTYKA: terminarz={len(fixtures)}, "
+        f"ligowe spotkania po filtrach={len(shortlist)}, "
+        f"potwierdzone kursy BTTS FT 1.55–2.40={market_quotes_in_range}, "
+        f"odrzuty z braku historii={history_rejected}, "
+        f"z historią do oceny={len(ranked_candidates)}, "
+        f"wynik minimum 52/100={len(eligible)}; "
         f"źródło kursów=Superbet public feed (bez BSD_API_TOKEN).",
         flush=True,
     )
