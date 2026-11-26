@@ -27,6 +27,7 @@ OPENFOOTBALL_BASE = "https://raw.githubusercontent.com/openfootball/football.jso
 OPENFOOTBALL_FILES = ("de.1.json", "en.1.json", "en.2.json", "es.1.json", "fr.1.json", "it.1.json", "nl.1.json", "pt.1.json")
 OPENFOOTBALL_REPOS = ("europe", "england", "espana", "italy", "deutschland", "austria", "belgium", "south-america", "world", "champions-league")
 _OPENFOOTBALL_CACHE = None
+_OPENFOOTBALL_TEXT_CACHE = None
 _OPEN_MATCHDAY_CACHE = None
 _SPORTSCORE_SETTLEMENT_CACHE = {}
 BSD_API = "https://sports.bzzoiro.com"
@@ -5436,7 +5437,26 @@ def openfootball_text_match_rows(repo, path, raw_text, season):
 
 
 def openfootball_text_results(season):
-    """Discover current-season Football.TXT files across OpenFootball country repositories."""
+    """Load completed Football.TXT results across public OpenFootball repositories; cache for 20h."""
+    global _OPENFOOTBALL_TEXT_CACHE
+    if _OPENFOOTBALL_TEXT_CACHE is not None:
+        return _OPENFOOTBALL_TEXT_CACHE
+
+    cache_path = Path("data/openfootball_text_cache.json")
+    cached = {}
+    try:
+        cached = json.loads(cache_path.read_text(encoding="utf-8"))
+        fetched_at = datetime.fromisoformat(str(cached.get("fetched_at", "")).replace("Z", "+00:00"))
+        if fetched_at.tzinfo is None:
+            fetched_at = fetched_at.replace(tzinfo=timezone.utc)
+        age = (datetime.now(timezone.utc) - fetched_at.astimezone(timezone.utc)).total_seconds()
+        if cached.get("season") == season and age < 72000 and isinstance(cached.get("results"), list):
+            _OPENFOOTBALL_TEXT_CACHE = cached["results"]
+            print(f"OpenFootball TXT: cache {len(_OPENFOOTBALL_TEXT_CACHE)} wyników, sezon {season}.", flush=True)
+            return _OPENFOOTBALL_TEXT_CACHE
+    except (OSError, ValueError, TypeError, AttributeError):
+        cached = {}
+
     jobs = []
     errors = []
     if '-' in season:
@@ -5461,7 +5481,7 @@ def openfootball_text_results(season):
                     target for target in target_seasons
                     if target in path or (
                         '-' not in target
-                        and re.search(r'(^|[/_-])' + re.escape(target) + r'([/_-]|\.)', path) is not None
+                        and re.search(r'(^|[/_-])' + re.escape(target) + r'([/_-]|\\.)', path) is not None
                     )
                 ), None)
                 if matching_season:
@@ -5486,15 +5506,29 @@ def openfootball_text_results(season):
             except Exception as exc:
                 repo_name, file_path, _file_season = futures[future]
                 errors.append(f'{repo_name}/{file_path}: {type(exc).__name__}: {exc}')
+
     print(
-        f'OpenFootball: Football.TXT sprawdził {len(jobs)} plików '
-        f'w {len(OPENFOOTBALL_REPOS)} repozytoriach; wyników FT: {len(rows)}.',
+        f'OpenFootball TXT: sprawdził {len(jobs)} plików w {len(OPENFOOTBALL_REPOS)} repozytoriach; '
+        f'wyników FT: {len(rows)}.',
         flush=True,
     )
     if errors:
-        print('OpenFootball: część źródeł pominięta: ' + '; '.join(errors[:12]), flush=True)
-    return rows
+        print('OpenFootball TXT: część źródeł pominięta: ' + '; '.join(errors[:12]), flush=True)
+    if rows:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = cache_path.with_suffix(".tmp")
+        tmp.write_text(json.dumps({
+            "season": season,
+            "fetched_at": datetime.now(timezone.utc).isoformat(),
+            "results": rows,
+        }, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(cache_path)
+    elif isinstance(cached.get("results"), list) and cached["results"]:
+        rows = cached["results"]
+        print(f"OpenFootball TXT: źródło niedostępne, używam cache {len(rows)} wyników.", flush=True)
 
+    _OPENFOOTBALL_TEXT_CACHE = rows
+    return rows
 
 def openfootball_btts_results(force_refresh=False):
     """Load CC0 OpenFootball match results for selected leagues; cache for 20h."""
@@ -5717,12 +5751,14 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
         data = {"fixtures": [], "results": []}
     if _BTTS_ANALYSIS_RESULTS_CACHE is None:
         try:
-            _BTTS_ANALYSIS_RESULTS_CACHE = merge_openfootball_history(
-                data.get("results", []), openfootball_btts_results()
-            )
+            json_history = openfootball_btts_results()
+            text_history = openfootball_text_results(openfootball_season_key())
+            merged_history = merge_openfootball_history(data.get("results", []), json_history)
+            _BTTS_ANALYSIS_RESULTS_CACHE = merge_openfootball_history(merged_history, text_history)
             print(
-                f"BTTS: wspólna baza analizy gotowa ({len(_BTTS_ANALYSIS_RESULTS_CACHE)} wyników); "
-                "nie będzie scalana ponownie dla kolejnych meczów.",
+                f"BTTS: wspólna baza analizy gotowa ({len(_BTTS_ANALYSIS_RESULTS_CACHE)} wyników; "
+                f"Open Matchday={len(data.get('results', []))}, OpenFootball JSON={len(json_history)}, "
+                f"OpenFootball TXT={len(text_history)}); nie będzie scalana ponownie dla kolejnych meczów.",
                 flush=True,
             )
         except Exception as exc:
