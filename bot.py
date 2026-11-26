@@ -6212,8 +6212,19 @@ def render_btts_double_graphic(pair):
     ) as source:
         source = source.convert("RGB")
         # Reuse the bull/flame artwork from the supplied BTTS poster only.
-        # All match information is rendered on a fresh canvas; no old text is painted over.
-        bull = source.crop((300, 0, min(source.width, 690), min(source.height, 310))).copy()
+        # Some uploaded poster variants are narrower than the old hard-coded x=300 crop.
+        # Clamp the crop to the real image bounds so Pillow never receives right < left.
+        crop_width = min(390, source.width)
+        crop_height = min(310, source.height)
+        crop_left = min(300, max(0, source.width - crop_width))
+        crop_top = 0
+        crop_right = crop_left + crop_width
+        crop_bottom = crop_top + crop_height
+        if crop_width < 1 or crop_height < 1 or crop_right <= crop_left or crop_bottom <= crop_top:
+            raise ValueError(
+                f"Nieprawidłowy rozmiar oryginalnej grafiki BTTS: {source.width}x{source.height}"
+            )
+        bull = source.crop((crop_left, crop_top, crop_right, crop_bottom)).copy()
 
     W, H = 1080, 1420
     BG, PANEL = (12, 5, 8), (31, 10, 15)
