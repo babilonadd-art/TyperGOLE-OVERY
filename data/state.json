@@ -1587,7 +1587,7 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "TUR_1_super-lig"
       },
-      "settled": false,
+      "settled": true,
       "risk_tier": "LOW_DAY",
       "delivery_status": "sent",
       "pick_number": 6,
@@ -1598,7 +1598,11 @@
       "sent_at": "2026-11-26T16:02:29.561108+01:00",
       "telegram_double_number": 1,
       "telegram_double_message_id": 745,
-      "telegram_double_sent_at": "2026-11-26T16:02:31.614056+01:00"
+      "telegram_double_sent_at": "2026-11-26T16:02:31.614056+01:00",
+      "won": true,
+      "settled_score": "2-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-26T23:36:24.257143+01:00"
     },
     {
       "key": "superbet:14819245:BTTS_FT",
@@ -1702,7 +1706,7 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "UEFA_1_conference-league"
       },
-      "settled": false,
+      "settled": true,
       "risk_tier": "LOW_DAY",
       "delivery_status": "sent",
       "pick_number": 7,
@@ -1710,7 +1714,11 @@
       "telegram_format_version": 4,
       "telegram_message_id": 743,
       "telegram_list_message_id": 743,
-      "sent_at": "2026-11-26T16:02:29.561108+01:00"
+      "sent_at": "2026-11-26T16:02:29.561108+01:00",
+      "won": false,
+      "settled_score": "2-0",
+      "settled_period": "FT",
+      "settled_at": "2026-11-26T23:36:24.805008+01:00"
     },
     {
       "key": "superbet:14820912:BTTS_FT",
@@ -1814,7 +1822,7 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "UEFA_1_europa-league"
       },
-      "settled": false,
+      "settled": true,
       "risk_tier": "LOW_DAY",
       "delivery_status": "sent",
       "pick_number": 8,
@@ -1825,7 +1833,11 @@
       "sent_at": "2026-11-26T19:51:57.041374+01:00",
       "telegram_double_number": 1,
       "telegram_double_message_id": 748,
-      "telegram_double_sent_at": "2026-11-26T19:51:58.888683+01:00"
+      "telegram_double_sent_at": "2026-11-26T19:51:58.888683+01:00",
+      "won": false,
+      "settled_score": "0-0",
+      "settled_period": "FT",
+      "settled_at": "2026-11-26T23:36:26.126977+01:00"
     },
     {
       "key": "superbet:14820906:BTTS_FT",
@@ -1929,7 +1941,7 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "UEFA_1_europa-league"
       },
-      "settled": false,
+      "settled": true,
       "risk_tier": "LOW_DAY",
       "delivery_status": "sent",
       "pick_number": 9,
@@ -1940,7 +1952,11 @@
       "sent_at": "2026-11-26T19:51:57.041374+01:00",
       "telegram_double_number": 1,
       "telegram_double_message_id": 748,
-      "telegram_double_sent_at": "2026-11-26T19:51:58.888701+01:00"
+      "telegram_double_sent_at": "2026-11-26T19:51:58.888701+01:00",
+      "won": false,
+      "settled_score": "0-0",
+      "settled_period": "FT",
+      "settled_at": "2026-11-26T23:36:27.758494+01:00"
     },
     {
       "key": "superbet:15890247:BTTS_FT",
@@ -2044,7 +2060,7 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "ENG_3_league-one"
       },
-      "settled": false,
+      "settled": true,
       "risk_tier": "WATCH",
       "delivery_status": "sent",
       "pick_number": 10,
@@ -2052,7 +2068,11 @@
       "telegram_format_version": 4,
       "telegram_message_id": 746,
       "telegram_list_message_id": 746,
-      "sent_at": "2026-11-26T19:51:57.041374+01:00"
+      "sent_at": "2026-11-26T19:51:57.041374+01:00",
+      "won": true,
+      "settled_score": "2-3",
+      "settled_period": "FT",
+      "settled_at": "2026-11-26T23:36:28.296819+01:00"
     }
   ],
   "reports_sent": [],
