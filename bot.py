@@ -6479,13 +6479,14 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
     """Scan Superbet football offer and publish verified standalone BTTS FT prices."""
     target_day = scan_date
     day_key = target_day.isoformat()
-    if day_key in set(state.get("daily_btts_closers_sent", [])):
+    dry_run = os.getenv("BTTS_DRY_RUN", "").strip().lower() in {"1", "true", "yes", "on"}
+    if not dry_run and day_key in set(state.get("daily_btts_closers_sent", [])):
         print(f"BTTS FT: dzień {day_key} ma już grafikę zamknięcia; nie dokładam nowych typów.", flush=True)
         return
 
     sent_today = btts_ft_sent_picks_on_day(state, day_key)
-    remaining = max(0, MAX_DAILY_BTTS_FT_PICKS - len(sent_today))
-    if remaining < 1:
+    remaining = 10 if dry_run else max(0, MAX_DAILY_BTTS_FT_PICKS - len(sent_today))
+    if not dry_run and remaining < 1:
         print(f"Limit {MAX_DAILY_BTTS_FT_PICKS} BTTS FT osiągnięty dla {day_key}.", flush=True)
         return
 
@@ -6568,7 +6569,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
                 event_id, detail = future.result()
                 event_details[str(event_id)] = detail
             except Exception as exc:
-                print(f"Superbet BTTS FT: błąd pobierania rynku: {type(exc).__name__}: {exc}", flush=True)
+                print(f"BTTS DRY DIAG: błąd pobierania rynku event_id={item['event_id']}: {type(exc).__name__}: {exc}", flush=True)
 
     eligible = []
     market_quotes_in_range = 0
