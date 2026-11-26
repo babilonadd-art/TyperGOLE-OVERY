@@ -6295,34 +6295,39 @@ def render_btts_double_graphic(pair):
         # red divider as the only separation. The wider left area prioritizes teams.
         divider_x = x2 - 154
         left_x1, left_x2 = x1 + 18, divider_x - 8
+        # League and kickoff share the narrow top strip. The time is kept
+        # compact on the right; no separate bottom line can spill out of the
+        # original match frame.
+        time_text = kickoff.strftime("%H:%M")
+        league_bounds = (left_x1, y1 + 3, left_x2 - 82, y1 + 27)
+        time_bounds = (left_x2 - 80, y1 + 3, left_x2, y1 + 27)
         centered_text(
-            (left_x1, y1 + 3, left_x2, y1 + 27),
+            league_bounds,
             league,
-            fitted_font(league, left_x2 - left_x1, 17, 12),
+            fitted_font(league, league_bounds[2] - league_bounds[0] - 4, 16, 10),
             (255, 218, 164),
         )
-
-        # Separate team names onto two bold lines instead of shrinking a long
-        # combined fixture string until it becomes hard to read.
         centered_text(
-            (left_x1, y1 + 28, left_x2, y1 + 70),
+            time_bounds,
+            time_text,
+            fitted_font(time_text, time_bounds[2] - time_bounds[0] - 4, 20, 16),
+            (255, 255, 255),
+            stroke_width=1,
+        )
+
+        # Separate team names onto two bold lines. Both stay inside the
+        # original frame, with no extra time row below them.
+        centered_text(
+            (left_x1, y1 + 30, left_x2, y1 + 75),
             home,
             fitted_font(home, left_x2 - left_x1 - 10, 34, 23),
             (255, 255, 255),
             stroke_width=1,
         )
         centered_text(
-            (left_x1, y1 + 66, left_x2, y1 + 108),
+            (left_x1, y1 + 72, left_x2, y2 - 4),
             away,
             fitted_font(away, left_x2 - left_x1 - 10, 34, 23),
-            (255, 255, 255),
-            stroke_width=1,
-        )
-        time_text = kickoff.strftime("%H:%M")
-        centered_text(
-            (left_x1, y1 + 105, left_x2, y2 - 3),
-            time_text,
-            fitted_font(time_text, left_x2 - left_x1 - 12, 25, 21),
             (255, 255, 255),
             stroke_width=1,
         )
