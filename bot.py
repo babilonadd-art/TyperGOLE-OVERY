@@ -653,26 +653,33 @@ def repair_night_btts_telegram_heading(state):
 
 
 def repair_today_btts_batch_team_highlight(state):
-    """Reformat already-delivered BTTS batch posts with bold team names and red markers."""
-    today = now_local().date().isoformat()
+    """Repair recent delivered BTTS batches, including batches crossing Warsaw midnight."""
+    now = now_local()
+    repair_cutoff = now - timedelta(hours=48)
     groups = {}
     for pick in state.get("picks", []):
         if pick.get("market") != BTTS_FT_MARKET:
             continue
         if pick.get("delivery_status") != "sent" or not pick.get("telegram_batch_message"):
             continue
-        if str(pick.get("date") or "")[:10] != today:
-            continue
         message_id = pick.get("telegram_message_id")
-        if not message_id:
+        if not message_id or int(pick.get("telegram_format_version") or 1) >= 5:
             continue
-        if int(pick.get("telegram_format_version") or 1) >= 5:
+        sent_at = pick.get("sent_at") or pick.get("date")
+        try:
+            sent_stamp = datetime.fromisoformat(str(sent_at).replace("Z", "+00:00"))
+            if sent_stamp.tzinfo is None:
+                sent_stamp = sent_stamp.replace(tzinfo=TZ)
+            sent_stamp = sent_stamp.astimezone(TZ)
+        except (TypeError, ValueError):
+            continue
+        if sent_stamp < repair_cutoff:
             continue
         groups.setdefault(str(message_id), []).append(pick)
 
     for message_id, picks in groups.items():
         picks.sort(key=lambda item: int(item.get("pick_number") or 0))
-        day_key = picks[0].get("date") or today
+        day_key = picks[0].get("date") or now.date().isoformat()
         message = format_btts_ft_pick_list(picks, day_key)
         telegram_edit_btts_pick(message, message_id, parse_mode="HTML")
         for pick in picks:
