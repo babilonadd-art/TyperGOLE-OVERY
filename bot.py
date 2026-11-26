@@ -5330,6 +5330,17 @@ def btts_value_gate(model_probability, odds, min_probability=0.52, min_edge=0.01
     return probability >= min_probability and probability - implied_probability >= min_edge
 
 
+def btts_venue_fallback(overall, venue, minimum_venue_sample=2):
+    """Use overall team form when venue history is sparse, retaining the true venue sample for reliability."""
+    if int(venue.get("played", 0) or 0) >= minimum_venue_sample:
+        return dict(venue), False
+    fallback = dict(overall)
+    # Keep the actual home/away sample size so the probability model discounts
+    # the estimate instead of pretending overall matches were played at this venue.
+    fallback["played"] = int(venue.get("played", 0) or 0)
+    return fallback, True
+
+
 def btts_probability_estimate(home_all, away_all, home_venue, away_venue):
     """Blend venue, season, recent form and optional shot/corner evidence; shrink small samples."""
     venue_rate = (home_venue["btts"] + away_venue["btts"]) / 2.0
@@ -5894,19 +5905,23 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
 
     home_all = summarize(team_rows, home)
     away_all = summarize(team_rows, away)
-    home_venue = summarize(team_rows, home, "home")
-    away_venue = summarize(team_rows, away, "away")
+    home_venue_raw = summarize(team_rows, home, "home")
+    away_venue_raw = summarize(team_rows, away, "away")
 
     if min(home_all["played"], away_all["played"]) == 0:
         return reject("brak historii jednej z drużyn — bez typowania na podstawie samego kursu")
 
-    # Elastyczna próba: minimum 2 mecze gospodarza u siebie i gościa na wyjeździe.
-    # Nie odrzucaj automatycznie europejskich pucharów i lig z mniejszą historią;
-    # mniejsza próba obniża wiarygodność przez reliability w btts_probability_estimate.
-    if home_venue["played"] < 2 or away_venue["played"] < 2:
-        return reject(
-            f"za mała próba dom/wyjazd: gospodarz {home_venue['played']}/2, "
-            f"gość {away_venue['played']}/2"
+    # Sparse home/away history is not a reason to discard a fixture. Fall back
+    # to each team's overall completed matches, while retaining the real venue
+    # sample count so btts_probability_estimate reduces reliability accordingly.
+    home_venue, home_venue_fallback = btts_venue_fallback(home_all, home_venue_raw)
+    away_venue, away_venue_fallback = btts_venue_fallback(away_all, away_venue_raw)
+    if home_venue_fallback or away_venue_fallback:
+        print(
+            f"BTTS: {home} - {away}: fallback ogólnej formy "
+            f"(dom gospodarza {home_venue_raw['played']}, wyjazd gościa {away_venue_raw['played']}); "
+            "obniżam wiarygodność, nie odrzucam meczu.",
+            flush=True,
         )
 
     estimate = btts_probability_estimate(home_all, away_all, home_venue, away_venue)
@@ -5981,8 +5996,10 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
         "away_venue_btts": away_venue["btts"],
         "home_btts_played": home_all["played"],
         "away_btts_played": away_all["played"],
-        "home_venue_played": home_venue["played"],
-        "away_venue_played": away_venue["played"],
+        "home_venue_played": home_venue_raw["played"],
+        "away_venue_played": away_venue_raw["played"],
+        "home_venue_fallback": home_venue_fallback,
+        "away_venue_fallback": away_venue_fallback,
         "home_recent_played": home_all["last5_played"],
         "away_recent_played": away_all["last5_played"],
         "home_recent_btts": home_all["last5"],
