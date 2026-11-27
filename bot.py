@@ -7939,3 +7939,5 @@ if __name__ == "__main__":
 # BTTS history reset: start fresh from the cleared persistent state.
 
 # BTTS FT: ręczne uruchomienie skanu po resecie historii 2026-11-25.
+
+# MANUAL_BTTS_DOUBLE_REPUBLISH_TRIGGER_2026_11_27
