@@ -89,4 +89,5 @@ jobs:
           fi
 
 # Manual BTTS doubles: publish four preselected pairs on the original bull poster; clean repeated Telegram messages.
+# Reference-poster repair and daily BTTS cap reset are applied on the next scan.
 # Trigger the one-time BTTS Telegram duplicate cleanup.
