@@ -6551,5 +6551,6 @@
   "btts_night_scan_target_date": "2026-11-23",
   "btts_night_scan_requested_at": "2026-11-22T20:23:30.619Z",
   "btts_night_heading_677_done": "2026-11-22T21:26:09.832503+01:00",
-  "btts_night_pattern_analysis_enabled": true
+  "btts_night_pattern_analysis_enabled": true,
+  "btts_telegram_cleanup_20261127_done": "2026-11-27T01:11:12.974215+01:00"
 }
