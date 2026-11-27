@@ -6512,17 +6512,21 @@ def render_btts_double_graphic(pair):
             (int(league_x), int(league_y)), league, font=league_font,
             fill=(220, 220, 220),
         )
-        time_left = int(league_x + league_width + 10)
-        time_bounds = (time_left, header_y1, header_right, header_y2)
-        centered_text(
-            time_bounds,
+        # Print the kickoff immediately after the league, on the same
+        # left-aligned header line: e.g. "Eredivisie 20:45".
+        time_left = int(league_x + league_width + 8)
+        time_font = fitted_font(
+            time_text, header_right - time_left - 4,
+            20, 12, header_y2 - header_y1 - 4,
+        )
+        time_bbox = draw.textbbox((0, 0), time_text, font=time_font)
+        time_height = time_bbox[3] - time_bbox[1]
+        time_y = header_y1 + (header_y2 - header_y1 - time_height) / 2 - time_bbox[1]
+        draw.text(
+            (time_left - time_bbox[0], int(time_y)),
             time_text,
-            fitted_font(
-                time_text, time_bounds[2] - time_bounds[0] - 4,
-                20, 12, time_bounds[3] - time_bounds[1] - 4,
-            ),
-            (255, 255, 255),
-            stroke_width=0,
+            font=time_font,
+            fill=(255, 255, 255),
         )
         home_bounds = (left_x1, y1 + 29, left_x2, y1 + 65)
         away_bounds = (left_x1, y1 + 68, left_x2, y2 - 3)
