@@ -31,10 +31,10 @@ class BttsTelegramMessageTests(unittest.TestCase):
             },
         }
         message = bot.format_btts_ft_pick_message(pick, 3)
-        self.assertIn("3. Home FC – Away FC", message)
-        self.assertIn("Liga: Test League", message)
+        self.assertIn("3. Test League\\n🕒 18:30 | Home FC – Away FC", message)
+        self.assertIn("Test League", message)
         self.assertIn("BTTS TAK (FT) | Kurs: 1.85", message)
-        self.assertIn("Godzina: 18:30", message)
+        self.assertIn("🕒 18:30", message)
         self.assertNotIn("H2H", message)
 
     def test_ft_pick_list_is_one_clear_numbered_text_message(self):
@@ -45,8 +45,8 @@ class BttsTelegramMessageTests(unittest.TestCase):
              "kickoff_time": "2026-11-12T20:00:00+01:00", "odds": 2.65},
         ]
         message = bot.format_btts_ft_pick_list(picks, "2026-11-12")
-        self.assertIn("<b>1.  18:30  |  Home FC – Away FC</b>", message)
-        self.assertIn("<b>2.  20:00  |  North FC – South FC</b>", message)
+        self.assertIn("<b>1.  Test League</b>\\n<b>🕒 18:30  |  Home FC – Away FC</b>", message)
+        self.assertIn("<b>2.  Another League</b>\\n<b>🕒 20:00  |  North FC – South FC</b>", message)
         self.assertIn("Test League\n⚽ BTTS TAK (CAŁY MECZ)  |  Kurs: <b>1.85</b>", message)
         self.assertIn("Another League\n⚽ BTTS TAK (CAŁY MECZ)  |  Kurs: <b>2.65</b>", message)
         self.assertNotIn("\\n", message)
