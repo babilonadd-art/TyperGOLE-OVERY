@@ -45,10 +45,10 @@ class BttsTelegramMessageTests(unittest.TestCase):
              "kickoff_time": "2026-11-12T20:00:00+01:00", "odds": 2.65},
         ]
         message = bot.format_btts_ft_pick_list(picks, "2026-11-12")
-        self.assertIn("<b>1.  Test League</b>\\n<b>🕒 18:30  |  Home FC – Away FC</b>", message)
-        self.assertIn("<b>2.  Another League</b>\\n<b>🕒 20:00  |  North FC – South FC</b>", message)
-        self.assertIn("Test League\n⚽ BTTS TAK (CAŁY MECZ)  |  Kurs: <b>1.85</b>", message)
-        self.assertIn("Another League\n⚽ BTTS TAK (CAŁY MECZ)  |  Kurs: <b>2.65</b>", message)
+        self.assertIn("<b>1.  Test League</b>\n<b>🕒 18:30  |  Home FC – Away FC</b>", message)
+        self.assertIn("<b>2.  Another League</b>\n<b>🕒 20:00  |  North FC – South FC</b>", message)
+        self.assertIn("⚽ BTTS TAK (CAŁY MECZ)  |  Kurs: <b>1.85</b>", message)
+        self.assertIn("⚽ BTTS TAK (CAŁY MECZ)  |  Kurs: <b>2.65</b>", message)
         self.assertNotIn("\\n", message)
 
 class BttsFirstHalfSettlementTests(unittest.TestCase):
