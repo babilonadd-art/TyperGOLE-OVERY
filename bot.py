@@ -6493,17 +6493,16 @@ def render_btts_double_graphic(pair):
         # inside the left-hand match field. The kickoff gets a fixed, narrow
         # cell and is reduced by both width AND height before drawing.
         time_text = kickoff.strftime("%H:%M")
-        # Match the user's reference poster exactly: fixed status label on the
-        # graphic; the real competition name remains in the Telegram caption.
-        header_text = "ROZGRYWKI NIEPOTWIERDZONE"
-        header_bounds = (left_x1, y1 + 4, left_x2 - 78, y1 + 25)
+        # Print the real competition name in the poster header, beside kickoff,
+        # as required. The Telegram caption also retains the league name.
+        league_bounds = (left_x1, y1 + 4, left_x2 - 78, y1 + 25)
         time_bounds = (left_x2 - 76, y1 + 4, left_x2 - 2, y1 + 25)
         centered_text(
-            header_bounds,
-            header_text,
+            league_bounds,
+            league,
             fitted_font(
-                header_text, header_bounds[2] - header_bounds[0] - 8,
-                18, 11, header_bounds[3] - header_bounds[1] - 4,
+                league, league_bounds[2] - league_bounds[0] - 8,
+                18, 9, league_bounds[3] - league_bounds[1] - 4,
             ),
             (220, 220, 220),
         )
