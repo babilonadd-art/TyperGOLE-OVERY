@@ -105,13 +105,16 @@
       "delivery_status": "sent",
       "pick_number": 1,
       "telegram_batch_message": true,
-      "telegram_format_version": 2,
-      "telegram_message_id": 712,
+      "telegram_format_version": 6,
+      "telegram_message_id": 757,
       "sent_at": "2026-11-25T01:09:29.577398+01:00",
       "won": true,
       "settled_score": "1-3",
       "settled_period": "FT",
-      "settled_at": "2026-11-25T23:38:42.747174+01:00"
+      "settled_at": "2026-11-25T23:38:42.747174+01:00",
+      "telegram_previous_message_id": "712",
+      "telegram_list_message_id": 757,
+      "telegram_format_updated_at": "2026-11-27T01:02:23.868587+01:00"
     },
     {
       "key": "superbet:14701615:BTTS_FT",
@@ -218,13 +221,16 @@
       "delivery_status": "sent",
       "pick_number": 2,
       "telegram_batch_message": true,
-      "telegram_format_version": 2,
-      "telegram_message_id": 712,
+      "telegram_format_version": 6,
+      "telegram_message_id": 757,
       "sent_at": "2026-11-25T01:09:29.577398+01:00",
       "won": true,
       "settled_score": "1-1",
       "settled_period": "2H",
-      "settled_at": "2026-11-25T21:35:00.061230+01:00"
+      "settled_at": "2026-11-25T21:35:00.061230+01:00",
+      "telegram_previous_message_id": "712",
+      "telegram_list_message_id": 757,
+      "telegram_format_updated_at": "2026-11-27T01:02:23.868587+01:00"
     },
     {
       "key": "superbet:15875004:BTTS_FT",
@@ -331,13 +337,16 @@
       "delivery_status": "sent",
       "pick_number": 3,
       "telegram_batch_message": true,
-      "telegram_format_version": 2,
-      "telegram_message_id": 712,
+      "telegram_format_version": 6,
+      "telegram_message_id": 757,
       "sent_at": "2026-11-25T01:09:29.577398+01:00",
       "won": true,
       "settled_score": "2-1",
       "settled_period": "FT",
-      "settled_at": "2026-11-25T07:07:10.496282+01:00"
+      "settled_at": "2026-11-25T07:07:10.496282+01:00",
+      "telegram_previous_message_id": "712",
+      "telegram_list_message_id": 757,
+      "telegram_format_updated_at": "2026-11-27T01:02:23.868587+01:00"
     },
     {
       "key": "superbet:16045203:BTTS_FT",
@@ -444,9 +453,12 @@
       "delivery_status": "sent",
       "pick_number": 4,
       "telegram_batch_message": true,
-      "telegram_format_version": 2,
-      "telegram_message_id": 712,
-      "sent_at": "2026-11-25T01:09:29.577398+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 757,
+      "sent_at": "2026-11-25T01:09:29.577398+01:00",
+      "telegram_previous_message_id": "712",
+      "telegram_list_message_id": 757,
+      "telegram_format_updated_at": "2026-11-27T01:02:23.868587+01:00"
     },
     {
       "key": "superbet:14719687:BTTS_FT",
@@ -553,13 +565,16 @@
       "delivery_status": "sent",
       "pick_number": 5,
       "telegram_batch_message": true,
-      "telegram_format_version": 2,
-      "telegram_message_id": 713,
+      "telegram_format_version": 6,
+      "telegram_message_id": 758,
       "sent_at": "2026-11-25T01:13:43.648728+01:00",
       "won": true,
       "settled_score": "1-2",
       "settled_period": "FT",
-      "settled_at": "2026-11-25T13:04:24.457252+01:00"
+      "settled_at": "2026-11-25T13:04:24.457252+01:00",
+      "telegram_previous_message_id": "713",
+      "telegram_list_message_id": 758,
+      "telegram_format_updated_at": "2026-11-27T01:02:24.447141+01:00"
     },
     {
       "key": "superbet:15862890:BTTS_FT",
@@ -666,13 +681,16 @@
       "delivery_status": "sent",
       "pick_number": 6,
       "telegram_batch_message": true,
-      "telegram_format_version": 2,
-      "telegram_message_id": 713,
+      "telegram_format_version": 6,
+      "telegram_message_id": 758,
       "sent_at": "2026-11-25T01:13:43.648728+01:00",
       "won": true,
       "settled_score": "1-1",
       "settled_period": "HT",
-      "settled_at": "2026-11-25T20:36:34.548593+01:00"
+      "settled_at": "2026-11-25T20:36:34.548593+01:00",
+      "telegram_previous_message_id": "713",
+      "telegram_list_message_id": 758,
+      "telegram_format_updated_at": "2026-11-27T01:02:24.447141+01:00"
     },
     {
       "key": "superbet:14719689:BTTS_FT",
@@ -779,13 +797,16 @@
       "delivery_status": "sent",
       "pick_number": 7,
       "telegram_batch_message": true,
-      "telegram_format_version": 2,
-      "telegram_message_id": 714,
+      "telegram_format_version": 6,
+      "telegram_message_id": 759,
       "sent_at": "2026-11-25T06:09:29.494754+01:00",
       "won": true,
       "settled_score": "2-2",
       "settled_period": "FT",
-      "settled_at": "2026-11-25T14:28:06.540298+01:00"
+      "settled_at": "2026-11-25T14:28:06.540298+01:00",
+      "telegram_previous_message_id": "714",
+      "telegram_list_message_id": 759,
+      "telegram_format_updated_at": "2026-11-27T01:02:24.996152+01:00"
     },
     {
       "key": "superbet:15862807:BTTS_FT",
@@ -892,13 +913,16 @@
       "delivery_status": "sent",
       "pick_number": 8,
       "telegram_batch_message": true,
-      "telegram_format_version": 2,
-      "telegram_message_id": 714,
+      "telegram_format_version": 6,
+      "telegram_message_id": 759,
       "sent_at": "2026-11-25T06:09:29.494754+01:00",
       "won": false,
       "settled_score": "2-0",
       "settled_period": "FT",
-      "settled_at": "2026-11-25T23:38:45.989271+01:00"
+      "settled_at": "2026-11-25T23:38:45.989271+01:00",
+      "telegram_previous_message_id": "714",
+      "telegram_list_message_id": 759,
+      "telegram_format_updated_at": "2026-11-27T01:02:24.996152+01:00"
     },
     {
       "key": "superbet:16045206:BTTS_FT",
@@ -1029,10 +1053,13 @@
       "delivery_status": "sent",
       "pick_number": 1,
       "telegram_batch_message": true,
-      "telegram_format_version": 3,
-      "telegram_message_id": 740,
+      "telegram_format_version": 6,
+      "telegram_message_id": 760,
       "telegram_double_number": 1,
-      "sent_at": "2026-11-26T11:22:17.286382+01:00"
+      "sent_at": "2026-11-26T11:22:17.286382+01:00",
+      "telegram_previous_message_id": "740",
+      "telegram_list_message_id": 760,
+      "telegram_format_updated_at": "2026-11-27T01:02:25.496349+01:00"
     },
     {
       "key": "superbet:15906721:BTTS_FT",
@@ -1136,15 +1163,22 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "CYP_1_first-division"
       },
-      "settled": false,
+      "settled": true,
       "risk_tier": "MAIN",
       "delivery_status": "sent",
       "pick_number": 2,
       "telegram_batch_message": true,
-      "telegram_format_version": 3,
-      "telegram_message_id": 740,
+      "telegram_format_version": 6,
+      "telegram_message_id": 760,
       "telegram_double_number": 1,
-      "sent_at": "2026-11-26T11:22:17.286382+01:00"
+      "sent_at": "2026-11-26T11:22:17.286382+01:00",
+      "telegram_previous_message_id": "740",
+      "telegram_list_message_id": 760,
+      "telegram_format_updated_at": "2026-11-27T01:02:25.496349+01:00",
+      "won": true,
+      "settled_score": "4-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-27T01:02:35.986936+01:00"
     },
     {
       "key": "superbet:14820902:BTTS_FT",
@@ -1248,15 +1282,22 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "UEFA_1_conference-league"
       },
-      "settled": false,
+      "settled": true,
       "risk_tier": "LOW_DAY",
       "delivery_status": "sent",
       "pick_number": 3,
       "telegram_batch_message": true,
-      "telegram_format_version": 3,
-      "telegram_message_id": 742,
+      "telegram_format_version": 6,
+      "telegram_message_id": 761,
       "telegram_double_number": 1,
-      "sent_at": "2026-11-26T11:30:09.529355+01:00"
+      "sent_at": "2026-11-26T11:30:09.529355+01:00",
+      "telegram_previous_message_id": "742",
+      "telegram_list_message_id": 761,
+      "telegram_format_updated_at": "2026-11-27T01:02:25.985535+01:00",
+      "won": true,
+      "settled_score": "3-2",
+      "settled_period": "FT",
+      "settled_at": "2026-11-27T01:02:36.695258+01:00"
     },
     {
       "key": "superbet:14819238:BTTS_FT",
@@ -1365,10 +1406,13 @@
       "delivery_status": "sent",
       "pick_number": 4,
       "telegram_batch_message": true,
-      "telegram_format_version": 3,
-      "telegram_message_id": 742,
+      "telegram_format_version": 6,
+      "telegram_message_id": 761,
       "telegram_double_number": 1,
-      "sent_at": "2026-11-26T11:30:09.529355+01:00"
+      "sent_at": "2026-11-26T11:30:09.529355+01:00",
+      "telegram_previous_message_id": "742",
+      "telegram_list_message_id": 761,
+      "telegram_format_updated_at": "2026-11-27T01:02:25.985535+01:00"
     },
     {
       "key": "superbet:16086715:BTTS_FT",
@@ -1477,13 +1521,15 @@
       "delivery_status": "sent",
       "pick_number": 5,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 743,
-      "telegram_list_message_id": 743,
+      "telegram_format_version": 6,
+      "telegram_message_id": 762,
+      "telegram_list_message_id": 762,
       "sent_at": "2026-11-26T16:02:29.561108+01:00",
       "telegram_double_number": 1,
       "telegram_double_message_id": 745,
-      "telegram_double_sent_at": "2026-11-26T16:02:31.614038+01:00"
+      "telegram_double_sent_at": "2026-11-26T16:02:31.614038+01:00",
+      "telegram_previous_message_id": "743",
+      "telegram_format_updated_at": "2026-11-27T01:02:29.521152+01:00"
     },
     {
       "key": "superbet:14819242:BTTS_FT",
@@ -1592,9 +1638,9 @@
       "delivery_status": "sent",
       "pick_number": 6,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 743,
-      "telegram_list_message_id": 743,
+      "telegram_format_version": 6,
+      "telegram_message_id": 762,
+      "telegram_list_message_id": 762,
       "sent_at": "2026-11-26T16:02:29.561108+01:00",
       "telegram_double_number": 1,
       "telegram_double_message_id": 745,
@@ -1602,7 +1648,9 @@
       "won": true,
       "settled_score": "2-1",
       "settled_period": "FT",
-      "settled_at": "2026-11-26T23:36:24.257143+01:00"
+      "settled_at": "2026-11-26T23:36:24.257143+01:00",
+      "telegram_previous_message_id": "743",
+      "telegram_format_updated_at": "2026-11-27T01:02:29.521152+01:00"
     },
     {
       "key": "superbet:14819245:BTTS_FT",
@@ -1711,14 +1759,16 @@
       "delivery_status": "sent",
       "pick_number": 7,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 743,
-      "telegram_list_message_id": 743,
+      "telegram_format_version": 6,
+      "telegram_message_id": 762,
+      "telegram_list_message_id": 762,
       "sent_at": "2026-11-26T16:02:29.561108+01:00",
       "won": false,
       "settled_score": "2-0",
       "settled_period": "FT",
-      "settled_at": "2026-11-26T23:36:24.805008+01:00"
+      "settled_at": "2026-11-26T23:36:24.805008+01:00",
+      "telegram_previous_message_id": "743",
+      "telegram_format_updated_at": "2026-11-27T01:02:29.521152+01:00"
     },
     {
       "key": "superbet:14820912:BTTS_FT",
@@ -1827,9 +1877,9 @@
       "delivery_status": "sent",
       "pick_number": 8,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 746,
-      "telegram_list_message_id": 746,
+      "telegram_format_version": 6,
+      "telegram_message_id": 763,
+      "telegram_list_message_id": 763,
       "sent_at": "2026-11-26T19:51:57.041374+01:00",
       "telegram_double_number": 1,
       "telegram_double_message_id": 748,
@@ -1837,7 +1887,9 @@
       "won": false,
       "settled_score": "0-0",
       "settled_period": "FT",
-      "settled_at": "2026-11-26T23:36:26.126977+01:00"
+      "settled_at": "2026-11-26T23:36:26.126977+01:00",
+      "telegram_previous_message_id": "746",
+      "telegram_format_updated_at": "2026-11-27T01:02:30.033696+01:00"
     },
     {
       "key": "superbet:14820906:BTTS_FT",
@@ -1946,9 +1998,9 @@
       "delivery_status": "sent",
       "pick_number": 9,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 746,
-      "telegram_list_message_id": 746,
+      "telegram_format_version": 6,
+      "telegram_message_id": 763,
+      "telegram_list_message_id": 763,
       "sent_at": "2026-11-26T19:51:57.041374+01:00",
       "telegram_double_number": 1,
       "telegram_double_message_id": 748,
@@ -1956,7 +2008,9 @@
       "won": false,
       "settled_score": "0-0",
       "settled_period": "FT",
-      "settled_at": "2026-11-26T23:36:27.758494+01:00"
+      "settled_at": "2026-11-26T23:36:27.758494+01:00",
+      "telegram_previous_message_id": "746",
+      "telegram_format_updated_at": "2026-11-27T01:02:30.033696+01:00"
     },
     {
       "key": "superbet:15890247:BTTS_FT",
@@ -2065,14 +2119,16 @@
       "delivery_status": "sent",
       "pick_number": 10,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 746,
-      "telegram_list_message_id": 746,
+      "telegram_format_version": 6,
+      "telegram_message_id": 763,
+      "telegram_list_message_id": 763,
       "sent_at": "2026-11-26T19:51:57.041374+01:00",
       "won": true,
       "settled_score": "2-3",
       "settled_period": "FT",
-      "settled_at": "2026-11-26T23:36:28.296819+01:00"
+      "settled_at": "2026-11-26T23:36:28.296819+01:00",
+      "telegram_previous_message_id": "746",
+      "telegram_format_updated_at": "2026-11-27T01:02:30.033696+01:00"
     },
     {
       "key": "superbet:15648635:BTTS_FT",
@@ -2181,13 +2237,15 @@
       "delivery_status": "sent",
       "pick_number": 4,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 754,
-      "telegram_list_message_id": 754,
+      "telegram_format_version": 6,
+      "telegram_message_id": 764,
+      "telegram_list_message_id": 764,
       "sent_at": "2026-11-27T00:45:59.612807+01:00",
       "telegram_double_number": 1,
       "telegram_double_message_id": 756,
-      "telegram_double_sent_at": "2026-11-27T00:46:02.293814+01:00"
+      "telegram_double_sent_at": "2026-11-27T00:46:02.293814+01:00",
+      "telegram_previous_message_id": "754",
+      "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00"
     },
     {
       "key": "superbet:16085358:BTTS_FT",
@@ -2296,13 +2354,15 @@
       "delivery_status": "sent",
       "pick_number": 2,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 754,
-      "telegram_list_message_id": 754,
+      "telegram_format_version": 6,
+      "telegram_message_id": 764,
+      "telegram_list_message_id": 764,
       "sent_at": "2026-11-27T00:45:59.612807+01:00",
       "telegram_double_number": 1,
       "telegram_double_message_id": 756,
-      "telegram_double_sent_at": "2026-11-27T00:46:02.293797+01:00"
+      "telegram_double_sent_at": "2026-11-27T00:46:02.293797+01:00",
+      "telegram_previous_message_id": "754",
+      "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00"
     },
     {
       "key": "superbet:14764634:BTTS_FT",
@@ -2411,10 +2471,12 @@
       "delivery_status": "sent",
       "pick_number": 9,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 754,
-      "telegram_list_message_id": 754,
-      "sent_at": "2026-11-27T00:45:59.612807+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 764,
+      "telegram_list_message_id": 764,
+      "sent_at": "2026-11-27T00:45:59.612807+01:00",
+      "telegram_previous_message_id": "754",
+      "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00"
     },
     {
       "key": "superbet:15906723:BTTS_FT",
@@ -2523,10 +2585,12 @@
       "delivery_status": "sent",
       "pick_number": 3,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 754,
-      "telegram_list_message_id": 754,
-      "sent_at": "2026-11-27T00:45:59.612807+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 764,
+      "telegram_list_message_id": 764,
+      "sent_at": "2026-11-27T00:45:59.612807+01:00",
+      "telegram_previous_message_id": "754",
+      "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00"
     },
     {
       "key": "superbet:14764590:BTTS_FT",
@@ -2635,10 +2699,12 @@
       "delivery_status": "sent",
       "pick_number": 7,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 754,
-      "telegram_list_message_id": 754,
-      "sent_at": "2026-11-27T00:45:59.612807+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 764,
+      "telegram_list_message_id": 764,
+      "sent_at": "2026-11-27T00:45:59.612807+01:00",
+      "telegram_previous_message_id": "754",
+      "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00"
     },
     {
       "key": "superbet:15517567:BTTS_FT",
@@ -2747,10 +2813,12 @@
       "delivery_status": "sent",
       "pick_number": 5,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 754,
-      "telegram_list_message_id": 754,
-      "sent_at": "2026-11-27T00:45:59.612807+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 764,
+      "telegram_list_message_id": 764,
+      "sent_at": "2026-11-27T00:45:59.612807+01:00",
+      "telegram_previous_message_id": "754",
+      "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00"
     },
     {
       "key": "superbet:14780630:BTTS_FT",
@@ -2859,10 +2927,12 @@
       "delivery_status": "sent",
       "pick_number": 8,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 754,
-      "telegram_list_message_id": 754,
-      "sent_at": "2026-11-27T00:45:59.612807+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 764,
+      "telegram_list_message_id": 764,
+      "sent_at": "2026-11-27T00:45:59.612807+01:00",
+      "telegram_previous_message_id": "754",
+      "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00"
     },
     {
       "key": "superbet:16085381:BTTS_FT",
@@ -2971,10 +3041,12 @@
       "delivery_status": "sent",
       "pick_number": 1,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 754,
-      "telegram_list_message_id": 754,
-      "sent_at": "2026-11-27T00:45:59.612807+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 764,
+      "telegram_list_message_id": 764,
+      "sent_at": "2026-11-27T00:45:59.612807+01:00",
+      "telegram_previous_message_id": "754",
+      "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00"
     },
     {
       "key": "superbet:15724971:BTTS_FT",
@@ -3083,10 +3155,12 @@
       "delivery_status": "sent",
       "pick_number": 6,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 754,
-      "telegram_list_message_id": 754,
-      "sent_at": "2026-11-27T00:45:59.612807+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 764,
+      "telegram_list_message_id": 764,
+      "sent_at": "2026-11-27T00:45:59.612807+01:00",
+      "telegram_previous_message_id": "754",
+      "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00"
     },
     {
       "key": "superbet:14764520:BTTS_FT",
@@ -3195,10 +3269,12 @@
       "delivery_status": "sent",
       "pick_number": 10,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 754,
-      "telegram_list_message_id": 754,
-      "sent_at": "2026-11-27T00:45:59.612807+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 764,
+      "telegram_list_message_id": 764,
+      "sent_at": "2026-11-27T00:45:59.612807+01:00",
+      "telegram_previous_message_id": "754",
+      "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00"
     }
   ],
   "reports_sent": [],
