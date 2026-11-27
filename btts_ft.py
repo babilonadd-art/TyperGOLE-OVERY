@@ -5,6 +5,7 @@ Only analyze/publish fixtures with a confirmed competition label. The
 probability model, BTTS market, and odds thresholds remain in bot.py unchanged.
 """
 import bot
+import os
 
 
 def install_confirmed_competition_guard():
@@ -27,5 +28,8 @@ def install_confirmed_competition_guard():
 
 
 if __name__ == "__main__":
-    install_confirmed_competition_guard()
-    bot.run_btts_ft()
+    if os.getenv("BTTS_PUBLISH_MANUAL_DOUBLES", "").strip() == "1":
+        bot.publish_manual_btts_doubles()
+    else:
+        install_confirmed_competition_guard()
+        bot.run_btts_ft()
