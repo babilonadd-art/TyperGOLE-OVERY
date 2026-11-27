@@ -3908,7 +3908,7 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "CYP_1_first-division"
       },
-      "settled": false,
+      "settled": true,
       "risk_tier": "LOW_DAY",
       "delivery_status": "sent",
       "pick_number": 1,
@@ -3918,7 +3918,11 @@
       "telegram_list_message_id": 768,
       "sent_at": "2026-11-27T01:32:47.578190+01:00",
       "telegram_previous_message_id": "767",
-      "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00"
+      "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00",
+      "won": false,
+      "settled_score": "2-0",
+      "settled_period": "FT",
+      "settled_at": "2026-11-27T21:00:01.283816+01:00"
     },
     {
       "key": "superbet:15725014:BTTS_FT",
