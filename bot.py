@@ -603,10 +603,10 @@ def format_btts_ft_pick_message(pick, pick_number):
             f"Nie wysyłam BTTS bez potwierdzonej nazwy ligi: {home} - {away}"
         )
     message = (
-        f"{pick_number}. {home} – {away}\n"
-        f"Liga: {league}\n"
+        f"{pick_number}. {league}\n"
+        f"🕒 {kickoff.strftime('%H:%M')} | {home} – {away}\n"
         f"BTTS TAK (FT) | Kurs: {odds:.2f}\n"
-        f"Godzina: {kickoff.strftime('%H:%M')} | {kickoff.strftime('%d.%m.%Y')}\n"
+        f"Data: {kickoff.strftime('%d.%m.%Y')}\n"
         "Źródło kursu: Superbet"
     )
     return message
@@ -624,8 +624,8 @@ def format_btts_ft_pick_list(picks, day_key):
         league = html.escape(str(pick.get("league") or pick.get("competition") or ""))
         odds = float(pick.get("odds") or 0)
         entries.append(
-            f"<b>{number}.  {kickoff.strftime('%H:%M')}  |  {home} – {away}</b>\n"
-            f"{league}\n"
+            f"<b>{number}.  {league}</b>\n"
+            f"<b>🕒 {kickoff.strftime('%H:%M')}  |  {home} – {away}</b>\n"
             f"⚽ BTTS TAK (CAŁY MECZ)  |  Kurs: <b>{odds:.2f}</b>"
         )
     heading = "⚽ <b>LISTA BTTS FT — TYPY DNIA</b>"
