@@ -2481,10 +2481,6 @@
       "sent_at": "2026-11-27T00:45:59.612807+01:00",
       "telegram_previous_message_id": "754",
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
-      "telegram_double_number": 2,
-      "telegram_double_message_id": 776,
-      "telegram_double_sent_at": "2026-11-27T10:11:20.670931+01:00",
-      "telegram_double_manual": true,
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00"
     },
     {
@@ -2600,10 +2596,6 @@
       "sent_at": "2026-11-27T00:45:59.612807+01:00",
       "telegram_previous_message_id": "754",
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
-      "telegram_double_number": 1,
-      "telegram_double_message_id": 774,
-      "telegram_double_sent_at": "2026-11-27T10:11:16.921451+01:00",
-      "telegram_double_manual": true,
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
       "competition": "Liga Alef South"
     },
@@ -2720,10 +2712,6 @@
       "sent_at": "2026-11-27T00:45:59.612807+01:00",
       "telegram_previous_message_id": "754",
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
-      "telegram_double_number": 1,
-      "telegram_double_message_id": 774,
-      "telegram_double_sent_at": "2026-11-27T10:11:16.921477+01:00",
-      "telegram_double_manual": true,
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00"
     },
     {
@@ -2839,10 +2827,6 @@
       "sent_at": "2026-11-27T00:45:59.612807+01:00",
       "telegram_previous_message_id": "754",
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
-      "telegram_double_number": 2,
-      "telegram_double_message_id": 776,
-      "telegram_double_sent_at": "2026-11-27T10:11:20.670956+01:00",
-      "telegram_double_manual": true,
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00"
     },
     {
@@ -2958,10 +2942,6 @@
       "sent_at": "2026-11-27T00:45:59.612807+01:00",
       "telegram_previous_message_id": "754",
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
-      "telegram_double_number": 4,
-      "telegram_double_message_id": 780,
-      "telegram_double_sent_at": "2026-11-27T10:11:28.070726+01:00",
-      "telegram_double_manual": true,
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00"
     },
     {
@@ -3195,10 +3175,6 @@
       "sent_at": "2026-11-27T00:45:59.612807+01:00",
       "telegram_previous_message_id": "754",
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
-      "telegram_double_number": 3,
-      "telegram_double_message_id": 778,
-      "telegram_double_sent_at": "2026-11-27T10:11:24.376470+01:00",
-      "telegram_double_manual": true,
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00"
     },
     {
@@ -3674,10 +3650,6 @@
       "sent_at": "2026-11-27T01:32:47.578190+01:00",
       "telegram_previous_message_id": "767",
       "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00",
-      "telegram_double_number": 4,
-      "telegram_double_message_id": 780,
-      "telegram_double_sent_at": "2026-11-27T10:11:28.070706+01:00",
-      "telegram_double_manual": true,
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00"
     },
     {
@@ -4399,10 +4371,6 @@
       "sent_at": "2026-11-27T01:32:47.578190+01:00",
       "telegram_previous_message_id": "767",
       "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00",
-      "telegram_double_number": 3,
-      "telegram_double_message_id": 778,
-      "telegram_double_sent_at": "2026-11-27T10:11:24.376450+01:00",
-      "telegram_double_manual": true,
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00"
     },
     {
@@ -8984,16 +8952,15 @@
   "btts_telegram_cleanup_20261127_done": "2026-11-27T01:11:12.974215+01:00",
   "manual_btts_doubles_deleted_messages": [
     "772",
+    "774",
+    "776",
+    "778",
+    "780",
     "782",
     "784",
     "787",
     "788",
     "790"
   ],
-  "manual_btts_doubles_sent": [
-    "2026-11-27:1",
-    "2026-11-27:2",
-    "2026-11-27:3",
-    "2026-11-27:4"
-  ]
+  "manual_btts_doubles_sent": []
 }
