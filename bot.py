@@ -6493,40 +6493,28 @@ def render_btts_double_graphic(pair):
         # red divider as the only separation. The wider left area prioritizes teams.
         divider_x = x2 - 154
         left_x1, left_x2 = x1 + 18, divider_x - 8
-        # Horizontal layout inside the original match box:
-        # league on top; home team and kickoff side by side; away team below.
-        # Keep a dedicated time column so long team names never collide with it.
-        league_bounds = (left_x1 + 4, y1 + 3, left_x2 - 4, y1 + 24)
+        # Correct layout: league and kickoff share the top row;
+        # both team names sit below, each on its own full-width row.
+        time_text = kickoff.strftime("%H:%M")
+        league_bounds = (left_x1 + 4, y1 + 3, left_x2 - 104, y1 + 25)
+        time_bounds = (left_x2 - 100, y1 + 3, left_x2 - 2, y1 + 25)
+        home_bounds = (left_x1, y1 + 29, left_x2, y1 + 65)
+        away_bounds = (left_x1, y1 + 68, left_x2, y2 - 3)
         centered_text(
             league_bounds,
             league,
             fitted_font(
-                league, league_bounds[2] - league_bounds[0] - 12,
+                league, league_bounds[2] - league_bounds[0] - 10,
                 18, 8, league_bounds[3] - league_bounds[1] - 4,
             ),
             (220, 220, 220),
-        )
-
-        time_text = kickoff.strftime("%H:%M")
-        home_bounds = (left_x1, y1 + 28, left_x2 - 104, y1 + 70)
-        time_bounds = (left_x2 - 100, y1 + 28, left_x2 - 2, y1 + 70)
-        away_bounds = (left_x1, y1 + 73, left_x2, y2 - 3)
-        centered_text(
-            home_bounds,
-            home,
-            fitted_font(
-                home, home_bounds[2] - home_bounds[0] - 10,
-                32, 10, home_bounds[3] - home_bounds[1] - 6,
-            ),
-            (255, 255, 255),
-            stroke_width=1,
         )
         centered_text(
             time_bounds,
             time_text,
             fitted_font(
                 time_text, time_bounds[2] - time_bounds[0] - 8,
-                22, 14, time_bounds[3] - time_bounds[1] - 6,
+                20, 12, time_bounds[3] - time_bounds[1] - 4,
             ),
             (255, 255, 255),
             stroke_width=0,
