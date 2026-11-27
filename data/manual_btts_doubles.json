@@ -3,8 +3,8 @@
   "pairs": [
     [
       {
-        "id": "superbet:15648635",
-        "league": "Rwanda Premier League"
+        "id": "superbet:15906723",
+        "league": "Liga Alef South"
       },
       {
         "id": "superbet:14764590"
@@ -34,5 +34,8 @@
         "id": "superbet:14780630"
       }
     ]
+  ],
+  "delete_message_ids": [
+    772
   ]
 }
