@@ -6406,7 +6406,7 @@ def btts_prematch_odds_gate(btts_quote):
 
 
 def render_btts_double_graphic(pair):
-    """Fill the original BTTS poster fields with clear, balanced match details."""
+    """Render BTTS doubles with hard clipping to each poster field."""
     from decimal import Decimal, ROUND_HALF_UP
     from PIL import Image, ImageDraw, ImageFont
 
@@ -6425,7 +6425,6 @@ def render_btts_double_graphic(pair):
             f"Oryginalny plakat BTTS ma nieoczekiwany rozmiar: {poster.width}x{poster.height}"
         )
 
-    draw = ImageDraw.Draw(poster)
     font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
     if not Path(font_path).is_file():
         font_path = "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf"
@@ -6433,34 +6432,47 @@ def render_btts_double_graphic(pair):
     def font(size):
         return ImageFont.truetype(font_path, size)
 
-    def fitted_font(value, max_width, high, low, max_height=None):
-        # Shrink each field until the complete real text fits its own box.
-        # Never fall back to a font that is known to overflow the template.
-        for size in range(high, low - 1, -1):
-            selected = font(size)
-            bounds = draw.textbbox((0, 0), value, font=selected)
-            width = bounds[2] - bounds[0]
-            height = bounds[3] - bounds[1]
-            if width <= max_width and (max_height is None or height <= max_height):
-                return selected
-        raise ValueError(
-            f"Tekst nie mieści się w polu plakatu nawet przy najmniejszej czcionce: {value}"
-        )
-
-    def centered_text(bounds, value, selected_font, color, stroke_width=0):
+    def draw_fit(bounds, value, high, low, color, *, stroke=0, align="center"):
+        """Fit text and render it on an isolated layer: pixels cannot escape its box."""
         x1, y1, x2, y2 = bounds
-        text_bounds = draw.textbbox((0, 0), value, font=selected_font, stroke_width=stroke_width)
+        width, height = x2 - x1, y2 - y1
+        if width <= 4 or height <= 4:
+            raise ValueError(f"Nieprawidłowe pole plakatu: {bounds}")
+        layer = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+        layer_draw = ImageDraw.Draw(layer)
+        selected = None
+        text_bounds = None
+        for size in range(high, low - 1, -1):
+            candidate = font(size)
+            candidate_bounds = layer_draw.textbbox(
+                (0, 0), value, font=candidate, stroke_width=stroke
+            )
+            text_width = candidate_bounds[2] - candidate_bounds[0]
+            text_height = candidate_bounds[3] - candidate_bounds[1]
+            if text_width <= width - 8 and text_height <= height - 6:
+                selected, text_bounds = candidate, candidate_bounds
+                break
+        if selected is None:
+            raise ValueError(
+                f"Tekst nie mieści się w polu plakatu nawet przy najmniejszej czcionce: {value}"
+            )
+
         text_width = text_bounds[2] - text_bounds[0]
         text_height = text_bounds[3] - text_bounds[1]
-        x = x1 + (x2 - x1 - text_width) / 2 - text_bounds[0]
-        y = y1 + (y2 - y1 - text_height) / 2 - text_bounds[1]
-        draw.text(
-            (int(x), int(y)), value, font=selected_font, fill=color,
-            stroke_width=stroke_width, stroke_fill=(12, 12, 12),
+        if align == "left":
+            tx = 4 - text_bounds[0]
+        else:
+            tx = (width - text_width) / 2 - text_bounds[0]
+        ty = (height - text_height) / 2 - text_bounds[1]
+        layer_draw.text(
+            (int(tx), int(ty)), value, font=selected, fill=color,
+            stroke_width=stroke, stroke_fill=(12, 12, 12, 255),
         )
+        # Paste only the isolated field layer. No text pixel can cross its edges.
+        poster.paste(layer, (x1, y1), layer)
 
-    # Preserve the original artwork and its existing red divider. Do not draw
-    # an extra pale separator or create an editor-like overlay.
+    # These are the two existing black match panels and the combined-odds panel.
+    # Every text element is clipped to its own inset field, independently.
     match_fields = ((24, 716, 696, 846), (24, 852, 696, 982))
     total_odds_field = (24, 988, 696, 1120)
     leg_odds = []
@@ -6489,80 +6501,37 @@ def render_btts_double_graphic(pair):
             raise ValueError(f"Brak potwierdzonej godziny rozpoczęcia meczu {index + 1}.")
 
         x1, y1, x2, y2 = match_fields[index]
-        # Keep the odds in the right-hand price field, using the poster's own
-        # red divider as the only separation. The wider left area prioritizes teams.
         divider_x = x2 - 154
-        left_x1, left_x2 = x1 + 18, divider_x - 8
-        # League and kickoff are adjacent on the same top line;
-        # team names are on the two full-width lines underneath.
-        time_text = kickoff.strftime("%H:%M")
-        header_left = left_x1 + 4
-        header_right = left_x2 - 4
-        header_y1, header_y2 = y1 + 3, y1 + 25
-        league_font = fitted_font(
-            league, header_right - header_left - 54,
-            18, 8, header_y2 - header_y1 - 4,
-        )
-        league_bbox = draw.textbbox((0, 0), league, font=league_font)
-        league_width = league_bbox[2] - league_bbox[0]
-        league_height = league_bbox[3] - league_bbox[1]
-        league_x = header_left - league_bbox[0]
-        league_y = header_y1 + (header_y2 - header_y1 - league_height) / 2 - league_bbox[1]
-        draw.text(
-            (int(league_x), int(league_y)), league, font=league_font,
-            fill=(220, 220, 220),
-        )
-        # Print the kickoff immediately after the league, on the same
-        # left-aligned header line: e.g. "Eredivisie 20:45".
-        time_left = int(league_x + league_width + 8)
-        time_font = fitted_font(
-            time_text, header_right - time_left - 4,
-            20, 12, header_y2 - header_y1 - 4,
-        )
-        time_bbox = draw.textbbox((0, 0), time_text, font=time_font)
-        time_height = time_bbox[3] - time_bbox[1]
-        time_y = header_y1 + (header_y2 - header_y1 - time_height) / 2 - time_bbox[1]
-        draw.text(
-            (time_left - time_bbox[0], int(time_y)),
-            time_text,
-            font=time_font,
-            fill=(255, 255, 255),
-        )
-        # Keep both team names on one horizontal line in the black field:
-        # e.g. "Groningen vs Ajax". Shrink the font to fit before drawing.
-        teams_text = f"{home} vs {away}"
-        teams_bounds = (left_x1, y1 + 29, left_x2, y2 - 3)
-        centered_text(
-            teams_bounds,
-            teams_text,
-            fitted_font(
-                teams_text, teams_bounds[2] - teams_bounds[0] - 10,
-                32, 10, teams_bounds[3] - teams_bounds[1] - 6,
-            ),
-            (255, 255, 255),
-            stroke_width=1,
+        # Keep the original red divider and its right-hand odds column untouched.
+        left_x1, left_x2 = x1 + 22, divider_x - 12
+
+        # One compact header line, exactly in the requested order: league then time.
+        header = f"{league} {kickoff.strftime('%H:%M')}"
+        draw_fit(
+            (left_x1 + 2, y1 + 7, left_x2 - 2, y1 + 34),
+            header, 16, 7, (235, 235, 235), align="left",
         )
 
-        odds_bounds = (divider_x + 3, y1 + 5, x2 - 5, y2 - 5)
+        # Both real team names stay on one horizontal line under the header.
+        teams_text = f"{home} vs {away}"
+        draw_fit(
+            (left_x1 + 2, y1 + 39, left_x2 - 2, y2 - 8),
+            teams_text, 27, 9, (255, 255, 255), stroke=1,
+        )
+
         odds_text = f"{odds:.2f}"
-        centered_text(
-            odds_bounds,
-            odds_text,
-            fitted_font(odds_text, odds_bounds[2] - odds_bounds[0] - 8, 54, 24),
-            (255, 255, 255),
-            stroke_width=1,
+        draw_fit(
+            (divider_x + 7, y1 + 9, x2 - 9, y2 - 9),
+            odds_text, 48, 20, (255, 255, 255), stroke=1,
         )
 
     combined = (leg_odds[0] * leg_odds[1]).quantize(
         Decimal("0.01"), rounding=ROUND_HALF_UP
     )
-    total_text = f"KURS ŁĄCZNY: {combined:.2f}"
-    centered_text(
-        total_odds_field,
-        total_text,
-        fitted_font(total_text, 630, 44, 20),
-        (255, 255, 255),
-        stroke_width=1,
+    draw_fit(
+        (34, 998, 686, 1110),
+        f"KURS ŁĄCZNY: {combined:.2f}",
+        40, 18, (255, 255, 255), stroke=1,
     )
 
     output = io.BytesIO()
