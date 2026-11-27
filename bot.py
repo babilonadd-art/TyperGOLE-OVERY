@@ -652,6 +652,23 @@ def repair_night_btts_telegram_heading(state):
     print(f"DODANO DUŻY NAPIS NOCNE TYPY: message_id={message_id}", flush=True)
 
 
+def telegram_delete_btts_message(message_id):
+    """Delete a duplicate BTTS list message from the configured Telegram chat."""
+    if not TELEGRAM_TOKEN or not CHAT_ID:
+        raise RuntimeError("Brak danych Telegram do usuwania duplikatów BTTS.")
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/deleteMessage"
+    response = requests.post(
+        url,
+        json={"chat_id": CHAT_ID, "message_id": int(message_id)},
+        timeout=20,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if not payload.get("ok"):
+        raise RuntimeError(f"Telegram nie usunął wiadomości {message_id}: {payload}")
+    return True
+
+
 def repair_today_btts_batch_team_highlight(state):
     """Republish recent BTTS batches as a fresh clean list, preserving the exact picks."""
     now = now_local()
@@ -676,6 +693,19 @@ def repair_today_btts_batch_team_highlight(state):
         if sent_stamp < repair_cutoff:
             continue
         groups.setdefault(str(message_id), []).append(pick)
+
+    # One-time cleanup after the accidental multi-message BTTS republish.
+    cleanup_flag = "btts_telegram_cleanup_20261127_done"
+    if not state.get(cleanup_flag):
+        duplicate_message_ids = [712, 713, 714, 740, 742, 743, 746, 754, 757, 758, 759, 760, 761, 762, 763]
+        for duplicate_id in duplicate_message_ids:
+            try:
+                telegram_delete_btts_message(duplicate_id)
+                print(f"USUNIĘTO DUPLIKAT LISTY BTTS: message_id={duplicate_id}", flush=True)
+            except Exception as exc:
+                print(f"NIE USUNIĘTO WIADOMOŚCI BTTS {duplicate_id}: {type(exc).__name__}: {exc}", flush=True)
+        state[cleanup_flag] = now_local().isoformat()
+        save_state(state)
 
     for old_message_id, picks in groups.items():
         picks.sort(key=lambda item: int(item.get("pick_number") or 0))
