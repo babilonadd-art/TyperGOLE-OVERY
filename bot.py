@@ -6668,8 +6668,8 @@ def publish_manual_btts_doubles(config_path="data/manual_btts_doubles.json"):
         return
 
     telegram(
-        "━━━━━━━━━━━━━━━━━━\\n"
-        "🔥 <b>DUBLE DNIA BTTS</b> 🔥\\n"
+        "━━━━━━━━━━━━━━━━━━\n"
+        "🔥 <b>DUBLE DNIA BTTS</b> 🔥\n"
         "━━━━━━━━━━━━━━━━━━",
         parse_mode="HTML",
     )
