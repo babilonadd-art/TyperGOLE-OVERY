@@ -88,5 +88,5 @@ jobs:
             fi
           fi
 
-# Manual BTTS doubles: publish four preselected pairs on the original bull poster; clean duplicate Telegram message.
+# Manual BTTS doubles: publish four preselected pairs on the original bull poster; clean repeated Telegram messages.
 # Trigger the one-time BTTS Telegram duplicate cleanup.
