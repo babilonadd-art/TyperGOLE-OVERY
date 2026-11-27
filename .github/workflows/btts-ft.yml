@@ -56,12 +56,13 @@ jobs:
         if: github.event_name != 'schedule'
         run: python -m unittest discover -s tests -p "test_*.py"
       - name: Scan and publish BTTS FT
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && (contains(github.event.head_commit.message, 'Repair BTTS Telegram list') || contains(github.event.head_commit.message, 'Republish BTTS list with corrected layout')))
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && (contains(github.event.head_commit.message, 'Repair BTTS Telegram list') || contains(github.event.head_commit.message, 'Republish BTTS list with corrected layout') || contains(github.event.head_commit.message, 'Publish manual BTTS doubles')))
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TZ: Europe/Warsaw
           BTTS_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true && '1' || '0' }}
+          BTTS_PUBLISH_MANUAL_DOUBLES: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, 'Publish manual BTTS doubles') && '1' || '0' }}
         run: |
           set -o pipefail
           python btts_ft.py 2>&1 | tee btts_dry_run.log
