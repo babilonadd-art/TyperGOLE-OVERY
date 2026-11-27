@@ -88,5 +88,5 @@ jobs:
             fi
           fi
 
-# Manual BTTS doubles: publish four preselected pairs on the original bull poster; refresh after a market change.
+# Manual BTTS doubles: publish four preselected pairs on the original bull poster; retry after replacing a repeated fixture.
 # Trigger the one-time BTTS Telegram duplicate cleanup.
