@@ -4513,7 +4513,7 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "TUR_1_super-lig"
       },
-      "settled": false,
+      "settled": true,
       "risk_tier": "WATCH",
       "delivery_status": "sent",
       "pick_number": 2,
@@ -4523,7 +4523,11 @@
       "telegram_list_message_id": 768,
       "sent_at": "2026-11-27T01:32:47.578190+01:00",
       "telegram_previous_message_id": "767",
-      "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00"
+      "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00",
+      "won": true,
+      "settled_score": "1-1",
+      "settled_period": "HT",
+      "settled_at": "2026-11-27T19:59:06.989536+01:00"
     },
     {
       "key": "superbet:15906195:BTTS_FT",
