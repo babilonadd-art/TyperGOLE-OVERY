@@ -344,6 +344,6 @@ class BTTSFTDailyNumberingTests(unittest.TestCase):
             "analysis": {"metrics": {}},
         }
         message = bot.format_btts_ft_pick_message(pick, 1)
-        self.assertIn("1. Home FC – Away FC", message)
-        self.assertIn("Liga: Test League", message)
+        self.assertIn("1. Test League\\n🕒 18:00 | Home FC – Away FC", message)
+        self.assertIn("Test League", message)
         self.assertIn("BTTS TAK (FT) | Kurs: 2.17", message)
