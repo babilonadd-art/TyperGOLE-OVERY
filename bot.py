@@ -5428,6 +5428,82 @@ def btts_probability_estimate(home_all, away_all, home_venue, away_venue):
     }
 
 
+def btts_opponent_strength_adjustment(results, home, away, cutoff, season_start, league):
+    """Small, bounded adjustment based on the current competition's opponents' points per game."""
+    league_key = re.sub(r"[^a-z0-9]+", "", str(league or "").casefold())
+    competition = []
+    for row in results or []:
+        try:
+            played = datetime.fromisoformat(str(row.get("date", ""))[:10]).date()
+            hg, ag = as_int(row.get("ft_home")), as_int(row.get("ft_away"))
+        except (TypeError, ValueError):
+            continue
+        if not (season_start <= played < cutoff) or hg is None or ag is None:
+            continue
+        row_league = str(row.get("_league") or "").casefold()
+        row_key = re.sub(r"[^a-z0-9]+", "", row_league + " " + str(row.get("_folder") or "").casefold())
+        if league_key and not (league_key in row_key or row_key in league_key):
+            continue
+        h, a = str(row.get("home") or "").strip(), str(row.get("away") or "").strip()
+        if h and a:
+            competition.append((h, a, hg, ag))
+
+    if len(competition) < 8:
+        return {"adjustment": 0.0, "home_opponent_ppg": None,
+                "away_opponent_ppg": None, "league_average_ppg": None,
+                "sample_home": 0, "sample_away": 0}
+
+    table = {}
+    for h, a, hg, ag in competition:
+        for name, scored, conceded, points in (
+            (h, hg, ag, 3 if hg > ag else 1 if hg == ag else 0),
+            (a, ag, hg, 3 if ag > hg else 1 if hg == ag else 0),
+        ):
+            key = re.sub(r"[^a-z0-9]+", "", name.casefold())
+            entry = table.setdefault(key, {"played": 0, "points": 0, "gd": 0})
+            entry["played"] += 1
+            entry["points"] += points
+            entry["gd"] += scored - conceded
+
+    if len(table) < 4:
+        return {"adjustment": 0.0, "home_opponent_ppg": None,
+                "away_opponent_ppg": None, "league_average_ppg": None,
+                "sample_home": 0, "sample_away": 0}
+
+    ratings = {key: value["points"] / value["played"]
+               for key, value in table.items() if value["played"] >= 2}
+    if len(ratings) < 4:
+        return {"adjustment": 0.0, "home_opponent_ppg": None,
+                "away_opponent_ppg": None, "league_average_ppg": None,
+                "sample_home": 0, "sample_away": 0}
+    league_average = sum(ratings.values()) / len(ratings)
+
+    def opponent_average(team):
+        selected = []
+        for h, a, _hg, _ag in competition:
+            if team_name_similarity(h, team) >= 0.83:
+                opponent = re.sub(r"[^a-z0-9]+", "", a.casefold())
+            elif team_name_similarity(a, team) >= 0.83:
+                opponent = re.sub(r"[^a-z0-9]+", "", h.casefold())
+            else:
+                continue
+            if opponent in ratings:
+                selected.append(ratings[opponent])
+        selected = selected[-5:]
+        return (sum(selected) / len(selected), len(selected)) if selected else (None, 0)
+
+    home_ppg, home_n = opponent_average(home)
+    away_ppg, away_n = opponent_average(away)
+    if home_n < 3 or away_n < 3:
+        adjustment = 0.0
+    else:
+        difference = ((home_ppg + away_ppg) / 2.0) - league_average
+        adjustment = max(-0.015, min(0.015, difference * 0.025))
+    return {"adjustment": adjustment, "home_opponent_ppg": home_ppg,
+            "away_opponent_ppg": away_ppg, "league_average_ppg": league_average,
+            "sample_home": home_n, "sample_away": away_n}
+
+
 def openfootball_season_key(current=None):
     current = current or now_local()
     return f"{current.year}-{str(current.year + 1)[-2:]}" if current.month >= 7 else f"{current.year - 1}-{str(current.year)[-2:]}"
@@ -6032,7 +6108,20 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
         )
 
     estimate = btts_probability_estimate(home_all, away_all, home_venue, away_venue)
-    probability = estimate["probability"]
+    opponent_strength = btts_opponent_strength_adjustment(
+        data.get("results", []), home, away, cutoff, season_start, league
+    )
+    probability = max(0.01, min(
+        0.90, estimate["probability"] + opponent_strength["adjustment"]
+    ))
+    print(
+        f"BTTS: siła rywali {home} - {away}: "
+        f"dom={opponent_strength['home_opponent_ppg']}, "
+        f"wyjazd={opponent_strength['away_opponent_ppg']}, "
+        f"korekta={opponent_strength['adjustment']:+.3f}; "
+        "korekta tylko przy min. 3 ocenionych rywalach na każdą drużynę.",
+        flush=True,
+    )
     try:
         price = float(odds)
     except (TypeError, ValueError):
@@ -6118,6 +6207,12 @@ def btts_recent_form_analysis(home, away, kickoff, league="", odds=None, one_x_t
         "away_last3_venue_btts_count": away_venue["last3_btts_count"],
         "model_probability": probability,
         "raw_model_probability": estimate["raw_probability"],
+        "opponent_strength_adjustment": opponent_strength["adjustment"],
+        "home_opponents_avg_ppg": opponent_strength["home_opponent_ppg"],
+        "away_opponents_avg_ppg": opponent_strength["away_opponent_ppg"],
+        "league_avg_ppg": opponent_strength["league_average_ppg"],
+        "home_opponent_sample": opponent_strength["sample_home"],
+        "away_opponent_sample": opponent_strength["sample_away"],
         "implied_probability": implied_probability,
         "value_edge": edge,
         "poisson_probability": estimate["poisson_probability"],
