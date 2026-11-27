@@ -173,14 +173,16 @@ class BttsDailyCloseTests(unittest.TestCase):
 
 
 class BttsPrematchOddsGateTests(unittest.TestCase):
-    def test_accepts_supported_high_odds_up_to_2_50(self):
+    def test_accepts_prices_at_both_configured_boundaries(self):
+        self.assertTrue(bot.btts_prematch_odds_gate({"odds": 1.55}))
         self.assertTrue(bot.btts_prematch_odds_gate({"odds": 2.20}))
-        self.assertTrue(bot.btts_prematch_odds_gate({"odds": 2.45}))
-        self.assertTrue(bot.btts_prematch_odds_gate({"odds": 2.50}))
+        self.assertTrue(bot.btts_prematch_odds_gate({"odds": 2.40}))
 
-    def test_rejects_odds_outside_the_real_market_band(self):
-        self.assertFalse(bot.btts_prematch_odds_gate({"odds": 1.59}))
-        self.assertFalse(bot.btts_prematch_odds_gate({"odds": 2.51}))
+    def test_rejects_odds_outside_the_configured_range(self):
+        self.assertFalse(bot.btts_prematch_odds_gate({"odds": 1.54}))
+        self.assertFalse(bot.btts_prematch_odds_gate({"odds": 2.41}))
+        self.assertFalse(bot.btts_prematch_odds_gate({"odds": 2.42}))
+        self.assertFalse(bot.btts_prematch_odds_gate({"odds": 2.50}))
         self.assertFalse(bot.btts_prematch_odds_gate({"odds": "not-a-price"}))
         self.assertFalse(bot.btts_prematch_odds_gate(None))
 
