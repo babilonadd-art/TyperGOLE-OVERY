@@ -6603,6 +6603,99 @@ def send_btts_double_photo(pair, double_number, total_doubles):
     return result.get("message_id")
 
 
+def publish_manual_btts_doubles(config_path="data/manual_btts_doubles.json"):
+    """Publish explicitly selected, already-listed BTTS FT doubles on the original bull poster."""
+    config = json.loads(Path(config_path).read_text(encoding="utf-8"))
+    target_day = str(config.get("date") or "").strip()
+    today = now_local().date().isoformat()
+    if target_day != today:
+        raise RuntimeError(
+            f"Ręczne duble mają datę {target_day}, a dziś w Europe/Warsaw jest {today}."
+        )
+
+    state = load_state()
+    picks = state.get("picks", [])
+    pairs = config.get("pairs") or []
+    if len(pairs) != 4 or any(len(pair) != 2 for pair in pairs):
+        raise ValueError("Konfiguracja musi zawierać dokładnie cztery duble po dwa mecze.")
+
+    selected_pairs = []
+    used_ids, used_teams = set(), set()
+    for index, pair_config in enumerate(pairs, 1):
+        pair = []
+        for item in pair_config:
+            fixture_id = str(item.get("id") or "").strip()
+            matches = [
+                pick for pick in picks
+                if str(pick.get("id") or "") == fixture_id
+                and pick.get("date") == target_day
+                and pick.get("market") == BTTS_FT_MARKET
+                and pick.get("delivery_status") == "sent"
+            ]
+            if len(matches) != 1:
+                raise RuntimeError(
+                    f"Dubel {index}: mecz {fixture_id} nie występuje dokładnie raz "
+                    "na dzisiejszej wysłanej liście BTTS FT."
+                )
+            pick = dict(matches[0])
+            if fixture_id in used_ids:
+                raise ValueError(f"Powtórzony mecz w ręcznych dublach: {fixture_id}.")
+            used_ids.add(fixture_id)
+            kickoff = kickoff_datetime({"kickoff_time": pick.get("kickoff_time")})
+            if kickoff is None or kickoff <= now_local():
+                raise RuntimeError(
+                    f"Dubel {index}: mecz {pick.get('home')} - {pick.get('away')} "
+                    "już się rozpoczął albo nie ma potwierdzonej godziny."
+                )
+            for team in (pick.get("home"), pick.get("away")):
+                team_key = str(team or "").strip().casefold()
+                if not team_key or team_key in used_teams:
+                    raise ValueError(f"Powtórzona lub pusta drużyna w ręcznych dublach: {team}.")
+                used_teams.add(team_key)
+            league_override = str(item.get("league") or "").strip()
+            if league_override:
+                pick["league"] = league_override
+            pair.append(pick)
+        selected_pairs.append(pair)
+
+    sent_keys = set(state.get("manual_btts_doubles_sent", []))
+    pending = [
+        (index, pair) for index, pair in enumerate(selected_pairs, 1)
+        if f"{target_day}:{index}" not in sent_keys
+    ]
+    if not pending:
+        print("Ręczne duble BTTS: wszystkie cztery plakaty zostały już wysłane; pomijam ponowną publikację.", flush=True)
+        return
+
+    telegram(
+        "━━━━━━━━━━━━━━━━━━\\n"
+        "🔥 <b>DUBLE DNIA BTTS</b> 🔥\\n"
+        "━━━━━━━━━━━━━━━━━━",
+        parse_mode="HTML",
+    )
+    for pending_index, (double_number, pair) in enumerate(pending):
+        message_id = send_btts_double_photo(pair, double_number, len(selected_pairs))
+        sent_keys.add(f"{target_day}:{double_number}")
+        state["manual_btts_doubles_sent"] = sorted(sent_keys)
+        for pick in pair:
+            for stored in picks:
+                if stored.get("key") == pick.get("key"):
+                    stored["telegram_double_number"] = double_number
+                    stored["telegram_double_message_id"] = message_id
+                    stored["telegram_double_sent_at"] = now_local().isoformat()
+                    stored["telegram_double_manual"] = True
+        save_state(state)
+        print(
+            f"WYSŁANO RĘCZNY BTTS DUBEL {double_number}/4: "
+            f"{pair[0].get('home')} - {pair[0].get('away')} + "
+            f"{pair[1].get('home')} - {pair[1].get('away')}; Telegram ID={message_id}.",
+            flush=True,
+        )
+        if pending_index + 1 < len(pending):
+            send_btts_double_spacer()
+            time.sleep(1.2)
+
+
 def send_btts_double_spacer():
     """Create a visibly tall Telegram gap between consecutive double posters."""
     # U+3164 is an invisible Hangul filler, but unlike ordinary spaces Telegram keeps it.
