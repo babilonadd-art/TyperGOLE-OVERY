@@ -27,7 +27,7 @@ permissions:
 # Nie anuluj działającego skanowania przy następnym wywołaniu cron.
 # GitHub utrzyma najwyżej jeden oczekujący przebieg dla tej grupy.
 concurrency:
-  group: typergole-btts-ft-${{ github.event_name }}
+  group: typergole-btts-ft-${{ github.event_name }}-${{ github.event_name == 'push' && contains(github.event.head_commit.message, 'Publish manual BTTS doubles') && github.run_id || 'standard' }}
   cancel-in-progress: false
 
 jobs:
@@ -53,7 +53,7 @@ jobs:
       # Testy wykonujemy przy zmianach kodu i ręcznym Dry Run.
       # Nie uruchamiamy 90-sekundowego zestawu testów przed każdym skanem cron.
       - name: Run automated tests
-        if: github.event_name != 'schedule'
+        if: github.event_name != 'schedule' && !(github.event_name == 'push' && contains(github.event.head_commit.message, 'Publish manual BTTS doubles'))
         run: python -m unittest discover -s tests -p "test_*.py"
       - name: Scan and publish BTTS FT
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && (contains(github.event.head_commit.message, 'Repair BTTS Telegram list') || contains(github.event.head_commit.message, 'Republish BTTS list with corrected layout') || contains(github.event.head_commit.message, 'Publish manual BTTS doubles')))
