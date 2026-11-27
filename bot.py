@@ -2526,6 +2526,48 @@ def bsd_event_league_name(event):
     return str(value or "").strip()
 
 
+def is_israeli_btts_competition(competition="", event=None):
+    """Exclude Israeli domestic competitions from BTTS FT, using league/country metadata."""
+    label = unicodedata.normalize("NFKD", str(competition or "")).casefold()
+    label = "".join(ch for ch in label if not unicodedata.combining(ch))
+    compact = re.sub(r"[^a-z0-9]+", " ", label).strip()
+    israel_terms = (
+        "israel", "israeli", "izraelsk", "izraela", "israel league",
+        "ligat haal", "ligat ha al", "liga leumit", "liga alef",
+        "israel state cup", "israel cup", "toto cup",
+    )
+    if any(term in compact for term in israel_terms):
+        return True
+
+    # Also inspect explicit country metadata when the provider labels the league
+    # without naming Israel (e.g. "Premier League").
+    country_keys = {
+        "country", "country_name", "countryname", "country_code",
+        "countrycode", "region", "region_name", "nation",
+    }
+    queue = [event] if isinstance(event, dict) else []
+    seen = set()
+    while queue:
+        node = queue.pop()
+        if not isinstance(node, dict) or id(node) in seen:
+            continue
+        seen.add(id(node))
+        for key, value in node.items():
+            normalized_key = re.sub(r"[^a-z0-9]+", "_", str(key).casefold())
+            if normalized_key in country_keys:
+                if isinstance(value, dict):
+                    value = first(value, "name", "title", "code", default="")
+                country = unicodedata.normalize("NFKD", str(value or "")).casefold()
+                country = "".join(ch for ch in country if not unicodedata.combining(ch))
+                if country.strip() in {"israel", "il", "isr", "israeli"}:
+                    return True
+            if isinstance(value, dict):
+                queue.append(value)
+            elif isinstance(value, list):
+                queue.extend(item for item in value if isinstance(item, dict))
+    return False
+
+
 def btts_overnight_scan_date(current=None):
     """Return today's local calendar date for the all-day BTTS scan."""
     current = (current or now_local()).astimezone(TZ)
@@ -6751,6 +6793,13 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
         )
         if isinstance(league_source, dict):
             league_source = first(league_source, "name", "title", default="")
+        if is_israeli_btts_competition(league_source, event):
+            print(
+                f"BTTS FT: pomijam ligę Izraela — {home} - {away} "
+                f"({league_source or 'kraj z metadanych'}).",
+                flush=True,
+            )
+            continue
         # Missing competition metadata is NOT a reason to discard a fixture.
         # Use a verified label when available; otherwise mark it explicitly and
         # analyze each team's broader verified match history (without guessing a league).
