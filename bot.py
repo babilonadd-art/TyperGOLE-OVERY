@@ -6647,6 +6647,19 @@ def publish_manual_btts_doubles(config_path="data/manual_btts_doubles.json"):
                     f"Dubel {index}: mecz {pick.get('home')} - {pick.get('away')} "
                     "już się rozpoczął albo nie ma potwierdzonej godziny."
                 )
+            event_id = str(pick.get("id") or "").removeprefix("superbet:")
+            if not event_id:
+                raise RuntimeError(f"Dubel {index}: brak identyfikatora Superbet dla {pick.get('home')} - {pick.get('away')}.")
+            detail = superbet_event_detail(event_id, probe_subscription=False)
+            quote = extract_superbet_btts_full_time(detail)
+            if not quote or not btts_prematch_odds_gate(quote):
+                raise RuntimeError(
+                    f"Dubel {index}: Superbet nie potwierdził aktualnego kursu BTTS FT "
+                    f"w zakresie 1.60–2.50 dla {pick.get('home')} - {pick.get('away')}."
+                )
+            pick["odds"] = float(quote["odds"])
+            pick["odds_market"] = quote.get("market")
+            pick["odds_updated_at"] = quote.get("updated_at")
             for team in (pick.get("home"), pick.get("away")):
                 team_key = str(team or "").strip().casefold()
                 if not team_key or team_key in used_teams:
