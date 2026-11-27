@@ -6434,6 +6434,8 @@ def render_btts_double_graphic(pair):
         return ImageFont.truetype(font_path, size)
 
     def fitted_font(value, max_width, high, low, max_height=None):
+        # Shrink each field until the complete real text fits its own box.
+        # Never fall back to a font that is known to overflow the template.
         for size in range(high, low - 1, -1):
             selected = font(size)
             bounds = draw.textbbox((0, 0), value, font=selected)
@@ -6441,7 +6443,9 @@ def render_btts_double_graphic(pair):
             height = bounds[3] - bounds[1]
             if width <= max_width and (max_height is None or height <= max_height):
                 return selected
-        return font(low)
+        raise ValueError(
+            f"Tekst nie mieści się w polu plakatu nawet przy najmniejszej czcionce: {value}"
+        )
 
     def centered_text(bounds, value, selected_font, color, stroke_width=0):
         x1, y1, x2, y2 = bounds
@@ -6502,7 +6506,7 @@ def render_btts_double_graphic(pair):
             league,
             fitted_font(
                 league, league_bounds[2] - league_bounds[0] - 8,
-                18, 9, league_bounds[3] - league_bounds[1] - 4,
+                18, 6, league_bounds[3] - league_bounds[1] - 4,
             ),
             (220, 220, 220),
         )
@@ -6511,7 +6515,7 @@ def render_btts_double_graphic(pair):
             time_text,
             fitted_font(
                 time_text, time_bounds[2] - time_bounds[0] - 8,
-                15, 11, time_bounds[3] - time_bounds[1] - 4,
+                15, 8, time_bounds[3] - time_bounds[1] - 4,
             ),
             (255, 255, 255),
             stroke_width=0,
@@ -6526,7 +6530,7 @@ def render_btts_double_graphic(pair):
             home,
             fitted_font(
                 home, home_bounds[2] - home_bounds[0] - 10,
-                32, 20, home_bounds[3] - home_bounds[1] - 6,
+                32, 10, home_bounds[3] - home_bounds[1] - 6,
             ),
             (255, 255, 255),
             stroke_width=1,
@@ -6536,7 +6540,7 @@ def render_btts_double_graphic(pair):
             away,
             fitted_font(
                 away, away_bounds[2] - away_bounds[0] - 10,
-                32, 20, away_bounds[3] - away_bounds[1] - 6,
+                32, 10, away_bounds[3] - away_bounds[1] - 6,
             ),
             (255, 255, 255),
             stroke_width=1,
@@ -6547,7 +6551,7 @@ def render_btts_double_graphic(pair):
         centered_text(
             odds_bounds,
             odds_text,
-            fitted_font(odds_text, odds_bounds[2] - odds_bounds[0] - 8, 54, 40),
+            fitted_font(odds_text, odds_bounds[2] - odds_bounds[0] - 8, 54, 24),
             (255, 255, 255),
             stroke_width=1,
         )
@@ -6559,7 +6563,7 @@ def render_btts_double_graphic(pair):
     centered_text(
         total_odds_field,
         total_text,
-        fitted_font(total_text, 630, 44, 28),
+        fitted_font(total_text, 630, 44, 20),
         (255, 255, 255),
         stroke_width=1,
     )
