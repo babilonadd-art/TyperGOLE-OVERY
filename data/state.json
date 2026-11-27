@@ -6438,7 +6438,7 @@
   "btts_image_cursor": 0,
   "daily_headers_sent": [],
   "daily_header_messages": {},
-  "btts_daily_limit_reset_at": "2026-11-27T01:19:00+01:00",
+  "btts_daily_limit_reset_at": "2026-11-27T01:20:30+01:00",
   "daily_btts_closers_sent": [],
   "daily_btts_force_close": [],
   "daily_btts_closer_messages": {},
@@ -6447,7 +6447,7 @@
   "manual_archive_caption_repaired_at": null,
   "manual_archive_caption_repaired_message_id": null,
   "manual_pick_number_repairs": [],
-  "btts_daily_limit_reset_reason": "Ręczny reset limitu BTTS FT na 2026-11-27 po wdrożeniu analizy siły rywali; historia rozliczeń i blokada duplikatów zachowane.",
+  "btts_daily_limit_reset_reason": "Ręczny reset limitu BTTS FT na 2026-11-27; ponowienie skanu po poprawieniu układu listy. Historia rozliczeń i blokada duplikatów zachowane.",
   "bsd_btts_cache": {},
   "offsides_list_sent_days": [
     "2026-11-22"
