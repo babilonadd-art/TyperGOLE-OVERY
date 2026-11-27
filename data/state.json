@@ -2480,11 +2480,7 @@
       "sent_at": "2026-11-27T00:45:59.612807+01:00",
       "telegram_previous_message_id": "754",
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
-      "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
-      "telegram_double_number": 2,
-      "telegram_double_message_id": 824,
-      "telegram_double_sent_at": "2026-11-27T10:37:11.781334+01:00",
-      "telegram_double_manual": true
+      "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00"
     },
     {
       "key": "superbet:15906723:BTTS_FT",
@@ -2599,11 +2595,7 @@
       "telegram_previous_message_id": "754",
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
-      "competition": "Liga Alef South",
-      "telegram_double_number": 1,
-      "telegram_double_message_id": 822,
-      "telegram_double_sent_at": "2026-11-27T10:37:07.816501+01:00",
-      "telegram_double_manual": true
+      "competition": "Liga Alef South"
     },
     {
       "key": "superbet:14764590:BTTS_FT",
@@ -2717,11 +2709,7 @@
       "sent_at": "2026-11-27T00:45:59.612807+01:00",
       "telegram_previous_message_id": "754",
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
-      "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
-      "telegram_double_number": 1,
-      "telegram_double_message_id": 822,
-      "telegram_double_sent_at": "2026-11-27T10:37:07.816527+01:00",
-      "telegram_double_manual": true
+      "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00"
     },
     {
       "key": "superbet:15517567:BTTS_FT",
@@ -2835,11 +2823,7 @@
       "sent_at": "2026-11-27T00:45:59.612807+01:00",
       "telegram_previous_message_id": "754",
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
-      "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
-      "telegram_double_number": 2,
-      "telegram_double_message_id": 824,
-      "telegram_double_sent_at": "2026-11-27T10:37:11.781360+01:00",
-      "telegram_double_manual": true
+      "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00"
     },
     {
       "key": "superbet:14780630:BTTS_FT",
@@ -2953,11 +2937,7 @@
       "sent_at": "2026-11-27T00:45:59.612807+01:00",
       "telegram_previous_message_id": "754",
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
-      "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
-      "telegram_double_number": 4,
-      "telegram_double_message_id": 828,
-      "telegram_double_sent_at": "2026-11-27T10:37:20.014621+01:00",
-      "telegram_double_manual": true
+      "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00"
     },
     {
       "key": "superbet:16085381:BTTS_FT",
@@ -3189,11 +3169,7 @@
       "sent_at": "2026-11-27T00:45:59.612807+01:00",
       "telegram_previous_message_id": "754",
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
-      "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
-      "telegram_double_number": 3,
-      "telegram_double_message_id": 826,
-      "telegram_double_sent_at": "2026-11-27T10:37:15.870674+01:00",
-      "telegram_double_manual": true
+      "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00"
     },
     {
       "key": "superbet:14764520:BTTS_FT",
@@ -3667,11 +3643,7 @@
       "sent_at": "2026-11-27T01:32:47.578190+01:00",
       "telegram_previous_message_id": "767",
       "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00",
-      "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
-      "telegram_double_number": 4,
-      "telegram_double_message_id": 828,
-      "telegram_double_sent_at": "2026-11-27T10:37:20.014597+01:00",
-      "telegram_double_manual": true
+      "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00"
     },
     {
       "key": "superbet:14764535:BTTS_FT",
@@ -4391,11 +4363,7 @@
       "sent_at": "2026-11-27T01:32:47.578190+01:00",
       "telegram_previous_message_id": "767",
       "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00",
-      "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
-      "telegram_double_number": 3,
-      "telegram_double_message_id": 826,
-      "telegram_double_sent_at": "2026-11-27T10:37:15.870654+01:00",
-      "telegram_double_manual": true
+      "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00"
     },
     {
       "key": "superbet:14780599:BTTS_FT",
@@ -11240,7 +11208,7 @@
   "manual_archive_caption_repaired_at": null,
   "manual_archive_caption_repaired_message_id": null,
   "manual_pick_number_repairs": [],
-  "btts_daily_limit_reset_reason": "Ręczny reset limitu BTTS FT na 2026-11-27; ponowny skan po poprawieniu testów nowego układu. Historia rozliczeń i blokada duplikatów zachowane.",
+  "btts_daily_limit_reset_reason": "Reset historii ręcznych dubli BTTS na 2026-11-27 w celu ponownej publikacji poprawionych grafik; zwykła historia typów i rozliczeń pozostaje bez zmian.",
   "bsd_btts_cache": {},
   "offsides_list_sent_days": [
     "2026-11-22"
@@ -11366,10 +11334,5 @@
     "815",
     "819"
   ],
-  "manual_btts_doubles_sent": [
-    "2026-11-27:1",
-    "2026-11-27:2",
-    "2026-11-27:3",
-    "2026-11-27:4"
-  ]
+  "manual_btts_doubles_sent": []
 }
