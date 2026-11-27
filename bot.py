@@ -6671,6 +6671,27 @@ def publish_manual_btts_doubles(config_path="data/manual_btts_doubles.json"):
             pair.append(pick)
         selected_pairs.append(pair)
 
+    deleted_message_ids = set(str(value) for value in state.get("manual_btts_doubles_deleted_messages", []))
+    for message_id in config.get("delete_message_ids", []):
+        message_id = str(message_id)
+        if message_id in deleted_message_ids:
+            continue
+        response = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/deleteMessage",
+            data={"chat_id": CHAT_ID, "message_id": int(message_id)},
+            timeout=20,
+        )
+        try:
+            payload = response.json()
+        except ValueError:
+            payload = {}
+        description = str(payload.get("description") or "").casefold()
+        if not payload.get("ok") and "message to delete not found" not in description:
+            raise RuntimeError(f"Telegram nie usunął błędnej grafiki {message_id}: {payload}")
+        deleted_message_ids.add(message_id)
+        state["manual_btts_doubles_deleted_messages"] = sorted(deleted_message_ids)
+        save_state(state)
+
     sent_keys = set(state.get("manual_btts_doubles_sent", []))
     pending = [
         (index, pair) for index, pair in enumerate(selected_pairs, 1)
@@ -6710,9 +6731,8 @@ def publish_manual_btts_doubles(config_path="data/manual_btts_doubles.json"):
 
 
 def send_btts_double_spacer():
-    """Create a visibly tall Telegram gap between consecutive double posters."""
-    # U+3164 is an invisible Hangul filler, but unlike ordinary spaces Telegram keeps it.
-    telegram(("\u3164\n") * 8)
+    """Send a visible separator between consecutive original BTTS double posters."""
+    telegram("━━━━━━━━━━━━━━━━━━")
 
 
 def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only=False):
