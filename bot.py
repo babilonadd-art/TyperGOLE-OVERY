@@ -7907,3 +7907,5 @@ if __name__ == "__main__":
 # BTTS FT: ręczne uruchomienie skanu po resecie historii 2026-11-25.
 
 # MANUAL_BTTS_DOUBLE_REPUBLISH_TRIGGER_2026_11_27
+
+# Manual BTTS double republish request 2026-11-27 (four pairs).
