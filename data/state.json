@@ -2482,8 +2482,8 @@
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
       "telegram_double_number": 2,
-      "telegram_double_message_id": 832,
-      "telegram_double_sent_at": "2026-11-27T10:45:44.946704+01:00",
+      "telegram_double_message_id": 840,
+      "telegram_double_sent_at": "2026-11-27T10:53:29.913307+01:00",
       "telegram_double_manual": true
     },
     {
@@ -2601,8 +2601,8 @@
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
       "competition": "Liga Alef South",
       "telegram_double_number": 1,
-      "telegram_double_message_id": 830,
-      "telegram_double_sent_at": "2026-11-27T10:45:41.670675+01:00",
+      "telegram_double_message_id": 838,
+      "telegram_double_sent_at": "2026-11-27T10:53:26.171497+01:00",
       "telegram_double_manual": true
     },
     {
@@ -2719,8 +2719,8 @@
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
       "telegram_double_number": 1,
-      "telegram_double_message_id": 830,
-      "telegram_double_sent_at": "2026-11-27T10:45:41.670698+01:00",
+      "telegram_double_message_id": 838,
+      "telegram_double_sent_at": "2026-11-27T10:53:26.171522+01:00",
       "telegram_double_manual": true
     },
     {
@@ -2837,8 +2837,8 @@
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
       "telegram_double_number": 2,
-      "telegram_double_message_id": 832,
-      "telegram_double_sent_at": "2026-11-27T10:45:44.946726+01:00",
+      "telegram_double_message_id": 840,
+      "telegram_double_sent_at": "2026-11-27T10:53:29.913332+01:00",
       "telegram_double_manual": true
     },
     {
@@ -2955,8 +2955,8 @@
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
       "telegram_double_number": 4,
-      "telegram_double_message_id": 836,
-      "telegram_double_sent_at": "2026-11-27T10:45:51.444598+01:00",
+      "telegram_double_message_id": 844,
+      "telegram_double_sent_at": "2026-11-27T10:53:36.623205+01:00",
       "telegram_double_manual": true
     },
     {
@@ -3191,8 +3191,8 @@
       "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
       "telegram_double_number": 3,
-      "telegram_double_message_id": 834,
-      "telegram_double_sent_at": "2026-11-27T10:45:48.265453+01:00",
+      "telegram_double_message_id": 842,
+      "telegram_double_sent_at": "2026-11-27T10:53:33.230806+01:00",
       "telegram_double_manual": true
     },
     {
@@ -3669,8 +3669,8 @@
       "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00",
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
       "telegram_double_number": 4,
-      "telegram_double_message_id": 836,
-      "telegram_double_sent_at": "2026-11-27T10:45:51.444579+01:00",
+      "telegram_double_message_id": 844,
+      "telegram_double_sent_at": "2026-11-27T10:53:36.623185+01:00",
       "telegram_double_manual": true
     },
     {
@@ -4393,8 +4393,8 @@
       "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00",
       "manual_double_price_verified_at": "2026-11-27T10:11:10+01:00",
       "telegram_double_number": 3,
-      "telegram_double_message_id": 834,
-      "telegram_double_sent_at": "2026-11-27T10:45:48.265436+01:00",
+      "telegram_double_message_id": 842,
+      "telegram_double_sent_at": "2026-11-27T10:53:33.230768+01:00",
       "telegram_double_manual": true
     },
     {
@@ -11370,5 +11370,10 @@
     "826",
     "828"
   ],
-  "manual_btts_doubles_sent": []
+  "manual_btts_doubles_sent": [
+    "2026-11-27:1",
+    "2026-11-27:2",
+    "2026-11-27:3",
+    "2026-11-27:4"
+  ]
 }
