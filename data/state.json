@@ -3389,10 +3389,12 @@
       "delivery_status": "sent",
       "pick_number": 7,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 767,
-      "telegram_list_message_id": 767,
-      "sent_at": "2026-11-27T01:32:47.578190+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 768,
+      "telegram_list_message_id": 768,
+      "sent_at": "2026-11-27T01:32:47.578190+01:00",
+      "telegram_previous_message_id": "767",
+      "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00"
     },
     {
       "key": "superbet:15906667:BTTS_FT",
@@ -3507,10 +3509,12 @@
       "delivery_status": "sent",
       "pick_number": 8,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 767,
-      "telegram_list_message_id": 767,
-      "sent_at": "2026-11-27T01:32:47.578190+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 768,
+      "telegram_list_message_id": 768,
+      "sent_at": "2026-11-27T01:32:47.578190+01:00",
+      "telegram_previous_message_id": "767",
+      "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00"
     },
     {
       "key": "superbet:15906256:BTTS_FT",
@@ -3625,10 +3629,12 @@
       "delivery_status": "sent",
       "pick_number": 3,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 767,
-      "telegram_list_message_id": 767,
-      "sent_at": "2026-11-27T01:32:47.578190+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 768,
+      "telegram_list_message_id": 768,
+      "sent_at": "2026-11-27T01:32:47.578190+01:00",
+      "telegram_previous_message_id": "767",
+      "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00"
     },
     {
       "key": "superbet:14764535:BTTS_FT",
@@ -3743,10 +3749,12 @@
       "delivery_status": "sent",
       "pick_number": 6,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 767,
-      "telegram_list_message_id": 767,
-      "sent_at": "2026-11-27T01:32:47.578190+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 768,
+      "telegram_list_message_id": 768,
+      "sent_at": "2026-11-27T01:32:47.578190+01:00",
+      "telegram_previous_message_id": "767",
+      "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00"
     },
     {
       "key": "superbet:15725012:BTTS_FT",
@@ -3861,10 +3869,12 @@
       "delivery_status": "sent",
       "pick_number": 1,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 767,
-      "telegram_list_message_id": 767,
-      "sent_at": "2026-11-27T01:32:47.578190+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 768,
+      "telegram_list_message_id": 768,
+      "sent_at": "2026-11-27T01:32:47.578190+01:00",
+      "telegram_previous_message_id": "767",
+      "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00"
     },
     {
       "key": "superbet:15725014:BTTS_FT",
@@ -3979,10 +3989,12 @@
       "delivery_status": "sent",
       "pick_number": 5,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 767,
-      "telegram_list_message_id": 767,
-      "sent_at": "2026-11-27T01:32:47.578190+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 768,
+      "telegram_list_message_id": 768,
+      "sent_at": "2026-11-27T01:32:47.578190+01:00",
+      "telegram_previous_message_id": "767",
+      "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00"
     },
     {
       "key": "superbet:14780591:BTTS_FT",
@@ -4097,10 +4109,12 @@
       "delivery_status": "sent",
       "pick_number": 9,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 767,
-      "telegram_list_message_id": 767,
-      "sent_at": "2026-11-27T01:32:47.578190+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 768,
+      "telegram_list_message_id": 768,
+      "sent_at": "2026-11-27T01:32:47.578190+01:00",
+      "telegram_previous_message_id": "767",
+      "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00"
     },
     {
       "key": "superbet:16013039:BTTS_FT",
@@ -4215,10 +4229,12 @@
       "delivery_status": "sent",
       "pick_number": 10,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 767,
-      "telegram_list_message_id": 767,
-      "sent_at": "2026-11-27T01:32:47.578190+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 768,
+      "telegram_list_message_id": 768,
+      "sent_at": "2026-11-27T01:32:47.578190+01:00",
+      "telegram_previous_message_id": "767",
+      "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00"
     },
     {
       "key": "superbet:14833151:BTTS_FT",
@@ -4333,10 +4349,12 @@
       "delivery_status": "sent",
       "pick_number": 4,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 767,
-      "telegram_list_message_id": 767,
-      "sent_at": "2026-11-27T01:32:47.578190+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 768,
+      "telegram_list_message_id": 768,
+      "sent_at": "2026-11-27T01:32:47.578190+01:00",
+      "telegram_previous_message_id": "767",
+      "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00"
     },
     {
       "key": "superbet:14780599:BTTS_FT",
@@ -4451,10 +4469,12 @@
       "delivery_status": "sent",
       "pick_number": 2,
       "telegram_batch_message": true,
-      "telegram_format_version": 4,
-      "telegram_message_id": 767,
-      "telegram_list_message_id": 767,
-      "sent_at": "2026-11-27T01:32:47.578190+01:00"
+      "telegram_format_version": 6,
+      "telegram_message_id": 768,
+      "telegram_list_message_id": 768,
+      "sent_at": "2026-11-27T01:32:47.578190+01:00",
+      "telegram_previous_message_id": "767",
+      "telegram_format_updated_at": "2026-11-27T01:40:21.672549+01:00"
     }
   ],
   "reports_sent": [],
