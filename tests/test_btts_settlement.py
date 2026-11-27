@@ -31,7 +31,7 @@ class BttsTelegramMessageTests(unittest.TestCase):
             },
         }
         message = bot.format_btts_ft_pick_message(pick, 3)
-        self.assertIn("3. Test League\\n🕒 18:30 | Home FC – Away FC", message)
+        self.assertIn("3. Test League\n🕒 18:30 | Home FC – Away FC", message)
         self.assertIn("Test League", message)
         self.assertIn("BTTS TAK (FT) | Kurs: 1.85", message)
         self.assertIn("🕒 18:30", message)
