@@ -6493,20 +6493,19 @@ def render_btts_double_graphic(pair):
         # red divider as the only separation. The wider left area prioritizes teams.
         divider_x = x2 - 154
         left_x1, left_x2 = x1 + 18, divider_x - 8
-        # One compact header row: competition and kickoff both stay fully
-        # inside the left-hand match field. The kickoff gets a fixed, narrow
-        # cell and is reduced by both width AND height before drawing.
+        # League and kickoff use separate full-width rows. The previous
+        # side-by-side header squeezed the league into a narrow column and made
+        # the text appear outside the printed match box on the Telegram poster.
+        # Each row is measured against the actual left match-field width.
+        league_bounds = (left_x1 + 4, y1 + 3, left_x2 - 4, y1 + 25)
         time_text = kickoff.strftime("%H:%M")
-        # Print the real competition name in the poster header, beside kickoff,
-        # as required. The Telegram caption also retains the league name.
-        league_bounds = (left_x1, y1 + 4, left_x2 - 78, y1 + 25)
-        time_bounds = (left_x2 - 76, y1 + 4, left_x2 - 2, y1 + 25)
+        time_bounds = (left_x1 + 4, y1 + 25, left_x2 - 4, y1 + 45)
         centered_text(
             league_bounds,
             league,
             fitted_font(
-                league, league_bounds[2] - league_bounds[0] - 8,
-                18, 6, league_bounds[3] - league_bounds[1] - 4,
+                league, league_bounds[2] - league_bounds[0] - 12,
+                18, 8, league_bounds[3] - league_bounds[1] - 4,
             ),
             (220, 220, 220),
         )
@@ -6514,17 +6513,17 @@ def render_btts_double_graphic(pair):
             time_bounds,
             time_text,
             fitted_font(
-                time_text, time_bounds[2] - time_bounds[0] - 8,
-                15, 8, time_bounds[3] - time_bounds[1] - 4,
+                time_text, time_bounds[2] - time_bounds[0] - 12,
+                18, 12, time_bounds[3] - time_bounds[1] - 4,
             ),
             (255, 255, 255),
             stroke_width=0,
         )
 
-        # Team names occupy the remaining two rows; cap font height as well
-        # as width so long names cannot protrude beyond the original frame.
-        home_bounds = (left_x1, y1 + 29, left_x2, y1 + 75)
-        away_bounds = (left_x1, y1 + 73, left_x2, y2 - 4)
+        # Team names stay on their own two rows below league and kickoff.
+        # Width and height are both bounded by the original match field.
+        home_bounds = (left_x1, y1 + 47, left_x2, y1 + 87)
+        away_bounds = (left_x1, y1 + 89, left_x2, y2 - 3)
         centered_text(
             home_bounds,
             home,
