@@ -172,6 +172,19 @@ class BttsDailyCloseTests(unittest.TestCase):
         self.assertEqual(state["daily_btts_daily_profit"]["2026-11-11"], 7.60)
 
 
+class BttsPrematchOddsGateTests(unittest.TestCase):
+    def test_accepts_supported_high_odds_up_to_2_50(self):
+        self.assertTrue(bot.btts_prematch_odds_gate({"odds": 2.20}))
+        self.assertTrue(bot.btts_prematch_odds_gate({"odds": 2.45}))
+        self.assertTrue(bot.btts_prematch_odds_gate({"odds": 2.50}))
+
+    def test_rejects_odds_outside_the_real_market_band(self):
+        self.assertFalse(bot.btts_prematch_odds_gate({"odds": 1.59}))
+        self.assertFalse(bot.btts_prematch_odds_gate({"odds": 2.51}))
+        self.assertFalse(bot.btts_prematch_odds_gate({"odds": "not-a-price"}))
+        self.assertFalse(bot.btts_prematch_odds_gate(None))
+
+
 class BttsQualityGateTests(unittest.TestCase):
     def test_rejects_negative_value_over_market(self):
         self.assertFalse(bot.btts_value_gate(0.55, 1.70))
