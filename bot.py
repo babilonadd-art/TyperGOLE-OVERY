@@ -6493,32 +6493,39 @@ def render_btts_double_graphic(pair):
         # red divider as the only separation. The wider left area prioritizes teams.
         divider_x = x2 - 154
         left_x1, left_x2 = x1 + 18, divider_x - 8
-        # Correct layout: league and kickoff share the top row;
-        # both team names sit below, each on its own full-width row.
+        # League and kickoff are adjacent on the same top line;
+        # team names are on the two full-width lines underneath.
         time_text = kickoff.strftime("%H:%M")
-        league_bounds = (left_x1 + 4, y1 + 3, left_x2 - 104, y1 + 25)
-        time_bounds = (left_x2 - 100, y1 + 3, left_x2 - 2, y1 + 25)
-        home_bounds = (left_x1, y1 + 29, left_x2, y1 + 65)
-        away_bounds = (left_x1, y1 + 68, left_x2, y2 - 3)
-        centered_text(
-            league_bounds,
-            league,
-            fitted_font(
-                league, league_bounds[2] - league_bounds[0] - 10,
-                18, 8, league_bounds[3] - league_bounds[1] - 4,
-            ),
-            (220, 220, 220),
+        header_left = left_x1 + 4
+        header_right = left_x2 - 4
+        header_y1, header_y2 = y1 + 3, y1 + 25
+        league_font = fitted_font(
+            league, header_right - header_left - 54,
+            18, 8, header_y2 - header_y1 - 4,
         )
+        league_bbox = draw.textbbox((0, 0), league, font=league_font)
+        league_width = league_bbox[2] - league_bbox[0]
+        league_height = league_bbox[3] - league_bbox[1]
+        league_x = header_left - league_bbox[0]
+        league_y = header_y1 + (header_y2 - header_y1 - league_height) / 2 - league_bbox[1]
+        draw.text(
+            (int(league_x), int(league_y)), league, font=league_font,
+            fill=(220, 220, 220),
+        )
+        time_left = int(league_x + league_width + 10)
+        time_bounds = (time_left, header_y1, header_right, header_y2)
         centered_text(
             time_bounds,
             time_text,
             fitted_font(
-                time_text, time_bounds[2] - time_bounds[0] - 8,
+                time_text, time_bounds[2] - time_bounds[0] - 4,
                 20, 12, time_bounds[3] - time_bounds[1] - 4,
             ),
             (255, 255, 255),
             stroke_width=0,
         )
+        home_bounds = (left_x1, y1 + 29, left_x2, y1 + 65)
+        away_bounds = (left_x1, y1 + 68, left_x2, y2 - 3)
         centered_text(
             home_bounds,
             home,
