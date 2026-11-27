@@ -2349,7 +2349,7 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "MEX_1_liga-mx"
       },
-      "settled": false,
+      "settled": true,
       "risk_tier": "MAIN",
       "delivery_status": "sent",
       "pick_number": 2,
@@ -2362,7 +2362,11 @@
       "telegram_double_message_id": 756,
       "telegram_double_sent_at": "2026-11-27T00:46:02.293797+01:00",
       "telegram_previous_message_id": "754",
-      "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00"
+      "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
+      "won": false,
+      "settled_score": "0-2",
+      "settled_period": "FT",
+      "settled_at": "2026-11-27T09:08:23.734874+01:00"
     },
     {
       "key": "superbet:14764634:BTTS_FT",
@@ -3036,7 +3040,7 @@
         "method": "open_matchday_btts_ft_value_v5",
         "league_folder": "MEX_1_liga-mx"
       },
-      "settled": false,
+      "settled": true,
       "risk_tier": "LOW_DAY",
       "delivery_status": "sent",
       "pick_number": 1,
@@ -3046,7 +3050,11 @@
       "telegram_list_message_id": 764,
       "sent_at": "2026-11-27T00:45:59.612807+01:00",
       "telegram_previous_message_id": "754",
-      "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00"
+      "telegram_format_updated_at": "2026-11-27T01:02:30.536264+01:00",
+      "won": true,
+      "settled_score": "2-1",
+      "settled_period": "FT",
+      "settled_at": "2026-11-27T09:08:23.134885+01:00"
     },
     {
       "key": "superbet:15724971:BTTS_FT",
