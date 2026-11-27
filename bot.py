@@ -6528,24 +6528,16 @@ def render_btts_double_graphic(pair):
             font=time_font,
             fill=(255, 255, 255),
         )
-        home_bounds = (left_x1, y1 + 29, left_x2, y1 + 65)
-        away_bounds = (left_x1, y1 + 68, left_x2, y2 - 3)
+        # Keep both team names on one horizontal line in the black field:
+        # e.g. "Groningen vs Ajax". Shrink the font to fit before drawing.
+        teams_text = f"{home} vs {away}"
+        teams_bounds = (left_x1, y1 + 29, left_x2, y2 - 3)
         centered_text(
-            home_bounds,
-            home,
+            teams_bounds,
+            teams_text,
             fitted_font(
-                home, home_bounds[2] - home_bounds[0] - 10,
-                32, 10, home_bounds[3] - home_bounds[1] - 6,
-            ),
-            (255, 255, 255),
-            stroke_width=1,
-        )
-        centered_text(
-            away_bounds,
-            away,
-            fitted_font(
-                away, away_bounds[2] - away_bounds[0] - 10,
-                32, 10, away_bounds[3] - away_bounds[1] - 6,
+                teams_text, teams_bounds[2] - teams_bounds[0] - 10,
+                32, 10, teams_bounds[3] - teams_bounds[1] - 6,
             ),
             (255, 255, 255),
             stroke_width=1,
