@@ -8984,7 +8984,11 @@
   "btts_telegram_cleanup_20261127_done": "2026-11-27T01:11:12.974215+01:00",
   "manual_btts_doubles_deleted_messages": [
     "772",
-    "787"
+    "782",
+    "784",
+    "787",
+    "788",
+    "790"
   ],
   "manual_btts_doubles_sent": [
     "2026-11-27:1",
