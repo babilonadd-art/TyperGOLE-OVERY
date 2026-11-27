@@ -8983,7 +8983,8 @@
   "btts_night_pattern_analysis_enabled": true,
   "btts_telegram_cleanup_20261127_done": "2026-11-27T01:11:12.974215+01:00",
   "manual_btts_doubles_deleted_messages": [
-    "772"
+    "772",
+    "787"
   ],
   "manual_btts_doubles_sent": [
     "2026-11-27:1",
