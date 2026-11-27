@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-27",
+  "pairs": [
+    [
+      {
+        "id": "superbet:15648635",
+        "league": "Rwanda Premier League"
+      },
+      {
+        "id": "superbet:14764590"
+      }
+    ],
+    [
+      {
+        "id": "superbet:14764634"
+      },
+      {
+        "id": "superbet:15517567"
+      }
+    ],
+    [
+      {
+        "id": "superbet:14833151"
+      },
+      {
+        "id": "superbet:15724971"
+      }
+    ],
+    [
+      {
+        "id": "superbet:15906667",
+        "league": "Cymru South"
+      },
+      {
+        "id": "superbet:14780630"
+      }
+    ]
+  ]
+}
