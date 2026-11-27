@@ -6437,14 +6437,14 @@ def btts_1x2_risk_gate(one_x_two, metrics):
 
 
 def btts_prematch_odds_gate(btts_quote):
-    """Accept genuine standalone FT BTTS YES odds from 1.60 through 2.50."""
+    """Accept genuine standalone FT BTTS YES odds from 1.55 through 2.40."""
     if not isinstance(btts_quote, dict):
         return False
     try:
         btts_odds = float(btts_quote.get("odds"))
     except (TypeError, ValueError):
         return False
-    return 1.60 <= btts_odds <= 2.50
+    return 1.55 <= btts_odds <= 2.40
 
 
 def render_btts_double_graphic(pair):
@@ -6669,7 +6669,7 @@ def publish_manual_btts_doubles(config_path="data/manual_btts_doubles.json"):
             if not quote or not btts_prematch_odds_gate(quote):
                 raise RuntimeError(
                     f"Dubel {index}: Superbet nie potwierdził aktualnego kursu BTTS FT "
-                    f"w zakresie 1.60–2.50 dla {pick.get('home')} - {pick.get('away')}."
+                    f"w zakresie 1.55–2.40 dla {pick.get('home')} - {pick.get('away')}."
                 )
             pick["odds"] = float(quote["odds"])
             pick["odds_market"] = quote.get("market")
@@ -6865,7 +6865,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             print(f"BTTS DRY DIAG: odrzut {item['home']} - {item['away']}: brak rynku BTTS TAK FT.", flush=True)
             continue
         if not btts_prematch_odds_gate(quote):
-            print(f"BTTS DRY DIAG: odrzut {item['home']} - {item['away']}: kurs {quote.get('odds')} poza zakresem 1.60–2.50.", flush=True)
+            print(f"BTTS DRY DIAG: odrzut {item['home']} - {item['away']}: kurs {quote.get('odds')} poza zakresem 1.55–2.40.", flush=True)
             continue
         market_quotes_in_range += 1
         one_x_two = extract_superbet_1x2_full_time(detail)
@@ -6928,7 +6928,7 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
     print(
         f"Superbet BTTS FT DIAGNOSTYKA: terminarz={len(fixtures)}, "
         f"ligowe spotkania po filtrach={len(shortlist)}, "
-        f"potwierdzone kursy BTTS FT 1.60–2.50={market_quotes_in_range}, "
+        f"potwierdzone kursy BTTS FT 1.55–2.40={market_quotes_in_range}, "
         f"odrzuty z braku historii={history_rejected}, "
         f"z historią do oceny={len(ranked_candidates)}, "
         f"wybrane do listy TOP10={len(eligible)}; "
