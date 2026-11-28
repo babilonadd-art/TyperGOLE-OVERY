@@ -90,7 +90,10 @@ def load_state():
             if isinstance(data, dict):
                 data.setdefault("picks", [])
                 data.setdefault("reports_sent", [])
-                data.setdefault("duplicate_guard", [])
+                # Older/manual resets may leave this field as an object.
+                # The duplicate guard is iterated and appended as a list.
+                if not isinstance(data.get("duplicate_guard"), list):
+                    data["duplicate_guard"] = []
                 return data
         except (ValueError, OSError):
             pass
