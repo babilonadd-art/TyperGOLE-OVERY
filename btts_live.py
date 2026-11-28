@@ -84,8 +84,20 @@ def find_bet365_live_btts_quote(match):
         if phase and phase not in {"live", "inplay", "in_play"}:
             continue
         group_id = str(quote.get("group_id") or "")
-        status = group_status.get(group_id, {}) if group_id else {}
-        if not isinstance(status, dict) or status.get("stale") is True:
+        status = group_status.get(group_id) if group_id else None
+        if not group_id or not isinstance(status, dict) or status.get("stale") is True:
+            continue
+        polled_at = status.get("polled_at")
+        if not polled_at:
+            continue
+        try:
+            checked_at = datetime.fromisoformat(str(polled_at).replace("Z", "+00:00"))
+            if checked_at.tzinfo is None:
+                checked_at = checked_at.replace(tzinfo=ZoneInfo("UTC"))
+            age_seconds = (datetime.now(ZoneInfo("UTC")) - checked_at.astimezone(ZoneInfo("UTC"))).total_seconds()
+        except (TypeError, ValueError):
+            continue
+        if age_seconds < -30 or age_seconds > 600:
             continue
         if quote.get("suspended") is True or quote.get("stale") is True:
             continue
