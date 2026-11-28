@@ -41,7 +41,7 @@ def live_odds_board():
         raise RuntimeError("Brak MOVIODDS_API_KEY w GitHub Secrets — bez klucza nie ma weryfikacji kursu LIVE.")
     response = SESSION.get(
         f"{MOVIODDS_API}/odds",
-        params={"sport": "soccer", "in_play": 1},
+        params={"sport": "soccer", "in_play": 1, "stats": 1},
         headers={"X-API-Key": MOVIODDS_API_KEY, "Accept-Encoding": "gzip"},
         timeout=30,
     )
@@ -55,26 +55,12 @@ def live_odds_board():
     return _LIVE_ODDS_BOARD
 
 def find_bet365_live_btts_quote(match):
-    home_key, away_key = normalize_team(match["home"]), normalize_team(match["away"])
-    fixture_matches = []
-    for row in live_odds_board():
-        row_home, row_away = normalize_team(row.get("home")), normalize_team(row.get("away"))
-        if not home_key or not away_key:
-            continue
-        home_ratio = difflib.SequenceMatcher(None, home_key, row_home).ratio()
-        away_ratio = difflib.SequenceMatcher(None, away_key, row_away).ratio()
-        if home_key == row_home and away_key == row_away:
-            fixture_matches.append((1.0, row))
-        elif home_ratio >= 0.92 and away_ratio >= 0.92:
-            fixture_matches.append((min(home_ratio, away_ratio), row))
-    if len(fixture_matches) != 1:
-        if len(fixture_matches) > 1:
-            print(f"MoviOdds: niejednoznaczne dopasowanie {match['home']} - {match['away']}; odrzucam kurs.", flush=True)
+    """Read the exact fixture's current, active and recently polled BTTS YES price."""
+    if match.get("in_play") is not True:
         return None
-    fixture = fixture_matches[0][1]
-    group_status = fixture.get("group_status") if isinstance(fixture.get("group_status"), dict) else {}
+    group_status = match.get("group_status") if isinstance(match.get("group_status"), dict) else {}
     candidates = []
-    for quote in fixture.get("quotes", []) if isinstance(fixture.get("quotes"), list) else []:
+    for quote in match.get("quotes", []) if isinstance(match.get("quotes"), list) else []:
         if not isinstance(quote, dict):
             continue
         market = re.sub(r"[^a-z0-9]+", " ", str(quote.get("group_name") or "").lower()).strip()
@@ -109,17 +95,22 @@ def find_bet365_live_btts_quote(match):
             continue
         if not 1.01 <= odds <= 1000:
             continue
-        candidates.append({"odds": odds, "source": "Bet365 / MoviOdds",
-            "market": "Both Teams to Score — Yes (LIVE FT)", "updated_at": quote.get("ts"),
-            "fixture_id": str(fixture.get("id") or ""), "group_id": group_id,
-            "sel_id": str(quote.get("sel_id") or "")})
+        candidates.append({
+            "odds": odds, "source": "Bet365 / MoviOdds",
+            "market": "Both Teams to Score — Yes (LIVE FT)",
+            "updated_at": quote.get("ts"), "fixture_id": str(match.get("id") or ""),
+            "group_id": group_id, "sel_id": str(quote.get("sel_id") or ""),
+        })
     unique = {(item["group_id"], round(item["odds"], 3)) for item in candidates}
     if len(unique) != 1:
         return None
     chosen = candidates[0]
-    print(f"Bet365 LIVE BTTS potwierdzony: {match['home']} - {match['away']} @ {chosen['odds']:.2f}; ts={chosen['updated_at']}", flush=True)
+    print(
+        f"Bet365 LIVE BTTS potwierdzony: {match.get('home')} - {match.get('away')} "
+        f"@ {chosen['odds']:.2f}; ts={chosen['updated_at']}",
+        flush=True,
+    )
     return chosen
-
 
 MIN_MINUTE = 18
 MAX_MINUTE = 78
@@ -306,56 +297,54 @@ def send_telegram(message):
 
 
 def live_matches():
-    payload = get_json(
-        "https://www.fotmob.com/api/data/matches",
-        {"date": now_local().date().isoformat()},
-    )
-    leagues = payload.get("leagues")
-    if not isinstance(leagues, list):
-        raise RuntimeError("FotMob: brak listy rozgrywek")
+    """Use one MoviOdds/Bet365 live board for fixtures, scores, clock and live stats."""
     output = []
-    for league in leagues:
-        if not isinstance(league, dict):
+    for match in live_odds_board():
+        if match.get("sport") not in (None, "", "soccer"):
             continue
-        league_name = league.get("name") or league.get("ccode") or ""
-        for match in league.get("matches", []) if isinstance(league.get("matches"), list) else []:
-            if not isinstance(match, dict) or is_womens(match, league_name):
-                continue
-            status = match.get("status") or {}
-            reason = status.get("reason") or {}
-            status_text = " ".join((str(status.get("short") or ""), str(reason.get("short") or ""))).lower()
-            if any(word in status_text for word in ("finished", "full time", "ft", "ended", "postponed", "cancelled")):
-                continue
-            minute = parse_minute(match)
-            home = match.get("home") or match.get("homeTeam") or {}
-            away = match.get("away") or match.get("awayTeam") or {}
-            try:
-                hs = int(home.get("score", match.get("homeScore")))
-                aws = int(away.get("score", match.get("awayScore")))
-            except (TypeError, ValueError):
-                continue
-            if minute is None or not MIN_MINUTE <= minute <= MAX_MINUTE:
-                continue
-            # BTTS is still open only at 0-0, 1-0 or 0-1.
-            if (hs, aws) not in {(0, 0), (1, 0), (0, 1)}:
-                continue
-            match_id = str(match.get("id") or match.get("matchId") or "")
-            if not match_id:
-                continue
-            output.append({
-                "id": match_id, "home": home.get("name") or "Gospodarze",
-                "away": away.get("name") or "Goście", "home_score": hs,
-                "away_score": aws, "minute": minute, "league": league_name or "Liga niepodana",
-            })
+        home = str(match.get("home") or "").strip()
+        away = str(match.get("away") or "").strip()
+        league = str(match.get("league") or "").strip()
+        if not home or not away or not match.get("id"):
+            continue
+        if is_womens({"home": {"name": home}, "away": {"name": away}}, league):
+            continue
+        score = re.match(r"^\s*(\d+)\s*[-:]\s*(\d+)\s*$", str(match.get("score") or ""))
+        if not score:
+            continue
+        hs, aws = int(score.group(1)), int(score.group(2))
+        if (hs, aws) not in {(0, 0), (1, 0), (0, 1)}:
+            continue
+        stats = match.get("stats") if isinstance(match.get("stats"), dict) else {}
+        clock = stats.get("clock") if isinstance(stats.get("clock"), dict) else {}
+        try:
+            minute = int(clock.get("minute"))
+        except (TypeError, ValueError):
+            continue
+        if not MIN_MINUTE <= minute <= MAX_MINUTE:
+            continue
+        home_stats = stats.get("home") if isinstance(stats.get("home"), dict) else {}
+        away_stats = stats.get("away") if isinstance(stats.get("away"), dict) else {}
+        metrics = {
+            "shots": (to_number(home_stats.get("shots")), to_number(away_stats.get("shots"))),
+            "sot": (to_number(home_stats.get("shots_on_target")), to_number(away_stats.get("shots_on_target"))),
+            "xg": (to_number(home_stats.get("xg")), to_number(away_stats.get("xg"))),
+            "big": (to_number(home_stats.get("big_chances")), to_number(away_stats.get("big_chances"))),
+            "corners": (to_number(home_stats.get("corners")), to_number(away_stats.get("corners"))),
+        }
+        if all(value is None for pair in metrics.values() for value in pair):
+            continue
+        output.append({
+            "id": str(match["id"]), "home": home, "away": away,
+            "home_score": hs, "away_score": aws, "minute": minute,
+            "league": league or "Liga niepodana", "stats": metrics,
+            "in_play": True, "quotes": match.get("quotes", []),
+            "group_status": match.get("group_status", {}),
+        })
     return output
 
-
 def evaluate(match):
-    detail = get_json(
-        "https://www.fotmob.com/api/data/matchDetails",
-        {"matchId": match["id"]},
-    )
-    metrics = team_metrics(collect_team_stats(detail))
+    metrics = match.get("stats") or {}
     scoreless = match["home_score"] == 0 and match["away_score"] == 0
     if scoreless:
         home_ok = team_has_threat(metrics, 0, True)
@@ -371,19 +360,15 @@ def evaluate(match):
         if not team_has_threat(metrics, 0, False):
             return None
         reason = "goście już strzelili; gospodarze pokazują realną presję"
-
     quote = find_bet365_live_btts_quote(match)
     if not quote:
-        print("LIVE BTTS: brak aktywnego, jednoznacznego kursu BTTS TAK FT — pomijam mecz.", flush=True)
+        print(
+            f"LIVE BTTS: brak aktywnego, świeżo potwierdzonego kursu BTTS TAK FT — "
+            f"pomijam {match['home']} - {match['away']}.",
+            flush=True,
+        )
         return None
-
-    return {
-        "reason": reason,
-        "home": metrics,
-        "away": metrics,
-        "quote": quote,
-    }
-
+    return {"reason": reason, "home": metrics, "away": metrics, "quote": quote}
 
 def run():
     now = now_local()
@@ -397,7 +382,7 @@ def run():
         return
 
     candidates = live_matches()
-    print(f"FotMob: kandydaci LIVE BTTS={len(candidates)}", flush=True)
+    print(f"MoviOdds/Bet365: kandydaci LIVE BTTS={len(candidates)}", flush=True)
     for match in candidates:
         key = f"{day}:{match['id']}"
         if key in alerts or sent_today >= MAX_ALERTS_PER_DAY:
