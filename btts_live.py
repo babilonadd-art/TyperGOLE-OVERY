@@ -22,6 +22,92 @@ TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "").strip()
 STATE_PATH = Path("data/btts_live_state.json")
 MAX_ALERTS_PER_DAY = 4
+
+MOVIODDS_API = "https://moviodds.com"
+MOVIODDS_API_KEY = os.getenv("MOVIODDS_API_KEY", "").strip()
+_LIVE_ODDS_BOARD = None
+
+def normalize_team(value):
+    value = str(value or "").lower()
+    value = re.sub(r"\b(fc|cf|sc|afc|club|the)\b", " ", value)
+    return " ".join(re.findall(r"[a-z0-9]+", value))
+
+def live_odds_board():
+    global _LIVE_ODDS_BOARD
+    if _LIVE_ODDS_BOARD is not None:
+        return _LIVE_ODDS_BOARD
+    if not MOVIODDS_API_KEY:
+        raise RuntimeError("Brak MOVIODDS_API_KEY w GitHub Secrets — bez klucza nie ma weryfikacji kursu LIVE.")
+    response = SESSION.get(
+        f"{MOVIODDS_API}/odds",
+        params={"sport": "soccer", "in_play": 1},
+        headers={"X-API-Key": MOVIODDS_API_KEY, "Accept-Encoding": "gzip"},
+        timeout=30,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    rows = payload.get("matches") if isinstance(payload, dict) else None
+    if not isinstance(rows, list):
+        raise RuntimeError("MoviOdds: nieprawidłowa odpowiedź tablicy LIVE.")
+    _LIVE_ODDS_BOARD = [row for row in rows if isinstance(row, dict) and row.get("in_play") is True]
+    print(f"MoviOdds/Bet365: {len(_LIVE_ODDS_BOARD)} meczów LIVE do weryfikacji kursu.", flush=True)
+    return _LIVE_ODDS_BOARD
+
+def find_bet365_live_btts_quote(match):
+    home_key, away_key = normalize_team(match["home"]), normalize_team(match["away"])
+    fixture_matches = []
+    for row in live_odds_board():
+        row_home, row_away = normalize_team(row.get("home")), normalize_team(row.get("away"))
+        if not home_key or not away_key:
+            continue
+        home_ratio = difflib.SequenceMatcher(None, home_key, row_home).ratio()
+        away_ratio = difflib.SequenceMatcher(None, away_key, row_away).ratio()
+        if home_key == row_home and away_key == row_away:
+            fixture_matches.append((1.0, row))
+        elif home_ratio >= 0.92 and away_ratio >= 0.92:
+            fixture_matches.append((min(home_ratio, away_ratio), row))
+    if len(fixture_matches) != 1:
+        if len(fixture_matches) > 1:
+            print(f"MoviOdds: niejednoznaczne dopasowanie {match['home']} - {match['away']}; odrzucam kurs.", flush=True)
+        return None
+    fixture = fixture_matches[0][1]
+    group_status = fixture.get("group_status") if isinstance(fixture.get("group_status"), dict) else {}
+    candidates = []
+    for quote in fixture.get("quotes", []) if isinstance(fixture.get("quotes"), list) else []:
+        if not isinstance(quote, dict):
+            continue
+        market = re.sub(r"[^a-z0-9]+", " ", str(quote.get("group_name") or "").lower()).strip()
+        if market != "both teams to score":
+            continue
+        phase = str(quote.get("phase") or "").strip().lower().replace("-", "_")
+        if phase and phase not in {"live", "inplay", "in_play"}:
+            continue
+        group_id = str(quote.get("group_id") or "")
+        status = group_status.get(group_id, {}) if group_id else {}
+        if not isinstance(status, dict) or status.get("stale") is True:
+            continue
+        if quote.get("suspended") is True or quote.get("stale") is True:
+            continue
+        if str(quote.get("label") or "").strip().lower() not in {"yes", "tak"}:
+            continue
+        try:
+            odds = float(quote.get("odds_dec"))
+        except (TypeError, ValueError):
+            continue
+        if not 1.01 <= odds <= 1000:
+            continue
+        candidates.append({"odds": odds, "source": "Bet365 / MoviOdds",
+            "market": "Both Teams to Score — Yes (LIVE FT)", "updated_at": quote.get("ts"),
+            "fixture_id": str(fixture.get("id") or ""), "group_id": group_id,
+            "sel_id": str(quote.get("sel_id") or "")})
+    unique = {(item["group_id"], round(item["odds"], 3)) for item in candidates}
+    if len(unique) != 1:
+        return None
+    chosen = candidates[0]
+    print(f"Bet365 LIVE BTTS potwierdzony: {match['home']} - {match['away']} @ {chosen['odds']:.2f}; ts={chosen['updated_at']}", flush=True)
+    return chosen
+
+
 MIN_MINUTE = 18
 MAX_MINUTE = 78
 SESSION = requests.Session()
@@ -273,10 +359,16 @@ def evaluate(match):
             return None
         reason = "goście już strzelili; gospodarze pokazują realną presję"
 
+    quote = find_bet365_live_btts_quote(match)
+    if not quote:
+        print("LIVE BTTS: brak aktywnego, jednoznacznego kursu BTTS TAK FT — pomijam mecz.", flush=True)
+        return None
+
     return {
         "reason": reason,
         "home": metrics,
         "away": metrics,
+        "quote": quote,
     }
 
 
@@ -308,11 +400,13 @@ def run():
                 f"{match['league']} | {match['minute']}'\n"
                 f"{match['home']} {match['home_score']}:{match['away_score']} {match['away']}\n"
                 "Rynek: OBA ZESPOŁY STRZELĄ — TAK (FT)\n"
+                f"Kurs LIVE Bet365: {signal['quote']['odds']:.2f}\n"
+                f"Źródło: {signal['quote']['source']} | aktualizacja: {signal['quote'].get('updated_at') or 'brak znacznika czasu'}\n"
                 f"Ocena: {signal['reason']}\n"
                 f"Statystyki H/A — strzały: {format_stat(num(home_m['shots'], 0))}/{format_stat(num(away_m['shots'], 1))}, "
                 f"celne: {format_stat(num(home_m['sot'], 0))}/{format_stat(num(away_m['sot'], 1))}, "
                 f"xG: {format_stat(num(home_m['xg'], 0))}/{format_stat(num(away_m['xg'], 1))}\n"
-                "Kurs LIVE: brak zweryfikowanej ceny — sprawdź rynek u bukmachera.\n"
+                "Kurs został sprawdzony przed wysłaniem alertu.\n"
                 "To sygnał statystyczny, nie gwarancja wyniku."
             )
             message_id = send_telegram(message)
