@@ -56,7 +56,7 @@ jobs:
         if: github.event_name != 'schedule' && !(github.event_name == 'push' && contains(github.event.head_commit.message, 'Publish manual BTTS doubles'))
         run: python -m unittest discover -s tests -p "test_*.py"
       - name: Scan and publish BTTS FT
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+        if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
