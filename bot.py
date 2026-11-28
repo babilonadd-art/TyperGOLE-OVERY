@@ -5444,7 +5444,9 @@ def send_prematch_over_15_ht_picks(state):
             "delivery_status": "pending",
         }
         state.setdefault("picks", []).append(pick)
-        state.setdefault("duplicate_guard", []).append(pick)
+        if not isinstance(state.get("duplicate_guard"), list):
+            state["duplicate_guard"] = []
+        state["duplicate_guard"].append(pick)
         save_state(state)
         try:
             payout = calculate_bet_result(STAKE, final_quote["odds"])
@@ -7103,7 +7105,9 @@ def _send_prematch_superbet_btts_picks_for_date(state, scan_date, overnight_only
             "telegram_format_version": 2,
         }
         state.setdefault("picks", []).append(pick)
-        state.setdefault("duplicate_guard", []).append(pick)
+        if not isinstance(state.get("duplicate_guard"), list):
+            state["duplicate_guard"] = []
+        state["duplicate_guard"].append(pick)
         batch_picks.append(pick)
         next_number += 1
         save_state(state)
