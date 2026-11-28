@@ -19,7 +19,7 @@ on:
         type: boolean
         default: true
   schedule:
-    - cron: "*/5 * * * *" # skan co 5 minut; data meczów liczona w Europe/Warsaw
+    - cron: "*/10 * * * *" # skan co 10 minut; data meczów liczona w Europe/Warsaw
 
 permissions:
   contents: write
@@ -33,7 +33,7 @@ concurrency:
 jobs:
   btts-ft:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
