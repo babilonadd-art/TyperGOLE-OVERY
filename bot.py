@@ -1069,10 +1069,58 @@ def fixture_categories_compatible(home_a, away_a, competition_a, home_b, away_b,
     return left == right
 
 
+_BTTS_COMPETITION_INDEX = None
+_BTTS_COMPETITION_RESOLUTION_CACHE = {}
+
+
+def _btts_competition_index(data):
+    """Index Open Matchday fixtures/results by safe team aliases once per run."""
+    global _BTTS_COMPETITION_INDEX
+    if _BTTS_COMPETITION_INDEX is not None:
+        return _BTTS_COMPETITION_INDEX
+
+    fixture_by_alias = {}
+    result_by_alias = {}
+    for row in data.get("fixtures", []):
+        for team in (row.get("home"), row.get("away")):
+            for alias in team_name_aliases(team):
+                fixture_by_alias.setdefault(alias, []).append(row)
+    for row in data.get("results", []):
+        for team in (row.get("home"), row.get("away")):
+            for alias in team_name_aliases(team):
+                result_by_alias.setdefault(alias, []).append(row)
+
+    _BTTS_COMPETITION_INDEX = {
+        "fixtures": fixture_by_alias,
+        "results": result_by_alias,
+    }
+    print(
+        f"BTTS league index: terminarz={len(data.get('fixtures', []))}, "
+        f"wyniki={len(data.get('results', []))}, "
+        f"aliasy terminarza={len(fixture_by_alias)}, "
+        f"aliasy wyników={len(result_by_alias)}; indeks zbudowany raz.",
+        flush=True,
+    )
+    return _BTTS_COMPETITION_INDEX
+
+
+def _btts_index_rows(index, aliases):
+    """Return unique indexed rows for a team without rescanning the full CSV."""
+    found = {}
+    for alias in aliases:
+        for row in index.get(alias, ()):
+            identity = (
+                str(row.get("date") or ""),
+                normalized_team_name(row.get("home")),
+                normalized_team_name(row.get("away")),
+                str(row.get("_folder") or ""),
+            )
+            found[identity] = row
+    return list(found.values())
+
+
 def resolve_btts_competition(home, away, kickoff, preferred=""):
-    """Resolve a missing BTTS league from Open Matchday's global fixtures/results.
-    Never return a fabricated or generic league label.
-    """
+    """Resolve competition from Superbet or indexed Open Matchday data."""
     preferred = str(preferred or "").strip()
     if preferred and preferred.casefold() not in {"unknown", "unknown league", "liga nieznana"}:
         return format_fixture_competition(preferred, home, away), "Superbet"
@@ -1083,11 +1131,39 @@ def resolve_btts_competition(home, away, kickoff, preferred=""):
         print(f"League resolver: Open Matchday unavailable: {type(exc).__name__}: {exc}", flush=True)
         return "", ""
 
-    target_date = kickoff.date() if isinstance(kickoff, datetime) else None
+    try:
+        target_date = kickoff.date() if isinstance(kickoff, datetime) else None
+    except (TypeError, ValueError):
+        target_date = None
+    cache_key = (
+        normalized_team_name(home), normalized_team_name(away),
+        target_date.isoformat() if target_date else "",
+    )
+    if cache_key in _BTTS_COMPETITION_RESOLUTION_CACHE:
+        return _BTTS_COMPETITION_RESOLUTION_CACHE[cache_key]
+
+    index = _btts_competition_index(data)
+    home_aliases = team_name_aliases(home)
+    away_aliases = team_name_aliases(away)
+
+    # First choice: the same fixture in Open Matchday's worldwide schedule.
+    fixture_rows = {}
+    for row in (
+        _btts_index_rows(index["fixtures"], home_aliases)
+        + _btts_index_rows(index["fixtures"], away_aliases)
+    ):
+        identity = (
+            str(row.get("date") or ""),
+            normalized_team_name(row.get("home")),
+            normalized_team_name(row.get("away")),
+            str(row.get("_folder") or ""),
+        )
+        fixture_rows[identity] = row
+
     candidates = []
-    # First choice: the same fixture in the public worldwide match schedule.
-    for row in data.get("fixtures", []):
-        row_home, row_away = str(row.get("home") or "").strip(), str(row.get("away") or "").strip()
+    for row in fixture_rows.values():
+        row_home = str(row.get("home") or "").strip()
+        row_away = str(row.get("away") or "").strip()
         if not row_home or not row_away:
             continue
         row_kickoff = open_matchday_kickoff(row)
@@ -1097,37 +1173,58 @@ def resolve_btts_competition(home, away, kickoff, preferred=""):
         reverse = (team_name_similarity(row_home, away), team_name_similarity(row_away, home))
         score = max(min(direct), min(reverse))
         league = str(row.get("_league") or "").strip()
-        if score >= 0.88 and league and league.casefold() not in {"unknown", "liga nieznana"}:
-            candidates.append((score, 2 if target_date and row_kickoff and row_kickoff.date() == target_date else 1, league))
+        if (
+            score >= 0.88 and league
+            and league.casefold() not in {"unknown", "unknown league", "liga nieznana"}
+            and fixture_categories_compatible(
+                row_home, row_away, league, home, away, preferred
+            )
+        ):
+            candidates.append((
+                score,
+                2 if target_date and row_kickoff and row_kickoff.date() == target_date else 1,
+                league,
+            ))
     if candidates:
         candidates.sort(reverse=True)
         best = candidates[0]
-        return format_fixture_competition(best[2], home, away), "Open Matchday — terminarz"
+        result = (format_fixture_competition(best[2], home, away), "Open Matchday — terminarz")
+        _BTTS_COMPETITION_RESOLUTION_CACHE[cache_key] = result
+        return result
 
-    # Second choice: identify a competition shared by both teams in recent results.
+    # Second choice: find a shared competition using indexed team histories.
     team_leagues = []
-    for team in (home, away):
+    for team, aliases in ((home, home_aliases), (away, away_aliases)):
         counts = {}
         latest = {}
-        for row in data.get("results", []):
-            row_home, row_away = str(row.get("home") or "").strip(), str(row.get("away") or "").strip()
+        for row in _btts_index_rows(index["results"], aliases):
+            row_home = str(row.get("home") or "").strip()
+            row_away = str(row.get("away") or "").strip()
             if max(team_name_similarity(team, row_home), team_name_similarity(team, row_away)) < 0.88:
                 continue
             league = str(row.get("_league") or "").strip()
-            if not league or league.casefold() in {"unknown", "liga nieznana"}:
+            if not league or league.casefold() in {"unknown", "unknown league", "liga nieznana"}:
                 continue
             counts[league] = counts.get(league, 0) + 1
             row_date = str(row.get("date") or "")
             latest[league] = max(latest.get(league, ""), row_date)
         team_leagues.append((counts, latest))
+
     common = set(team_leagues[0][0]) & set(team_leagues[1][0])
     if common:
         league = max(common, key=lambda name: (
             min(team_leagues[0][0][name], team_leagues[1][0][name]),
             min(team_leagues[0][1].get(name, ""), team_leagues[1][1].get(name, "")),
         ))
-        return format_fixture_competition(league, home, away), "Open Matchday — wspólna liga w historii"
-    return "", ""
+        result = (
+            format_fixture_competition(league, home, away),
+            "Open Matchday — wspólna liga w historii",
+        )
+    else:
+        result = ("", "")
+
+    _BTTS_COMPETITION_RESOLUTION_CACHE[cache_key] = result
+    return result
 
 
 def is_uefa_nations_league_competition(competition):
