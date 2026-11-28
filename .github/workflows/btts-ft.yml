@@ -48,8 +48,8 @@ jobs:
           cache-dependency-path: requirements.txt
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Compile BTTS and Over Live
-        run: python -m py_compile bot.py btts_ft.py over_live.py
+      - name: Compile BTTS FT
+        run: python -m py_compile bot.py btts_ft.py
       # Testy wykonujemy przy zmianach kodu i ręcznym Dry Run.
       # Nie uruchamiamy 90-sekundowego zestawu testów przed każdym skanem cron.
       - name: Run automated tests
