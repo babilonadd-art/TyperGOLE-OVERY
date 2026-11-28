@@ -5,6 +5,7 @@ scanner. It never fabricates bookmaker odds. It sends at most four alerts per
 Warsaw-local day and requires evidence of attacking threat from both sides.
 """
 import json
+import difflib
 import os
 import re
 from datetime import datetime
