@@ -93,7 +93,7 @@ def find_bet365_live_btts_quote(match):
             odds = float(quote.get("odds_dec"))
         except (TypeError, ValueError):
             continue
-        if not 1.01 <= odds <= 1000:
+        if not 1.80 <= odds <= 1000:
             continue
         candidates.append({
             "odds": odds, "source": "Bet365 / MoviOdds",
@@ -112,8 +112,8 @@ def find_bet365_live_btts_quote(match):
     )
     return chosen
 
-MIN_MINUTE = 18
-MAX_MINUTE = 78
+MIN_MINUTE = 15
+MAX_MINUTE = 75
 SESSION = requests.Session()
 SESSION.headers.update(HEADERS)
 
